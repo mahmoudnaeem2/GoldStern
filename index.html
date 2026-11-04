@@ -6,6 +6,19 @@
 <title>Goldstern ERP</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>
+/* Show a readable message instead of a blank page if anything stops the system from starting. */
+window.__bootErrors = [];
+window.addEventListener('error', function (e) { var t = e.target, u = t && (t.src || t.href); window.__bootErrors.push(e.message ? e.message + (e.lineno ? ' (line ' + e.lineno + ')' : '') : u ? 'Could not load ' + u : 'Unknown error'); }, true);
+window.addEventListener('load', function () { setTimeout(function () {
+  var app = document.getElementById('app'); if (app && app.children.length) return;
+  var box = document.createElement('div'); box.id = 'boot-err';
+  box.style.cssText = 'max-width:640px;margin:80px auto;padding:24px 28px;font:15px/1.6 system-ui,sans-serif;border:1px solid #e3bdb8;background:#fdf3f2;color:#5b1d18;border-radius:12px';
+  box.innerHTML = '<b style="font-size:17px">Goldstern ERP could not start.</b><p>Reload the page (Ctrl+Shift+R). If it stays like this, send this message to support:</p><pre style="white-space:pre-wrap;background:#fff;border:1px solid #eed;padding:10px;border-radius:8px;font-size:12.5px"></pre>';
+  box.querySelector('pre').textContent = (window.__bootErrors.join('\n') || 'No error was reported, but the screen did not load.') + '\n' + navigator.userAgent;
+  document.body.appendChild(box);
+}, 1500); });
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/decimal.js/10.4.3/decimal.min.js"></script>
 <style>
 :root{

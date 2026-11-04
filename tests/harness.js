@@ -2,7 +2,7 @@
 const fs = require('fs'), vm = require('vm');
 const html = fs.readFileSync(process.argv[2], 'utf8');
 const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]);
-if (scripts.length !== 1) throw new Error('expected one inline script, found ' + scripts.length);
+scripts.sort((a, b) => b.length - a.length); // the app is the largest inline script
 
 // --- BigInt decimal stand-in (only the API surface the app uses) ---
 const SC = 40n, SCALE = 10n ** SC;
