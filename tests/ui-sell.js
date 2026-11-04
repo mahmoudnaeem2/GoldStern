@@ -6,7 +6,7 @@ const { chromium } = require('playwright'); const fs = require('fs');
   const errs = []; p.on('pageerror', e => errs.push(e.message));
   await p.goto('file://' + require('path').resolve(__dirname, '../index.html')); await p.waitForTimeout(300);
   await p.click('button.primary'); await p.waitForTimeout(400); await p.evaluate(() => { OVERDRAFT_CONTROL = false; });
-  const r = await p.evaluate(() => { A.seedChart();
+  const r = await p.evaluate(() => { if (!S.accounts.length) A.seedChart();
     const eur = 'gl:' + S.accounts.find(a => a.code === '1122').id, cash = 'gl:' + S.accounts.find(a => a.code === '1110').id;
     const po = A.createImportOrder({ makeName:'Porsche', modelName:'718 Boxster', vin:'090110', customerName:'Kamal', customerPhone:'01001234599', supplierName:'AMG', price:'90000', currency:'EUR', rate:'92' });
     A.createCarExpense({ costTypeName:'International shipping', description:'Hamburg → Alexandria', amount:'1500', currency:'EUR', rate:'93', payMode:'now', bankId: eur, cx_car:[poVehicle(po).id], date: todayCairo() });

@@ -4,7 +4,7 @@ const { chromium } = require('playwright'); const fs = require('fs');
   await p.route(/decimal/, r => r.fulfill({ contentType: 'application/javascript', body: fs.readFileSync(require('path').join(__dirname, 'dec-shim.js'), 'utf8') }));
   await p.route(/googleapis|gstatic|xlsx/, r => r.abort());
   await p.goto('file://' + require('path').resolve(__dirname, '../index.html')); await p.waitForTimeout(300); await p.click('button.primary'); await p.waitForTimeout(400);
-  const r = await p.evaluate(() => { A.seedChart(); const out = [];
+  const r = await p.evaluate(() => { if (!S.accounts.length) A.seedChart(); const out = [];
     const cash = 'gl:' + S.accounts.find(a => a.code === '1110').id, eur = 'gl:' + S.accounts.find(a => a.code === '1122').id;
     const po = A.createImportOrder({ makeName:'BMW', modelName:'X5', vin:'WBAOD000000000001', customerName:'Mahmoud Naeem', customerPhone:'01000000009', supplierName:'AMG', price:'50000', currency:'EUR', rate:'58' });
     const n0 = S.entries.length;

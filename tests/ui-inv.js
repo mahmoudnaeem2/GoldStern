@@ -6,7 +6,7 @@ const { chromium } = require('playwright'); const fs = require('fs');
   const errs = []; p.on('pageerror', e => errs.push(e.message));
   await p.goto('file://' + require('path').resolve(__dirname, '../index.html')); await p.waitForTimeout(300);
   await p.click('button.primary'); await p.waitForTimeout(400); await p.evaluate(() => { OVERDRAFT_CONTROL = false; });
-  await p.evaluate(() => { A.seedChart();
+  await p.evaluate(() => { if (!S.accounts.length) A.seedChart();
     const mk = (mkN, m, vin, c, pr) => A.createImportOrder({ makeName:mkN, modelName:m, vin, customerName:c, customerPhone:'010012345' + vin.slice(-2), supplierName:'AMG', price:pr, currency:'EUR', rate:'55' });
     const a = mk('BMW','X5','WBAX5111','Mahmoud Naeem','60000'), b2 = mk('BMW','X3','WBAX3222','Ahmed Hamdy','40000'), c = mk('Porsche','Cayenne','WP0CY333','Sara Ali','90000'), d = mk('Mercedes-Benz','CLE','W1K44444','Kamal','70000');
     for (const po of [a, b2, c]) A.billImportOrder(po.id, { pi_line: [po.lines[0].id], date: todayCairo(), partnerRef: 'AMG-' + po.number, destination:'transit' });

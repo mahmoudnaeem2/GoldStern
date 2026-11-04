@@ -3318,7 +3318,7 @@ function landedChecks(){
 }
 function landedRows(){
   const c = lcache(); if (c.landed) return c.landed;
-  const idx = vehicleIndex(), m = new Map(); let exp = getMapping('import_expense').id;
+  const idx = vehicleIndex(), m = new Map(); let exp = null; try { exp = getMapping('import_expense').id; } catch (e){}
   for (const { e, l } of ledgerLines()){
     const vid = lineVehicleId(l, idx); if (!vid || !l.costType) continue;
     const r = m.get(vid) || { cap: {}, capTotal: D0(), expTotal: D0() }; const amt = D(l.egpDebit).minus(l.egpCredit);
@@ -4787,11 +4787,21 @@ function viewShell(){
         ${!OPEN_ACCESS ? `<button type="button" class="btn sm" data-act="logout">${t('signout')}</button>` : ''}
       </header>
       ${subnavHTML()}
-      <main class="content">${pageFor(r)}</main>
+      <main class="content">${safePage(r)}</main>
     </div></div>`;
 }
 function denied(module){
   return `<div class="card"><div class="card-b"><div class="note bad" style="margin:0"><b>Access denied.</b> Your role(s) do not have read access to ${esc(MODULES.find(m => m.code === module)?.name || module)}.</div></div></div>`;
+}
+/* A page that fails to build shows its error in place; the rest of the system keeps working. */
+function safePage(r){
+  try { return pageFor(r); }
+  catch (e){
+    if (typeof console !== 'undefined') console.error(e);
+    const mapping = /Account mapping/.test(e && e.message);
+    return `<div class="card"><div class="card-b"><div class="note ${mapping ? 'warn' : 'bad'}" style="margin:0"><b>This page could not be shown.</b><div style="margin-top:4px">${esc(e && e.message || String(e))}</div></div>
+      <div style="display:flex;gap:8px;margin-top:14px">${mapping ? '<a class="btn primary" href="#/acc/mappings">Open account mappings</a>' : ''}<a class="btn" href="#/dashboard">Go to the dashboard</a></div></div></div>`;
+  }
 }
 function pageFor(r){
   if (r.startsWith('m/')) return pagePlanned(r.slice(2));
@@ -6656,7 +6666,7 @@ function pageTests(){
 const FORM_HANDLERS = {
   async setup(f){
     const err = document.getElementById('setup-err');
-    try { await A.setupCompany(f); seedCatalogue(); location.hash = '#/dashboard'; render(); toast('Company created. You can start with a customer import order.', 'ok'); }
+    try { await A.setupCompany(f); seedCatalogue(); ensureStandardChart(); location.hash = '#/dashboard'; render(); toast('Company created. You can start with a customer import order.', 'ok'); }
     catch (e){ err.textContent = e.message; err.style.display = 'block'; }
   },
   async login(f){
@@ -9103,8 +9113,29 @@ function runTestSuite(){
   return { at: nowISO(), by, ms: Math.round(performance.now() - t0), passed, failed, skipped, results };
 }
 
+/* Keep the standard Goldstern chart in place: load it into an empty chart, and repair any missing account mapping. */
+function ensureStandardChart(){
+  if (!S.company) return;
+  try {
+    if (!S.accounts.length){ A.seedChart(); return; }
+    const byCode = c => S.accounts.find(a => a.code === c), fixed = [];
+    for (const [key, label, , code] of MAPPING_KEYS){
+      const cur = S.mappings[key] && acc(S.mappings[key]); if (cur && cur.active && !cur.isGroup) continue;
+      let a = byCode(code);
+      if (!a){ const row = COA_TEMPLATE.find(r => r[0] === code); if (!row) continue; const [c, en, ar, type, parent, flags] = row, fl = flags.split(' ').filter(Boolean), get = k => (fl.find(x => x.startsWith(k + '=')) || '').split('=')[1];
+        a = { id: uid('ac'), code: c, nameEn: en, nameAr: ar, parentId: parent && byCode(parent) ? byCode(parent).id : null, type, isGroup: fl.includes('g'), normal: get('n') || ACC_TYPES[type].normal, allowManual: !fl.includes('m0'), reconcile: fl.includes('rec'), currency: get('cur') || '',
+          requireCostCenter: fl.includes('cc'), revalue: fl.includes('rv'), system: fl.includes('s') || !parent, active: true, description: '', createdAt: nowISO() };
+        S.accounts.push(a); }
+      if (!a.active || a.isGroup) continue;
+      S.mappings[key] = a.id; fixed.push(`${label} → ${a.code}`);
+    }
+    if (fixed.length){ log('mapping_repair', 'mappings', null, null, { fixed }, 'Missing account mappings set to the standard Goldstern accounts'); saveState(); }
+  } catch (e){ if (typeof console !== 'undefined') console.warn('Standard chart check skipped:', e && e.message); }
+}
+
 /* ---------------- Boot ---------------- */
 S = loadState(); loadUI(); loadSession();
+ensureStandardChart();
 if (S.meta.migratedAt && !S.meta.migrationLogged){ S.meta.migrationLogged = true; log('schema_migration', 'settings', null, null, { schema: S.schema, version: APP_VERSION }, `Data upgraded to schema ${SCHEMA} (existing records unchanged)`); saveState(); }
 if (!OPEN_ACCESS && SESSION && SESSION.userId && Date.now() - (SESSION.lastActive || 0) > IDLE_MINUTES * 60000){ SESSION = null; saveSession(); }
 if (S.company && !(S.makes || []).length) seedCatalogue();

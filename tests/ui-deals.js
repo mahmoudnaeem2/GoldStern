@@ -4,7 +4,7 @@ const { chromium } = require('playwright'); const fs = require('fs');
   await p.route(/decimal/, r => r.fulfill({ contentType: 'application/javascript', body: fs.readFileSync(require('path').join(__dirname, 'dec-shim.js'), 'utf8') })); await p.route(/googleapis|gstatic|xlsx/, r => r.abort());
   const errs = []; p.on('pageerror', e => errs.push(e.message));
   await p.goto('file://' + require('path').resolve(__dirname, '../index.html')); await p.waitForTimeout(300); await p.click('button.primary'); await p.waitForTimeout(400);
-  await p.evaluate(() => { A.seedChart(); location.hash = '#/pur/import'; render(); }); await p.waitForTimeout(300);
+  await p.evaluate(() => { if (!S.accounts.length) A.seedChart(); location.hash = '#/pur/import'; render(); }); await p.waitForTimeout(300);
   // UI: buy from a customer
   await p.click('button[data-kind="local"]'); await p.waitForTimeout(300); await p.screenshot({ path: require('path').join(__dirname, 'out', 'deal-local-form.png') });
   await p.selectOption('select[name=makeName]', 'BMW'); await p.waitForTimeout(100); await p.selectOption('select[name=modelName]', { index: 1 });

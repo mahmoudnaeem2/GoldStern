@@ -6,7 +6,7 @@ const { chromium } = require('playwright'); const fs = require('fs');
   const errs = []; p.on('pageerror', e => errs.push(e.message));
   await p.goto('file://' + require('path').resolve(__dirname, '../index.html')); await p.waitForTimeout(300);
   await p.click('button.primary'); await p.waitForTimeout(400); await p.evaluate(() => { OVERDRAFT_CONTROL = false; });
-  const ids = await p.evaluate(() => { A.seedChart();
+  const ids = await p.evaluate(() => { if (!S.accounts.length) A.seedChart();
     const a = A.createImportOrder({ makeName:'BMW', modelName:'X5', vin:'WBAX5111', customerName:'Mahmoud Naeem', customerPhone:'01001234567', supplierName:'AMG', price:'50000', currency:'EUR', rate:'55' });
     const b = A.createImportOrder({ makeName:'BMW', modelName:'X3', vin:'WBAX3222', customerName:'Ahmed Hamdy', customerPhone:'01001234568', supplierName:'AMG', price:'30000', currency:'EUR', rate:'55' });
     A.billImportOrder(b.id, { pi_line: [b.lines[0].id], date: todayCairo(), partnerRef: 'AMG-B', destination:'transit' });

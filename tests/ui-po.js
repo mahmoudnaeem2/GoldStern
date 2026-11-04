@@ -6,7 +6,7 @@ const { chromium } = require('playwright'); const fs = require('fs');
   const errs = []; p.on('pageerror', e => errs.push(e.message));
   await p.goto('file://' + require('path').resolve(__dirname, '../index.html')); await p.waitForTimeout(300);
   await p.click('button.primary'); await p.waitForTimeout(400); await p.evaluate(() => { OVERDRAFT_CONTROL = false; });
-  await p.evaluate(() => { A.seedChart();
+  await p.evaluate(() => { if (!S.accounts.length) A.seedChart();
     const po = A.createImportOrder({ makeName:'BMW', modelName:'3 Series', vin:'87393283', customerName:'Ahmed Hamdy', customerPhone:'01001234567', supplierName:'AMG', price:'9000', currency:'EUR', rate:'72', deliveryTerms:'CIF Alexandria' });
     location.hash = '#/pur/import'; render(); setTimeout(() => poView(poById(po.id)), 50); });
   await p.waitForTimeout(400); await p.screenshot({ path: require('path').join(__dirname, 'out', 'po-new.png'), fullPage: true });

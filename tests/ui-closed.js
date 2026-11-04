@@ -6,7 +6,7 @@ const { chromium } = require('playwright'); const fs = require('fs');
   const errs = []; p.on('pageerror', e => errs.push(e.message));
   await p.goto('file://' + require('path').resolve(__dirname, '../index.html')); await p.waitForTimeout(300);
   await p.click('button.primary'); await p.waitForTimeout(400); await p.evaluate(() => { OVERDRAFT_CONTROL = false; });
-  const out = await p.evaluate(() => { A.seedChart();
+  const out = await p.evaluate(() => { if (!S.accounts.length) A.seedChart();
     const po = A.createImportOrder({ makeName:'BMW', modelName:'1 Series', vin:'98191', customerName:'Mahmoud Naeem', customerPhone:'01001234567', supplierName:'AMG', price:'150000', currency:'EUR', rate:'92' });
     const eur = 'gl:' + S.accounts.find(a => a.code === '1122').id, cash = 'gl:' + S.accounts.find(a => a.code === '1110').id;
     A.createSettlement('ap', { side:'ap', partnerId: po.supplierId, bankId: cash, date: todayCairo(), amount:'15000', currency:'EGP', rate:'92', poId: po.id });
