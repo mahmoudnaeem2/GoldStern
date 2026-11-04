@@ -43,9 +43,12 @@ td > a:first-child,td.num{white-space:nowrap}
 .brand-info{display:flex;flex-direction:column}
 .brand-title{font-size:14.5px;font-weight:800;letter-spacing:0.09em;color:#ffffff;line-height:1.2}
 .brand-name{color:#f3f1ea;font-weight:600;letter-spacing:.02em}
-.side-collapse-btn{margin-inline-start:auto;background:transparent;border:0;color:#64748b;padding:6px;border-radius:6px;cursor:pointer;display:grid;place-items:center;transition:all .15s ease}
-.side-collapse-btn:hover{color:#ffffff;background:rgba(255,255,255,.08)}
-.shell.collapsed .brand-info, .shell.collapsed .side-collapse-btn{display:none}
+.side-collapse-btn{margin-inline-start:auto;background:transparent;border:0;color:#94a3b8;padding:6px;border-radius:6px;cursor:pointer;display:grid;place-items:center;transition:all .15s ease}
+.side-collapse-btn:hover{color:#ffffff;background:rgba(255,255,255,.1)}
+.shell.collapsed .brand{padding:14px 6px 10px;display:flex;flex-direction:column;gap:8px;justify-content:center;align-items:center;cursor:pointer}
+.shell.collapsed .brand-info{display:none}
+.shell.collapsed .side-collapse-btn{display:flex!important;align-items:center;justify-content:center;width:28px;height:24px;border-radius:6px;background:rgba(255,255,255,0.08);color:#cbd5e1;margin:0 auto;transition:all .15s ease}
+.shell.collapsed .side-collapse-btn:hover{background:rgba(255,255,255,0.22);color:#ffffff;transform:scale(1.08)}
 .nav-scroll{flex:1;overflow-y:auto;padding:12px 10px}
 .nav{display:flex;flex-direction:column;gap:3px;padding:0}
 .nav-sep{height:1px;background:rgba(255,255,255,0.08);margin:8px 10px}
@@ -824,21 +827,23 @@ th{color:var(--g500);font-weight:500;background:var(--g50)}
   text-overflow: ellipsis;
 }
 .combo-item-add {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 9px 12px;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 8px !important;
+  padding: 10px 12px !important;
   border-top: 1px solid #e2e8f0;
-  color: #0284c7;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
+  color: #0284c7 !important;
+  background: #f0f9ff !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
   border-radius: 6px;
-  margin-top: 2px;
+  margin-top: 4px;
 }
 .combo-item-add:hover, .combo-item-add.active {
-  background: #f0f9ff;
-  color: #0369a1;
+  background: #e0f2fe !important;
+  color: #0369a1 !important;
 }
 .combo-empty {
   padding: 12px;
@@ -4580,6 +4585,8 @@ const ICONS = {
   coins: '<circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18"/><path d="M7 6h1v4"/><path d="m16.71 13.88.7.71-2.82 2.82"/>',
   check: '<path d="M20 6 9 17l-5-5"/>',
   chev: '<path d="m6 9 6 6 6-6"/>',
+  'chev-right': '<path d="m9 18 6-6-6-6"/>',
+  'chev-left': '<path d="m15 18-6-6 6-6"/>',
   file: '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/>'
 };
 const ic = (n, sz = 18) => `<svg class="ic" width="${sz}" height="${sz}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n] || ''}</svg>`;
@@ -4668,12 +4675,12 @@ function viewShell(){
   return `<div class="shell${isCollapsed ? ' collapsed' : ''}">
     <div class="side-backdrop" data-act="side-close"></div>
     <aside class="side">
-      <div class="brand">
+      <div class="brand" data-act="side-collapse" title="${isCollapsed ? 'Click to expand sidebar' : 'Collapse sidebar'}" style="${isCollapsed ? 'cursor:pointer;' : ''}">
         <div class="brand-logo-wrap"><img class="brand-logo" src="${LOGO_MARK}" alt="Goldstern Logo"></div>
         <div class="brand-info">
           <div class="brand-title">GOLDSTERN</div>
         </div>
-        <button type="button" class="side-collapse-btn" data-act="side-collapse" title="Collapse sidebar" aria-label="Toggle sidebar">${ic('chev', 14)}</button>
+        <button type="button" class="side-collapse-btn" data-act="side-collapse" title="${isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}" aria-label="Toggle sidebar">${ic(isCollapsed ? 'chev-right' : 'chev-left', 14)}</button>
       </div>
       <div class="nav-scroll">
         <nav class="nav" aria-label="Main">${navHTML()}</nav>
@@ -6725,13 +6732,7 @@ const CLICK = {
   'side-collapse'(){
     UI.sideCollapsed = !UI.sideCollapsed;
     saveUI();
-    const sh = document.querySelector('.shell');
-    if (sh) sh.classList.toggle('collapsed', UI.sideCollapsed);
-    if (window.innerWidth <= 768){
-      const s = document.querySelector('.side'), b = document.querySelector('.side-backdrop');
-      if (s) s.classList.toggle('open');
-      if (b) b.classList.toggle('open');
-    }
+    render();
   },
   lang(){ UI.lang = UI.lang === 'ar' ? 'en' : 'ar'; saveUI(); render(); },
   logout(){ A.logout(); render(); },
@@ -7374,9 +7375,57 @@ function pickMakeModel(makeT, modelT){
   if (!md){ requirePerm('vehicles', 'create'); md = { id: uid('md'), name: dn, active: true }; mk.models.push(md); log('model_create', 'vehicles', md.id, null, { make: mk.name, model: dn }, 'Added while entering a vehicle', dn); }
   return { makeId: mk.id, modelId: md.id };
 }
+/* A starting catalogue so the brand and model lists are not empty (edit, rename or add to it freely). */
+const DEFAULT_CATALOGUE = {
+  'BMW': ['1 Series','2 Series','3 Series','4 Series','5 Series','7 Series','X1','X2','X3','X4','X5','X6','X7','XM','Z4','i4','i5','i7','iX','M3','M5'],
+  'Mercedes-Benz': ['A-Class','C-Class','CLA','CLE','E-Class','S-Class','G-Class','GLA','GLB','GLC','GLE','GLS','EQA','EQB','EQE','EQS','AMG GT','V-Class','Maybach S-Class'],
+  'Audi': ['A3','A4','A5','A6','A7','A8','Q2','Q3','Q4 e-tron','Q5','Q7','Q8','e-tron GT','RS 6'],
+  'Porsche': ['911','718 Cayman','718 Boxster','Taycan','Panamera','Macan','Cayenne'],
+  'Volkswagen': ['Polo','Golf','T-Roc','Tiguan','Touareg','Passat','ID.4','ID. Buzz','Teramont'],
+  'MINI': ['Cooper','Countryman','Aceman']
+};
+
+function ensureMakeModels(m){
+  if (!m) return;
+  const catKey = Object.keys(DEFAULT_CATALOGUE).find(k => sameTxt(k, m.name));
+  if (catKey && DEFAULT_CATALOGUE[catKey]){
+    m.models = m.models || [];
+    for (const name of DEFAULT_CATALOGUE[catKey]){
+      if (!m.models.some(x => sameTxt(x.name, name))){
+        m.models.push({ id: uid('md'), name, active: true });
+      }
+    }
+  }
+}
+
 /* UI side: real dropdown lists with “+ Add new…” at the bottom */
-const makeOpts = () => S.makes.filter(m => m.active !== false).map(m => ({ v: m.name }));
-const modelOpts = makeTxt => { const m = S.makes.find(x => sameTxt(x.name, makeTxt)); return m ? m.models.filter(x => x.active !== false).map(x => ({ v: x.name })) : []; };
+const makeOpts = () => {
+  const existing = (S.makes || []).filter(m => m.active !== false).map(m => m.name);
+  for (const k of Object.keys(DEFAULT_CATALOGUE)){
+    if (!existing.some(name => sameTxt(name, k))) existing.push(k);
+  }
+  return existing.map(v => ({ v }));
+};
+
+const modelOpts = makeTxt => {
+  const norm = String(makeTxt || '').trim();
+  if (!norm){
+    return Object.entries(DEFAULT_CATALOGUE).flatMap(([brand, models]) =>
+      models.map(m => ({ v: m, label: `${brand} ${m}`, make: brand }))
+    );
+  }
+  let m = (S.makes || []).find(x => sameTxt(x.name, norm));
+  if (m) ensureMakeModels(m);
+  let list = m ? (m.models || []).filter(x => x.active !== false).map(x => ({ v: x.name })) : [];
+  const catKey = Object.keys(DEFAULT_CATALOGUE).find(k => sameTxt(k, norm));
+  if (catKey && DEFAULT_CATALOGUE[catKey]){
+    for (const md of DEFAULT_CATALOGUE[catKey]){
+      if (!list.some(x => sameTxt(x.v, md))) list.push({ v: md });
+    }
+  }
+  return list;
+};
+
 const partnerOpts = side => partnersOf(side).filter(p => p.active).map(p => ({ v: p.legalName, label: `${p.legalName} — ${p.code}${p.phone ? ' · ' + p.phone : ''}` }));
 const PICK_WORD = { make: 'brand', model: 'model', customer: 'customer', supplier: 'supplier', costtype: 'expense type' };
 function pickOptions(opts, value, kind){
@@ -7399,10 +7448,10 @@ function combo(name, opts, value, ph, kind){
 
 function getComboOptions(wrap){
   const kind = wrap.dataset.pick;
-  const form = wrap.closest('form') || wrap.closest('#mform') || wrap.closest('.o-sheet') || document;
+  const form = wrap.closest('form') || wrap.closest('#mform') || wrap.closest('.o-sheet') || wrap.closest('.modal') || document;
   if (kind === 'make') return makeOpts();
   if (kind === 'model'){
-    const mk = form.querySelector('[data-pick=make]');
+    const mk = form.querySelector('[data-pick=make]') || document.querySelector('[data-pick=make]');
     return modelOpts(mk ? mk.value : '');
   }
   if (kind === 'customer') return partnerOpts('ar');
@@ -7422,13 +7471,14 @@ function highlightMatch(text, query){
   return `${esc(before)}<mark>${esc(match)}</mark>${esc(after)}`;
 }
 
-function renderComboDropdown(wrap, query){
+function renderComboDropdown(wrap, query, showAll = false){
   const pop = wrap.querySelector('.combo-pop');
   const input = wrap.querySelector('.combo-input');
   if (!pop || !input) return;
   const kind = wrap.dataset.pick;
   const opts = getComboOptions(wrap);
-  const q = String(query ?? input.value ?? '').trim().toLowerCase();
+  const rawQ = showAll ? '' : String(query ?? input.value ?? '').trim();
+  const q = rawQ.toLowerCase();
   
   let matches = opts;
   if (q){
@@ -7441,27 +7491,29 @@ function renderComboDropdown(wrap, query){
 
   let html = '';
   if (matches.length){
-    html = matches.slice(0, 60).map(o => {
+    html = matches.slice(0, 100).map(o => {
       const isSel = sameTxt(o.v, input.value);
-      return `<div class="combo-item${isSel ? ' selected' : ''}" data-val="${esc(o.v)}">
+      return `<div class="combo-item${isSel ? ' selected active' : ''}" data-val="${esc(o.v)}"${o.make ? ` data-make="${esc(o.make)}"` : ''}>
         <span class="combo-item-title">${highlightMatch(o.v, q)}</span>
         ${o.label && !sameTxt(o.label, o.v) ? `<span class="combo-item-sub">${highlightMatch(o.label, q)}</span>` : ''}
       </div>`;
     }).join('');
   } else if (!q){
-    html = `<div class="combo-empty">${kind === 'model' ? 'Select a brand first' : 'No options available'}</div>`;
+    html = `<div class="combo-empty">${kind === 'model' ? 'Select a brand first or type any model' : 'No options available'}</div>`;
   }
 
-  const rawQ = String(query ?? input.value ?? '').trim();
   const exactMatch = opts.some(o => sameTxt(o.v, rawQ));
   if (rawQ && !exactMatch){
     html += `<div class="combo-item combo-item-add" data-val="${esc(rawQ)}">
-      <span style="font-weight:bold;margin-inline-end:4px">+</span> Use "<b>${esc(rawQ)}</b>" (new ${PICK_WORD[kind] || 'item'})
+      <span style="font-size:15px;line-height:1;font-weight:bold">+</span>
+      <span>Add new ${PICK_WORD[kind] || 'item'}: <b>"${esc(rawQ)}"</b></span>
     </div>`;
   }
 
   pop.innerHTML = html;
   pop.style.display = 'block';
+  const sel = pop.querySelector('.combo-item.selected');
+  if (sel) sel.scrollIntoView({ block: 'nearest' });
 }
 
 function closeAllCombos(){
@@ -7483,14 +7535,15 @@ function showAdd(form, name, on){}
 
 function refreshModels(form){
   if (!form) return;
-  const mk = form.querySelector('[data-pick=make]'), md = form.querySelector('[data-pick=model]');
+  const mk = form.querySelector('[data-pick=make]') || document.querySelector('[data-pick=make]');
+  const md = form.querySelector('[data-pick=model]') || document.querySelector('[data-pick=model]');
   if (!mk || !md) return;
   const mdWrap = md.closest('.combo-wrap');
   const opts = modelOpts(mk.value);
   if (mdWrap){
     mdWrap.dataset.options = JSON.stringify(opts);
     const pop = mdWrap.querySelector('.combo-pop');
-    if (pop && pop.style.display !== 'none') renderComboDropdown(mdWrap, md.value);
+    if (pop && pop.style.display !== 'none') renderComboDropdown(mdWrap, '', true);
   }
 }
 function refreshCombos(form){ refreshModels(form); }
@@ -7499,10 +7552,10 @@ if (typeof document !== 'undefined' && document.addEventListener){
   document.addEventListener('input', e => {
     if (e.target.matches && e.target.matches('.combo-input')){
       const wrap = e.target.closest('.combo-wrap');
-      if (wrap) renderComboDropdown(wrap, e.target.value);
+      if (wrap) renderComboDropdown(wrap, e.target.value, false);
       if (e.target.dataset.pick === 'make'){
         delete e.target.dataset.auto;
-        const form = e.target.closest('form') || document.getElementById('mform');
+        const form = e.target.closest('form') || document.getElementById('mform') || document;
         if (form) refreshModels(form);
       }
     }
@@ -7513,12 +7566,25 @@ if (typeof document !== 'undefined' && document.addEventListener){
       const wrap = e.target.closest('.combo-wrap');
       if (wrap){
         closeAllCombos();
-        renderComboDropdown(wrap, e.target.value);
+        renderComboDropdown(wrap, '', true);
+        try { e.target.select(); } catch(x){}
       }
     }
   });
 
   document.addEventListener('click', e => {
+    if (e.target.matches && e.target.matches('.combo-input')){
+      const wrap = e.target.closest('.combo-wrap');
+      if (wrap){
+        const pop = wrap.querySelector('.combo-pop');
+        if (!pop || pop.style.display === 'none'){
+          closeAllCombos();
+          renderComboDropdown(wrap, '', true);
+        }
+      }
+      return;
+    }
+
     const arrow = e.target.closest ? e.target.closest('.combo-arrow') : null;
     if (arrow){
       e.preventDefault();
@@ -7530,7 +7596,7 @@ if (typeof document !== 'undefined' && document.addEventListener){
       closeAllCombos();
       if (!isOpen && pop && input){
         input.focus();
-        renderComboDropdown(wrap, '');
+        renderComboDropdown(wrap, '', true);
       }
       return;
     }
@@ -7544,13 +7610,29 @@ if (typeof document !== 'undefined' && document.addEventListener){
       input.value = val;
       delete input.dataset.auto;
       closeAllCombos();
-      input.dispatchEvent(new Event('input', { bubbles: true }));
       input.dispatchEvent(new Event('change', { bubbles: true }));
-      const form = input.closest('form') || document.getElementById('mform');
+      const form = input.closest('form') || document.getElementById('mform') || document;
+      
+      if (item.dataset.make && form){
+        const mkInput = form.querySelector('[data-pick=make]');
+        if (mkInput && !mkInput.value){
+          mkInput.value = item.dataset.make;
+          mkInput.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      }
+
       if (input.dataset.pick === 'make' && form){
         refreshModels(form);
         const md = form.querySelector('[data-pick=model]');
-        if (md) setTimeout(() => { try { md.focus(); } catch(x){} }, 50);
+        if (md){
+          setTimeout(() => {
+            try {
+              md.focus();
+              const mdWrap = md.closest('.combo-wrap');
+              if (mdWrap) renderComboDropdown(mdWrap, '', true);
+            } catch(x){}
+          }, 60);
+        }
       }
       return;
     }
@@ -7599,13 +7681,12 @@ if (typeof document !== 'undefined' && document.addEventListener){
             e.target.value = active.dataset.val;
             delete e.target.dataset.auto;
             closeAllCombos();
-            e.target.dispatchEvent(new Event('input', { bubbles: true }));
             e.target.dispatchEvent(new Event('change', { bubbles: true }));
             const form = e.target.closest('form') || document.getElementById('mform');
             if (e.target.dataset.pick === 'make' && form){
               refreshModels(form);
               const md = form.querySelector('[data-pick=model]');
-              if (md) setTimeout(() => { try { md.focus(); } catch(x){} }, 50);
+              if (md) setTimeout(() => { try { md.focus(); const mdWrap = md.closest('.combo-wrap'); if (mdWrap) renderComboDropdown(mdWrap, '', true); } catch(x){} }, 60);
             }
           } else {
             closeAllCombos();
@@ -7635,15 +7716,6 @@ Object.assign(CLICK, {
   'pick-add'(el){ const form = document.getElementById('mform'); pickAdd(form, el.dataset.name, (form.querySelector(`[data-pick-new="${el.dataset.name}"]`) || {}).value); },
   'pick-cancel'(el){ showAdd(document.getElementById('mform'), el.dataset.name, false); }
 });
-/* A starting catalogue so the brand and model lists are not empty (edit, rename or add to it freely). */
-const DEFAULT_CATALOGUE = {
-  'BMW': ['1 Series','2 Series','3 Series','4 Series','5 Series','7 Series','X1','X2','X3','X4','X5','X6','X7','XM','Z4','i4','i5','i7','iX','M3','M5'],
-  'Mercedes-Benz': ['A-Class','C-Class','CLA','CLE','E-Class','S-Class','G-Class','GLA','GLB','GLC','GLE','GLS','EQA','EQB','EQE','EQS','AMG GT','V-Class','Maybach S-Class'],
-  'Audi': ['A3','A4','A5','A6','A7','A8','Q2','Q3','Q4 e-tron','Q5','Q7','Q8','e-tron GT','RS 6'],
-  'Porsche': ['911','718 Cayman','718 Boxster','Taycan','Panamera','Macan','Cayenne'],
-  'Volkswagen': ['Polo','Golf','T-Roc','Tiguan','Touareg','Passat','ID.4','ID. Buzz','Teramont'],
-  'MINI': ['Cooper','Countryman','Aceman']
-};
 function seedCatalogue(){
   if (!S || !S.company || (S.makes || []).length) return false;
   for (const [mk, models] of Object.entries(DEFAULT_CATALOGUE)) S.makes.push({ id: uid('mk'), name: mk, active: true, models: models.map(n => ({ id: uid('md'), name: n, active: true })) });
