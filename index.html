@@ -4717,9 +4717,6 @@ function viewShell(){
       ${subnavHTML()}
       <main class="content">${pageFor(r)}</main>
     </div></div>`;
-      ${subnavHTML()}
-      <main class="content">${pageFor(r)}</main>
-    </div></div>`;
 }
 function denied(module){
   return `<div class="card"><div class="card-b"><div class="note bad" style="margin:0"><b>Access denied.</b> Your role(s) do not have read access to ${esc(MODULES.find(m => m.code === module)?.name || module)}.</div></div></div>`;
