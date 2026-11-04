@@ -9126,7 +9126,8 @@ function ensureStandardChart(){
         a = { id: uid('ac'), code: c, nameEn: en, nameAr: ar, parentId: parent && byCode(parent) ? byCode(parent).id : null, type, isGroup: fl.includes('g'), normal: get('n') || ACC_TYPES[type].normal, allowManual: !fl.includes('m0'), reconcile: fl.includes('rec'), currency: get('cur') || '',
           requireCostCenter: fl.includes('cc'), revalue: fl.includes('rv'), system: fl.includes('s') || !parent, active: true, description: '', createdAt: nowISO() };
         S.accounts.push(a); }
-      if (!a.active || a.isGroup) continue;
+      if (a.isGroup) continue;
+      if (!a.active){ a.active = true; fixed.push(`${a.code} reactivated`); }
       S.mappings[key] = a.id; fixed.push(`${label} → ${a.code}`);
     }
     if (fixed.length){ log('mapping_repair', 'mappings', null, null, { fixed }, 'Missing account mappings set to the standard Goldstern accounts'); saveState(); }
