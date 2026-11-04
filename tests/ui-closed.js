@@ -1,0 +1,27 @@
+const { chromium } = require('playwright'); const fs = require('fs');
+(async () => {
+  const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 1440, height: 1000 } });
+  await p.route(/decimal/, r => r.fulfill({ contentType: 'application/javascript', body: fs.readFileSync(require('path').join(__dirname, 'dec-shim.js'), 'utf8') }));
+  await p.route(/googleapis|gstatic|xlsx/, r => r.abort());
+  const errs = []; p.on('pageerror', e => errs.push(e.message));
+  await p.goto('file://' + require('path').resolve(__dirname, '../index.html')); await p.waitForTimeout(300);
+  await p.click('button.primary'); await p.waitForTimeout(400); await p.evaluate(() => { OVERDRAFT_CONTROL = false; });
+  const out = await p.evaluate(() => { A.seedChart();
+    const po = A.createImportOrder({ makeName:'BMW', modelName:'1 Series', vin:'98191', customerName:'Mahmoud Naeem', customerPhone:'01001234567', supplierName:'AMG', price:'150000', currency:'EUR', rate:'92' });
+    const eur = 'gl:' + S.accounts.find(a => a.code === '1122').id, cash = 'gl:' + S.accounts.find(a => a.code === '1110').id;
+    A.createSettlement('ap', { side:'ap', partnerId: po.supplierId, bankId: cash, date: todayCairo(), amount:'15000', currency:'EGP', rate:'92', poId: po.id });
+    const bill = A.billImportOrder(po.id, { pi_line: [po.lines[0].id], date: todayCairo(), partnerRef: 'AMG-9', destination:'transit' });
+    const binv = poCycle(poById(po.id)).supInv; const bo = invState(binv).open;
+    A.createSettlement('ap', { side:'ap', partnerId: po.supplierId, bankId: eur, date: todayCairo(), amount: bo.toFixed(2), currency:'EUR', rate:'92', alloc_inv:[binv.id], alloc_applied:[bo.toFixed(2)], alloc_portion:[''] });
+    A.sellImportOrder(po.id, { price:'14000000', currency:'EGP', date: todayCairo() });
+    const sale = poCycle(poById(po.id)).sale; const so = invState(sale).open;
+    const midClosed = poClosed(poById(po.id));
+    A.createSettlement('ar', { side:'ar', partnerId: po.customerId, bankId: cash, date: todayCairo(), amount: so.toFixed(2), currency:'EGP', alloc_inv:[sale.id], alloc_applied:[so.toFixed(2)], alloc_portion:[''] });
+    closeModal(); poView(poById(po.id)); return { midClosed, closed: poClosed(poById(po.id)), sale: sale.id };
+  });
+  console.log(out);
+  await p.waitForTimeout(300); await p.screenshot({ path: require('path').join(__dirname, 'out', 'po-closed.png'), fullPage: true });
+  await p.evaluate(id => invoiceView(S.invoices.find(i => i.id === id)), out.sale); await p.waitForTimeout(300); await p.screenshot({ path: require('path').join(__dirname, 'out', 'inv-paid.png') });
+  await p.evaluate(() => { closeModal(); location.hash = '#/pur/import'; render(); }); await p.waitForTimeout(300); await p.screenshot({ path: require('path').join(__dirname, 'out', 'po-list2.png') });
+  console.log('errors', errs); await b.close();
+})();

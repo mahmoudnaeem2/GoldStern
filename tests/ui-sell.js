@@ -1,0 +1,24 @@
+const { chromium } = require('playwright'); const fs = require('fs');
+(async () => {
+  const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 1440, height: 1000 } });
+  await p.route(/decimal/, r => r.fulfill({ contentType: 'application/javascript', body: fs.readFileSync(require('path').join(__dirname, 'dec-shim.js'), 'utf8') }));
+  await p.route(/googleapis|gstatic|xlsx/, r => r.abort());
+  const errs = []; p.on('pageerror', e => errs.push(e.message));
+  await p.goto('file://' + require('path').resolve(__dirname, '../index.html')); await p.waitForTimeout(300);
+  await p.click('button.primary'); await p.waitForTimeout(400); await p.evaluate(() => { OVERDRAFT_CONTROL = false; });
+  const r = await p.evaluate(() => { A.seedChart();
+    const eur = 'gl:' + S.accounts.find(a => a.code === '1122').id, cash = 'gl:' + S.accounts.find(a => a.code === '1110').id;
+    const po = A.createImportOrder({ makeName:'Porsche', modelName:'718 Boxster', vin:'090110', customerName:'Kamal', customerPhone:'01001234599', supplierName:'AMG', price:'90000', currency:'EUR', rate:'92' });
+    A.createCarExpense({ costTypeName:'International shipping', description:'Hamburg → Alexandria', amount:'1500', currency:'EUR', rate:'93', payMode:'now', bankId: eur, cx_car:[poVehicle(po).id], date: todayCairo() });
+    A.billImportOrder(po.id, { pi_line: [po.lines[0].id], date: todayCairo(), partnerRef: 'AMG-P', destination:'transit' });
+    A.createCarExpense({ costTypeName:'Customs duties (non-recoverable)', amount:'250000', currency:'EGP', payMode:'credit', supplierName:'Customs Authority', cx_car:[poVehicle(po).id], date: todayCairo() });
+    A.createCarExpense({ costTypeName:'Customs clearance', amount:'9000', currency:'EGP', payMode:'now', bankId: cash, cx_car:[poVehicle(po).id], date: todayCairo() });
+    const binv = poCycle(poById(po.id)).supInv;
+    A.createSettlement('ap', { side:'ap', partnerId: po.supplierId, bankId: eur, date: todayCairo(), amount:'90000', currency:'EUR', rate:'92.5', alloc_inv:[binv.id], alloc_applied:['90000'], alloc_portion:[''] });
+    window.__po = po.id; const v = poVehicle(po); return { total: vehicleCost(v).total.toFixed(2), bd: carCostBreakdown(v).map(x => x.label + ' ' + x.egp.toFixed(2)) }; });
+  console.log(r);
+  await p.evaluate(() => { location.hash = '#/pur/import'; render(); setTimeout(() => { poView(poById(window.__po)); CLICK['io-sell']({ dataset: { id: window.__po } }); }, 50); }); await p.waitForTimeout(500);
+  await p.fill('input[name=price]', '9500000'); await p.waitForTimeout(200);
+  await p.screenshot({ path: require('path').join(__dirname, 'out', 'sell-cost.png') });
+  console.log('errors', errs); await b.close();
+})();

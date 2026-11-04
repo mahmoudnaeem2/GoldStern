@@ -1,0 +1,20 @@
+const { chromium } = require('playwright'); const fs = require('fs');
+(async () => {
+  const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 1440, height: 1000 } });
+  await p.route(/decimal/, r => r.fulfill({ contentType: 'application/javascript', body: fs.readFileSync(require('path').join(__dirname, 'dec-shim.js'), 'utf8') }));
+  await p.route(/googleapis|gstatic|xlsx/, r => r.abort());
+  const errs = []; p.on('pageerror', e => errs.push(e.message));
+  await p.goto('file://' + require('path').resolve(__dirname, '../index.html')); await p.waitForTimeout(300);
+  await p.click('button.primary'); await p.waitForTimeout(400); await p.evaluate(() => { OVERDRAFT_CONTROL = false; });
+  await p.evaluate(() => { A.seedChart();
+    const po = A.createImportOrder({ makeName:'BMW', modelName:'3 Series', vin:'87393283', customerName:'Ahmed Hamdy', customerPhone:'01001234567', supplierName:'AMG', price:'9000', currency:'EUR', rate:'72', deliveryTerms:'CIF Alexandria' });
+    location.hash = '#/pur/import'; render(); setTimeout(() => poView(poById(po.id)), 50); });
+  await p.waitForTimeout(400); await p.screenshot({ path: require('path').join(__dirname, 'out', 'po-new.png'), fullPage: true });
+  await p.evaluate(() => { const po = S.purchaseOrders[0], bank = S.accounts.find(a => a.code === '1122');
+    A.createSettlement('ar', { side:'ar', partnerId: po.customerId, bankId: 'gl:' + bank.id, date: todayCairo(), amount:'2000', currency:'EUR', poId: po.id });
+    A.createSettlement('ap', { side:'ap', partnerId: po.supplierId, bankId: 'gl:' + bank.id, date: todayCairo(), amount:'3000', currency:'EUR', poId: po.id });
+    const inv = A.invoicePO(po.id, { pi_line: [po.lines[0].id], partnerRef:'AMG-1', date: todayCairo(), destination:'transit' }); A.applyOrderAdvances(po.id, 'ap', inv.id);
+    A.receiveImportCar(po.id, todayCairo()); A.sellImportOrder(po.id, { price:'909090', currency:'EGP', date: todayCairo() }); closeModal(); poView(poById(po.id)); });
+  await p.waitForTimeout(300); await p.screenshot({ path: require('path').join(__dirname, 'out', 'po-sold.png'), fullPage: true });
+  console.log('errors', errs); await b.close();
+})();
