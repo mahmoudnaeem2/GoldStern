@@ -395,39 +395,45 @@ a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline}
 .modal-h h3{font-size:14px!important;font-weight:500!important;color:var(--g500);letter-spacing:0!important}
 .modal-h .back{min-height:32px;padding:5px 12px!important;font-size:13px!important;border-color:var(--g300)!important;box-shadow:0 1px 2px rgba(0,0,0,.05)}
 .modal-b{padding-top:20px}
-/* ---- Authentic Odoo Form View & Statusbar Stepper Pipeline ---- */
+/* ---- Authentic Odoo Form View with Contrast Background, Dividers & Colors ---- */
+.modal-b {
+  background: #f1f5f9 !important;
+  padding: 24px 32px 48px !important;
+}
+
+/* Odoo Control & Action Statusbar */
 .o-bar {
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
-  background: #f8fafc !important;
+  background: #ffffff !important;
   border: 1px solid #e2e8f0 !important;
-  border-radius: 8px !important;
-  padding: 8px 16px !important;
-  margin: 0 auto 16px !important;
+  border-radius: 12px !important;
+  padding: 10px 20px !important;
+  margin: 0 auto 18px !important;
   max-width: 1200px !important;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.03) !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05) !important;
   gap: 16px !important;
   flex-wrap: wrap !important;
 }
 .o-bar .btns {
   display: flex !important;
   align-items: center !important;
-  gap: 8px !important;
+  gap: 10px !important;
   flex-wrap: wrap !important;
 }
 
-/* Odoo Chevron Arrow Pipeline (The Iconic Pointy Arrow Stepper) */
+/* Odoo Chevron Arrow Pipeline with Rich Colored Stages */
 .o-status {
   display: inline-flex !important;
   align-items: stretch !important;
   border: 1px solid #cbd5e1 !important;
-  border-radius: 6px !important;
+  border-radius: 8px !important;
   overflow: hidden !important;
-  background: #f1f5f9 !important;
+  background: #f8fafc !important;
   box-shadow: 0 1px 2px rgba(0,0,0,0.04) !important;
   padding: 0 !important;
-  height: 36px !important;
+  height: 38px !important;
 }
 .o-status span {
   display: inline-flex !important;
@@ -435,7 +441,7 @@ a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline}
   position: relative !important;
   padding: 0 18px 0 24px !important;
   font-size: 13px !important;
-  font-weight: 550 !important;
+  font-weight: 600 !important;
   color: #64748b !important;
   background: #ffffff !important;
   border: 0 !important;
@@ -458,42 +464,47 @@ a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline}
   color: #ffffff !important;
   font-weight: 700 !important;
   z-index: 2 !important;
+  box-shadow: inset 0 -2px 0 rgba(212,175,55,0.7) !important;
 }
 
-/* Authentic Continuous Odoo Paper Document Sheet */
+/* Authentic Raised Odoo Paper Document Sheet */
 .o-sheet, .o-sheet.rec {
   background: #ffffff !important;
-  border: 1px solid #d8dadd !important;
-  border-radius: 6px !important;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.03) !important;
-  padding: 32px 42px !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 14px !important;
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.08), 0 2px 6px -1px rgba(15, 23, 42, 0.04) !important;
+  padding: 36px 44px !important;
   max-width: 1200px !important;
-  margin: 0 auto 32px !important;
+  margin: 0 auto 40px !important;
   position: relative !important;
 }
+
+/* Document Header & Title */
 .o-sheet.rec > .o-head {
   background: transparent !important;
   border: 0 !important;
   box-shadow: none !important;
-  padding: 0 0 20px 0 !important;
-  margin: 0 0 20px 0 !important;
-  border-bottom: 1px solid #f1f5f9 !important;
+  padding: 0 0 22px 0 !important;
+  margin: 0 0 24px 0 !important;
+  border-bottom: 2px solid #f1f5f9 !important;
   display: flex !important;
   justify-content: space-between !important;
   align-items: flex-start !important;
+  flex-wrap: wrap !important;
+  gap: 16px !important;
 }
 .o-head h2 {
-  font-size: 28px !important;
-  font-weight: 750 !important;
-  letter-spacing: -0.02em !important;
+  font-size: 30px !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.025em !important;
   color: #0f172a !important;
-  margin: 2px 0 8px 0 !important;
+  margin: 4px 0 8px 0 !important;
 }
 .o-head .muted {
   font-size: 12px !important;
   text-transform: uppercase !important;
-  font-weight: 650 !important;
-  letter-spacing: 0.05em !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.06em !important;
   color: #64748b !important;
 }
 
@@ -501,10 +512,10 @@ a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline}
 .o-stats {
   display: inline-flex !important;
   flex-wrap: wrap !important;
-  border: 1px solid #e2e8f0 !important;
-  border-radius: 8px !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 10px !important;
   overflow: hidden !important;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.04) !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05) !important;
   background: #ffffff !important;
   gap: 0 !important;
 }
@@ -513,8 +524,8 @@ a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline}
   flex-direction: column !important;
   align-items: flex-start !important;
   justify-content: center !important;
-  padding: 8px 16px !important;
-  min-width: 110px !important;
+  padding: 9px 18px !important;
+  min-width: 120px !important;
   border: 0 !important;
   border-inline-start: 1px solid #e2e8f0 !important;
   background: #ffffff !important;
@@ -522,7 +533,7 @@ a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline}
   font-family: inherit !important;
   cursor: pointer !important;
   text-decoration: none !important;
-  transition: all 0.15s ease !important;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 .o-stat:first-child {
   border-inline-start: 0 !important;
@@ -531,97 +542,152 @@ a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline}
   background: #f8fafc !important;
 }
 .o-stat b {
-  font-size: 14px !important;
-  font-weight: 700 !important;
+  font-size: 14.5px !important;
+  font-weight: 750 !important;
   color: #0284c7 !important;
 }
 .o-stat small {
   font-size: 11.5px !important;
+  font-weight: 600 !important;
   color: #64748b !important;
   margin-top: 2px !important;
 }
 
-/* Odoo 2-Column Info Grid */
+/* Order Details Form Grid with Clean Separators & Colors */
+.o-sec.c-info {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+  padding: 22px 26px !important;
+  margin-top: 24px !important;
+}
+.o-sec > h3 {
+  font-size: 14px !important;
+  font-weight: 750 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  color: #1e293b !important;
+  margin: 0 0 16px 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  padding-bottom: 10px !important;
+}
 .o-grid {
   display: grid !important;
   grid-template-columns: 1fr 1fr !important;
-  gap: 0 60px !important;
+  gap: 10px 32px !important;
 }
 .o-f {
-  display: grid !important;
-  grid-template-columns: 130px 1fr !important;
-  gap: 12px !important;
-  align-items: baseline !important;
-  padding: 8px 0 !important;
-  border-bottom: 1px solid #f8fafc !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: 10px 14px !important;
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 8px !important;
+  margin-bottom: 8px !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.02) !important;
+  transition: all 0.12s ease !important;
+}
+.o-f:hover {
+  background: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
 }
 .o-f .l {
   font-size: 13px !important;
-  font-weight: 600 !important;
-  color: #64748b !important;
+  font-weight: 650 !important;
+  color: #475569 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
 }
 .o-f .v {
   font-size: 13.5px !important;
+  font-weight: 650 !important;
   color: #0f172a !important;
-  font-weight: 500 !important;
+  text-align: end !important;
 }
 .o-f .v a {
   color: #0284c7 !important;
-  font-weight: 600 !important;
+  font-weight: 700 !important;
   text-decoration: none !important;
 }
 .o-f .v a:hover {
   text-decoration: underline !important;
 }
 
-/* Odoo Notebook Tab Sections */
-.o-sheet.rec > .o-sec {
-  background: transparent !important;
-  border: 0 !important;
-  box-shadow: none !important;
-  padding: 24px 0 0 0 !important;
-  margin: 28px 0 0 0 !important;
-  border-top: 1px solid #eef2f6 !important;
+/* Cars / Order Lines Section (Odoo Notebook Table) */
+.o-sec.c-gold {
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  margin-top: 28px !important;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.04) !important;
 }
-.o-sec > h3 {
-  font-size: 15px !important;
-  font-weight: 700 !important;
-  color: #0f172a !important;
-  margin: 0 0 14px 0 !important;
-  display: flex !important;
-  align-items: center !important;
-  gap: 8px !important;
-}
-.o-sec thead th {
+.o-sec.c-gold > h3 {
   background: #f8fafc !important;
-  border-bottom: 2px solid #e2e8f0 !important;
-  color: #475569 !important;
-  font-size: 12.5px !important;
-  font-weight: 650 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.03em !important;
-  padding: 10px 14px !important;
-}
-.o-sec tbody td {
-  padding: 12px 14px !important;
-  border-bottom: 1px solid #f1f5f9 !important;
+  padding: 14px 22px !important;
+  margin: 0 !important;
+  border-bottom: 1px solid #e2e8f0 !important;
   color: #0f172a !important;
+  font-size: 14px !important;
+  font-weight: 750 !important;
 }
-.o-sec .o-tot table {
-  margin-inline-start: auto !important;
-  width: auto !important;
-  min-width: 320px !important;
+.o-sec table {
+  width: 100% !important;
   border-collapse: collapse !important;
 }
-.o-sec .o-tot td {
-  padding: 6px 12px !important;
+.o-sec thead th {
+  background: #f1f5f9 !important;
+  border-bottom: 2px solid #cbd5e1 !important;
+  color: #475569 !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.04em !important;
+  padding: 12px 18px !important;
+}
+.o-sec tbody td {
+  padding: 14px 18px !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  color: #0f172a !important;
   font-size: 13.5px !important;
 }
-.o-sec .o-tot tr:last-child td {
-  font-size: 16px !important;
-  font-weight: 750 !important;
-  color: #0f172a !important;
+.o-sec tbody tr:hover td {
+  background: #f8fafc !important;
+}
+
+/* Odoo Commercial Totals Summary Card */
+.o-tot {
+  display: flex !important;
+  justify-content: flex-end !important;
+  padding: 18px 22px !important;
+  background: #f8fafc !important;
+  border-top: 1px solid #e2e8f0 !important;
+}
+.o-tot table {
+  width: auto !important;
+  min-width: 320px !important;
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 10px !important;
+  padding: 12px 18px !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+}
+.o-tot td {
+  padding: 8px 14px !important;
+  font-size: 14px !important;
+  border: 0 !important;
+}
+.o-tot tr:last-child td {
   border-top: 2px solid #0f172a !important;
+  font-size: 17px !important;
+  font-weight: 800 !important;
+  color: #0f172a !important;
+  padding-top: 12px !important;
 }
 
 .o-f .l{font-weight:500!important;color:var(--g500)!important;font-size:13px}
@@ -4379,29 +4445,29 @@ function soView(so){
   for (const l of so.lines){ const v = vehById(l.vehicleId), inv = saleInvoiceOf(l), dl = S.deliveries.find(d => d.lineId === l.id && ['pending','delivered'].includes(d.status));
     if (!live) break;
     if (!inv && can('sales', 'edit')) acts.push(`<button type="button" class="btn${v ? '' : ' primary'}" data-act="so-link" data-id="${so.id}" data-line="${l.id}">${v ? 'Change car' : 'Choose car'}</button>`);
-    if (v && v.status === 'available' && !inv && can('sales', 'edit')) acts.push(`<button type="button" class="btn primary" data-act="so-reserve" data-id="${so.id}" data-line="${l.id}">Reserve car</button>`);
-    if (v && v.status === 'reserved' && v.reservation && v.reservation.soId === so.id && !inv){ if (can('ar', 'create')) acts.push(`<button type="button" class="btn primary" data-act="so-inv" data-id="${so.id}" data-line="${l.id}">Create invoice</button>`); if (can('sales', 'edit')) acts.push(`<button type="button" class="btn" data-act="so-release" data-id="${so.id}" data-line="${l.id}">Release car</button>`); }
-    if (inv && entryStatus(inv) === 'posted' && invState(inv).open.gt(0) && can('ar', 'create')) acts.push(`<button type="button" class="btn" data-act="io-pay" data-side="ar" data-id="${inv.id}">Receive ${money(invState(inv).open)} ${inv.currency}</button>`);
-    if (inv && entryStatus(inv) === 'posted' && v && v.status === 'sold' && !dl && can('sales', 'create')) acts.push(`<button type="button" class="btn primary" data-act="dn-new" data-id="${so.id}" data-line="${l.id}">Deliver car</button>`);
+    if (v && v.status === 'available' && !inv && can('sales', 'edit')) acts.push(`<button type="button" class="btn primary" data-act="so-reserve" data-id="${so.id}" data-line="${l.id}">${ic('check', 14)} Reserve car</button>`);
+    if (v && v.status === 'reserved' && v.reservation && v.reservation.soId === so.id && !inv){ if (can('ar', 'create')) acts.push(`<button type="button" class="btn primary" data-act="so-inv" data-id="${so.id}" data-line="${l.id}">${ic('invoices', 14)} Create invoice</button>`); if (can('sales', 'edit')) acts.push(`<button type="button" class="btn" data-act="so-release" data-id="${so.id}" data-line="${l.id}">Release car</button>`); }
+    if (inv && entryStatus(inv) === 'posted' && invState(inv).open.gt(0) && can('ar', 'create')) acts.push(`<button type="button" class="btn gold" data-act="io-pay" data-side="ar" data-id="${inv.id}">${ic('wallet', 14)} Receive ${money(invState(inv).open)} ${inv.currency}</button>`);
+    if (inv && entryStatus(inv) === 'posted' && v && v.status === 'sold' && !dl && can('sales', 'create')) acts.push(`<button type="button" class="btn primary" data-act="dn-new" data-id="${so.id}" data-line="${l.id}">${ic('truck', 14)} Deliver car</button>`);
     if (dl && dl.status === 'pending' && can('sales', 'approve')) acts.push(`<button type="button" class="btn primary" data-act="dn-approve" data-id="${dl.id}">Validate delivery</button>`);
-    if (v) stats.push(`<a class="o-stat" href="#/veh/view?id=${v.id}"><b>${esc(v.vin)}</b><small>${esc(vStatus(v.status).name)}</small></a>`);
-    if (inv) stats.push(`<button type="button" class="o-stat" data-act="inv-view" data-id="${inv.id}"><b>Invoice</b><small>${invPill(inv)}</small></button>`);
-    if (dl) stats.push(`<div class="o-stat"><b>${esc(dl.number)}</b><small>${dl.status === 'delivered' ? 'Delivered' : 'Awaiting validation'}</small></div>`);
+    if (v) stats.push(`<a class="o-stat" href="#/veh/view?id=${v.id}"><div style="display:flex;align-items:center;gap:6px">${ic('cars', 16)} <b>${esc(v.vin)}</b></div><small>${esc(vStatus(v.status).name)}</small></a>`);
+    if (inv) stats.push(`<button type="button" class="o-stat" data-act="inv-view" data-id="${inv.id}"><div style="display:flex;align-items:center;gap:6px">${ic('invoices', 16)} <b>Invoice</b></div><small>${invPill(inv)}</small></button>`);
+    if (dl) stats.push(`<div class="o-stat"><div style="display:flex;align-items:center;gap:6px">${ic('truck', 16)} <b>${esc(dl.number)}</b></div><small>${dl.status === 'delivered' ? 'Delivered' : 'Awaiting validation'}</small></div>`);
   }
   if (live && !so.creditApproved && can('sales', 'approve') && !so.lines.every(l => S.deliveries.some(d => d.lineId === l.id && d.status === 'delivered'))) acts.push(`<button type="button" class="btn" data-act="so-credit" data-id="${so.id}">Allow delivery on credit</button>`);
-  const ipo = so.importPoId ? poById(so.importPoId) : null; if (ipo) stats.unshift(`<button type="button" class="o-stat" data-act="po-view" data-id="${ipo.id}"><b>${esc(ipo.number)}</b><small>Import order</small></button>`);
+  const ipo = so.importPoId ? poById(so.importPoId) : null; if (ipo) stats.unshift(`<button type="button" class="o-stat" data-act="po-view" data-id="${ipo.id}"><div style="display:flex;align-items:center;gap:6px">${ic('purchases', 16)} <b>${esc(ipo.number)}</b></div><small>Import order</small></button>`);
   const net = soNet(so);
   openModal({ screen: { key: 'so:' + so.id, reopen: () => { const x = soById(so.id); if (x) soView(x); } }, title: `Sales order ${so.number}`, xwide: true, body: `
     <div class="o-bar"><div class="btns">${[...new Set(acts)].join('')}</div><div class="o-status">${steps.map(([t0], i) => `<span class="${i === cur ? 'on' : ''}">${t0}</span>`).join('')}</div></div>
     <div class="o-sheet rec">
       <div class="o-head"><div><div class="muted" style="font-size:13px">Sales order</div><h2>${esc(so.number)}</h2><span class="pill ${st[1]}" style="margin-top:6px">${st[0]}</span></div>${stats.length ? `<div class="o-stats">${stats.join('')}</div>` : ''}</div>
-      <div class="o-sec c-info" style="border-top:0;padding-top:0;margin-top:10px"><h3>Order details</h3><div class="o-grid"><div>
+      <div class="o-sec c-info" style="border-top:0;padding-top:0;margin-top:10px"><h3>${ic('file', 16)} Order details</h3><div class="o-grid"><div>
         ${f('Customer', cu ? `<a href="#/partners/statement?side=ar&id=${cu.id}">${esc(cu.legalName)}</a>${cu.phone ? `<span class="sub">${esc(cu.phone)}</span>` : ''}` : '')}
         ${f('Salesperson', esc(userName(so.salespersonId) || ''))}${D(so.commissionPct || 0).gt(0) ? f('Commission', so.commissionPct + '%') : ''}
       </div><div>
         ${f('Order date', so.date)}${f('Currency', so.currency)}${f('Payment', so.creditApproved ? '<span class="pill info">Delivery on credit allowed</span>' : 'Pay before delivery')}${so.paymentTerms ? f('Terms', esc(so.paymentTerms)) : ''}
       </div></div></div>
-      <div class="o-sec c-gold"><h3>Cars</h3><div class="tbl-wrap"><table><thead><tr><th>Product</th><th>Status</th><th class="num">Price</th><th class="num">Discount</th><th class="num">Subtotal</th></tr></thead><tbody>
+      <div class="o-sec c-gold"><h3>${ic('cars', 16)} Cars</h3><div class="tbl-wrap"><table><thead><tr><th>Product</th><th>Status</th><th class="num">Price</th><th class="num">Discount</th><th class="num">Subtotal</th></tr></thead><tbody>
         ${so.lines.map(l => { const v = vehById(l.vehicleId); return `<tr><td class="wrap"><b>${v ? `${esc(carName(v))} · ${esc(v.vin)}` : esc(l.description)}</b>${v ? `<div class="muted" style="font-size:12px">${esc(v.code)}${v.exteriorColor ? ' · ' + esc(v.exteriorColor) : ''}</div>` : '<div class="muted" style="font-size:12px">No car chosen yet</div>'}</td>
           <td>${v ? invPillOf(v) : ''}</td><td class="num">${money(l.price)} ${so.currency}</td><td class="num">${D(l.discount || 0).gt(0) ? '− ' + money(l.discount) : ''}</td><td class="num"><b>${money(D(l.price).minus(l.discount || 0))}</b> ${so.currency}</td></tr>`; }).join('')}
       </tbody></table></div>
