@@ -1496,6 +1496,24 @@ td.nw,th{white-space:nowrap}
 .pl-tbl tr.pl-l td:first-child{padding-inline-start:28px}
 .pl-tbl tr.pl-p td:first-child{white-space:nowrap}
 .pl-tbl .zero{color:var(--faint)}
+
+/* Fixed asset form (Odoo-style) */
+.fa-title{width:100%;border:0;border-bottom:1px solid var(--border);font-size:26px;font-weight:700;padding:4px 2px 8px;margin:2px 0 18px;background:transparent;color:var(--text);outline:0}
+.fa-title:focus{border-bottom-color:var(--gold)}
+.fa-title::placeholder{color:var(--faint);font-weight:600}
+.fa-gh{font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700;padding:6px 0;border-bottom:1px solid var(--border);margin-bottom:6px}
+.fa-in{display:flex;align-items:center;gap:8px}.fa-in .input{flex:1;min-width:0}
+.fa-in .u{font-size:12.5px;color:var(--muted);white-space:nowrap}.fa-yr{font-size:12.5px;color:var(--faint);white-space:nowrap}
+.fa-ro{font-size:13.5px;padding:7px 4px;color:var(--text)}.fa-ro .acode{color:var(--muted);margin-inline-end:6px;font-variant-numeric:tabular-nums}
+.fa-ed .jf .input.num{text-align:end}
+.fa-board{padding-top:8px}
+.fa-years{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 12px}
+.fa-years div{border:1px solid var(--border);border-radius:var(--r-md);padding:6px 12px;font-size:12.5px;display:flex;gap:10px;align-items:baseline;background:var(--surface-2)}
+.fa-years span{color:var(--muted);font-weight:600}
+.fa-tbl{width:100%;border-collapse:collapse;font-size:13px}
+.fa-tbl th{position:sticky;top:0;background:var(--surface-2);font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.04em;color:var(--muted);text-align:start;padding:8px 10px;border-bottom:1px solid var(--border)}
+.fa-tbl th.num,.fa-tbl td.num{text-align:end}.fa-tbl td{padding:7px 10px;border-bottom:1px solid #f1f5f9}
+.jf[hidden],.je-pane[hidden]{display:none!important}
 </style>
 </head>
 <body>
@@ -8882,11 +8900,46 @@ const P9_CLICKS = {
     const a = assetById(el.dataset.id);
     if (a) assetView(a);
   },
-  'fa-new'(){ openModal({ title: 'Register fixed asset', wide: true, body: `<div class="row"><div class="field" style="flex:2"><label>Description *</label><input class="input" name="description"></div><div class="field"><label>Category *</label><select class="input" name="categoryId">${S.assetCats.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select></div></div>
-    <div class="row"><div class="field"><label>Acquisition date *</label><input class="input" type="date" name="acquisitionDate"></div><div class="field"><label>Available for use *</label><input class="input" type="date" name="availableDate"></div><div class="field"><label>Cost (EGP) *</label><input class="input mono" name="cost"></div><div class="field"><label>Residual value</label><input class="input mono" name="residual" value="0"></div></div>
-    <div class="row"><div class="field"><label>Useful life (months)</label><input class="input" name="lifeMonths"></div><div class="field"><label>Method</label><select class="input" name="method"><option value="">category default</option><option value="straight">straight-line</option><option value="declining">declining balance</option><option value="manual">manual</option></select></div><div class="field"><label>Declining rate % / year</label><input class="input mono" name="ratePct"></div></div>
-    <div class="row"><div class="field"><label>Location</label><input class="input" name="location"></div><div class="field"><label>Custodian</label><input class="input" name="custodian"></div></div>
-    <div class="row"><div class="field"><label>Funding</label><select class="input" name="funding"><option value="bank">paid now from an EGP bank/cash account</option><option value="existing">already posted (e.g. via supplier bill to the cost account)</option></select></div><div class="field"><label>Bank / cash</label><select class="input" name="bankId">${S.banks.filter(b => b.active && b.currency === 'EGP').map(b => `<option value="${b.id}">${esc(bankLabel(b))}</option>`).join('')}</select></div><div class="field"><label>Reference</label><input class="input" name="ref"></div></div>`, onSubmit: f => { const a = A.createAsset(f); toast(`${a.code} registered.`, 'ok'); } }); },
+  'fa-new'(){
+    if (!S.assetCats.length) ensureStandardAssetCats();
+    const c0 = S.assetCats[0] || {}, td = todayCairo();
+    const banks = S.banks.filter(b => b.active && b.currency === 'EGP');
+    openModal({ title: 'New fixed asset', xwide: true, submit: 'Confirm', body: `
+    <div class="je-ed fa-ed">
+      <div class="je-head"><div class="je-kind">Fixed asset · <span id="fa-code">${(() => { try { const q = S.sequences.find(x => x.doc === 'asset'); return q ? esc(previewNumber(q)) : 'New'; } catch (e){ return 'New'; } })()}</span></div>
+        <input class="fa-title" name="description" placeholder="e.g. Showroom LED video wall" required autocomplete="off"></div>
+      <div class="je-fields">
+        <div class="je-col"><div class="fa-gh">Asset values</div>
+          <label class="jf"><span>Original value *</span><div class="fa-in"><input class="input num" name="cost" inputmode="decimal" placeholder="0.00" required><span class="u">EGP</span></div></label>
+          <label class="jf"><span>Acquisition date *</span><input class="input" type="date" name="acquisitionDate" value="${td}" required></label>
+          <label class="jf"><span>First depreciation *</span><input class="input" type="date" name="availableDate" value="${td}" required></label>
+          <label class="jf"><span>Not depreciable value</span><div class="fa-in"><input class="input num" name="residual" value="0" inputmode="decimal"><span class="u">EGP</span></div></label>
+          <div class="jf"><span>Depreciable value</span><b class="fa-ro" id="fa-dv">0.00 EGP</b></div>
+        </div>
+        <div class="je-col"><div class="fa-gh">Depreciation method</div>
+          <label class="jf"><span>Asset model *</span><select class="input" name="categoryId">${S.assetCats.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select></label>
+          <label class="jf"><span>Method</span><select class="input" name="method"><option value="straight" ${c0.method !== 'declining' ? 'selected' : ''}>Straight line</option><option value="declining" ${c0.method === 'declining' ? 'selected' : ''}>Declining balance</option><option value="manual">Manual (no automatic entries)</option></select></label>
+          <label class="jf"><span>Duration *</span><div class="fa-in"><input class="input num" name="lifeMonths" value="${esc(c0.lifeMonths || 60)}" inputmode="numeric"><span class="u">months</span><span class="fa-yr" id="fa-yr"></span></div></label>
+          <label class="jf" id="fa-rate-row" hidden><span>Declining rate</span><div class="fa-in"><input class="input num" name="ratePct" inputmode="decimal" placeholder="e.g. 20"><span class="u">% / year</span></div></label>
+          <div class="jf"><span>Monthly depreciation</span><b class="fa-ro" id="fa-md">—</b></div>
+        </div>
+      </div>
+      <div class="je-fields" style="margin-top:8px">
+        <div class="je-col"><div class="fa-gh">Accounting</div><div id="fa-accs"></div></div>
+        <div class="je-col"><div class="fa-gh">Payment</div>
+          <label class="jf"><span>Funding</span><select class="input" name="funding"><option value="bank">Paid now from bank / cash</option><option value="existing">Already recorded (supplier bill to the asset account)</option></select></label>
+          <label class="jf" id="fa-bank-row"><span>Paid from</span><select class="input" name="bankId">${banks.map(b => `<option value="${b.id}">${esc(bankLabel(b))}</option>`).join('')}</select></label>
+          <label class="jf"><span>Reference</span><input class="input" name="ref" placeholder="invoice / receipt no."></label>
+        </div>
+      </div>
+      <div class="je-tabs"><button type="button" class="on" data-act="je-tab" data-t="board">Depreciation board</button><button type="button" data-act="je-tab" data-t="other">Other info</button></div>
+      <div class="je-pane" data-p="board"><div id="fa-board" class="fa-board"></div></div>
+      <div class="je-pane" data-p="other" hidden><div class="je-fields"><div class="je-col">
+        <label class="jf"><span>Location</span><input class="input" name="location" placeholder="e.g. Showroom — ground floor"></label></div><div class="je-col">
+        <label class="jf"><span>Custodian</span><input class="input" name="custodian" placeholder="person responsible"></label></div></div></div>
+    </div>`, onSubmit: f => { const a = A.createAsset(f); toast(`${a.code} registered.`, 'ok'); } });
+    faRecalc(true);
+  },
   'dep-run'(){
     const today = todayCairo();
     const activeAssets = S.assets.filter(x => x.status === 'active' && x.method !== 'manual');
@@ -12350,6 +12403,36 @@ function safePage(r){
     <div style="display:flex;gap:8px"><a class="btn primary" href="#/settings/data">Open Data &amp; Backup</a><a class="btn" href="#/dashboard">Go to dashboard</a></div></div></div>`; }
 }
 
+
+/* Live preview for the fixed-asset form: accounts from the model, depreciable value, board. */
+function faRecalc(catChanged){
+  const form = document.getElementById('mform'); if (!form || !form.querySelector('.fa-ed')) return;
+  const v = n => (form.querySelector(`[name=${n}]`) || {}).value || '';
+  const cat = S.assetCats.find(c => c.id === v('categoryId')) || {};
+  if (catChanged){ const m = form.querySelector('[name=method]'); if (cat.method && m) m.value = cat.method; const l = form.querySelector('[name=lifeMonths]'); if (l && cat.lifeMonths) l.value = cat.lifeMonths; }
+  const method = v('method'); form.querySelector('#fa-rate-row').hidden = method !== 'declining';
+  form.querySelector('#fa-bank-row').hidden = v('funding') !== 'bank';
+  const accRow = (k, id) => { const a = acc(id); return `<div class="jf"><span>${k}</span><span class="fa-ro">${a ? `<span class="acode">${esc(a.code)}</span> ${esc(accName(a))}` : '<span class="neg">not set on the model</span>'}</span></div>`; };
+  form.querySelector('#fa-accs').innerHTML = accRow('Fixed asset account', cat.assetAccountId) + accRow('Depreciation account', cat.accumAccountId) + accRow('Expense account', cat.expenseAccountId);
+  const num = x => /^\d+(\.\d+)?$/.test(String(x).replace(/,/g, '')) ? D(String(x).replace(/,/g, '')) : null;
+  const cost = num(v('cost')), res = num(v('residual') || '0') || D0(), life = parseInt(v('lifeMonths'), 10);
+  const dv = cost ? cost.minus(res) : null;
+  form.querySelector('#fa-dv').textContent = dv ? money(dv.lt(0) ? D0() : dv) + ' EGP' : '0.00 EGP';
+  form.querySelector('#fa-yr').textContent = life >= 1 ? `= ${(life / 12).toFixed(life % 12 ? 1 : 0)} year${life === 12 ? '' : 's'}` : '';
+  const board = form.querySelector('#fa-board'), md = form.querySelector('#fa-md');
+  if (!cost || !(life >= 1) || !isISODate(v('availableDate')) || method === 'manual' || (dv && dv.lte(0)) || (method === 'declining' && !num(v('ratePct')))){
+    md.textContent = method === 'manual' ? 'entered by hand' : '—';
+    board.innerHTML = `<p class="je-hint" style="margin:14px 4px">${method === 'manual' ? 'Manual method: no automatic depreciation entries are planned.' : 'Enter the original value, duration and first depreciation date to see the board.'}</p>`; return; }
+  const rows = assetScheduleBoard({ id: '_preview', cost: cost.toFixed(2), residual: res.toFixed(2), lifeMonths: life, method, ratePct: v('ratePct'), availableDate: v('availableDate'), acquisitionDate: v('acquisitionDate'), categoryId: cat.id, depr: [] });
+  md.textContent = rows.length ? money(rows[0].amount) + ' EGP' : '—';
+  const byYear = new Map(); for (const r of rows){ const y = r.month.slice(0, 4); byYear.set(y, (byYear.get(y) || D0()).plus(r.amount)); }
+  board.innerHTML = `<div class="fa-years">${[...byYear].map(([y, t0]) => `<div><span>${y}</span><b>${money(t0)}</b></div>`).join('')}</div>
+    <div class="tbl-wrap" style="max-height:300px;overflow:auto"><table class="jl fa-tbl"><thead><tr><th>#</th><th>Date</th><th class="num">Depreciation</th><th class="num">Cumulative depreciation</th><th class="num">Book value</th><th>Status</th></tr></thead><tbody>
+    ${rows.map(r => `<tr><td class="muted">${r.idx}</td><td>${r.date}</td><td class="num">${money(r.amount)}</td><td class="num">${money(r.accum)}</td><td class="num">${money(r.nbv)}</td><td><span class="pill mute">Planned</span></td></tr>`).join('')}
+    </tbody></table></div>`;
+}
+document.addEventListener('input', e => { if (e.target.closest && e.target.closest('.fa-ed')) faRecalc(false); });
+document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.fa-ed')) faRecalc(e.target.name === 'categoryId'); });
 /* ---------------- Boot ---------------- */
 S = loadState(); loadUI(); loadSession();
 if (S.meta.migratedAt && !S.meta.migrationLogged){ S.meta.migrationLogged = true; log('schema_migration', 'settings', null, null, { schema: S.schema, version: APP_VERSION }, `Data upgraded to schema ${SCHEMA} (existing records unchanged)`); saveState(); }
