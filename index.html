@@ -1643,6 +1643,9 @@ td.nw,th{white-space:nowrap}
 .sb.ok .sb-ic{background:var(--ok-soft);color:var(--ok)}.sb.ok .sb-s{color:var(--ok)}
 .sb.alert::before{content:"";position:absolute;top:10px;right:10px;width:7px;height:7px;border-radius:50%;background:var(--bad)}
 @media (prefers-reduced-motion:reduce){.sb{transition:none}}
+#upd-bar{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:200;display:flex;align-items:center;gap:12px;padding:10px 12px 10px 18px;background:#0f172a;color:#fff;border-radius:999px;box-shadow:0 10px 30px rgba(15,23,42,.3);font-size:13.5px}
+#upd-bar .btn.primary{background:var(--gold,#c59b27)!important;border-color:var(--gold,#c59b27)!important;color:#111!important}
+#upd-bar .upd-x{background:none;border:0;color:#94a3b8;display:grid;place-items:center;padding:4px;border-radius:50%;cursor:pointer}#upd-bar .upd-x:hover{color:#fff}
 </style>
 </head>
 <body>
@@ -5018,7 +5021,7 @@ function pageProformas(){
           '<td>' + pfStatusBadge(pf.status) + '</td>' +
           '<td>' + (so ? '<a href="#/sal/orders" data-act="so-view" data-id="' + so.id + '" style="font-weight:600">' + esc(so.number) + '</a>' : '<span class="muted">—</span>') + '</td>' +
           '<td style="text-align:end;white-space:nowrap">' +
-            '<button type="button" class="btn sm" data-act="pf-print" data-id="' + pf.id + '" title="Print Pro-forma (A4)" onclick="event.stopPropagation()">🖨️ Print</button> ' +
+            '<button type="button" class="btn sm" data-act="pf-print" data-id="' + pf.id + '" title="Print Pro-forma (A4)" onclick="event.stopPropagation()">' + ic('printer', 14) + ' Print</button> ' +
             (!pf.soId && pf.status !== 'cancelled' ? '<button type="button" class="btn sm gold" data-act="pf-to-so" data-id="' + pf.id + '" title="Convert to Sales Order" onclick="event.stopPropagation()">+ Convert to SO</button>' : '') +
           '</td>' +
         '</tr>';
@@ -5037,7 +5040,7 @@ function proformaView(pf){
   const f = (l, v0) => '<div class="o-f"><div class="l">' + l + '</div><div class="v">' + (v0 || '<span class="muted">—</span>') + '</div></div>';
 
   const acts = [
-    '<button type="button" class="btn" data-act="pf-print" data-id="' + pf.id + '">🖨️ Print Pro-forma (A4)</button>'
+    '<button type="button" class="btn" data-act="pf-print" data-id="' + pf.id + '">' + ic('printer', 14) + ' Print Pro-forma (A4)</button>'
   ];
   if (pf.status === 'draft') acts.push('<button type="button" class="btn" data-act="pf-status" data-id="' + pf.id + '" data-status="sent">Mark as Sent</button>');
   if (!pf.soId && pf.status !== 'cancelled') {
@@ -6651,7 +6654,7 @@ function pageAccDash(){
     sb({ i: 'file', n: drafts.length, l: 'Entries to post', s: drafts.length ? 'drafts waiting' : 'All posted', tone: drafts.length ? 'warn' : 'ok', href: '#/acc/journals' }),
     sb({ i: 'calendar', n: `${done}<small>/${tot}</small>`, l: `Close ${lastYm}`, s: issues ? `${issues} to fix` : done === tot ? 'Ready to lock' : 'in progress', tone: issues ? 'alert' : done === tot ? 'ok' : 'warn', href: '#/acc/close' }),
     sb({ i: 'cars', n: toDeliver.length, l: 'Cars to deliver', s: 'sold, not handed over', tone: toDeliver.length ? 'warn' : '', href: '#/inv/deliveries' }),
-    sb({ i: 'cars', n: inStock, l: 'Cars in stock', s: k0 ? `${money(k0.inventory)} at cost` : 'at cost', href: '#/inv/stock' }),
+    sb({ i: 'cars', n: inStock, l: 'Cars in stock', s: k0 && D(k0.inventory).gt(0) ? `${money(k0.inventory)} at cost` : inStock ? 'cost not posted yet (no supplier bill)' : 'none in stock', href: '#/inv/stock' }),
     sb({ i: 'wallet', n: money(held), l: 'Deposits held', s: 'EGP from customers, not invoiced', href: '#/ar/advances' })
   ].join('');
   const recent = posted.slice().sort((x, y) => x.postedAt < y.postedAt ? 1 : -1).slice(0, 8);
@@ -8022,7 +8025,7 @@ function pageVehicle(){
     cy && cy.received && !cy.sold && can('ar', 'create') ? `<button type="button" class="btn primary" data-act="io-sell" data-id="${po.id}">${ic('sales', 14)} Sell car</button>` : '',
     can('imports', 'create') && !carClosed(v) ? `<button type="button" class="btn" data-act="cx-new" data-veh="${v.id}">${ic('plus', 14)} Car expense</button>` : '',
     st.group === 'out' && !carClosed(v) && can('vehicles', 'edit') ? `<button type="button" class="btn" data-act="car-close" data-id="${v.id}">${ic('check', 14)} Close car</button>` : '',
-    carClosed(v) && can('vehicles', 'edit') ? `<span class="pill mute" style="align-self:center;padding:6px 12px">🔒 Closed</span><button type="button" class="btn" data-act="car-reopen" data-id="${v.id}">Reopen</button>` : '',
+    carClosed(v) && can('vehicles', 'edit') ? `<span class="pill mute" style="align-self:center;padding:6px 12px">${ic('check', 14)} Closed</span><button type="button" class="btn" data-act="car-reopen" data-id="${v.id}">Reopen</button>` : '',
     can('vehicles', 'edit') ? `<button type="button" class="btn" data-act="veh-edit" data-id="${v.id}">${ic('settings', 14)} Edit</button>` : '',
 ].join('');
   const cxT = carExpensesOf(v.id).reduce((t, r) => t.plus(r.egp), D0());
@@ -9737,7 +9740,7 @@ function pagePartnerLedger(){
         <span class="is-caret" style="margin-inline-end:8px">${ic(open ? 'chev' : 'chev-right', 13)}</span>
         <span class="pl-p-name">${esc(g.name)}</span>
         ${g.code ? `<span class="pl-p-code">${esc(g.code)}</span>` : ''}
-        ${g.p && g.p.phone ? `<span class="pl-p-phone">📞 ${esc(g.p.phone)}</span>` : ''}
+        ${g.p && g.p.phone ? `<span class="pl-p-phone">${esc(g.p.phone)}</span>` : ''}
         <span class="pl-badge-count">${g.lines.length} ${g.lines.length === 1 ? 'txn' : 'txns'}</span>
       </td>
       ${amt(g.debit, 'b')}${amt(g.credit, 'b')}<td></td>${amt(g.end, 'b')}
@@ -9753,7 +9756,7 @@ function pagePartnerLedger(){
           <td><span class="pl-jnl-tag ${jnlCls(z.jnl)}">${esc(z.jnl)}</span></td>
           <td class="acc mono" title="${esc(z.account)}">${esc(z.acode)}</td>
           <td class="ref" title="${esc(z.ref)}">${esc(z.ref)}</td>
-          <td>${z.due ? `<span class="${isOverdue ? 'neg' : ''}">${z.due}${isOverdue ? ' ⚠️' : ''}</span>` : '<span class="muted">—</span>'}</td>
+          <td>${z.due ? `<span class="${isOverdue ? 'neg' : ''}">${z.due}${isOverdue ? ' <span class="pill bad" style="font-size:10.5px;padding:0 6px">overdue</span>' : ''}</span>` : '<span class="muted">—</span>'}</td>
           ${amt(z.debit)}${amt(z.credit)}
           <td class="num fc mono">${z.fc ? esc(z.fc) : '<span class="muted">—</span>'}</td>
           ${amt(z.bal)}
@@ -9774,7 +9777,7 @@ function pagePartnerLedger(){
     const sDebit = grps.reduce((t, g) => t.plus(g.debit), D0());
     const sCredit = grps.reduce((t, g) => t.plus(g.credit), D0());
     const sEnd = grps.reduce((t, g) => t.plus(g.end), D0());
-    const title = side === 'ar' ? '👤 Customers · Accounts Receivable' : '🏢 Vendors · Accounts Payable';
+    const title = side === 'ar' ? 'Customers · Accounts Receivable' : 'Vendors · Accounts Payable';
     return `<tr class="pl-side-hdr">
       <td colspan="5"><b>${title}</b> <span class="pl-badge-count">${grps.length} partner${grps.length === 1 ? '' : 's'}</span></td>
       <td class="num"><b>${money(sDebit)}</b></td>
@@ -9864,7 +9867,7 @@ function pagePartnerLedger(){
       </div>
     </div>
     <p class="je-hint" style="margin-top:10px">
-      💡 <b>Partner ledger guide:</b> Balance = debit − credit. Positive balance on customer = receivable (they owe you); negative balance on vendor = payable (you owe them). Click any transaction row to open its full Journal Entry.
+      <b>How to read it:</b> Balance = debit − credit. Positive balance on customer = receivable (they owe you); negative balance on vendor = payable (you owe them). Click any transaction row to open its full Journal Entry.
     </p>`;
 }
 
@@ -12880,6 +12883,22 @@ function mformSnapshot(){
 }
 document.addEventListener('input', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
+
+/* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
+const APP_BUILD = 'build-20261105-204211';
+function checkForUpdate(){
+  if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
+  fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
+    const m = txt.match(/const APP_BUILD = 'build-20261105-204211']+)'/); if (!m || m[1] === APP_BUILD || document.getElementById('upd-bar')) return;
+    const bar = document.createElement('div'); bar.id = 'upd-bar'; bar.setAttribute('role', 'status');
+    bar.innerHTML = `<span>A newer version of Goldstern is available.</span><button type="button" class="btn sm primary" id="upd-go">Reload now</button><button type="button" class="upd-x" aria-label="Dismiss">${ic('close', 14)}</button>`;
+    document.body.appendChild(bar);
+    bar.querySelector('#upd-go').onclick = () => { try { saveState(); } catch (e){} location.replace(location.pathname + '?v=' + Date.now() + location.hash); };
+    bar.querySelector('.upd-x').onclick = () => bar.remove();
+  }).catch(() => {});
+}
+setTimeout(checkForUpdate, 4000); setInterval(checkForUpdate, 5 * 60 * 1000);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkForUpdate(); });
 /* ---------------- Boot ---------------- */
 S = loadState(); loadUI(); loadSession();
 if (S.meta.migratedAt && !S.meta.migrationLogged){ S.meta.migrationLogged = true; log('schema_migration', 'settings', null, null, { schema: S.schema, version: APP_VERSION }, `Data upgraded to schema ${SCHEMA} (existing records unchanged)`); saveState(); }

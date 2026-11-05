@@ -15,6 +15,7 @@ const FEATURES = {
   'Pro-forma invoices': 'proformaById',
   'Fixed assets': 'function ensureStandardAssetCats',
   'Expenses module': 'function ensureStandardExpenseCats',
+  'New version banner': 'function checkForUpdate',
 };
 let bad = 0;
 for (const [name, marker] of Object.entries(FEATURES)){ const ok = src.includes(marker); if (!ok) bad++; console.log(`${ok ? 'ok  ' : 'MISSING'}  ${name}`); }
