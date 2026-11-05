@@ -8,9 +8,9 @@ const { chromium } = require('playwright'); const fs = require('fs'); const seed
   await p.click('button.primary'); await p.waitForTimeout(400); await p.evaluate(() => { OVERDRAFT_CONTROL = false; }); await seed(p);
   await p.evaluate(() => { location.hash = '#/sal/orders'; render(); }); await p.waitForTimeout(300); await p.screenshot({ path: require('path').join(__dirname, 'out', 'so-list.png') });
   await p.click('table.o-list tbody tr:nth-child(1) td:nth-child(3)'); await p.waitForTimeout(400); await p.screenshot({ path: require('path').join(__dirname, 'out', 'so-view.png') });
-  const btns = await p.$$eval('.o-bar .btns button', x => x.map(b => b.textContent.trim())); console.log('actions', btns);
-  if (btns.includes('Deliver car')){ await p.click('.o-bar button:has-text("Deliver car")'); await p.waitForTimeout(300); await p.click('.modal-f button.primary, #mform button[type=submit]'); await p.waitForTimeout(500);
-    console.log('after deliver', await p.$eval('.o-head .pill', e => e.textContent), await p.$$eval('.o-bar .btns button', x => x.map(b => b.textContent.trim()))); await p.screenshot({ path: require('path').join(__dirname, 'out', 'so-view2.png') }); }
+  const btns = await p.$$eval('.rec-actions button', x => x.map(b => b.textContent.trim())); console.log('actions', btns);
+  if (btns.includes('Deliver car')){ await p.click('.rec-actions button:has-text("Deliver car")'); await p.waitForTimeout(300); await p.click('.modal-f button.primary, #mform button[type=submit]'); await p.waitForTimeout(500);
+    console.log('after deliver', await p.$eval('.rec-meta .pill', e => e.textContent), await p.$$eval('.rec-actions button', x => x.map(b => b.textContent.trim()))); await p.screenshot({ path: require('path').join(__dirname, 'out', 'so-view2.png') }); }
   // customers row click
   await p.evaluate(() => { closeModal(); location.hash = '#/partners/customers'; render(); }); await p.waitForTimeout(300);
   await p.click('main tbody tr:nth-child(1) td:nth-child(2)'); await p.waitForTimeout(300); console.log('cust row ->', await p.evaluate(() => location.hash));

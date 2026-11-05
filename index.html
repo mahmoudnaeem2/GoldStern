@@ -4018,22 +4018,41 @@ function soView(so){
   }
   if (live && !so.creditApproved && can('sales', 'approve') && !so.lines.every(l => S.deliveries.some(d => d.lineId === l.id && d.status === 'delivered'))) acts.push(`<button type="button" class="btn" data-act="so-credit" data-id="${so.id}">Allow delivery on credit</button>`);
   const ipo = so.importPoId ? poById(so.importPoId) : null; if (ipo) stats.unshift(`<button type="button" class="o-stat" data-act="po-view" data-id="${ipo.id}"><b>${esc(ipo.number)}</b><small>Import order</small></button>`);
-  const net = soNet(so);
+  const net = soNet(so), ipo0 = so.importPoId ? poById(so.importPoId) : null;
+  const invs = [...new Set(so.lines.map(saleInvoiceOf).filter(Boolean))], dls = so.lines.map(l => S.deliveries.find(d => d.lineId === l.id && ['pending','delivered'].includes(d.status))).filter(Boolean);
+  const paidTot = invs.reduce((t, i) => t.plus(D(i.total).minus(invState(i).open)), D0()), dueTot = invs.reduce((t, i) => t.plus(invState(i).open), D0());
+  const deps = ipo0 ? poAdvances(ipo0, 'ar').filter(x => isPostedStatus(entryStatus(x))) : [];
+  const primary = acts.length ? acts.map((x, i) => i === 0 ? x : x.replace('class="btn primary"', 'class="btn"')).join('') : '';
   openModal({ screen: { key: 'so:' + so.id, reopen: () => { const x = soById(so.id); if (x) soView(x); } }, title: `Sales order ${so.number}`, xwide: true, body: `
-    <div class="o-bar"><div class="btns">${[...new Set(acts)].join('')}</div><div class="o-status">${steps.map(([t0], i) => `<span class="${i === cur ? 'on' : ''}">${t0}</span>`).join('')}</div></div>
-    <div class="o-sheet rec">
-      <div class="o-head"><div><div class="muted" style="font-size:13px">Sales order</div><h2>${esc(so.number)}</h2><span class="pill ${st[1]}" style="margin-top:6px">${st[0]}</span></div>${stats.length ? `<div class="o-stats">${stats.join('')}</div>` : ''}</div>
-      <div class="o-sec c-info" style="border-top:0;padding-top:0;margin-top:10px"><h3>Order details</h3><div class="o-grid"><div>
-        ${f('Customer', cu ? `<a href="#/partners/statement?side=ar&id=${cu.id}">${esc(cu.legalName)}</a>${cu.phone ? `<span class="sub">${esc(cu.phone)}</span>` : ''}` : '')}
-        ${f('Salesperson', esc(userName(so.salespersonId) || ''))}${D(so.commissionPct || 0).gt(0) ? f('Commission', so.commissionPct + '%') : ''}
-      </div><div>
-        ${f('Order date', so.date)}${f('Currency', so.currency)}${f('Payment', so.creditApproved ? '<span class="pill info">Delivery on credit allowed</span>' : 'Pay before delivery')}${so.paymentTerms ? f('Terms', esc(so.paymentTerms)) : ''}
-      </div></div></div>
-      <div class="o-sec c-gold"><h3>Cars</h3><div class="tbl-wrap"><table><thead><tr><th>Product</th><th>Status</th><th class="num">Price</th><th class="num">Discount</th><th class="num">Subtotal</th></tr></thead><tbody>
-        ${so.lines.map(l => { const v = vehById(l.vehicleId); return `<tr><td class="wrap"><b>${v ? `${esc(carName(v))} · ${esc(v.vin)}` : esc(l.description)}</b>${v ? `<div class="muted" style="font-size:12px">${esc(v.code)}${v.exteriorColor ? ' · ' + esc(v.exteriorColor) : ''}</div>` : '<div class="muted" style="font-size:12px">No car chosen yet</div>'}</td>
-          <td>${v ? invPillOf(v) : ''}</td><td class="num">${money(l.price)} ${so.currency}</td><td class="num">${D(l.discount || 0).gt(0) ? '− ' + money(l.discount) : ''}</td><td class="num"><b>${money(D(l.price).minus(l.discount || 0))}</b> ${so.currency}</td></tr>`; }).join('')}
-      </tbody></table></div>
-      <div class="o-tot"><table><tbody><tr><td><b>Total</b></td><td><b style="font-size:16px">${money(net)} ${so.currency}</b></td></tr></tbody></table></div></div>
+    <div class="rec">
+      <div class="rec-top"><div class="rec-title"><div class="rec-ic">${ic('sales', 22)}</div><div>
+        <div class="rec-kind">Sales order${ipo0 ? ` · <button type="button" class="lnk0" data-act="po-view" data-id="${ipo0.id}">${esc(ipo0.number)}</button>` : ''}</div><h2>${esc(so.number)}</h2>
+        <div class="rec-meta"><span class="pill ${st[1]}">${st[0]}</span><span>${so.date}</span>${cu ? `<span>${esc(cu.legalName)}</span>` : ''}<span>${money(net)} ${so.currency}</span></div></div></div>
+        <div class="rec-actions">${[...new Set(acts)].join('')}</div></div>
+      <ol class="rec-path">${steps.map(([t0, ok], i) => `<li class="${i < cur || (i === cur && i === steps.length - 1 && ok) ? 'done' : i === cur ? 'cur' : ''}"><span class="dot">${i < cur || (i === cur && ok && i === steps.length - 1) ? ic('check', 12) : ''}</span>${t0}</li>`).join('')}</ol>
+      <div class="rec-layout"><div class="rec-main">
+        <section class="rc"><header><h3>Cars <span class="cnt">${so.lines.length}</span></h3></header>
+          ${so.lines.map(l => { const v = vehById(l.vehicleId); return `<div class="rc-line"><div class="rc-thumb">${ic('cars', 22)}</div><div class="rc-name">${v ? `<a href="#/veh/view?id=${v.id}"><b>${esc(carName(v))}</b></a><div class="muted">Chassis ${esc(v.vin)} · ${esc(v.code)}${v.exteriorColor ? ' · ' + esc(v.exteriorColor) : ''}</div>` : `<b>${esc(l.description)}</b><div class="muted">No car chosen yet</div>`}</div>
+            <div>${v ? invPillOf(v) : ''}</div><div class="rc-amt" style="text-align:end">${money(D(l.price).minus(l.discount || 0))} <span class="muted">${so.currency}</span>${D(l.discount || 0).gt(0) ? `<div class="muted" style="font-size:12px;font-weight:400">${money(l.price)} − ${money(l.discount)} discount</div>` : ''}</div></div>`; }).join('')}
+          <dl class="rc-sum">
+            ${invs.some(i => i.tax && D(i.tax.tax).gt(0)) ? invs.filter(i => i.tax && D(i.tax.tax).gt(0)).map(i => `<div><dt>VAT ${esc(i.tax.code)} ${esc(i.tax.rate)}% <span class="muted">(${i.tax.mode === 'inclusive' ? 'included' : 'added'})</span></dt><dd>${money(i.tax.tax)}</dd></div>`).join('') : ''}
+            <div class="tot"><dt>Total</dt><dd>${money(invs.length ? invs.reduce((t, i) => t.plus(i.total), D0()) : net)} <span class="muted">${so.currency}</span></dd></div>
+            ${invs.length ? `<div><dt>Paid</dt><dd style="color:var(--ok)">${money(paidTot)}</dd></div><div class="tot"><dt>Amount due</dt><dd${dueTot.gt(0) ? ' style="color:var(--bad)"' : ''}>${money(dueTot)} <span class="muted">${so.currency}</span></dd></div>` : ''}
+          </dl></section>
+        ${invs.length ? `<section class="rc"><header><h3>Invoices &amp; payments</h3></header><div class="tbl-wrap"><table><thead><tr><th>Document</th><th>Date</th><th class="num">Amount</th><th>Status</th></tr></thead><tbody>
+          ${invs.map(i => { const red = invState(i).reductions.filter(r => ACTIVE_ST.includes(r.status));
+            return `<tr data-act="inv-view" data-id="${i.id}" style="cursor:pointer"><td><b>${esc(i.number)}</b><div class="muted" style="font-size:12px">Customer invoice</div></td><td>${i.date}</td><td class="num">${money(i.total)} ${i.currency}</td><td>${invPill(i)}</td></tr>`
+              + red.map(r => { const se = entryById(r.src.entryId); return `<tr${se ? ` data-act="je-view" data-id="${se.id}" style="cursor:pointer"` : ''}><td style="padding-inline-start:34px">${esc(r.src.number)}<div class="muted" style="font-size:12px">${r.src.type === 'advance' ? 'Deposit applied' : r.src.type === 'credit' ? 'Credit note' : 'Payment received'}</div></td><td>${r.src.date}</td><td class="num" style="color:var(--ok)">− ${money(r.applied)} ${i.currency}</td><td></td></tr>`; }).join(''); }).join('')}
+          </tbody></table></div></section>` : ''}
+      </div><aside class="rec-aside">
+        <section class="rc"><header><h3>Customer</h3></header>${cu ? `<a href="#/partners/statement?side=ar&id=${cu.id}" class="rc-big">${esc(cu.legalName)}</a>${cu.phone ? `<div class="muted">${esc(cu.phone)}</div>` : ''}` : ''}
+          ${deps.length ? `<div class="rc-doc"><span>${deps.length} deposit${deps.length > 1 ? 's' : ''}</span><span class="muted">${deps.map(x => money(x.amount) + ' ' + x.currency).join(' + ')}</span></div>` : ''}</section>
+        <section class="rc"><header><h3>Details</h3></header><dl class="rc-kv">
+          <div><dt>Order date</dt><dd>${so.date}</dd></div><div><dt>Salesperson</dt><dd>${esc(userName(so.salespersonId) || '—')}</dd></div>${D(so.commissionPct || 0).gt(0) ? `<div><dt>Commission</dt><dd>${so.commissionPct}%</dd></div>` : ''}
+          <div><dt>Currency</dt><dd>${so.currency}</dd></div><div><dt>Payment</dt><dd>${so.creditApproved ? 'Delivery on credit allowed' : 'Pay before delivery'}</dd></div>${so.paymentTerms ? `<div><dt>Terms</dt><dd>${esc(so.paymentTerms)}</dd></div>` : ''}
+        </dl></section>
+        ${dls.length ? `<section class="rc"><header><h3>Delivery</h3></header>${dls.map(d => `<div class="rc-doc" style="border-top:0;margin-top:0;padding-top:0"><b>${esc(d.number)}</b><span class="pill ${d.status === 'delivered' ? 'ok' : 'gold'}">${d.status === 'delivered' ? 'Delivered' : 'Awaiting validation'}</span><div class="muted">${d.date || ''}${d.receivedBy ? ' · received by ' + esc(d.receivedBy) : ''}</div></div>`).join('')}</section>` : ''}
+      </aside></div>
     </div>` });
 }
 function pageDeliveries(){
