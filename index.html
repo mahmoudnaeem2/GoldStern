@@ -1467,6 +1467,41 @@ td.nw,th{white-space:nowrap}
 .je-hint{font-size:12.5px;color:var(--muted);margin:var(--sp-2) 0 0}
 @media (max-width:900px){.je-fields{grid-template-columns:1fr}.jf{grid-template-columns:1fr}}
 
+
+/* Modern Partner Ledger Enhancements */
+.pled-search-wrap{position:relative;display:inline-flex;align-items:center;min-width:260px;flex:1;max-width:380px}
+.pled-search-wrap .pled-ic{position:absolute;inset-inline-start:10px;pointer-events:none;color:var(--muted);display:flex;align-items:center}
+.pled-search-wrap .input{width:100%;padding-inline-start:32px;padding-inline-end:28px;height:34px;font-size:13px}
+.pled-clear-btn{position:absolute;inset-inline-end:6px;background:none;border:none;color:var(--muted);cursor:pointer;padding:4px;border-radius:4px;font-size:16px;line-height:1;display:flex;align-items:center;justify-content:center}
+.pled-clear-btn:hover{color:var(--text);background:var(--surface-2)}
+.pl-tbl tr.pl-side-hdr td{background:var(--surface-2);font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700;padding:10px 14px;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.pl-badge-count{display:inline-block;margin-inline-start:8px;padding:2px 8px;border-radius:12px;background:var(--surface);border:1px solid var(--border);font-size:11px;font-weight:600;color:var(--text)}
+.pl-p-row{cursor:pointer;transition:background .15s}
+.pl-p-row td{padding:10px 14px!important;border-bottom:1px solid var(--border)!important;background:var(--surface)}
+.pl-p-row:hover td{background:rgba(217,163,51,0.06)}
+.pl-p-name{font-weight:600;color:var(--text);font-size:13.5px}
+.pl-p-code{font-family:monospace;font-size:11.5px;color:var(--muted);margin-inline-start:6px;background:var(--surface-2);padding:1px 6px;border-radius:4px;border:1px solid var(--border)}
+.pl-p-phone{font-size:11.5px;color:var(--muted);margin-inline-start:6px}
+.pl-line-row{cursor:pointer;font-size:12.5px;transition:background .12s}
+.pl-line-row td{padding:8px 14px!important;border-bottom:1px solid #f1f5f9!important}
+.pl-line-row:hover td{background:var(--info-soft)!important}
+.pl-indent-cell{padding-inline-start:34px!important;position:relative}
+.pl-tree-bullet{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--border);margin-inline-end:8px;vertical-align:middle}
+.pl-jnl-tag{display:inline-block;padding:1px 6px;border-radius:4px;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.02em}
+.pl-jnl-tag.bill{background:#fef3c7;color:#92400e}
+.pl-jnl-tag.inv{background:#e0f2fe;color:#0369a1}
+.pl-jnl-tag.bnk{background:#dcfce7;color:#15803d}
+.pl-jnl-tag.gj{background:#f3e8ff;color:#6b21a8}
+.pl-jnl-tag.def{background:var(--surface-2);color:var(--muted)}
+.pl-sub-row td{padding:6px 14px 10px 34px!important;background:#fafbfc;border-bottom:1px solid var(--border)!important}
+.pl-stmt-btn{font-size:12px;font-weight:600;color:var(--gold);text-decoration:none;display:inline-flex;align-items:center;gap:4px}
+.pl-stmt-btn:hover{text-decoration:underline}
+.pl-kpi-sub{font-size:11.5px;color:var(--muted);margin-top:4px}
+.is-kpi.ar{border-inline-start:3px solid var(--ok)}
+.is-kpi.ap{border-inline-start:3px solid var(--bad)}
+.is-kpi.deb{border-inline-start:3px solid var(--info)}
+.is-kpi.crd{border-inline-start:3px solid var(--gold)}
+
 /* Partner ledger */
 .pl-tbl td{font-size:13px}
 .pl-tbl td.num{width:130px}
@@ -9644,7 +9679,7 @@ function partnerLedger(P){
   const byKey = new Map(); for (const sd of ['ar','ap']) for (const p of partnersOf(sd)){ const ent = { side: sd, p }; for (const key of [partnerLabel(p), p.code, p.legalName, p.commercialName].filter(Boolean)) byKey.set(sd + '|' + String(key).trim().toLowerCase(), ent); }
   const resolve = (sd, label) => { const t = String(label || '').trim(); if (!t) return null; const code = t.split(' — ')[0].trim().toLowerCase(); return byKey.get(sd + '|' + t.toLowerCase()) || byKey.get(sd + '|' + code) || null; };
   const invByEntry = new Map(S.invoices.map(i => [i.entryId, i]));
-  const groups = new Map(), q = String(P.q || '').trim().toLowerCase();
+  const groups = new Map();
   for (const { e, l } of ledgerLines()){
     const sd = accSide.get(l.accountId); if (!sd || (type !== 'all' && type !== sd) || e.accountingDate > to) continue;
     const ent = resolve(sd, l.partner), key = ent ? sd + ':' + ent.p.id : sd + ':?' + (l.partner || '');
@@ -9658,54 +9693,211 @@ function partnerLedger(P){
   }
   let list = [...groups.values()];
   for (const g of list){ g.lines.sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : String(a.e.number || '') < String(b.e.number || '') ? -1 : 1); let run0 = g.initial; for (const z of g.lines){ run0 = run0.plus(z.debit).minus(z.credit); z.bal = run0; } g.end = run0; }
-  if (q) list = list.filter(g => (g.name + ' ' + g.code).toLowerCase().includes(q));
+  const q = String(P.q || '').trim().toLowerCase();
+  if (q){
+    list = list.filter(g => {
+      const hay = [
+        g.name || '',
+        g.code || '',
+        (g.p && g.p.commercialName) || '',
+        (g.p && g.p.phone) || '',
+        ...(g.lines || []).map(z => [z.ref, z.e && z.e.number, z.account, z.jnl, z.acode].filter(Boolean).join(' '))
+      ].join(' ').toLowerCase();
+      return hay.includes(q);
+    });
+  }
   if (P.nonzero) list = list.filter(g => !g.end.eq(0));
   if (!P.withInitialOnly) list = list.filter(g => g.lines.length || !g.initial.eq(0));
   list.sort((a, b) => a.side === b.side ? (a.name < b.name ? -1 : 1) : a.side === 'ar' ? -1 : 1);
   const sum = k => list.reduce((t, g) => t.plus(g[k]), D0());
   return { from, to, type, typeLabel: type === 'ar' ? 'Receivable accounts' : type === 'ap' ? 'Payable accounts' : 'Receivable and payable accounts', groups: list, debit: sum('debit'), credit: sum('credit'), initial: sum('initial'), balance: sum('end') };
 }
+
 function pagePartnerLedger(){
   const P = UI.pled = UI.pled || { preset: 'this_year', type: 'all', fold: {}, nonzero: false, q: '' };
   const L = partnerLedger(P), ar = L.groups.filter(g => g.side === 'ar'), ap = L.groups.filter(g => g.side === 'ap');
   const unfolded = k => P.fold[k] === true;
   const amt = (v, cls = '') => `<td class="num ${cls}${v.lt(0) ? ' neg' : ''}">${v.eq(0) ? '<span class="zero">0.00</span>' : money(v)}</td>`;
   const presets = IS_PRESETS.map(([k, l]) => `<button type="button" class="o-pill ${P.preset === k ? 'on' : ''}" data-act="pled-set" data-f="preset" data-v="${k}">${l}</button>`).join('');
-  const types = [['all','All'], ['ar','Receivable'], ['ap','Payable']].map(([k, l]) => `<button type="button" class="o-pill ${P.type === k ? 'on' : ''}" data-act="pled-set" data-f="type" data-v="${k}">${l}</button>`).join('');
-  const grp = g => { const open = unfolded(g.key);
-    let h = `<tr class="pl-p" data-act="pled-fold" data-k="${esc(g.key)}"><td colspan="5"><span class="is-caret">${ic(open ? 'chev' : 'chev-right', 14)}</span><b>${esc(g.name)}</b>${g.code ? ` <span class="muted mono">${esc(g.code)}</span>` : ''}<span class="pl-n">${g.lines.length}</span></td>${amt(g.debit)}${amt(g.credit)}<td></td>${amt(g.end, 'b')}</tr>`;
+  const types = [['all','All Accounts'], ['ar','Customers (Receivable)'], ['ap','Vendors (Payable)']].map(([k, l]) => `<button type="button" class="o-pill ${P.type === k ? 'on' : ''}" data-act="pled-set" data-f="type" data-v="${k}">${l}</button>`).join('');
+
+  const jnlCls = j => {
+    const code = String(j || '').toLowerCase();
+    if (code.includes('bill') || code.includes('pur') || code.includes('ap')) return 'bill';
+    if (code.includes('inv') || code.includes('sal') || code.includes('sj') || code.includes('ar')) return 'inv';
+    if (code.includes('bnk') || code.includes('csh') || code.includes('bank') || code.includes('cash')) return 'bnk';
+    if (code.includes('gj')) return 'gj';
+    return 'def';
+  };
+
+  const grp = g => {
+    const open = unfolded(g.key);
+    let h = `<tr class="pl-p-row" data-act="pled-fold" data-k="${esc(g.key)}">
+      <td colspan="5">
+        <span class="is-caret" style="margin-inline-end:8px">${ic(open ? 'chev' : 'chev-right', 13)}</span>
+        <span class="pl-p-name">${esc(g.name)}</span>
+        ${g.code ? `<span class="pl-p-code">${esc(g.code)}</span>` : ''}
+        ${g.p && g.p.phone ? `<span class="pl-p-phone">📞 ${esc(g.p.phone)}</span>` : ''}
+        <span class="pl-badge-count">${g.lines.length} ${g.lines.length === 1 ? 'txn' : 'txns'}</span>
+      </td>
+      ${amt(g.debit, 'b')}${amt(g.credit, 'b')}<td></td>${amt(g.end, 'b')}
+    </tr>`;
     if (open){
-      h += `<tr class="pl-init"><td colspan="5">Initial balance</td><td></td><td></td><td></td>${amt(g.initial)}</tr>`;
-      h += g.lines.map(z => `<tr class="pl-l" data-act="je-view" data-id="${z.e.id}"><td>${z.date}</td><td><span class="jnl">${esc(z.jnl)}</span></td><td class="acc">${esc(z.acode)}</td><td class="ref">${esc(z.ref)}</td><td>${z.due ? `<span class="${z.inv && invState(z.inv).open.gt(0) && z.due < todayCairo() ? 'neg' : ''}">${z.due}</span>` : ''}</td>${amt(z.debit)}${amt(z.credit)}<td class="num fc">${esc(z.fc)}</td>${amt(z.bal)}</tr>`).join('');
-      if (g.p) h += `<tr class="pl-more"><td colspan="9"><a href="#/partners/statement?side=${g.side}&id=${g.p.id}">Open ${esc(g.name)}'s statement →</a></td></tr>`;
+      if (!g.initial.eq(0)) {
+        h += `<tr class="pl-init"><td colspan="5" class="pl-indent-cell"><span class="pl-tree-bullet"></span>Initial balance forward</td><td></td><td></td><td></td>${amt(g.initial)}</tr>`;
+      }
+      h += g.lines.map(z => {
+        const isOverdue = z.due && z.inv && invState(z.inv).open.gt(0) && z.due < todayCairo();
+        return `<tr class="pl-line-row" data-act="je-view" data-id="${z.e.id}" title="Click to view journal entry ${esc(z.e.number)}">
+          <td class="pl-indent-cell"><span class="pl-tree-bullet"></span>${z.date}</td>
+          <td><span class="pl-jnl-tag ${jnlCls(z.jnl)}">${esc(z.jnl)}</span></td>
+          <td class="acc mono" title="${esc(z.account)}">${esc(z.acode)}</td>
+          <td class="ref" title="${esc(z.ref)}">${esc(z.ref)}</td>
+          <td>${z.due ? `<span class="${isOverdue ? 'neg' : ''}">${z.due}${isOverdue ? ' ⚠️' : ''}</span>` : '<span class="muted">—</span>'}</td>
+          ${amt(z.debit)}${amt(z.credit)}
+          <td class="num fc mono">${z.fc ? esc(z.fc) : '<span class="muted">—</span>'}</td>
+          ${amt(z.bal)}
+        </tr>`;
+      }).join('');
+      if (g.p) {
+        h += `<tr class="pl-sub-row"><td colspan="9" class="pl-indent-cell">
+          <a class="pl-stmt-btn" href="#/partners/statement?side=${g.side}&id=${g.p.id}">
+            ${ic('file', 13)} Open complete statement for ${esc(g.name)} →
+          </a>
+        </td></tr>`;
+      }
     }
-    return h; };
-  const head = side => `<tr class="pl-side"><td colspan="9">${side === 'ar' ? 'Customers · receivable' : 'Vendors · payable'}</td></tr>`;
-  const kp = (k, v, s) => `<div class="is-kpi"><div class="k">${k}</div><div class="v${v.lt(0) ? ' neg' : ''}">${money(v)}</div><div class="s">${s}</div></div>`;
-  const recv = ar.reduce((t, g) => t.plus(g.end), D0()), pay = ap.reduce((t, g) => t.plus(g.end), D0());
-  return H('Partner ledger', `${L.from} to ${L.to} · EGP · posted entries · ${L.typeLabel.toLowerCase()}`, `<button class="btn" data-act="fin-xlsx" data-k="pl">Export Excel</button><button class="btn" onclick="window.print()">Print / PDF</button>`) + `
+    return h;
+  };
+
+  const sideHdr = (side, grps) => {
+    const sDebit = grps.reduce((t, g) => t.plus(g.debit), D0());
+    const sCredit = grps.reduce((t, g) => t.plus(g.credit), D0());
+    const sEnd = grps.reduce((t, g) => t.plus(g.end), D0());
+    const title = side === 'ar' ? '👤 Customers · Accounts Receivable' : '🏢 Vendors · Accounts Payable';
+    return `<tr class="pl-side-hdr">
+      <td colspan="5"><b>${title}</b> <span class="pl-badge-count">${grps.length} partner${grps.length === 1 ? '' : 's'}</span></td>
+      <td class="num"><b>${money(sDebit)}</b></td>
+      <td class="num"><b>${money(sCredit)}</b></td>
+      <td></td>
+      <td class="num"><b>${money(sEnd)}</b></td>
+    </tr>`;
+  };
+
+  const recv = ar.reduce((t, g) => t.plus(g.end), D0());
+  const pay = ap.reduce((t, g) => t.plus(g.end), D0());
+
+  return H('Partner ledger', `${L.from} to ${L.to} · Functional Currency: <b>EGP</b> · Posted journal entries`, `<button class="btn" data-act="fin-xlsx" data-k="pl"><span style="margin-inline-end:4px">${ic('file', 14)}</span> Export Excel</button><button class="btn" onclick="window.print()"><span style="margin-inline-end:4px">${ic('printer', 14)}</span> Print / PDF</button>`) + `
     <div class="card is-tools">
       <div class="is-row"><span class="lbl">Period</span><div class="o-pills">${presets}</div></div>
-      ${P.preset === 'custom' ? `<form class="is-row" data-form="pled-range"><span class="lbl">Dates</span><input class="input" type="date" name="from" value="${P.from || L.from}"><span class="muted">to</span><input class="input" type="date" name="to" value="${P.to || L.to}"><button class="btn sm">Apply</button></form>` : ''}
-      <div class="is-row"><span class="lbl">Accounts</span><div class="o-pills">${types}</div>
-        <input class="input" id="pled-q" placeholder="Search partner…" value="${esc(P.q || '')}" style="width:220px;margin-inline-start:12px">
-        <label class="is-chk"><input type="checkbox" data-act="pled-tog" data-f="nonzero" ${P.nonzero ? 'checked' : ''}> Only partners with a balance</label>
-        <span class="spacer"></span><button type="button" class="btn sm" data-act="pled-all" data-v="1">Unfold all</button><button type="button" class="btn sm" data-act="pled-all" data-v="0">Fold all</button></div></div>
-    <div class="is-kpis">${kp('Customers owe us', recv, ar.length + ' customer' + (ar.length === 1 ? '' : 's'))}${kp('We owe vendors', pay.negated(), ap.length + ' vendor' + (ap.length === 1 ? '' : 's'))}${kp('Debits in period', L.debit, 'invoices, payments made')}${kp('Credits in period', L.credit, 'bills, payments received')}</div>
-    <div class="card is-card"><div class="tbl-wrap"><table class="is-tbl pl-tbl"><thead><tr><th>Date</th><th>JRNL</th><th>Account</th><th>Ref</th><th>Due date</th><th class="num">Debit</th><th class="num">Credit</th><th class="num">Amount currency</th><th class="num">Balance</th></tr></thead><tbody>
-      ${L.groups.length ? (ar.length && P.type !== 'ap' ? head('ar') + ar.map(grp).join('') : '') + (ap.length && P.type !== 'ar' ? head('ap') + ap.map(grp).join('') : '') : '<tr><td colspan="9" class="empty">No receivable or payable movements for this period.</td></tr>'}
-    </tbody><tfoot><tr class="is-sum net"><td colspan="5">Total</td>${amt(L.debit)}${amt(L.credit)}<td></td>${amt(L.balance)}</tr></tfoot></table></div></div>
-    <p class="je-hint">Balance = debit − credit. A positive balance on a customer means they owe you; a negative balance on a vendor means you owe them. Click a line to open its journal entry.</p>`;
+      ${P.preset === 'custom' ? `<form class="is-row" data-form="pled-range"><span class="lbl">Custom Dates</span><input class="input" type="date" name="from" value="${P.from || L.from}"><span class="muted">to</span><input class="input" type="date" name="to" value="${P.to || L.to}"><button class="btn sm primary">Apply Range</button></form>` : ''}
+      <div class="is-row" style="flex-wrap:wrap;gap:12px;align-items:center">
+        <span class="lbl">Accounts</span>
+        <div class="o-pills">${types}</div>
+        <div class="pled-search-wrap">
+          <span class="pled-ic">${ic('search', 15)}</span>
+          <input class="input" id="pled-q" placeholder="Search partner name, code, phone, invoice, ref..." value="${esc(P.q || '')}" autocomplete="off">
+          ${P.q ? `<button type="button" class="pled-clear-btn" data-act="pled-clear" title="Clear search">×</button>` : ''}
+        </div>
+        <label class="is-chk" style="cursor:pointer;user-select:none"><input type="checkbox" data-act="pled-tog" data-f="nonzero" ${P.nonzero ? 'checked' : ''}> Non-zero balance only</label>
+        <span class="spacer" style="flex:1"></span>
+        <button type="button" class="btn sm" data-act="pled-all" data-v="1">Unfold all</button>
+        <button type="button" class="btn sm" data-act="pled-all" data-v="0">Fold all</button>
+      </div>
+    </div>
+
+    <div class="is-kpis">
+      <div class="is-kpi ar">
+        <div class="k">Customers Owe Us (AR)</div>
+        <div class="v${recv.lt(0) ? ' neg' : ''}">${money(recv)} <small style="font-size:12px;font-weight:400;color:var(--muted)">EGP</small></div>
+        <div class="pl-kpi-sub">${ar.length} customer${ar.length === 1 ? '' : 's'} with receivable entries</div>
+      </div>
+      <div class="is-kpi ap">
+        <div class="k">We Owe Vendors (AP)</div>
+        <div class="v${pay.lt(0) ? ' neg' : ''}">${money(pay.negated())} <small style="font-size:12px;font-weight:400;color:var(--muted)">EGP</small></div>
+        <div class="pl-kpi-sub">${ap.length} vendor${ap.length === 1 ? '' : 's'} with payable entries</div>
+      </div>
+      <div class="is-kpi deb">
+        <div class="k">Total Period Debits</div>
+        <div class="v">${money(L.debit)} <small style="font-size:12px;font-weight:400;color:var(--muted)">EGP</small></div>
+        <div class="pl-kpi-sub">Sales invoices issued & payments made</div>
+      </div>
+      <div class="is-kpi crd">
+        <div class="k">Total Period Credits</div>
+        <div class="v">${money(L.credit)} <small style="font-size:12px;font-weight:400;color:var(--muted)">EGP</small></div>
+        <div class="pl-kpi-sub">Vendor bills received & cash collected</div>
+      </div>
+    </div>
+
+    <div class="card is-card">
+      <div class="tbl-wrap">
+        <table class="is-tbl pl-tbl">
+          <thead>
+            <tr>
+              <th style="min-width:240px">Date / Partner</th>
+              <th style="width:70px">Journal</th>
+              <th style="width:75px">Account</th>
+              <th>Reference / Label</th>
+              <th style="width:105px">Due date</th>
+              <th class="num" style="width:125px">Debit</th>
+              <th class="num" style="width:125px">Credit</th>
+              <th class="num" style="width:125px">Amount Currency</th>
+              <th class="num" style="width:130px">Balance</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${L.groups.length ? (
+              (ar.length && P.type !== 'ap' ? sideHdr('ar', ar) + ar.map(grp).join('') : '') +
+              (ap.length && P.type !== 'ar' ? sideHdr('ap', ap) + ap.map(grp).join('') : '')
+            ) : `<tr><td colspan="9" class="empty" style="padding:36px;text-align:center;color:var(--muted)">${P.q ? 'No partners or transactions match "' + esc(P.q) + '".' : 'No receivable or payable movements found for this period.'}</td></tr>`}
+          </tbody>
+          <tfoot>
+            <tr class="is-sum net">
+              <td colspan="5"><b>Grand Total</b> ${P.q ? `<span class="pl-badge-count">Filtered: ${L.groups.length}</span>` : ''}</td>
+              ${amt(L.debit, 'b')}
+              ${amt(L.credit, 'b')}
+              <td></td>
+              ${amt(L.balance, 'b')}
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+    <p class="je-hint" style="margin-top:10px">
+      💡 <b>Partner ledger guide:</b> Balance = debit − credit. Positive balance on customer = receivable (they owe you); negative balance on vendor = payable (you owe them). Click any transaction row to open its full Journal Entry.
+    </p>`;
 }
+
 const PLED_CLICKS = {
-  'pled-set'(el){ UI.pled[el.dataset.f] = el.dataset.v; render(); },
-  'pled-tog'(el){ UI.pled[el.dataset.f] = !UI.pled[el.dataset.f]; render(); },
-  'pled-fold'(el){ const k = el.dataset.k; UI.pled.fold[k] = !UI.pled.fold[k]; render(); },
-  'pled-all'(el){ const f = {}; if (el.dataset.v === '1') for (const g of partnerLedger(UI.pled).groups) f[g.key] = true; UI.pled.fold = f; render(); },
+  'pled-set'(el){ UI.pled = UI.pled || {}; UI.pled[el.dataset.f] = el.dataset.v; render(); },
+  'pled-tog'(el){ UI.pled = UI.pled || {}; UI.pled[el.dataset.f] = !UI.pled[el.dataset.f]; render(); },
+  'pled-fold'(el){ UI.pled = UI.pled || {}; UI.pled.fold = UI.pled.fold || {}; const k = el.dataset.k; UI.pled.fold[k] = !UI.pled.fold[k]; render(); },
+  'pled-all'(el){ UI.pled = UI.pled || {}; const f = {}; if (el.dataset.v === '1') for (const g of partnerLedger(UI.pled).groups) f[g.key] = true; UI.pled.fold = f; render(); },
+  'pled-clear'(){ UI.pled = UI.pled || {}; UI.pled.q = ''; render(); const inp = document.getElementById('pled-q'); if (inp) inp.focus(); },
   'fin-xlsx'(el){ finExport(el.dataset.k.split(','), el.dataset.name); }
 };
-document.addEventListener('keydown', e => { if (e.target && e.target.id === 'pled-q' && e.key === 'Enter'){ UI.pled.q = e.target.value; render(); } });
-document.addEventListener('change', e => { if (e.target && e.target.id === 'pled-q'){ UI.pled.q = e.target.value; render(); } });
+
+document.addEventListener('input', e => {
+  if (e.target && e.target.id === 'pled-q'){
+    UI.pled = UI.pled || {};
+    UI.pled.q = e.target.value;
+    const start = e.target.selectionStart;
+    const end = e.target.selectionEnd;
+    render();
+    const next = document.getElementById('pled-q');
+    if (next){
+      next.focus();
+      try { next.setSelectionRange(start, end); } catch (_) {}
+    }
+  }
+});
+document.addEventListener('keydown', e => {
+  if (e.target && e.target.id === 'pled-q' && e.key === 'Escape'){
+    UI.pled = UI.pled || {};
+    UI.pled.q = '';
+    render();
+  }
+});
 
 function pageBudgets(){
   const yr = UI.budYear || todayCairo().slice(0, 4), toM = yr === todayCairo().slice(0, 4) ? +todayCairo().slice(5, 7) : 12;
