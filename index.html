@@ -441,11 +441,244 @@ a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline}
 .pill.ok{background:#ecfdf5;color:#047857}.pill.info{background:#eff6ff;color:#1d4ed8}.pill.gold{background:#fffbeb;color:#b45309}.pill.mute{background:var(--g100);color:var(--g600)}
 .badge.b-ok{background:#ecfdf5;color:#047857}.badge.b-info{background:#eff6ff;color:#1d4ed8}.badge.b-warn,.badge.b-gold{background:#fffbeb;color:#b45309}.badge.b-bad{background:#fef2f2;color:#b91c1c}.badge.b-mute{background:var(--g100);color:var(--g600)}
 .badge{font-weight:500;font-size:12px}
-/* buttons (Polaris: dark primary, white secondary) */
-.btn{border-color:var(--g300);color:var(--g900);border-radius:8px;font-weight:500}
-.btn:hover{background:var(--g50)}
-.btn.primary{background:#303030;border-color:#303030;color:#fff;box-shadow:0 1px 0 rgba(0,0,0,.08),inset 0 1px 0 rgba(255,255,255,.12)}.btn.primary:hover{background:#1a1a1a;border-color:#1a1a1a}
-.btn.danger{color:#b91c1c;border-color:#fecaca}.btn.danger:hover{background:#fef2f2}
+/* ---- Elevated Luxury Button System & Presentable Colored Icons ---- */
+.btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  min-height: 38px !important;
+  height: 38px !important;
+  padding: 0 16px !important;
+  border-radius: 9px !important;
+  font-family: inherit !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.01em !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+  text-decoration: none !important;
+  cursor: pointer !important;
+  user-select: none !important;
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #cbd5e1 !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+  transition: all 0.16s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  position: relative !important;
+  outline: none !important;
+}
+.btn:hover {
+  background: #f8fafc !important;
+  border-color: #94a3b8 !important;
+  color: #020617 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 3px 8px rgba(15, 23, 42, 0.08), inset 0 1px 0 #ffffff !important;
+}
+.btn:active {
+  transform: translateY(0) scale(0.985) !important;
+  background: #f1f5f9 !important;
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.08) !important;
+}
+.btn:focus-visible {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important;
+}
+
+/* Primary Button (Luxury Obsidian & Deep Slate with Top Bevel Highlight) */
+.btn.primary {
+  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%) !important;
+  border: 1px solid #0f172a !important;
+  color: #ffffff !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.22), 0 1px 2px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.25) !important;
+}
+.btn.primary:hover {
+  background: linear-gradient(180deg, #334155 0%, #1e293b 100%) !important;
+  border-color: #1e293b !important;
+  color: #ffffff !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+}
+.btn.primary:active {
+  transform: translateY(0) scale(0.985) !important;
+  background: #0f172a !important;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.35) !important;
+}
+
+/* Gold Button (Luxury Automotive Gold Accent) */
+.btn.gold {
+  background: linear-gradient(180deg, #d4af37 0%, #b8860b 100%) !important;
+  border: 1px solid #996515 !important;
+  color: #ffffff !important;
+  font-weight: 650 !important;
+  box-shadow: 0 1px 3px rgba(184, 137, 43, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2) !important;
+}
+.btn.gold:hover {
+  background: linear-gradient(180deg, #e5be42 0%, #c69213 100%) !important;
+  border-color: #8c5d13 !important;
+  color: #ffffff !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 14px rgba(184, 137, 43, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.45) !important;
+}
+.btn.gold:active {
+  transform: translateY(0) scale(0.985) !important;
+  background: #b8860b !important;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Danger Button */
+.btn.danger {
+  background: #fef2f2 !important;
+  border: 1px solid #fecaca !important;
+  color: #dc2626 !important;
+  box-shadow: 0 1px 2px rgba(220, 38, 38, 0.05) !important;
+}
+.btn.danger:hover {
+  background: #fee2e2 !important;
+  border-color: #fca5a5 !important;
+  color: #b91c1c !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 3px 8px rgba(220, 38, 38, 0.15) !important;
+}
+.btn.danger:active {
+  transform: translateY(0) scale(0.985) !important;
+  background: #fecaca !important;
+  box-shadow: inset 0 1px 2px rgba(220, 38, 38, 0.2) !important;
+}
+
+/* Small Button */
+.btn.sm {
+  min-height: 30px !important;
+  height: 30px !important;
+  padding: 0 12px !important;
+  font-size: 12px !important;
+  border-radius: 7px !important;
+  gap: 5px !important;
+}
+
+/* Back Button with Animated Arrow */
+.btn[data-act="hist-back"] {
+  padding-inline-start: 12px !important;
+  border-color: #cbd5e1 !important;
+}
+.btn[data-act="hist-back"] svg {
+  transition: transform 0.18s ease !important;
+}
+.btn[data-act="hist-back"]:hover svg {
+  transform: translateX(-3px) !important;
+}
+[dir="rtl"] .btn[data-act="hist-back"]:hover svg {
+  transform: translateX(3px) !important;
+}
+
+.btn svg {
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+/* ---- Presentable Colored Navigation Icons in Sidebar ---- */
+.nav-item .nav-ic {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 9px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  flex-shrink: 0 !important;
+}
+.nav-item:hover .nav-ic {
+  transform: scale(1.08) !important;
+}
+.nav-item.active .nav-ic {
+  transform: scale(1.06) !important;
+  border-color: rgba(255, 255, 255, 0.22) !important;
+}
+
+/* Dedicated Glowing Colors for Each Application */
+.nav-item[data-app="dashboard"] .nav-ic {
+  color: #818cf8 !important;
+  background: rgba(99, 102, 241, 0.18) !important;
+}
+.nav-item[data-app="dashboard"].active .nav-ic,
+.nav-item[data-app="dashboard"]:hover .nav-ic {
+  background: rgba(99, 102, 241, 0.32) !important;
+  box-shadow: 0 0 14px rgba(99, 102, 241, 0.45) !important;
+}
+
+.nav-item[data-app="purchases"] .nav-ic {
+  color: #38bdf8 !important;
+  background: rgba(56, 189, 248, 0.18) !important;
+}
+.nav-item[data-app="purchases"].active .nav-ic,
+.nav-item[data-app="purchases"]:hover .nav-ic {
+  background: rgba(56, 189, 248, 0.32) !important;
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.45) !important;
+}
+
+.nav-item[data-app="sales"] .nav-ic {
+  color: #34d399 !important;
+  background: rgba(52, 211, 153, 0.18) !important;
+}
+.nav-item[data-app="sales"].active .nav-ic,
+.nav-item[data-app="sales"]:hover .nav-ic {
+  background: rgba(52, 211, 153, 0.32) !important;
+  box-shadow: 0 0 14px rgba(52, 211, 153, 0.45) !important;
+}
+
+.nav-item[data-app="cars"] .nav-ic {
+  color: #fbbf24 !important;
+  background: rgba(251, 191, 36, 0.18) !important;
+}
+.nav-item[data-app="cars"].active .nav-ic,
+.nav-item[data-app="cars"]:hover .nav-ic {
+  background: rgba(251, 191, 36, 0.32) !important;
+  box-shadow: 0 0 14px rgba(251, 191, 36, 0.5) !important;
+}
+
+.nav-item[data-app="banking"] .nav-ic {
+  color: #60a5fa !important;
+  background: rgba(96, 165, 250, 0.18) !important;
+}
+.nav-item[data-app="banking"].active .nav-ic,
+.nav-item[data-app="banking"]:hover .nav-ic {
+  background: rgba(96, 165, 250, 0.32) !important;
+  box-shadow: 0 0 14px rgba(96, 165, 250, 0.45) !important;
+}
+
+.nav-item[data-app="accounting"] .nav-ic {
+  color: #c084fc !important;
+  background: rgba(192, 132, 252, 0.18) !important;
+}
+.nav-item[data-app="accounting"].active .nav-ic,
+.nav-item[data-app="accounting"]:hover .nav-ic {
+  background: rgba(192, 132, 252, 0.32) !important;
+  box-shadow: 0 0 14px rgba(192, 132, 252, 0.45) !important;
+}
+
+.nav-item[data-app="reports"] .nav-ic {
+  color: #f472b6 !important;
+  background: rgba(244, 114, 182, 0.18) !important;
+}
+.nav-item[data-app="reports"].active .nav-ic,
+.nav-item[data-app="reports"]:hover .nav-ic {
+  background: rgba(244, 114, 182, 0.32) !important;
+  box-shadow: 0 0 14px rgba(244, 114, 182, 0.45) !important;
+}
+
+.nav-item[data-app="settings"] .nav-ic {
+  color: #94a3b8 !important;
+  background: rgba(148, 163, 184, 0.18) !important;
+}
+.nav-item[data-app="settings"].active .nav-ic,
+.nav-item[data-app="settings"]:hover .nav-ic {
+  background: rgba(148, 163, 184, 0.32) !important;
+  box-shadow: 0 0 14px rgba(148, 163, 184, 0.45) !important;
+}
 /* lists */
 th{color:var(--g500);font-weight:500;background:var(--g50)}
 .card{border-color:var(--g200);border-radius:12px}
@@ -4748,8 +4981,8 @@ const ICONS = {
   printer: '<polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/>',
   dashboard: '<rect width="7" height="9" x="3" y="3" rx="1.5"/><rect width="7" height="5" x="14" y="3" rx="1.5"/><rect width="7" height="9" x="14" y="12" rx="1.5"/><rect width="7" height="5" x="3" y="16" rx="1.5"/>',
   cars: '<path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.5 2.8C2 10.9 2 11.2 2 11.5V16c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/>',
-  purchases: '<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/>',
-  sales: '<path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><circle cx="7" cy="7" r=".5" fill="currentColor"/>',
+  purchases: '<path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>',
+  sales: '<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><line x1="15" x2="9" y1="9" y2="15"/><circle cx="10" cy="10" r=".5" fill="currentColor"/><circle cx="14" cy="14" r=".5" fill="currentColor"/>',
   banking: '<path d="m2 7 10-5 10 5v2H2V7Z"/><path d="M4 11v6"/><path d="M9 11v6"/><path d="M15 11v6"/><path d="M20 11v6"/><path d="M2 19h20v2H2v-2Z"/>',
   accounting: '<rect width="16" height="20" x="4" y="2" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/><line x1="16" x2="16" y1="14" y2="18"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/>',
   reports: '<path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>',
@@ -6672,13 +6905,13 @@ function pageVehicle(){
     dep.length ? stat(payAttrs(dep), `${dep.length} Deposit${dep.length > 1 ? 's' : ''}`, dep.map(x => money(x.amount) + ' ' + x.currency).join(' + ')) : '',
     stat('onclick="document.getElementById(\'car-je\').scrollIntoView({behavior:\'smooth\'})"', `${ents.length} Entries`, 'journal')].join('');
   const f = (l, v0) => `<div class="o-f"><div class="l">${l}</div><div class="v">${v0 || '<span class="muted">—</span>'}</div></div>`;
-  const acts = [`<button type="button" class="btn" data-act="hist-back">${ic('back', 16)}Back</button>`,
-    cy && !cy.invoiced && po.status === 'approved' && can('ap', 'create') ? `<button type="button" class="btn primary" data-act="po-inv" data-id="${po.id}">Supplier invoice & receive</button>` : '',
-    cy && cy.received && !cy.sold && can('ar', 'create') ? `<button type="button" class="btn primary" data-act="io-sell" data-id="${po.id}">Sell car</button>` : '',
-    can('imports', 'create') && !carClosed(v) ? `<button type="button" class="btn" data-act="cx-new" data-veh="${v.id}">+ Car expense</button>` : '',
-    st.group === 'out' && !carClosed(v) && can('vehicles', 'edit') ? `<button type="button" class="btn" data-act="car-close" data-id="${v.id}">Close car</button>` : '',
+  const acts = [`<button type="button" class="btn" data-act="hist-back">${ic('back', 15)} Back</button>`,
+    cy && !cy.invoiced && po.status === 'approved' && can('ap', 'create') ? `<button type="button" class="btn primary" data-act="po-inv" data-id="${po.id}">${ic('invoices', 14)} Supplier invoice & receive</button>` : '',
+    cy && cy.received && !cy.sold && can('ar', 'create') ? `<button type="button" class="btn primary" data-act="io-sell" data-id="${po.id}">${ic('sales', 14)} Sell car</button>` : '',
+    can('imports', 'create') && !carClosed(v) ? `<button type="button" class="btn" data-act="cx-new" data-veh="${v.id}">${ic('plus', 14)} Car expense</button>` : '',
+    st.group === 'out' && !carClosed(v) && can('vehicles', 'edit') ? `<button type="button" class="btn" data-act="car-close" data-id="${v.id}">${ic('check', 14)} Close car</button>` : '',
     carClosed(v) && can('vehicles', 'edit') ? `<span class="pill mute" style="align-self:center;padding:6px 12px">🔒 Closed</span><button type="button" class="btn" data-act="car-reopen" data-id="${v.id}">Reopen</button>` : '',
-    can('vehicles', 'edit') ? `<button type="button" class="btn" data-act="veh-edit" data-id="${v.id}">Edit</button>` : '',
+    can('vehicles', 'edit') ? `<button type="button" class="btn" data-act="veh-edit" data-id="${v.id}">${ic('settings', 14)} Edit</button>` : '',
 ].join('');
   const cxT = carExpensesOf(v.id).reduce((t, r) => t.plus(r.egp), D0());
   const fxL = vehicleLines(v.id).filter(({ e, l }) => l.fxToCar && e.status === 'posted'), fxCost = fxL.filter(({ l }) => l.costType === 'fx_diff').reduce((t, { l }) => t.plus(l.egpDebit || '0').minus(l.egpCredit || '0'), D0()), fxRev = fxL.filter(({ l }) => l.costType !== 'fx_diff').reduce((t, { l }) => t.plus(l.egpCredit || '0').minus(l.egpDebit || '0'), D0());
