@@ -1514,6 +1514,28 @@ td.nw,th{white-space:nowrap}
 .fa-tbl th{position:sticky;top:0;background:var(--surface-2);font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.04em;color:var(--muted);text-align:start;padding:8px 10px;border-bottom:1px solid var(--border)}
 .fa-tbl th.num,.fa-tbl td.num{text-align:end}.fa-tbl td{padding:7px 10px;border-bottom:1px solid #f1f5f9}
 .jf[hidden],.je-pane[hidden]{display:none!important}
+
+/* ==== App menu bar — Odoo style: plain text items, no boxes ==== */
+.subnav{height:48px!important;padding:0 20px!important;gap:0!important;background:#fff!important;border-bottom:1px solid #e5e7eb!important;box-shadow:none!important;align-items:stretch!important;flex-wrap:nowrap!important}
+.subnav::-webkit-scrollbar{display:none}
+.subnav .app{font-size:15px!important;font-weight:700!important;color:#111827!important;border:0!important;margin:0 12px 0 0!important;padding:0 8px!important;align-self:center}
+.subnav > a,.subnav .sm-btn{height:48px!important;display:flex!important;align-items:center;padding:0 12px!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;
+  font-size:14px!important;font-weight:400!important;color:#374151!important;white-space:nowrap;cursor:pointer;position:relative}
+.subnav > a:hover,.subnav .sm-btn:hover,.subnav .sm-dd.open .sm-btn{background:#f3f4f6!important;color:#111827!important}
+.subnav > a.on,.subnav .sm-btn.on{background:transparent!important;color:#111827!important;font-weight:600!important;border:0!important;box-shadow:none!important}
+.subnav > a.on::after,.subnav .sm-btn.on::after{content:"";position:absolute;left:12px;right:12px;bottom:0;height:2px;border-radius:2px 2px 0 0;background:var(--gold,#c59b27)}
+.subnav .sm-btn .car{display:none}
+.subnav .sm-dd{display:flex;align-items:stretch}
+@media (hover:hover){.subnav .sm-dd:hover .sm-pop{display:none}.subnav .sm-dd.open .sm-pop{display:block}.subnav .sm-dd:hover .sm-btn{background:#f3f4f6!important}}
+.subnav .sm-pop{top:100%!important;margin-top:0;min-width:230px;padding:6px 0!important;border-radius:0 0 6px 6px!important;border:1px solid #e5e7eb!important;border-top:0!important;box-shadow:0 8px 16px rgba(0,0,0,.12)!important;z-index:70}
+.subnav .sm-pop a{border-radius:0!important;padding:7px 20px!important;font-size:14px!important;font-weight:400!important;color:#374151!important;background:transparent!important}
+.subnav .sm-pop a:hover{background:#f3f4f6!important;color:#111827!important}
+.subnav .sm-pop a.on{background:#f3f4f6!important;color:#111827!important;font-weight:600!important;box-shadow:inset 3px 0 0 var(--gold,#c59b27)!important}
+.subnav .sm-h{padding:10px 20px 4px;font-size:12px;font-weight:700;color:#111827}
+.subnav .sm-h:first-child{padding-top:4px}
+.subnav .sm-sep{height:1px;background:#e5e7eb;margin:6px 0}
+.je-grid .input.bad-in{border-bottom-color:var(--bad)!important;background:var(--bad-soft)}
+.ex-ed .jf .fa-in .btn{white-space:nowrap}
 </style>
 </head>
 <body>
@@ -5485,9 +5507,15 @@ Object.assign(A, {
     if (!isISODate(f.date)) throw new AppError('Date is required.');
     const method = f.method; if (!['bank','employee','supplier'].includes(method)) throw new AppError('Select how the expense is paid.');
     const arr = k => [].concat(f[k] ?? []);
-    const lines = arr('ex_cat').map((c, i) => ({ cat: S.expenseCats.find(x => x.id === c), description: String(arr('ex_desc')[i] || '').trim(), amount: String(arr('ex_amount')[i] || '').trim().replace(/,/g, ''), costCenter: arr('ex_cc')[i] || '', vehicle: String(arr('ex_vehicle')[i] || '').trim().toUpperCase() })).filter(l => l.amount || l.description);
+    const lines = arr('ex_cat').map((c, i) => ({ cat: expenseCatFrom(c), partner: String(arr('ex_partner')[i] || '').trim(), description: String(arr('ex_desc')[i] || '').trim(), amount: String(arr('ex_amount')[i] || '').trim().replace(/,/g, ''), costCenter: arr('ex_cc')[i] || '', vehicle: String(arr('ex_vehicle')[i] || '').trim().toUpperCase() })).filter(l => l.amount || l.description);
     if (!lines.length) throw new AppError('Add at least one expense line.');
     const ref = String(f.ref || '').trim();
+    /* one Partner field on the form: vendor for a supplier bill, employee for a reimbursement, payee otherwise */
+    const pname = String(f.partner || '').trim();
+    if (pname){ const sup = partnersOf('ap').find(x => [x.legalName, x.commercialName, x.code, partnerLabel(x)].filter(Boolean).some(k => String(k).trim().toLowerCase() === pname.toLowerCase()));
+      if (method === 'supplier'){ if (!sup) throw new AppError(`"${pname}" is not a vendor yet. Click "New vendor" next to Partner to create it.`); f.supplierId = sup.id; }
+      if (method === 'employee') f.employee = pname; if (method === 'bank') f.payee = sup ? sup.legalName : pname; }
+    if (method === 'supplier' && !f.supplierId) throw new AppError('Select the vendor in Partner.');
     let cur = 'EGP', b = null; if (method === 'bank'){ b = bankById(f.bankId); if (!b || !b.active) throw new AppError('Select the bank or cash account.'); cur = b.currency; }
     const idx = vehicleIndex();
     lines.forEach((l, i) => { if (!l.cat) throw new AppError(`Line ${i + 1}: select a category.`); if (!amtOk(l.amount, cur) || !D(l.amount).gt(0)) throw new AppError(`Line ${i + 1}: enter a positive ${cur} amount.`);
@@ -5500,11 +5528,11 @@ Object.assign(A, {
     const total = lines.reduce((t, l) => t.plus(l.amount), D0()), payee = method === 'employee' ? String(f.employee || '').trim() : String(f.payee || '').trim();
     if (method === 'employee' && !payee) throw new AppError('Enter the employee being reimbursed.');
     const number = previewNumber(S.sequences.find(s => s.doc === 'expense_claim'), f.date);
-    const jl = lines.map(l => ({ id: uid('jl'), accountId: l.cat.accountId, debit: D(l.amount).toFixed(2), credit: '', costCenter: l.costCenter, partner: payee, vehicle: l.vehicle, vehicleId: l.vehicleId || undefined, description: `${l.cat.name}${l.description ? ': ' + l.description : ''}` }));
+    const jl = lines.map(l => ({ id: uid('jl'), accountId: l.cat.accountId, debit: D(l.amount).toFixed(2), credit: '', costCenter: l.costCenter, partner: l.partner || payee, vehicle: l.vehicle, vehicleId: l.vehicleId || undefined, description: `${l.cat.name}${l.description ? ': ' + l.description : ''}` }));
     jl.push({ id: uid('jl'), accountId: method === 'bank' ? b.glAccountId : getMapping('employee_payable').id, debit: '', credit: total.toFixed(2), costCenter: '', partner: payee, vehicle: '', description: method === 'bank' ? (ref ? `Paid ${ref}` : 'Expense settlement') : `Reimbursement due to ${payee}` });
     const e = docEntryShell(me, method === 'bank' ? 'BJ' : 'GJ', f.date, cur, 'official', number, `Expense ${number}${payee ? ' — ' + payee : (ref ? ' — ' + ref : '')}`, jl, { reference: ref });
     submitDocEntry(e, me); nextNumber('expense_claim', f.date);
-    const x = { id: uid('ex'), number, date: f.date, method, ref, payee, bankId: b ? b.id : '', total: total.toFixed(2), currency: cur, lines: lines.map(l => ({ category: l.cat.name, amount: l.amount, costCenter: l.costCenter, vehicle: l.vehicle, description: l.description })), entryId: e.id, createdBy: me.id, createdAt: nowISO() };
+    const x = { id: uid('ex'), number, date: f.date, method, ref, payee, bankId: b ? b.id : '', total: total.toFixed(2), currency: cur, lines: lines.map(l => ({ category: l.cat.name, accountId: l.cat.accountId, partner: l.partner, amount: l.amount, costCenter: l.costCenter, vehicle: l.vehicle, description: l.description })), entryId: e.id, createdBy: me.id, createdAt: nowISO() };
     S.expenses.push(x); log('expense_create', 'expenses', x.id, null, x, '', number); saveState(); return x;
   },
   createSchedule(f){
@@ -5847,9 +5875,9 @@ const NAV = [
     { key:'fs', route:'rep/statements', phase:10, mod:'ledger' }, { key:'ar', route:'ar/aging', phase:4, mod:'ar' }, { key:'ap', route:'ap/aging', phase:4, mod:'ap' }, { key:'tax_rep', route:'tax/report', phase:9, mod:'tax' }, { key:'profitability', route:'ana/profit', phase:8, mod:'analytics' },
     { key:'tax_codes', route:'tax/codes', phase:9, mod:'tax' }, { key:'mappings', route:'acc/mappings', phase:2, mod:'mappings' }, { key:'fiscal', route:'settings/fiscal', phase:1, mod:'fiscal' }, { key:'rates', route:'settings/rates', phase:1, mod:'exchange_rates' }, { key:'analytic_accounts', route:'ana/accounts', phase:8, mod:'analytics' }, { key:'month_close', route:'acc/close', phase:2, mod:'ledger' }, { key:'journals', route:'acc/journals', phase:2, mod:'journals' },
     { key:'fixed_assets', route:'fa/register', phase:9, mod:'assets' },
-    { key:'coa', route:'acc/coa', phase:2, mod:'coa' }, { key:'gl', route:'acc/gl', phase:2, mod:'ledger' }, { key:'tb', route:'acc/tb', phase:2, mod:'ledger' }, { key:'opening', route:'acc/opening', phase:2, mod:'journals' } ] },
+    { key:'coa', route:'acc/coa', phase:2, mod:'coa' }, { key:'gl', route:'acc/gl', phase:2, mod:'ledger' }, { key:'tb', route:'acc/tb', phase:2, mod:'ledger' }, { key:'partner_ledger', route:'acc/partner-ledger', phase:2, mod:'ledger' }, { key:'opening', route:'acc/opening', phase:2, mod:'journals' } ] },
   { key:'expenses', group:true, children:[ { key:'expense_docs', route:'exp/list', phase:9, mod:'expenses' }, { key:'schedules', route:'exp/schedules', phase:9, mod:'expenses' } ] },
-  { key:'reports', group:true, children:[ { key:'fs', route:'rep/statements', phase:10, mod:'ledger' }, { key:'profitability', route:'ana/profit', phase:8, mod:'analytics' }, { key:'ar', route:'ar/aging', phase:4, mod:'ar' }, { key:'ap', route:'ap/aging', phase:4, mod:'ap' },
+  { key:'reports', group:true, children:[ { key:'fs', route:'rep/statements', phase:10, mod:'ledger' }, { key:'profitability', route:'ana/profit', phase:8, mod:'analytics' }, { key:'ar', route:'ar/aging', phase:4, mod:'ar' }, { key:'ap', route:'ap/aging', phase:4, mod:'ap' }, { key:'partner_ledger', route:'acc/partner-ledger', phase:2, mod:'ledger' },
     { key:'valuation', route:'inv/valuation', phase:5, mod:'inventory' }, { key:'costing', route:'imp/landed', phase:6, mod:'imports' }, { key:'tax_rep', route:'tax/report', phase:9, mod:'tax' }, { key:'budgets', route:'rep/budgets', phase:10, mod:'ledger' }, { key:'rep_center', route:'rep/center', phase:10, mod:'dashboard' } ] },
   { key:'settings', group:true, children:[
     { key:'company', route:'settings/company', phase:1, mod:'company' }, { key:'users', route:'settings/users', phase:1, mod:'users' }, { key:'roles', route:'settings/roles', phase:1, mod:'roles' },
@@ -6022,9 +6050,13 @@ const NAV_MENUS = {
   sales: [['Orders', ['sal/orders', 'sal/quotes', 'sal/inquiries']], ['sal/proforma'], ['Invoicing', ['ar/invoices', 'ar/receipts', 'ar/advances', 'sal/deliveries']], ['partners/customers']],
   cars: [['inv/overview'], ['Cars', ['veh/list', 'inv/stock']], ['Operations', ['inv/receipts', 'inv/deliveries', 'inv/moves', 'inv/counts']]],
   banking: [['bank/accounts'], ['Operations', ['bank/txns', 'bank/transfers']], ['bank/statements'], ['Currency', ['settings/rates', 'bank/reval']]],
-  accounting: [['acc/dashboard'], ['Customers', ['ar/invoices', 'ar/receipts', 'ar/advances', 'partners/customers']], ['Vendors', ['ap/invoices', 'ap/receipts', 'ap/advances', 'partners/suppliers']],
-    ['Accounting', ['acc/journals', 'fa/register', 'acc/opening', 'acc/close']], ['Reporting', ['rep/statements', 'acc/gl', 'acc/tb', 'acc/partner-ledger', 'ar/aging', 'ap/aging', 'tax/report', 'ana/profit']],
-    ['Configuration', ['acc/coa', 'tax/codes', 'acc/mappings', 'settings/fiscal', 'settings/rates', 'ana/accounts']]],
+  accounting: [['acc/dashboard'],
+    ['Customers', ['ar/invoices', 'ar/receipts', 'ar/advances', '§', 'partners/customers']],
+    ['Vendors', ['ap/invoices', 'ap/receipts', 'ap/advances', '§', 'partners/suppliers']],
+    ['Accounting', ['§Transactions', 'acc/journals', 'acc/opening', '§Management', 'fa/register', 'bank/reval', '§Actions', 'acc/close']],
+    ['Reporting', ['§Statement reports', ['Balance sheet', 'rep/statements?s=bs'], ['Profit and loss', 'rep/statements?s=is'], ['Cash flow statement', 'rep/statements?s=cf'], ['Changes in equity', 'rep/statements?s=eq'],
+      '§Partner reports', 'acc/partner-ledger', 'ar/aging', 'ap/aging', '§Audit reports', 'acc/gl', 'acc/tb', 'tax/report', '§Management', 'ana/profit']],
+    ['Configuration', ['§Accounting', 'acc/coa', 'tax/codes', 'settings/fiscal', 'settings/rates', '§Management', 'acc/mappings', 'ana/accounts']]],
   expenses: [['exp/list'], ['exp/schedules']],
   reports: [['Financial', ['rep/statements', 'rep/budgets', 'tax/report']], ['Cars', ['ana/profit', 'imp/landed', 'inv/valuation']], ['Partners', ['acc/partner-ledger', 'ar/aging', 'ap/aging']], ['rep/center']],
   settings: [['General', ['settings/company', 'settings/users', 'settings/roles', 'settings/currencies', 'settings/fiscal']], ['Cars & tax', ['veh/settings', 'tax/codes', 'tax/einvoice']],
@@ -6033,14 +6065,25 @@ const NAV_MENUS = {
 function subnavHTML(){
   const r = route(), u = currentUser(), g = navGroupOf(r); if (!g || !g.group) return '';
   const kids = g.children.filter(c => !c.mod || can(c.mod, 'read', u)), byR = new Map(kids.map(c => [c.route, c])), used = new Set();
+  const full = (location.hash || '').replace(/^#\//, '');
+  const isOn = href => href.includes('?') ? full === href || (href.startsWith(r + '?') && full.startsWith(href)) : href === r;
   const link = c => { used.add(c.route); return `<a href="#/${c.route}" class="${c.route === r ? 'on' : ''}"${c.route === r ? ' aria-current="page"' : ''}>${esc(t(c.key))}</a>`; };
+  /* menu item: route string, [label, 'route?query'] or '§Section' header */
+  const item = x => {
+    if (Array.isArray(x)){ const base = x[1].split('?')[0]; if (!byR.has(base)) return null; used.add(base); return { label: x[0], href: x[1] }; }
+    if (typeof x === 'string' && x.startsWith('§')) return { head: x.slice(1) };
+    const c = byR.get(x); if (!c) return null; used.add(c.route); return { label: t(c.key), href: c.route };
+  };
   const parts = (NAV_MENUS[g.key] || []).map(([lbl, list]) => {
     if (!list){ const c = byR.get(lbl); return c ? link(c) : ''; }
-    const items = list.map(x => byR.get(x)).filter(Boolean); if (!items.length) return '';
-    if (items.length === 1) return link(items[0]);
-    const on = items.some(c => c.route === r);
-    return `<div class="sm-dd"><button type="button" class="sm-btn${on ? ' on' : ''}" aria-haspopup="true" aria-expanded="false" data-act="sm-toggle">${esc(lbl)}<span class="car">${ic('chev', 14)}</span></button>
-      <div class="sm-pop" role="menu">${items.map(c => { used.add(c.route); return `<a role="menuitem" href="#/${c.route}" class="${c.route === r ? 'on' : ''}">${esc(t(c.key))}</a>`; }).join('')}</div></div>`;
+    let items = list.map(item).filter(Boolean);
+    const isH = x => 'head' in x;
+    items = items.filter((x, i) => !isH(x) || (items[i + 1] && !isH(items[i + 1])));           /* drop empty sections */
+    const links = items.filter(x => !isH(x)); if (!links.length) return '';
+    if (links.length === 1) return `<a href="#/${links[0].href}" class="${isOn(links[0].href) ? 'on' : ''}">${esc(links[0].label)}</a>`;
+    const on = links.some(x => isOn(x.href));
+    return `<div class="sm-dd"><button type="button" class="sm-btn${on ? ' on' : ''}" aria-haspopup="true" aria-expanded="false" data-act="sm-toggle">${esc(lbl)}</button>
+      <div class="sm-pop" role="menu">${items.map((x, i) => isH(x) ? (x.head ? `<div class="sm-h">${esc(x.head)}</div>` : (i ? '<div class="sm-sep"></div>' : '')) : `<a role="menuitem" href="#/${x.href}" class="${isOn(x.href) ? 'on' : ''}">${esc(x.label)}</a>`).join('')}</div></div>`;
   }).join('') + kids.filter(c => !used.has(c.route)).map(link).join('');
   UI.curApp = g.key;
   return `<nav class="subnav" aria-label="${esc(t(g.key))}"><span class="app">${esc(t(g.key))}</span>${parts}</nav>`;
@@ -8884,11 +8927,45 @@ const P9_CLICKS = {
       '</div>'
     });
   },
-  'ex-new'(){ openModal({ title: 'New expense', xwide: true, submit: 'Save & submit for approval', body: `<div class="row"><div class="field"><label>Date *</label><input class="input" type="date" name="date" value="${todayCairo()}"></div><div class="field"><label>Paid via *</label><select class="input" name="method"><option value="bank">bank / cash (paid now)</option><option value="employee">employee reimbursement</option><option value="supplier">supplier invoice (payable)</option></select></div>
-      <div class="field"><label>Bank / cash</label><select class="input" name="bankId">${bankOptions('')}</select></div><div class="field"><label>Supplier</label><select class="input" name="supplierId"><option value="">—</option>${supOpts('')}</select></div></div>
-    <div class="row"><div class="field"><label>Employee (reimbursement)</label><input class="input" name="employee"></div><div class="field"><label>Payee</label><input class="input" name="payee"></div><div class="field"><label>Receipt / invoice ref</label><input class="input" name="ref"></div></div>
-    <div class="tbl-wrap" style="border:1px solid var(--border);border-radius:8px"><table><thead><tr><th>Category</th><th>Description</th><th class="num">Amount</th><th>CC</th><th>Vehicle (VIN, if vehicle-specific)</th></tr></thead><tbody>${[0, 1, 2].map(() => `<tr><td><select class="input" name="ex_cat">${S.expenseCats.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select></td><td><input class="input" name="ex_desc"></td><td><input class="input mono" name="ex_amount" style="text-align:end;width:120px"></td><td><select class="input" name="ex_cc">${ccOptions('')}</select></td><td><input class="input mono" name="ex_vehicle"></td></tr>`).join('')}</tbody></table></div>`,
-    onSubmit: f => { const x = A.createExpense(f); toast(`${x.number} submitted for approval.`, 'ok'); } }); },
+  'ex-new'(){
+    if (!S.expenseCats.length) ensureStandardExpenseCats();
+    openModal({ title: 'New expense', xwide: true, submit: 'Save & submit', body: `
+    <datalist id="ex-cats">${S.expenseCats.filter(c => c.active !== false).map(c => `<option value="${esc(c.name)}">${esc((acc(c.accountId) || {}).code || '')} · category</option>`).join('')}
+      ${S.accounts.filter(a => !a.isGroup && a.active && ['expense'].includes(a.type)).sort((x, y) => x.code < y.code ? -1 : 1).map(a => `<option value="${esc(a.code + ' ' + accName(a))}">account</option>`).join('')}</datalist>
+    <datalist id="ex-partners">${S.suppliers.filter(p => p.active !== false).map(p => `<option value="${esc(p.legalName)}">${esc(p.code)} · vendor</option>`).join('')}</datalist>
+    <datalist id="ex-cars">${S.vehicles.filter(v => !v.closedAt).map(v => `<option value="${esc(v.vin)}">${esc(carName(v))}</option>`).join('')}</datalist>
+    <div class="je-ed ex-ed">
+      <div class="je-head"><div class="je-kind">Expense</div><h2>New expense</h2></div>
+      <div class="je-fields">
+        <div class="je-col">
+          <label class="jf"><span>Paid via *</span><select class="input" name="method"><option value="bank">Bank / cash (paid now)</option><option value="supplier">Vendor bill (pay later)</option><option value="employee">Employee reimbursement</option></select></label>
+          <label class="jf" id="ex-bank-row"><span>Paid from *</span><select class="input" name="bankId">${bankOptions('')}</select></label>
+          <label class="jf"><span id="ex-partner-lbl">Partner</span><div class="fa-in"><input class="input" name="partner" list="ex-partners" placeholder="Search vendor or type a name…" autocomplete="off"><button type="button" class="btn sm" data-act="ex-new-vendor">New vendor</button></div></label>
+        </div><div class="je-col">
+          <label class="jf"><span>Date *</span><input class="input" type="date" name="date" value="${todayCairo()}" required></label>
+          <label class="jf"><span id="ex-ref-lbl">Reference</span><input class="input" name="ref" placeholder="receipt / invoice no."></label>
+          <div class="jf"><span>Currency</span><b class="fa-ro" id="ex-cur">EGP</b></div>
+        </div></div>
+      <div class="je-tabs"><button type="button" class="on">Expense lines</button>
+        <span class="je-an-tog" style="gap:12px"><button type="button" class="btn sm" data-act="ex-new-cat">New category</button></span></div>
+      <div class="tbl-wrap"><table class="je-grid an" id="ex-grid"><thead><tr><th>Category or account</th><th>Label</th><th>Partner</th><th class="num">Amount</th><th>Cost centre</th><th>Car</th><th></th></tr></thead>
+        <tbody id="ex-lines">${[0, 1].map(() => exLineRow()).join('')}</tbody>
+        <tfoot><tr><td colspan="3"><button type="button" class="je-add" data-act="ex-add-line">Add a line</button></td><td class="num" id="ex-total"></td><td colspan="3"></td></tr></tfoot></table></div>
+      <p class="je-hint">Pick an expense category, or type any expense account from the chart of accounts (code or name). Partner on a line is optional; it defaults to the partner above. Car only for costs of a specific car.</p>
+    </div>`,
+    onSubmit: f => { const x = A.createExpense(f); toast(`${x.number} saved.`, 'ok'); } });
+    exRecalc();
+  },
+  'ex-add-line'(){ document.getElementById('ex-lines').insertAdjacentHTML('beforeend', exLineRow()); exRecalc(); const r = document.querySelector('#ex-lines tr:last-child [name=ex_cat]'); if (r) r.focus(); },
+  'ex-del-line'(el){ const tb = document.getElementById('ex-lines'); if (tb.rows.length > 1) el.closest('tr').remove(); else el.closest('tr').querySelectorAll('input').forEach(i => i.value = ''); exRecalc(); },
+  'ex-new-cat'(){ const back = mformSnapshot(); openModal({ title: 'New expense category', body: `<div class="field"><label>Name *</label><input class="input" name="name" required></div>
+      <div class="field"><label>Expense account (chart of accounts) *</label><select class="input" name="accountId">${accOptsOf(['expense'])}</select></div>
+      <div class="field"><label>Default cost centre</label><select class="input" name="costCenter">${ccOptions('')}</select></div>`,
+      onSubmit: f => { if (!String(f.name || '').trim()) throw new AppError('Name is required.'); const a = acc(f.accountId); if (!a) throw new AppError('Select the expense account.');
+        S.expenseCats.push({ id: uid('ec'), name: f.name.trim(), accountId: a.id, costCenter: f.costCenter || '', active: true }); log('expense_cat_create', 'expenses', null, null, { name: f.name.trim(), account: a.code }, '', f.name.trim()); saveState(); toast('Category added.', 'ok'); return () => back(); } }); },
+  'ex-new-vendor'(){ const back = mformSnapshot(), typed = (document.querySelector('#mform [name=partner]') || {}).value || '';
+    openModal({ title: 'New vendor', body: `<div class="field"><label>Legal name *</label><input class="input" name="legalName" value="${esc(typed)}" required></div><div class="row"><div class="field"><label>Phone</label><input class="input" name="phone"></div><div class="field"><label>Tax / ID no.</label><input class="input" name="taxNo"></div></div>`,
+      onSubmit: f => { A.savePartner('ap', null, { ...f, paymentTerms: '0', preferredCurrency: 'EGP', category: 'Other' }); toast('Vendor added.', 'ok'); return () => back({ partner: f.legalName.trim() }); } }); },
   'sc-new'(){ openModal({ title: 'New accrual / prepayment schedule', wide: true, body: `<div class="row"><div class="field"><label>Type</label><select class="input" name="type"><option value="prepayment">prepayment (release prepaid expense)</option><option value="accrual">accrual (recurring accrued expense)</option></select></div><div class="field"><label>Start month *</label><input class="input" type="month" name="start"></div><div class="field"><label>Months *</label><input class="input" name="months" value="12"></div></div>
     <div class="row"><div class="field" style="flex:2"><label>Description *</label><input class="input" name="description"></div><div class="field"><label>Total (EGP) *</label><input class="input mono" name="total"></div></div>
     <div class="row"><div class="field"><label>Expense account *</label><select class="input" name="expenseAccountId">${accOptsOf(['expense'])}</select></div><div class="field"><label>Cost center</label><select class="input" name="costCenter">${ccOptions('')}</select></div><div class="field"><label>Accrual auto-reversal</label><select class="input" name="autoReverse"><option value="yes">yes</option><option value="no">no</option></select></div></div><div class="field"><label>Supporting document</label><input class="input" name="ref"></div>`, onSubmit: f => A.createSchedule(f) }); },
@@ -12433,6 +12510,49 @@ function faRecalc(catChanged){
 }
 document.addEventListener('input', e => { if (e.target.closest && e.target.closest('.fa-ed')) faRecalc(false); });
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.fa-ed')) faRecalc(e.target.name === 'categoryId'); });
+
+/* Expense line category: one of the expense categories, or any posting expense account from the chart ("6110 Rent"). */
+function expenseCatFrom(v){
+  const t = String(v || '').trim(); if (!t) return null;
+  const c = S.expenseCats.find(x => x.id === t || x.name.toLowerCase() === t.toLowerCase()); if (c) return c;
+  const code = t.split(/\s|—/)[0];
+  const a = S.accounts.find(x => x.id === t) || S.accounts.find(x => !x.isGroup && x.active && x.code === code) || S.accounts.find(x => !x.isGroup && x.active && accName(x).toLowerCase() === t.toLowerCase());
+  if (!a || a.isGroup || !a.active) return null;
+  if (!['expense','cogs','other_expense'].includes(a.type) && !(ACC_TYPES[a.type] && /expense|cost/i.test(ACC_TYPES[a.type].en))) throw new AppError(`${a.code} ${accName(a)} is not an expense account.`);
+  return { id: a.id, name: accName(a), accountId: a.id, costCenter: '' };
+}
+
+function exLineRow(){
+  return `<tr class="jl-row"><td class="c-acc"><input class="input" name="ex_cat" list="ex-cats" placeholder="Category or account…" autocomplete="off"></td>
+    <td class="c-lbl"><input class="input" name="ex_desc"></td><td class="c-par"><input class="input" name="ex_partner" list="ex-partners" autocomplete="off"></td>
+    <td class="c-amt"><input class="input num" name="ex_amount" inputmode="decimal"></td><td class="c-an"><select class="input" name="ex_cc">${ccOptions('')}</select></td>
+    <td class="c-an"><input class="input" name="ex_vehicle" list="ex-cars" autocomplete="off"></td>
+    <td class="c-del"><button type="button" class="jl-del" data-act="ex-del-line" aria-label="Remove line">${ic('close', 14)}</button></td></tr>`;
+}
+function exRecalc(){
+  const form = document.getElementById('mform'); if (!form || !form.querySelector('.ex-ed')) return;
+  const m = form.querySelector('[name=method]').value, b = bankById(form.querySelector('[name=bankId]').value), cur = m === 'bank' && b ? b.currency : 'EGP';
+  form.querySelector('#ex-bank-row').hidden = m !== 'bank';
+  form.querySelector('#ex-partner-lbl').textContent = m === 'supplier' ? 'Vendor *' : m === 'employee' ? 'Employee *' : 'Partner';
+  form.querySelector('[name=partner]').placeholder = m === 'employee' ? 'Employee name' : 'Search vendor or type a name…';
+  form.querySelector('#ex-cur').textContent = cur; form.querySelector('#ex-ref-lbl').textContent = m === 'supplier' ? 'Vendor invoice no. *' : 'Reference';
+  let t = D0(), bad = false; form.querySelectorAll('[name=ex_amount]').forEach(i => { const v = i.value.trim().replace(/,/g, ''); if (!v) return; if (/^\d+(\.\d+)?$/.test(v)) t = t.plus(v); else bad = true; });
+  form.querySelector('#ex-total').innerHTML = `<span class="muted">Total</span> <b>${bad ? '—' : money(t)}</b> <span class="muted">${cur}</span>`;
+  form.querySelectorAll('[name=ex_cat]').forEach(i => { const ok = !i.value.trim() || (() => { try { return !!expenseCatFrom(i.value); } catch (e){ return false; } })(); i.classList.toggle('bad-in', !ok); i.title = ok ? '' : 'No category or expense account matches'; });
+}
+/* Reopen the expense form after a quick-create, keeping what was typed. */
+function mformSnapshot(){
+  const form = document.getElementById('mform'); const snap = [];
+  if (form) form.querySelectorAll('input,select').forEach(el => { if (el.name) snap.push([el.name, el.value]); });
+  const nLines = form ? form.querySelectorAll('#ex-lines tr').length : 2;
+  return (over = {}) => { CLICK['ex-new'](); const f2 = document.getElementById('mform'); if (!f2) return;
+    for (let k = 2; k < nLines; k++) CLICK['ex-add-line']();
+    const seen = {}; for (const [n, v] of snap){ const els = f2.querySelectorAll(`[name="${n}"]`); const i = seen[n] || 0; seen[n] = i + 1; if (els[i]) els[i].value = v; }
+    for (const [n, v] of Object.entries(over)){ const el = f2.querySelector(`[name="${n}"]`); if (el) el.value = v; }
+    if (typeof datalistRefresh === 'function') datalistRefresh(); exRecalc(); };
+}
+document.addEventListener('input', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
+document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 /* ---------------- Boot ---------------- */
 S = loadState(); loadUI(); loadSession();
 if (S.meta.migratedAt && !S.meta.migrationLogged){ S.meta.migrationLogged = true; log('schema_migration', 'settings', null, null, { schema: S.schema, version: APP_VERSION }, `Data upgraded to schema ${SCHEMA} (existing records unchanged)`); saveState(); }
