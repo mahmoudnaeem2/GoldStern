@@ -5941,7 +5941,7 @@ const NAV = [
     { key:'inv_receipts', route:'inv/receipts', phase:5, mod:'inventory' }, { key:'inv_deliveries', route:'inv/deliveries', phase:5, mod:'inventory' }, { key:'movements', route:'inv/moves', phase:5, mod:'inventory' }, { key:'counts', route:'inv/counts', phase:5, mod:'inventory' } ] },
   { key:'banking', group:true, children:[ { key:'bank_accounts', route:'bank/accounts', phase:3, mod:'banking' }, { key:'transfers', route:'bank/transfers', phase:3, mod:'banking' },
     { key:'bank_txns', route:'bank/txns', phase:3, mod:'banking' }, { key:'statements', route:'bank/statements', phase:3, mod:'banking' }, { key:'rates', route:'settings/rates', phase:1, mod:'exchange_rates' }, { key:'reval', route:'bank/reval', phase:3, mod:'fx_reval' } ] },
-  { key:'accounting', group:true, children:[ { key:'acc_dashboard', route:'acc/dashboard', phase:2, mod:'ledger' },
+  { key:'accounting', group:true, children:[
     { key:'cust_inv', route:'ar/invoices', phase:4, mod:'ar' }, { key:'receipts', route:'ar/receipts', phase:4, mod:'ar' }, { key:'cust_adv', route:'ar/advances', phase:4, mod:'ar' }, { key:'customers', route:'partners/customers', phase:4, mod:'customers' },
     { key:'supp_bills', route:'ap/invoices', phase:4, mod:'ap' }, { key:'payments', route:'ap/receipts', phase:4, mod:'ap' }, { key:'supp_adv', route:'ap/advances', phase:4, mod:'ap' }, { key:'suppliers', route:'partners/suppliers', phase:4, mod:'suppliers' },
     { key:'fs', route:'rep/statements', phase:10, mod:'ledger' }, { key:'ar', route:'ar/aging', phase:4, mod:'ar' }, { key:'ap', route:'ap/aging', phase:4, mod:'ap' }, { key:'tax_rep', route:'tax/report', phase:9, mod:'tax' }, { key:'profitability', route:'ana/profit', phase:8, mod:'analytics' },
@@ -6122,7 +6122,7 @@ const NAV_MENUS = {
   sales: [['Orders', ['sal/orders', 'sal/quotes', 'sal/inquiries']], ['sal/proforma'], ['Invoicing', ['ar/invoices', 'ar/receipts', 'ar/advances', 'sal/deliveries']], ['partners/customers']],
   cars: [['inv/overview'], ['Cars', ['veh/list', 'inv/stock']], ['Operations', ['inv/receipts', 'inv/deliveries', 'inv/moves', 'inv/counts']]],
   banking: [['bank/accounts'], ['Operations', ['bank/txns', 'bank/transfers']], ['bank/statements'], ['Currency', ['settings/rates', 'bank/reval']]],
-  accounting: [['acc/dashboard'],
+  accounting: [
     ['Customers', ['ar/invoices', 'ar/receipts', 'ar/advances', '§', 'partners/customers']],
     ['Vendors', ['ap/invoices', 'ap/receipts', 'ap/advances', '§', 'partners/suppliers']],
     ['Accounting', ['§Transactions', 'acc/journals', 'acc/opening', '§Management', 'fa/register', 'bank/reval', '§Actions', 'acc/close']],
@@ -6249,7 +6249,7 @@ function pageFor(r){
     'settings/roles':['roles', pageRoles], 'settings/currencies':['currencies', pageCurrencies], 'settings/rates':['exchange_rates', pageRates],
     'settings/fiscal':['fiscal', pageFiscal], 'settings/sequences':['sequences', pageSequences], 'settings/audit':['audit', pageAudit],
     'settings/tests':['system_tests', pageTests], 'settings/data':['settings', pageData],
-    'acc/dashboard':['ledger', pageAccDash], 'acc/close':['ledger', pageMonthClose], 'acc/coa':['coa', pageCOA], 'acc/journals':['journals', pageJournals], 'acc/opening':['journals', pageOpening],
+    'acc/dashboard':['dashboard', () => { setTimeout(() => { location.hash = '#/dashboard'; }, 0); return ''; }], 'acc/close':['ledger', pageMonthClose], 'acc/coa':['coa', pageCOA], 'acc/journals':['journals', pageJournals], 'acc/opening':['journals', pageOpening],
     'acc/gl':['ledger', pageGL], 'acc/tb':['ledger', pageTB], 'acc/partner-ledger':['ledger', pagePartnerLedger], 'acc/mappings':['mappings', pageMappings], 'acc/integrity':['integrity', pageIntegrity],
     'bank/accounts':['banking', pageBanks], 'bank/book':['banking', pageBankBook], 'bank/transfers':['banking', pageTransfers], 'bank/txns':['banking', pageBankTxns],
     'bank/statements':['banking', pageBankStatements], 'bank/reconcile':['banking', pageReconcile], 'bank/reval':['fx_reval', pageReval], 'bank/fx':['banking', pageFxReport],
@@ -6318,7 +6318,7 @@ function pageDashboard(){
       <div class="card"><div class="card-h"><h2>Official rates for today</h2><span class="sub">1 unit of first currency = X second</span></div>
         <div class="tbl-wrap"><table><thead><tr><th>Pair</th><th class="num">Rate</th><th>Effective</th><th>Method</th></tr></thead><tbody>
           ${rr('EUR → EGP', eur)}${rr('USD → EGP', usd)}${rr('EUR → USD', cross)}</tbody></table></div>
-        <div class="card-b muted" style="font-size:12.5px">Ledger figures are on the <a href="#/acc/dashboard">Accounting Dashboard</a>. Business KPIs (revenue, inventory, AR/AP, bank balances) arrive with their modules; nothing is shown until it derives from posted data.</div></div>
+        <div class="card-b muted" style="font-size:12.5px">Ledger figures are on the <a href="#/dashboard">Dashboard</a>. Business KPIs (revenue, inventory, AR/AP, bank balances) arrive with their modules; nothing is shown until it derives from posted data.</div></div>
     </div>`;
 }
 
