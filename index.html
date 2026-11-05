@@ -253,6 +253,17 @@ html[dir=rtl] .modal-bg{inset:0 264px 0 0}
 .je-log > div{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #eef0f3;font-size:13px}
 .je-log .dot{width:8px;height:8px;border-radius:50%;background:var(--ok);flex:none}
 .je-sheet{position:relative;overflow:hidden}
+.odoo-cell-input{width:100%;box-sizing:border-box;background:transparent;border:1px solid transparent;border-radius:4px;padding:6px 8px;font-size:13px;color:var(--text);font-family:inherit;outline:none;transition:background-color .15s,border-color .15s,box-shadow .15s}
+.odoo-cell-input:hover{background:var(--surface-2,#f8fafc);border-color:var(--border,#cbd5e1)}
+.odoo-cell-input:focus{background:var(--surface,#ffffff);border-color:#714B67;box-shadow:0 0 0 2px rgba(113,75,103,.15)}
+.odoo-cell-input.num{text-align:end;font-family:var(--font);font-variant-numeric:tabular-nums;font-weight:500}
+.odoo-grid-row:hover{background-color:rgba(0,0,0,.02)}
+.odoo-del-btn{background:none;border:none;color:var(--muted,#94a3b8);font-size:18px;cursor:pointer;border-radius:4px;padding:2px 6px;line-height:1;transition:all .15s ease}
+.odoo-del-btn:hover{color:var(--bad,#ef4444);background:var(--bad-soft,#fee2e2)}
+.odoo-add-line-btn{background:none;border:none;color:#714B67;font-weight:600;font-size:13px;padding:6px 10px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;border-radius:6px;transition:all .15s ease}
+.odoo-add-line-btn:hover{background:rgba(113,75,103,.08);text-decoration:none}
+.odoo-sheet-input,.odoo-sheet-select{width:100%;box-sizing:border-box;background:var(--surface,#ffffff);border:1px solid var(--border,#cbd5e1);border-radius:6px;padding:6px 10px;font-size:13px;color:var(--text);font-family:inherit;outline:none;transition:border-color .15s ease,box-shadow .15s ease}
+.odoo-sheet-input:focus,.odoo-sheet-select:focus{border-color:#714B67;box-shadow:0 0 0 2px rgba(113,75,103,.15)}
 .sell-cost td,.sell-cost th{padding:8px 10px;font-family:var(--font)}.sell-cost thead th{background:var(--surface-2);font-size:11.5px;text-transform:uppercase;color:var(--muted);letter-spacing:.04em}
 .inv-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
 .inv-card{background:var(--surface);border:1px solid var(--border);border-top:4px solid var(--ic);border-radius:8px;padding:18px 20px}
@@ -4419,6 +4430,52 @@ function soState(so){
   return ['Confirmed', 'mute'];
 }
 const soNet = so => so.lines.reduce((t, l) => t.plus(l.price).minus(l.discount || '0'), D0());
+function soForm(){
+  const avail = S.vehicles.filter(v => ['stock','transit','pipeline'].includes(vStatus(v.status).group) && v.status !== 'reserved' && !S.salesOrders.some(o => o.status !== 'cancelled' && o.lines.some(x => x.vehicleId === v.id && !saleReturned(x))));
+  return `
+    <div class="row">
+      <div class="field" style="flex:2"><label>Customer *</label><select class="input" name="customerId" required>${custOpts()}</select></div>
+      <div class="field"><label>Order date *</label><input class="input" type="date" name="date" value="${todayCairo()}" required></div>
+      <div class="field" style="max-width:110px"><label>Currency *</label><select class="input" name="currency">${S.companyCurrencies.filter(c => c.active).map(c => `<option ${c.code === 'EGP' ? 'selected' : ''}>${c.code}</option>`).join('')}</select></div>
+    </div>
+    <div class="row">
+      <div class="field" style="flex:1"><label>Salesperson</label><select class="input" name="salespersonId">${S.users.filter(u => u.active).map(u => `<option value="${u.id}" ${u.id === currentUser().id ? 'selected' : ''}>${esc(u.name)}</option>`).join('')}</select></div>
+      <div class="field" style="flex:1"><label>Payment terms</label><input class="input" name="paymentTerms" placeholder="e.g. Immediate / Pay before delivery"></div>
+      <div class="field" style="max-width:130px"><label>Commission %</label><input class="input mono" name="commissionPct" value="0"></div>
+    </div>
+    <div class="tbl-wrap" style="border:1px solid var(--border);border-radius:8px;margin-top:8px">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:38%">Car / Vehicle</th>
+            <th style="width:28%">Description</th>
+            <th class="num" style="width:18%">Price *</th>
+            <th class="num" style="width:14%">Discount</th>
+            <th style="width:30px"></th>
+          </tr>
+        </thead>
+        <tbody id="so-new-lines">
+          <tr>
+            <td>
+              <select class="input" name="so_vehicle">
+                <option value="">— special order / link later —</option>
+                ${avail.map(v => `<option value="${v.id}">${esc(vehLabel(v))} (${esc(vStatus(v.status).name)})</option>`).join('')}
+              </select>
+            </td>
+            <td><input class="input" name="so_desc" placeholder="Car description or model"></td>
+            <td><input class="input mono" name="so_price" style="text-align:end" placeholder="0.00" inputmode="decimal" required></td>
+            <td><input class="input mono" name="so_disc" style="text-align:end" placeholder="0.00" inputmode="decimal"></td>
+            <td><button type="button" class="btn sm" data-act="so-new-del">×</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <button type="button" class="btn sm" data-act="so-new-add">+ Add car line</button>
+    </div>
+    <p class="hint" style="margin-top:12px">Available stock vehicles will be reserved immediately upon creating the sales order.</p>
+  `;
+}
 function pageSOs(){
   const F = UI.filters, q = String(F.so_q || '').trim().toLowerCase(), stf = F.so_s || '';
   let list = [...S.salesOrders].sort((a, b) => a.createdAt < b.createdAt ? 1 : -1).map(so => ({ so, cu: partnerById('ar', so.customerId), st: soState(so), cars: so.lines.map(l => vehById(l.vehicleId)).filter(Boolean) }));
@@ -4426,7 +4483,9 @@ function pageSOs(){
   if (q) list = list.filter(r => `${r.so.number} ${r.cu ? r.cu.legalName : ''} ${r.cars.map(v => carName(v) + ' ' + v.vin).join(' ')} ${userName(r.so.salespersonId)}`.toLowerCase().includes(q));
   if (stf) list = list.filter(r => r.st[0] === stf);
   const tabs = [['', 'All'], ...['Confirmed', 'Reserved', 'Invoiced', 'Delivered'].map(x => [x, x])];
-  return H(t('sorders'), '') + `
+  const btns = (can('purchases', 'create') && can('vehicles', 'create') ? `<button type="button" class="btn gold" data-act="io-new" data-kind="customer">${ic('plus', 14)} Import car</button>` : '') +
+    (can('sales', 'create') && S.customers.length ? `<button type="button" class="btn primary" data-act="so-new">${ic('plus', 14)} New sales order</button>` : '');
+  return H(t('sorders'), 'Manage customer orders, vehicle reservations, deliveries and invoicing.', btns) + `
     <div class="card"><div class="o-pills">${tabs.map(([k, l]) => `<button type="button" class="o-pill ${stf === k ? 'on' : ''}" data-act="set-filter" data-k="so_s" data-v="${k}">${l} <span>${k ? all.filter(r => r.st[0] === k).length : all.length}</span></button>`).join('')}</div>
     <div class="filters"><input class="input" data-filter="so_q" placeholder="Search number, customer, car, chassis, salesperson…" value="${esc(F.so_q || '')}" style="min-width:340px"><span class="muted" style="align-self:center;font-size:12.5px;margin-inline-start:auto">${list.length} order${list.length === 1 ? '' : 's'}</span></div>
     <div class="tbl-wrap"><table class="o-list"><thead><tr><th>Number</th><th>Date</th><th>Customer</th><th>Car</th><th>Salesperson</th><th class="num">Total</th><th>Invoice</th><th>Status</th></tr></thead><tbody>
@@ -4503,6 +4562,85 @@ const P7_CLICKS = {
   'sp-edit'(){ openModal({ title: 'Discount approval policy', body: `<div class="field"><label>Discounts above this % need manager approval</label><input class="input mono" name="discountPct" value="${esc(S.salesPolicy.discountPct)}"></div><div class="field"><label>Reason *</label><input class="input" name="reason" required></div>`, onSubmit: f => A.saveSalesPolicy(f) }); },
   'so-link'(el){ const avail = S.vehicles.filter(v => ['stock','transit','pipeline'].includes(vStatus(v.status).group) && v.status !== 'reserved'); openModal({ title: 'Link vehicle', body: `<div class="field"><label>Vehicle</label><select class="input" name="vid">${avail.map(v => `<option value="${v.id}">${esc(vehLabel(v))} (${esc(vStatus(v.status).name)})</option>`).join('')}</select><span class="hint">For a special customer import, link the vehicle once it is purchased; reserve it when it becomes Available.</span></div>`, onSubmit: f => A.linkSOVehicle(el.dataset.id, el.dataset.line, f.vid) }); },
   'so-view'(el){ const so = soById(el.dataset.id); if (so) soView(so); },
+  'so-new'(){
+    openModal({
+      title: 'New sales order',
+      xwide: true,
+      submit: 'Create sales order',
+      body: soForm(),
+      onSubmit: f => {
+        const me = requirePerm('sales', 'create');
+        const date = f.date || todayCairo();
+        const vids = [].concat(f.so_vehicle || []);
+        const descs = [].concat(f.so_desc || []);
+        const prices = [].concat(f.so_price || []).map(x => String(x || '').trim().replace(/,/g, ''));
+        const discs = [].concat(f.so_disc || []).map(x => String(x || '').trim().replace(/,/g, ''));
+        const lines = prices.map((pr, i) => {
+          const vid = vids[i] || null;
+          const v = vid ? vehById(vid) : null;
+          let desc = String(descs[i] || '').trim();
+          if (!desc && v) desc = `${carName(v)} · ${v.vin}`;
+          if (!desc) desc = 'Vehicle';
+          return { id: uid('sl'), description: desc, vehicleId: vid, price: pr || '0', discount: discs[i] || '0', invoiceId: null };
+        }).filter(l => D(l.price).gt(0) || l.vehicleId);
+        if (!lines.length) throw new AppError('At least one car line with price is required.');
+        const comm = String(f.commissionPct || '0').trim();
+        if (!/^\d+(\.\d+)?$/.test(comm) || D(comm).gt(100)) throw new AppError('Commission % must be 0–100.');
+        const so = {
+          id: uid('so'),
+          number: nextNumber('sales_order', date),
+          quoteId: null,
+          customerId: f.customerId,
+          date,
+          currency: f.currency || 'EGP',
+          paymentTerms: String(f.paymentTerms || '').trim(),
+          salespersonId: f.salespersonId || me.id,
+          commissionPct: D(comm).toFixed(),
+          lines,
+          status: 'open',
+          creditApproved: false,
+          createdBy: me.id,
+          createdAt: nowISO()
+        };
+        for (const l of so.lines){
+          if (l.vehicleId){
+            const v = vehById(l.vehicleId);
+            if (v && v.status === 'available'){
+              v.status = 'reserved';
+              v.reservation = { soId: so.id, lineId: l.id, at: nowISO() };
+              recordMove(v, 'status', 'available', 'reserved', `Reserved for ${so.number}`, date, so.number);
+            }
+          }
+        }
+        S.salesOrders.push(so);
+        log('so_create', 'sales', so.id, null, so, '', so.number);
+        saveState();
+        toast(`${so.number} created.`, 'ok');
+        return () => soView(so);
+      }
+    });
+  },
+  'so-new-add'(){
+    const avail = S.vehicles.filter(v => ['stock','transit','pipeline'].includes(vStatus(v.status).group) && v.status !== 'reserved' && !S.salesOrders.some(o => o.status !== 'cancelled' && o.lines.some(x => x.vehicleId === v.id && !saleReturned(x))));
+    document.getElementById('so-new-lines').insertAdjacentHTML('beforeend', `
+      <tr>
+        <td>
+          <select class="input" name="so_vehicle">
+            <option value="">— special order / link later —</option>
+            ${avail.map(v => `<option value="${v.id}">${esc(vehLabel(v))} (${esc(vStatus(v.status).name)})</option>`).join('')}
+          </select>
+        </td>
+        <td><input class="input" name="so_desc" placeholder="Car description or model"></td>
+        <td><input class="input mono" name="so_price" style="text-align:end" placeholder="0.00" inputmode="decimal" required></td>
+        <td><input class="input mono" name="so_disc" style="text-align:end" placeholder="0.00" inputmode="decimal"></td>
+        <td><button type="button" class="btn sm" data-act="so-new-del">×</button></td>
+      </tr>
+    `);
+  },
+  'so-new-del'(el){
+    const tb = document.getElementById('so-new-lines');
+    if (tb && tb.children.length > 1) el.closest('tr').remove();
+  },
   'so-reserve'(el){ run(() => A.reserveVehicle(el.dataset.id, el.dataset.line), 'Vehicle reserved.'); },
   'so-release'(el){ openModal({ title: 'Release reservation', submit: 'Release', danger: true, body: '<div class="field"><label>Reason *</label><input class="input" name="reason" required></div>', onSubmit: f => A.releaseReservation(el.dataset.id, el.dataset.line, f.reason) }); },
   'so-credit'(el){ openModal({ title: 'Approve credit sale', submit: 'Approve', body: '<p>Allows delivery before the invoice is fully paid.</p><div class="field"><label>Reason *</label><input class="input" name="reason" required></div>', onSubmit: f => A.approveCreditSale(el.dataset.id, f.reason) }); },
@@ -5010,7 +5148,7 @@ function openModal({ title, body, submit = 'Save', wide = false, xwide = false, 
   MODAL = { onSubmit };
   if (!APPROVALS) submit = String(submit).replace(/(Save|Create) & submit for approval/, 'Save & post').replace(/^Submit for approval$/, 'Save').replace(' (needs approval)', '').replace(/^Create car & purchase order$/, 'Create car & purchase order');
   document.getElementById('modal-root').innerHTML = `
-    <div class="modal-bg"><div class="modal ${wide ? 'wide' : ''}" role="main" aria-label="${esc(title)}">
+    <div class="modal-bg"><div class="modal ${wide ? 'wide' : ''} ${xwide ? 'xwide' : ''}" role="main" aria-label="${esc(title)}">
       <form id="mform" autocomplete="off" ${formAttrs}>
         <div class="modal-h"><button type="button" class="back" data-act="modal-close" aria-label="Back">${ic('back', 16)}Back</button><h3>${esc(title)}</h3></div>
         <div class="modal-b"><div class="note bad form-err" id="mform-err"></div>${body}</div>
@@ -5021,7 +5159,7 @@ function openModal({ title, body, submit = 'Save', wide = false, xwide = false, 
 }
 function closeModal(){ if (SCREEN){ LAST_SCREEN = SCREEN; LAST_CLOSED_AT = Date.now(); SCREEN = null; } if (EDIT_CTX){ const c = EDIT_CTX; EDIT_CTX = null; if (!c.done) S = JSON.parse(c.snapOrig); } MODAL = null; document.getElementById('modal-root').innerHTML = ''; }
 /* Money fields show thousands separators while typing (909,090.00); the commas are removed before saving. */
-const MONEY_FIELD = /^(amount|price|salePrice|fee|intermediaryFee|srcAmount|dstAmount|cost|residual|total|egpTotal|applied|portion|estAmount|openingBalance|creditLimit|alloc_applied|alloc_portion|il_amount|pl_price|ex_amount|ql_price|ql_disc|lc_amount|lc_tax|l_debit|l_credit)$/;
+const MONEY_FIELD = /^(amount|price|salePrice|fee|intermediaryFee|srcAmount|dstAmount|cost|residual|total|egpTotal|applied|portion|estAmount|openingBalance|creditLimit|alloc_applied|alloc_portion|il_amount|pl_price|ex_amount|ql_price|ql_disc|so_price|so_disc|lc_amount|lc_tax|l_debit|l_credit)$/;
 function groupDigits(raw){
   let v = String(raw).replace(/[^\d.\-]/g, ''); const neg = v.startsWith('-'); v = v.replace(/-/g, '');
   const dot = v.indexOf('.'); let int = dot >= 0 ? v.slice(0, dot) : v, dec = dot >= 0 ? v.slice(dot + 1).replace(/\./g, '') : null;
@@ -5795,28 +5933,77 @@ function accountForm(a = {}){
 /* ---------- Journal entries ---------- */
 function pageJournals(){
   const F = UI.filters, me = currentUser();
-  let list = [...S.entries];
-  if (F.j_status) list = list.filter(e => e.status === F.j_status);
+  const allEntries = [...S.entries];
+  let list = allEntries;
+  const stf = F.j_status || '';
+  if (stf) list = list.filter(e => e.status === stf);
   if (F.j_journal) list = list.filter(e => e.journal === F.j_journal);
   if (F.j_from) list = list.filter(e => e.accountingDate >= F.j_from);
   if (F.j_to) list = list.filter(e => e.accountingDate <= F.j_to);
   if (F.j_q){ const q = F.j_q.toLowerCase(); list = list.filter(e => `${e.number} ${e.draftRef} ${e.reference} ${e.sourceRef} ${e.description}`.toLowerCase().includes(q)); }
   list.sort((a, b) => a.accountingDate === b.accountingDate ? (a.createdAt < b.createdAt ? 1 : -1) : (a.accountingDate < b.accountingDate ? 1 : -1));
-  const rows = list.map(e => { const tot = entryTotalEgp(e); return `<tr>
-    <td>${entryLink(e)}${e.number ? `<div class="muted mono" style="font-size:11px">${esc(e.draftRef)}</div>` : ''}</td><td>${e.accountingDate}</td><td class="mono">${esc(e.journal)}</td>
-    <td>${esc(e.description)}${e.reference ? `<div class="muted" style="font-size:12px">Ref: ${esc(e.reference)}</div>` : ''}${e.reversalOf ? '<div class="muted" style="font-size:12px">reversal entry</div>' : ''}</td>
-    <td class="mono">${e.currency}</td><td class="num">${tot ? money(tot) : '<span class="muted">no rate</span>'}</td><td>${badge(e.status)}</td><td style="font-size:12px">${esc(userName(e.createdBy))}</td></tr>`; }).join('');
-  return H(t('journals'), 'Draft → submitted → approved (by someone else) → posted. Posted entries are immutable; corrections use reversals.',
-    can('journals', 'create') && S.accounts.length ? '<button class="btn primary" data-act="je-new">New journal entry</button>' : '') + needChart() + `
-    <div class="card"><div class="filters">
-      <input class="input" data-filter="j_q" placeholder="Number, reference, description…" value="${esc(F.j_q || '')}">
-      <select class="input" data-filter="j_status"><option value="">All statuses</option>${['draft','submitted','approved','posted','reversed','rejected'].map(s => `<option ${F.j_status === s ? 'selected' : ''}>${s}</option>`).join('')}</select>
-      <select class="input" data-filter="j_journal"><option value="">All journals</option>${S.journals.map(j => `<option value="${j.code}" ${F.j_journal === j.code ? 'selected' : ''}>${esc(j.code)} — ${esc(j.name)}</option>`).join('')}</select>
-      <input class="input" type="date" data-filter="j_from" value="${esc(F.j_from || '')}" title="From"><input class="input" type="date" data-filter="j_to" value="${esc(F.j_to || '')}" title="To">
-      <span class="muted" style="align-self:center;font-size:12.5px">${list.length} entries</span>
-      ${can('ledger', 'export') ? '<button class="btn sm" style="margin-inline-start:auto" data-act="je-csv">Export lines CSV</button>' : ''}</div>
-    <div class="tbl-wrap"><table><thead><tr><th>Number</th><th>Date</th><th>Jnl</th><th>Description</th><th>Cur</th><th class="num">Total EGP</th><th>Status</th><th>Prepared by</th></tr></thead>
-    <tbody>${rows || '<tr><td colspan="8" class="empty">No journal entries.</td></tr>'}</tbody></table></div></div>`;
+
+  const statusTabs = [
+    ['', 'All', allEntries.length],
+    ['posted', 'Posted', allEntries.filter(e => e.status === 'posted').length],
+    ['draft', 'Draft', allEntries.filter(e => e.status === 'draft').length],
+    ['submitted', 'Submitted', allEntries.filter(e => e.status === 'submitted').length],
+    ['approved', 'Approved', allEntries.filter(e => e.status === 'approved').length],
+    ['reversed', 'Reversed', allEntries.filter(e => e.status === 'reversed').length]
+  ];
+
+  const rows = list.map(e => {
+    const tot = entryTotalEgp(e);
+    const jnl = journalOf(e.journal);
+    return `<tr data-act="je-view" data-id="${e.id}" style="cursor:pointer">
+      <td style="white-space:nowrap"><b>${esc(entryRef(e))}</b>${e.number && e.draftRef !== e.number ? `<div class="muted mono" style="font-size:11px">${esc(e.draftRef)}</div>` : ''}</td>
+      <td style="white-space:nowrap;font-variant-numeric:tabular-nums;font-weight:500">${e.accountingDate}</td>
+      <td style="white-space:nowrap"><span class="pill sm mute">${esc(jnl ? jnl.code : e.journal)}</span></td>
+      <td class="wrap"><div style="font-weight:500;color:var(--text)">${esc(e.description || '—')}</div>${e.reference ? `<div class="muted" style="font-size:12px">Ref: ${esc(e.reference)}</div>` : ''}${e.reversalOf ? '<div class="muted" style="font-size:12px;color:var(--gold)">Reversal entry</div>' : ''}</td>
+      <td style="white-space:nowrap"><span class="muted" style="font-weight:500">${e.currency}</span></td>
+      <td class="num" style="white-space:nowrap"><b class="mono">${tot ? money(tot) : '—'}</b> <span class="muted" style="font-size:11px">EGP</span></td>
+      <td style="white-space:nowrap">${badge(e.status)}</td>
+      <td style="white-space:nowrap;font-size:12px;color:var(--muted)">${esc(userName(e.createdBy))}</td>
+    </tr>`;
+  }).join('');
+
+  return H(t('journals'), 'Draft → submitted → approved → posted. Posted entries are immutable; corrections use reversals.',
+    can('journals', 'create') && S.accounts.length ? `<button class="btn primary" data-act="je-new">${ic('plus', 14)} New journal entry</button>` : '') + needChart() + `
+    <div class="card">
+      <div class="o-pills">
+        ${statusTabs.map(([k, l, cnt]) => `<button type="button" class="o-pill ${stf === k ? 'on' : ''}" data-act="set-filter" data-k="j_status" data-v="${k}">${l} <span>${cnt}</span></button>`).join('')}
+      </div>
+      <div class="filters" style="gap:10px;flex-wrap:wrap">
+        <input class="input" data-filter="j_q" placeholder="Number, reference, description…" value="${esc(F.j_q || '')}" style="min-width:240px;flex:1">
+        <select class="input" data-filter="j_journal" style="min-width:180px"><option value="">All journals</option>${S.journals.map(j => `<option value="${j.code}" ${F.j_journal === j.code ? 'selected' : ''}>${esc(j.code)} — ${esc(j.name)}</option>`).join('')}</select>
+        <div style="display:inline-flex;align-items:center;gap:6px">
+          <input class="input" type="date" data-filter="j_from" value="${esc(F.j_from || '')}" title="From date" style="width:145px">
+          <span class="muted">to</span>
+          <input class="input" type="date" data-filter="j_to" value="${esc(F.j_to || '')}" title="To date" style="width:145px">
+        </div>
+        <span class="muted" style="align-self:center;font-size:12.5px;margin-inline-start:auto;white-space:nowrap">${list.length} entr${list.length === 1 ? 'y' : 'ies'}</span>
+        ${can('ledger', 'export') ? '<button type="button" class="btn sm" data-act="je-csv">Export lines CSV</button>' : ''}
+      </div>
+      <div class="tbl-wrap">
+        <table class="o-list">
+          <thead>
+            <tr>
+              <th style="width:14%">Number</th>
+              <th style="width:11%;white-space:nowrap">Date</th>
+              <th style="width:8%">Journal</th>
+              <th>Description</th>
+              <th style="width:6%">Currency</th>
+              <th class="num" style="width:13%">Total (EGP)</th>
+              <th style="width:9%">Status</th>
+              <th style="width:10%">Prepared by</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows || '<tr><td colspan="8" class="empty">No journal entries match your filters.</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
 }
 function accOptions(selected){
   return '<option value="">— account —</option>' + S.accounts.filter(a => !a.isGroup && (a.active || a.id === selected)).sort((a, b) => a.code < b.code ? -1 : 1)
@@ -5824,47 +6011,122 @@ function accOptions(selected){
 }
 function ccOptions(selected){ return '<option value=""></option>' + S.costCenters.filter(c => c.active || c.code === selected).map(c => `<option value="${c.code}" ${c.code === selected ? 'selected' : ''}>${esc(c.code)}</option>`).join(''); }
 function jeLineRow(l = {}){
-  return `<tr><td style="min-width:240px"><select class="input" name="l_account">${accOptions(l.accountId)}</select></td>
-    <td><input class="input mono" style="text-align:end;min-width:110px" name="l_debit" value="${esc(l.debit || '')}" inputmode="decimal"></td>
-    <td><input class="input mono" style="text-align:end;min-width:110px" name="l_credit" value="${esc(l.credit || '')}" inputmode="decimal"></td>
-    <td><select class="input" name="l_cc" style="min-width:80px">${ccOptions(l.costCenter)}</select></td>
-    <td><input class="input" name="l_partner" value="${esc(l.partner || '')}" placeholder="partner" style="min-width:110px"></td>
-    <td><input class="input" name="l_vehicle" value="${esc(l.vehicle || '')}" placeholder="VIN / vehicle" style="min-width:110px"></td>
-    <td><input class="input" name="l_desc" value="${esc(l.description || '')}" style="min-width:140px"></td>
-    <td><button type="button" class="btn sm" data-act="je-del-line" aria-label="Remove line">×</button></td></tr>`;
+  return `<tr class="odoo-grid-row">
+    <td style="padding:2px 4px;border-bottom:1px solid var(--border-2)"><select class="odoo-cell-input" name="l_account">${accOptions(l.accountId)}</select></td>
+    <td style="padding:2px 4px;border-bottom:1px solid var(--border-2)"><input class="odoo-cell-input" name="l_partner" value="${esc(l.partner || '')}" placeholder="partner"></td>
+    <td style="padding:2px 4px;border-bottom:1px solid var(--border-2)"><input class="odoo-cell-input" name="l_desc" value="${esc(l.description || '')}" placeholder="label"></td>
+    <td style="padding:2px 4px;border-bottom:1px solid var(--border-2)"><select class="odoo-cell-input" name="l_cc">${ccOptions(l.costCenter)}</select></td>
+    <td style="padding:2px 4px;border-bottom:1px solid var(--border-2)"><input class="odoo-cell-input" name="l_vehicle" value="${esc(l.vehicle || '')}" placeholder="VIN / vehicle"></td>
+    <td style="padding:2px 4px;border-bottom:1px solid var(--border-2)"><input class="odoo-cell-input mono num" name="l_debit" value="${esc(l.debit || '')}" inputmode="decimal" placeholder="0.00"></td>
+    <td style="padding:2px 4px;border-bottom:1px solid var(--border-2)"><input class="odoo-cell-input mono num" name="l_credit" value="${esc(l.credit || '')}" inputmode="decimal" placeholder="0.00"></td>
+    <td style="padding:2px 2px;border-bottom:1px solid var(--border-2);text-align:center"><button type="button" class="odoo-del-btn" data-act="je-del-line" aria-label="Remove line" title="Remove line">×</button></td>
+  </tr>`;
 }
 function jeEditor(e = {}, opts = {}){
   const journals = S.journals.filter(j => j.active && j.manual && (!opts.journal || j.code === opts.journal));
   const lines = (e.lines && e.lines.length) ? e.lines : [{}, {}];
   const cur = S.companyCurrencies.filter(c => c.active).map(c => c.code);
-  return `<div class="row">
-      <div class="field"><label>Journal *</label><select class="input" name="journal">${journals.map(j => `<option value="${j.code}" ${(e.journal || opts.journal) === j.code ? 'selected' : ''}>${esc(j.code)} — ${esc(j.name)}</option>`).join('')}</select></div>
-      <div class="field"><label>Accounting date *</label><input class="input" type="date" name="accountingDate" value="${esc(e.accountingDate || todayCairo())}" required></div>
-      <div class="field"><label>Document date</label><input class="input" type="date" name="documentDate" value="${esc(e.documentDate || '')}"></div>
-      <div class="field"><label>Currency</label><select class="input" name="currency">${cur.map(c => `<option ${(e.currency || 'EGP') === c ? 'selected' : ''}>${c}</option>`).join('')}</select></div>
-      <div class="field"><label>Rate type</label><select class="input" name="rateType">${S.rateTypes.filter(r => r.active).map(r => `<option value="${r.code}" ${(e.rateType || 'official') === r.code ? 'selected' : ''}>${esc(r.name)}</option>`).join('')}</select></div></div>
-    <div class="row"><div class="field" style="flex:2"><label>Description *</label><input class="input" name="description" value="${esc(e.description || '')}" required></div>
-      <div class="field"><label>Reference</label><input class="input" name="reference" value="${esc(e.reference || '')}"></div>
-      <div class="field"><label>Source document no.</label><input class="input" name="sourceRef" value="${esc(e.sourceRef || '')}" placeholder="e.g. invoice no."></div></div>
-    <div class="tbl-wrap" style="border:1px solid var(--border);border-radius:8px"><table><thead><tr><th>Account</th><th class="num">Debit</th><th class="num">Credit</th><th>CC</th><th>Partner</th><th>Vehicle</th><th>Line note</th><th></th></tr></thead>
-      <tbody id="je-lines">${lines.map(jeLineRow).join('')}</tbody></table></div>
-    <div class="row" style="margin-top:10px;align-items:center"><button type="button" class="btn sm" data-act="je-add-line">+ Add line</button>
-      ${opts.journal === 'OB' ? '<button type="button" class="btn sm" data-act="je-balance-obe">Balance difference to Opening Balance Equity</button>' : ''}
-      <div id="je-totals" class="mono" style="margin-inline-start:auto;font-size:13px"></div></div>
-    <p class="muted" style="font-size:12px;margin:10px 0 0">The rate is not entered by hand: at posting, the approved rate of the chosen type effective on the accounting date is snapshotted. Saved as draft; it must be submitted and approved by another user before posting.</p>`;
+  const isPosted = e && e.status && isPostedStatus(e.status);
+  const jnl = e.journal ? journalOf(e.journal) : null;
+  return `
+    <div class="o-bar">
+      <div class="btns">
+        <span class="muted" style="font-size:13px;display:inline-flex;align-items:center;gap:6px">
+          ${ic('accounting', 16)} <b>Journal Entries</b> <span style="color:var(--muted)">/</span> <span>${e && e.id ? esc(entryRef(e)) : 'New'}</span>
+        </span>
+      </div>
+      <div class="o-status">
+        <span class="${isPosted ? '' : 'on'}">Draft</span>
+        <span class="${isPosted ? 'on' : ''}">Posted</span>
+      </div>
+    </div>
+    <div class="o-sheet rec je-sheet" style="margin:0 auto">
+      <div class="o-head" style="align-items:flex-start">
+        <div>
+          <div class="muted" style="font-size:12.5px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">
+            ${opts.journal === 'OB' ? 'Opening Balance Entry' : (jnl ? `${esc(jnl.name)} (${esc(jnl.code)})` : 'Journal Entry')}
+          </div>
+          <h2 style="font-size:24px;font-weight:700;margin:0 0 6px;color:var(--text)">${e && e.id ? esc(entryRef(e)) : 'Draft (New)'}</h2>
+          <span class="pill ${isPosted ? 'ok' : 'gold'}" style="font-size:12px">${isPosted ? 'Posted' : 'Draft'}</span>
+        </div>
+      </div>
+      <div class="o-sec c-info" style="border-top:0;padding-top:0;margin-top:14px">
+        <div class="o-grid">
+          <div>
+            <div class="o-f"><div class="l">Journal *</div><div class="v"><select class="odoo-sheet-select" name="journal" required>${journals.map(j => `<option value="${j.code}" ${(e.journal || opts.journal) === j.code ? 'selected' : ''}>${esc(j.code)} — ${esc(j.name)}</option>`).join('')}</select></div></div>
+            <div class="o-f"><div class="l">Accounting date *</div><div class="v"><input class="odoo-sheet-input" type="date" name="accountingDate" value="${esc(e.accountingDate || todayCairo())}" required></div></div>
+            <div class="o-f"><div class="l">Reference</div><div class="v"><input class="odoo-sheet-input" name="reference" value="${esc(e.reference || '')}" placeholder="e.g. INV/2026/0001"></div></div>
+          </div>
+          <div>
+            <div class="o-f"><div class="l">Document date</div><div class="v"><input class="odoo-sheet-input" type="date" name="documentDate" value="${esc(e.documentDate || '')}"></div></div>
+            <div class="o-f"><div class="l">Currency *</div><div class="v"><select class="odoo-sheet-select" name="currency">${cur.map(c => `<option ${(e.currency || 'EGP') === c ? 'selected' : ''}>${c}</option>`).join('')}</select></div></div>
+            <div class="o-f"><div class="l">Rate type</div><div class="v"><select class="odoo-sheet-select" name="rateType">${S.rateTypes.filter(r => r.active).map(r => `<option value="${r.code}" ${(e.rateType || 'official') === r.code ? 'selected' : ''}>${esc(r.name)}</option>`).join('')}</select></div></div>
+            <div class="o-f"><div class="l">Source document no.</div><div class="v"><input class="odoo-sheet-input" name="sourceRef" value="${esc(e.sourceRef || '')}" placeholder="e.g. invoice no."></div></div>
+          </div>
+        </div>
+        <div class="o-f" style="margin-top:10px;border-bottom:0">
+          <div class="l">Description *</div>
+          <div class="v" style="flex:1"><input class="odoo-sheet-input" name="description" value="${esc(e.description || '')}" placeholder="e.g. Monthly payroll allocation, supplier adjustment..." required style="width:100%"></div>
+        </div>
+      </div>
+      <div class="odoo-tabs" style="display:flex;gap:18px;border-bottom:1px solid var(--border);margin-top:20px">
+        <div class="odoo-tab on" style="padding:8px 4px;font-size:13.5px;font-weight:600;color:var(--text);border-bottom:2px solid var(--side, #141518);display:flex;align-items:center;gap:6px">
+          Journal Items <span class="pill sm mute" id="je-line-count">${lines.length}</span>
+        </div>
+      </div>
+      <div class="tbl-wrap" style="border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;overflow-x:hidden">
+        <table class="je-grid" style="width:100%;table-layout:fixed;border-collapse:collapse">
+          <thead>
+            <tr style="background:var(--surface-2);border-bottom:1px solid var(--border)">
+              <th style="width:26%;padding:9px 10px;font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;text-align:start">Account</th>
+              <th style="width:14%;padding:9px 10px;font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;text-align:start">Partner</th>
+              <th style="width:18%;padding:9px 10px;font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;text-align:start">Label</th>
+              <th style="width:9%;padding:9px 10px;font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;text-align:start">CC</th>
+              <th style="width:11%;padding:9px 10px;font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;text-align:start">Vehicle</th>
+              <th style="width:11%;padding:9px 10px;font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;text-align:end">Debit</th>
+              <th style="width:11%;padding:9px 10px;font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;text-align:end">Credit</th>
+              <th style="width:34px;padding:9px 2px;text-align:center"></th>
+            </tr>
+          </thead>
+          <tbody id="je-lines">${lines.map(jeLineRow).join('')}</tbody>
+        </table>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:10px;padding:4px 6px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <button type="button" class="odoo-add-line-btn" data-act="je-add-line">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            Add a line
+          </button>
+          ${opts.journal === 'OB' ? '<button type="button" class="btn sm" data-act="je-balance-obe">Balance difference to Opening Balance Equity</button>' : ''}
+        </div>
+        <div id="je-totals" style="font-size:13px;display:flex;align-items:center;gap:10px"></div>
+      </div>
+      <p class="muted" style="font-size:12px;margin:16px 0 0;line-height:1.5">The rate is not entered by hand: at posting, the approved rate of the chosen type effective on the accounting date is snapshotted. Saved as draft; it must be submitted and approved by another user before posting.</p>
+    </div>`;
 }
 function jeRecalc(){
   const form = document.getElementById('mform'); const out = document.getElementById('je-totals'); if (!form || !out) return;
+  const countEl = document.getElementById('je-line-count');
+  if (countEl) countEl.textContent = document.querySelectorAll('#je-lines tr').length;
   const e = entryFromForm(formData(form));
   let d = D0(), c = D0(), bad = false;
   for (const l of e.lines){ for (const [k, v] of [['d', l.debit], ['c', l.credit]]){ if (!v) continue; if (!/^\d+(\.\d+)?$/.test(v)){ bad = true; continue; } if (k === 'd') d = d.plus(v); else c = c.plus(v); } }
   const diff = d.minus(c);
   let egp = '';
   if (e.currency !== 'EGP' && isISODate(e.accountingDate)){
-    try { const r = getRate(e.currency, 'EGP', e.accountingDate, e.rateType); egp = ` · rate ${fmtNum(r.rate, RATE_DP)} → ≈ ${money(d.mul(r.rate))} EGP`; }
-    catch (x){ egp = ` · <span style="color:var(--bad)">${esc(x.message)}</span>`; }
+    try { const r = getRate(e.currency, 'EGP', e.accountingDate, e.rateType); egp = `<span class="muted" style="font-size:12px">· rate ${fmtNum(r.rate, RATE_DP)} → ≈ ${money(d.mul(r.rate))} EGP</span>`; }
+    catch (x){ egp = `<span style="color:var(--bad);font-size:12px">· ${esc(x.message)}</span>`; }
   }
-  out.innerHTML = `Dr ${money(d)} · Cr ${money(c)} ${esc(e.currency)} · <b style="color:${diff.eq(0) && !bad ? 'var(--ok)' : 'var(--bad)'}">${bad ? 'invalid amount' : diff.eq(0) ? 'balanced' : 'difference ' + money(diff.abs())}</b>${egp}`;
+  const isBal = diff.eq(0) && !bad;
+  out.innerHTML = `
+    <span style="color:var(--muted)">Debit:</span> <b class="mono" style="font-size:13.5px;color:var(--text)">${money(d)}</b>
+    <span style="color:var(--muted);margin-inline-start:6px">Credit:</span> <b class="mono" style="font-size:13.5px;color:var(--text)">${money(c)}</b>
+    <span style="font-weight:600;color:var(--muted)">${esc(e.currency)}</span>
+    <span class="pill ${isBal ? 'ok' : 'bad'}" style="margin-inline-start:6px;font-size:12px;padding:2px 8px;font-weight:600">
+      ${bad ? 'invalid amount' : isBal ? 'Balanced ✓' : 'difference ' + money(diff.abs())}
+    </span>
+    ${egp}
+  `;
 }
 document.addEventListener('input', e => { if (e.target.closest('#mform[data-je]')) jeRecalc(); });
 document.addEventListener('change', e => { if (e.target.closest('#mform[data-je]')) jeRecalc(); });
