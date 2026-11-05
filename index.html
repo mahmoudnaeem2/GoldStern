@@ -8533,11 +8533,17 @@ function poView(po){
     po.status === 'approved' && can('ap', 'create') && !c.invoiced ? `<button type="button" class="btn" data-act="po-adv" data-side="ap" data-id="${po.id}">Supplier advance</button>` : '',
     v && c.sold && !shut && can('vehicles', 'edit') ? `<button type="button" class="btn" data-act="car-close" data-id="${v.id}" data-po="${po.id}">Close car</button>` : '',
     docButtons('po', po, false)].join('');
-  const rows = [...dep, ...adv].sort((a, b) => a.date < b.date ? -1 : 1).map(x => { const e = entryById(x.entryId), av = entryStatus(x) === 'posted' ? advState(x).avail : null;
+  const renderPayRow = x => {
+    const e = entryById(x.entryId), av = entryStatus(x) === 'posted' ? advState(x).avail : null;
     const via = esc(((bankById(x.bankId) || {}).name || '').replace(' — ', ' '));
     return `<tr><td class="wrap"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">${e ? entryLink(e).replace(esc(entryRef(e)), esc(x.number)) : esc(x.number)}${x.side === 'ar' ? '<span class="pill ok">Customer deposit</span>' : '<span class="pill info">Supplier advance</span>'}</div><div class="muted" style="font-size:12px">${x.date} · via ${via}</div></td>
       <td class="num"><b>${money(x.amount)} ${x.currency}</b><div class="muted" style="font-size:12px">${x.paidCurrency ? `paid ${money(x.paidAmount)} ${x.paidCurrency}` : ''}${x.currency === 'EGP' ? '' : `${x.paidCurrency ? ' · ' : ''}at ${fmtNum(x.rate, 4)}`}</div></td><td class="num">${money(r2(D(x.amount).mul(x.rate || '1')))}</td><td class="num">${av ? (av.gt(0) ? `<span class="pill gold">${money(av)} ${x.currency} open</span>` : '<span class="pill mute">Applied</span>') : badge(entryStatus(x))}</td>
-      <td style="white-space:nowrap;text-align:end">${closed ? '' : `${av && av.gt(0) && S.invoices.some(i => i.side === x.side && i.partnerId === x.partnerId && invIsLive(i) && invState(i).open.gt(0)) && can(SIDES[x.side].mod, 'create') ? `<button type="button" class="btn sm" data-act="adv-alloc" data-side="${x.side}" data-id="${x.id}">Apply</button>` : ''}${docButtons(setRef(x).kind, x)}`}</td></tr>`; }).join('');
+      <td style="white-space:nowrap;text-align:end">${closed ? '' : `${av && av.gt(0) && S.invoices.some(i => i.side === x.side && i.partnerId === x.partnerId && invIsLive(i) && invState(i).open.gt(0)) && can(SIDES[x.side].mod, 'create') ? `<button type="button" class="btn sm" data-act="adv-alloc" data-side="${x.side}" data-id="${x.id}">Apply</button>` : ''}${docButtons(setRef(x).kind, x)}`}</td></tr>`;
+  };
+  const depRows = dep.sort((a, b) => a.date < b.date ? -1 : 1).map(renderPayRow).join('');
+  const advRows = adv.sort((a, b) => a.date < b.date ? -1 : 1).map(renderPayRow).join('');
+  const depTotal = dep.reduce((t, x) => t.plus(x.amount), D0());
+  const advTotal = adv.reduce((t, x) => t.plus(x.amount), D0());
   openModal({ screen: { key: 'po:' + po.id, reopen: () => { const x = poById(po.id); if (x) poView(x); } }, title: `Purchase order ${po.number}`, xwide: true, body: `
     <div class="rec">
       <div class="rec-top">
@@ -8619,7 +8625,47 @@ function poView(po){
           </div>
         </section>
         ${v ? carExpensesTable(v.id) : ''}
-        ${rows ? `<section class="rc" id="po-pay"><header><h3>Deposits &amp; advances <span class="cnt">${dep.length + adv.length}</span></h3></header><div class="tbl-wrap"><table><thead><tr><th>Payment</th><th class="num">Amount</th><th class="num">EGP</th><th class="num">Status</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></section>` : ''}
+        ${(dep.length || (cust && can('ar', 'create') && !shut && !c.sold)) ? `
+        <section class="rc" id="po-cust-pay">
+          <header style="display:flex;justify-content:space-between;align-items:center">
+            <div style="display:flex;align-items:center;gap:8px">
+              <h3>${ic('invoices', 16)} Customer Deposits &amp; Payments <span class="cnt">${dep.length}</span></h3>
+              ${dep.length ? `<span class="pill ok" style="font-size:12px">Total received: ${money(depTotal)} ${po.currency}</span>` : ''}
+            </div>
+            ${po.customerId && can('ar', 'create') && po.status !== 'cancelled' && !c.sold && !shut ? `
+              <button type="button" class="btn sm primary" data-act="po-adv" data-side="ar" data-id="${po.id}">${ic('plus', 14)} Customer deposit</button>
+            ` : ''}
+          </header>
+          ${depRows ? `
+            <div class="tbl-wrap">
+              <table>
+                <thead><tr><th>Payment</th><th class="num">Amount</th><th class="num">EGP</th><th class="num">Status</th><th></th></tr></thead>
+                <tbody>${depRows}</tbody>
+              </table>
+            </div>
+          ` : '<div class="muted" style="padding:14px 16px;font-size:13px">No customer deposits recorded yet.</div>'}
+        </section>` : ''}
+
+        ${(adv.length || (sup && can('ap', 'create') && !shut && !c.invoiced)) ? `
+        <section class="rc" id="po-supp-pay" style="margin-top:16px">
+          <header style="display:flex;justify-content:space-between;align-items:center">
+            <div style="display:flex;align-items:center;gap:8px">
+              <h3>${ic('purchases', 16)} Vendor Payments &amp; Advances <span class="cnt">${adv.length}</span></h3>
+              ${adv.length ? `<span class="pill info" style="font-size:12px">Total paid: ${money(advTotal)} ${po.currency}</span>` : ''}
+            </div>
+            ${po.status === 'approved' && can('ap', 'create') && !c.invoiced && !shut ? `
+              <button type="button" class="btn sm" data-act="po-adv" data-side="ap" data-id="${po.id}">${ic('plus', 14)} Supplier advance</button>
+            ` : ''}
+          </header>
+          ${advRows ? `
+            <div class="tbl-wrap">
+              <table>
+                <thead><tr><th>Payment</th><th class="num">Amount</th><th class="num">EGP</th><th class="num">Status</th><th></th></tr></thead>
+                <tbody>${advRows}</tbody>
+              </table>
+            </div>
+          ` : '<div class="muted" style="padding:14px 16px;font-size:13px">No vendor advances recorded yet.</div>'}
+        </section>` : ''}
       </div><aside class="rec-aside">
         <section class="rc"><header><h3>Customer</h3></header>${cust ? `<a href="#/partners/statement?side=ar&id=${cust.id}" class="rc-big">${esc(cust.legalName)}</a>${cust.phone ? `<div class="muted">${esc(cust.phone)}</div>` : ''}` : `<div class="muted">${po.kind === 'local' ? 'Not sold yet — choose the buyer when you sell' : 'Stock car — choose the buyer when you sell'}</div>`}
           ${c.sale ? `<div class="rc-doc"><button type="button" class="lnk0" data-act="inv-view" data-id="${c.sale.id}">${esc(c.sale.number)}</button>${invPill(c.sale)}${invState(c.sale).open.gt(0) ? `<div class="muted">${money(invState(c.sale).open)} ${c.sale.currency} due</div>` : ''}</div>` : ''}
