@@ -9479,220 +9479,146 @@ function invoiceView(inv){
     </div>` });
 }
 function printCarReport(po){
-  const sup = partnerById('ap', po.supplierId), cust = po.customerId ? partnerById('ar', po.customerId) : null, co = S.company || {};
-  const v = poVehicle(po), sm = orderSummary(po), c = sm.c;
-  const dep = poAdvances(po, 'ar').filter(x => ACTIVE_ST.includes(entryStatus(x)));
-  const adv = poAdvances(po, 'ap').filter(x => ACTIVE_ST.includes(entryStatus(x)));
-  const cx = v ? carExpensesOf(v.id) : [];
-  const cxTot = cx.reduce((t, r) => t.plus(r.egp), D0());
-  const poTotal = po.lines.reduce((t, l) => t.plus(l.price), D0());
-  const depTotal = dep.reduce((t, x) => t.plus(x.amount), D0());
-  const advTotal = adv.reduce((t, x) => t.plus(x.amount), D0());
-  const totalCostEgp = c.invoiced ? sm.cost : (sm.priceEgp || D0()).plus(cxTot), adj = D(totalCostEgp).minus(sm.priceEgp || D0()).minus(cxTot);
-  const carInvs = side => S.invoices.filter(i => i.side === side && i.type !== 'credit' && entryStatus(i) === 'posted' && (side === 'ap' ? i.poId === po.id : (v && (i.lines || []).some(l => l.vehicleId === v.id))));
-  const paidOn = side => carInvs(side).flatMap(i => invState(i).reductions.filter(r => ACTIVE_ST.includes(r.status) && r.src.type !== 'advance').map(r => ({ number: r.src.number, date: r.src.date, amount: r.applied, currency: i.currency, egp: r.carrying })));
-  const depAll = [...dep, ...paidOn('ar')], advAll = [...adv, ...paidOn('ap')];
-  const egpVal = d => d.egp ? D(d.egp) : d.currency === 'EGP' ? D(d.amount) : r2(D(d.amount).mul(d.rate || '1'));
-  const byCur = list => { const m = new Map(); let egp = D0(); for (const x of list){ m.set(x.currency, (m.get(x.currency) || D0()).plus(x.amount)); egp = egp.plus(egpVal(x)); }
-    const fc = [...m].filter(([c0]) => c0 !== 'EGP').map(([c0, t0]) => `${money(t0)} ${c0}`); return list.length ? (fc.length ? `${fc.join(' + ')} = ${money(egp)} EGP` : `${money(egp)} EGP`) : '0.00'; };
-  const egpOf = d => d.egp ? money(d.egp) : d.currency === 'EGP' ? money(d.amount) : (d.rate ? money(r2(D(d.amount).mul(d.rate))) : '—');
-
+  const sup = partnerById('ap', po.supplierId), co = S.company || {}, v = poVehicle(po), cy = poCycle(po);
+  const cust = v && v.customerId ? partnerById('ar', v.customerId) : (po.customerId ? partnerById('ar', po.customerId) : null);
+  const vp = v ? vehicleProfit(v) : null, vc = v ? vehicleCost(v) : { total: D0() };
+  const pCur = po.currency, pAmt = po.lines.filter(l => !v || !l.vehicleId || l.vehicleId === v.id).reduce((t, l) => t.plus(l.price), D0());
+  const expected = !!(!cy.invoiced && po.rate && pAmt.gt(0));
+  const costEgp = cy.sold && vp ? vp.cogs : expected ? r2(pAmt.mul(po.rate)).plus(vc.total) : vc.total;
+  const net = vp ? vp.net : D0(), result = vp ? net.minus(vp.cogs).minus(vp.direct).minus(vp.importExp).minus(vp.losses).plus(vp.otherInc).plus(vp.fx) : D0();
+  const margin = net.gt(0) ? result.div(net).mul(100).toFixed(1) + '%' : '—';
+  const cxRows = v ? carExpensesOf(v.id) : [];
+  const supInv = cy.supInv, sale = cy.sale;
+  /* cost lines from the car's own journal entries, so they match the car page and the ledger */
+  const bd = v ? carCostBreakdown(v) : [];
+  const costLines = [];
+  if (expected) costLines.push({ label: 'Purchase price', sub: 'Expected — supplier bill not recorded yet', fc: `${money(pAmt)} ${pCur}`, rate: fmtNum(po.rate, 4), egp: r2(pAmt.mul(po.rate)) });
+  for (const r of bd){
+    if (r.kind === 'purchase'){ const fcAmt = supInv ? D(supInv.total) : pAmt, cur = supInv ? supInv.currency : pCur;
+      costLines.push({ label: 'Purchase price', sub: supInv ? `${supInv.number} · ${supInv.date}${sup ? ' · ' + sup.legalName : ''}` : '', fc: cur !== 'EGP' ? `${money(fcAmt)} ${cur}` : '', rate: cur !== 'EGP' && fcAmt.gt(0) ? fmtNum(r.egp.div(fcAmt), 4) : '', egp: r.egp }); continue; }
+    const cx = r.ref ? cxRows.find(z => z.e && z.e.id === r.ref.id) : null;
+    costLines.push({ label: r.label, sub: r.sub || '', fc: cx && cx.x.currency !== 'EGP' ? `${money(cx.share)} ${cx.x.currency}` : '', rate: cx && cx.x.currency !== 'EGP' && cx.share.gt(0) ? fmtNum(r.egp.div(cx.share), 4) : '', egp: r.egp, share: cx && cx.x.carExp.cars.length > 1 ? cx.x.carExp.cars.length : 0 });
+  }
+  if (!bd.length && !expected) for (const z of cxRows) costLines.push({ label: costTypeName(z.x.carExp.type), sub: `${z.x.number} · ${z.x.date}`, fc: z.x.currency !== 'EGP' ? `${money(z.share)} ${z.x.currency}` : '', rate: z.x.currency !== 'EGP' ? fmtNum(z.x.rate || 0, 4) : '', egp: z.egp });
+  /* money in / out */
+  const dep = poAdvances(po, 'ar').filter(x => ACTIVE_ST.includes(entryStatus(x))), adv = poAdvances(po, 'ap').filter(x => ACTIVE_ST.includes(entryStatus(x)));
+  const reds = (inv, own) => inv ? invState(inv).reductions.filter(r => ACTIVE_ST.includes(r.status) && !own.some(x => x.id === r.src.id || x.id === r.src.sourceId)).map(r => ({ number: r.src.number, date: r.src.date, kind: r.src.type === 'credit' ? 'Credit note' : r.src.type === 'advance' ? 'Deposit applied' : 'Payment', amount: r.applied, currency: inv.currency, egp: D(r.carrying || 0) })) : [];
+  const egpOf = x => x.egp ? D(x.egp) : x.currency === 'EGP' ? D(x.amount) : r2(D(x.amount).mul(x.rate || '0'));
+  const moneyIn = [...dep.map(x => ({ number: x.number, date: x.date, kind: 'Deposit', amount: x.amount, currency: x.currency, rate: x.rate })), ...reds(sale, dep)];
+  const moneyOut = [...adv.map(x => ({ number: x.number, date: x.date, kind: 'Advance', amount: x.amount, currency: x.currency, rate: x.rate })), ...reds(supInv, adv)];
+  const tot = list => { const m = new Map(); let egp = D0(); for (const x of list){ m.set(x.currency, (m.get(x.currency) || D0()).plus(x.amount)); egp = egp.plus(egpOf(x)); }
+    const fc = [...m].filter(([c0]) => c0 !== 'EGP').map(([c0, t0]) => `${money(t0)} ${c0}`); return { fc: fc.join(' + '), egp }; };
+  const tIn = tot(moneyIn), tOut = tot(moneyOut);
+  const dueIn = sale ? invState(sale).open : null, dueOut = supInv ? invState(supInv).open : null;
+  const statusTxt = v ? (carClosed(v) ? 'Closed' : vStatus(v.status).name) : '—';
+  const kind = (ORDER_KINDS[poKind(po)] || [])[0] || 'Car order';
+  const neg = x => D(x).lt(0);
+  const pay = (title, list, t, due, dueCur, empty) => `
+    <section class="blk"><h2>${title}</h2>
+      ${list.length ? `<table class="t"><thead><tr><th>Document</th><th>Date</th><th>Type</th><th class="n">Amount</th><th class="n">EGP</th></tr></thead><tbody>
+        ${list.map(x => `<tr><td class="doc">${esc(x.number)}</td><td>${x.date}</td><td>${x.kind}</td><td class="n">${money(x.amount)} <span class="cur">${x.currency}</span></td><td class="n">${money(egpOf(x))}</td></tr>`).join('')}
+        </tbody><tfoot><tr><td colspan="3">Total</td><td class="n">${t.fc}</td><td class="n">${money(t.egp)}</td></tr></tfoot></table>` : `<p class="empty">${empty}</p>`}
+      ${due !== null && due.gt(0) ? `<p class="due">Still open: <b>${money(due)} ${dueCur}</b></p>` : due !== null ? '<p class="paid">Fully settled</p>' : ''}
+    </section>`;
   const html = `<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>Vehicle Comprehensive Report — ${v ? v.vin : po.number}</title>
-  <style>
-    @page { size: A4 portrait; margin: 12mm 15mm; }
-    * { box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 32px; color: #0f172a; line-height: 1.45; background: #fff; font-size: 13px; }
-    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
-    table { width: 100%; border-collapse: collapse; margin-top: 8px; margin-bottom: 16px; font-size: 12.5px; }
-    th { background: #f8fafc; border-bottom: 2px solid #cbd5e1; padding: 7px 10px; text-align: left; font-weight: 650; color: #475569; }
-    td { border-bottom: 1px solid #e2e8f0; padding: 7px 10px; }
-    td.n, th.n { text-align: right; }
-    .header-box { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #0f172a; padding-bottom: 14px; margin-bottom: 20px; }
-    .logo-img { height: 60px; background: #0f172a; padding: 8px 12px; border-radius: 6px; }
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 18px; }
-    .card-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px; }
-    .card-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; }
-    .sig-row { display: flex; justify-content: space-between; margin-top: 40px; padding-top: 20px; border-top: 1px dashed #cbd5e1; font-size: 12px; color: #475569; }
-    @media print {
-      .no-print { display: none !important; }
-      body { margin: 0; padding: 0; }
-    }
-  </style>
-</head>
-<body onload="setTimeout(function(){ window.print(); }, 350)">
-  <div class="no-print" style="position:sticky;top:0;background:#0f172a;color:#fff;padding:12px 24px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 8px rgba(0,0,0,0.15);z-index:9999;margin:-32px -32px 24px -32px">
-    <div style="font-weight:600;font-size:14px">Vehicle Comprehensive Report — ${esc(po.number)}</div>
-    <div style="display:flex;gap:10px">
-      <button onclick="window.print()" style="background:#2563eb;color:#fff;border:none;padding:8px 18px;border-radius:6px;font-weight:600;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:6px">🖨️ Print / Save as PDF</button>
-      <button onclick="window.close()" style="background:#475569;color:#fff;border:none;padding:8px 16px;border-radius:6px;font-weight:600;cursor:pointer;font-size:13px">✕ Close</button>
-    </div>
+<html lang="en"><head><meta charset="utf-8"><title>Car report · ${esc(v ? v.vin : po.number)}</title>
+<style>
+  @page{size:A4;margin:14mm 14mm 16mm}
+  *{box-sizing:border-box}
+  html{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body{margin:0;background:#f1f5f9;color:#0f172a;font:13px/1.5 Inter,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;font-variant-numeric:tabular-nums}
+  .bar{position:sticky;top:0;z-index:5;display:flex;justify-content:space-between;align-items:center;gap:12px;background:#0f172a;color:#fff;padding:10px 24px}
+  .bar b{font-weight:600}.bar button{font:inherit;font-weight:600;border:0;border-radius:8px;padding:8px 16px;cursor:pointer}
+  .bar .p{background:#c59b27;color:#111}.bar .c{background:#1e293b;color:#e2e8f0;margin-inline-start:8px}
+  .page{max-width:820px;margin:24px auto;background:#fff;padding:36px 40px 28px;border-radius:12px;box-shadow:0 4px 24px rgba(15,23,42,.08)}
+  header.top{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;padding-bottom:18px;border-bottom:1px solid #e2e8f0}
+  .brand{display:flex;align-items:center;gap:14px}.brand img{height:46px;padding:6px 8px;background:#0f172a;border-radius:8px}
+  .brand .n{font-size:17px;font-weight:700}.brand .s{font-size:12px;color:#64748b}
+  .doc-id{text-align:end}.doc-id .k{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#64748b;font-weight:600}
+  .doc-id .v{font-size:20px;font-weight:700;margin-top:2px}.doc-id .d{font-size:12px;color:#64748b}
+  .car{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin:22px 0 14px}
+  .car h1{margin:0;font-size:26px;letter-spacing:-.015em;line-height:1.2}
+  .car .meta{color:#475569;margin-top:4px;font-size:13px}.car .meta b{color:#0f172a;font-weight:600}
+  .chip{display:inline-block;padding:3px 12px;border-radius:999px;font-size:12px;font-weight:600;background:#ecfdf5;color:#047857;white-space:nowrap}
+  .chip.g{background:#f1f5f9;color:#475569}.chip.w{background:#fffbeb;color:#b45309}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:0 0 22px}
+  .kpi{border:1px solid #e2e8f0;border-radius:10px;padding:12px 14px}
+  .kpi .k{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#64748b;font-weight:600}
+  .kpi .v{font-size:18px;font-weight:700;margin-top:4px;white-space:nowrap}.kpi .u{font-size:11.5px;color:#94a3b8;font-weight:500}
+  .kpi.hi{background:#0f172a;border-color:#0f172a;color:#fff}.kpi.hi .k,.kpi.hi .u{color:#cbd5e1}
+  .pos{color:#047857}.neg{color:#b91c1c}.kpi.hi .pos{color:#6ee7b7}.kpi.hi .neg{color:#fca5a5}
+  .parties{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:22px}
+  .pc{border:1px solid #e2e8f0;border-radius:10px;padding:12px 16px}
+  .pc .k{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#64748b;font-weight:600;margin-bottom:6px}
+  .pc .nm{font-size:15px;font-weight:600}.pc .sm{font-size:12.5px;color:#64748b}
+  .blk{margin:0 0 22px;break-inside:avoid}
+  .blk h2{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#334155;margin:0 0 8px;font-weight:700}
+  table.t{width:100%;border-collapse:collapse}
+  .t th{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:#64748b;font-weight:600;text-align:start;padding:8px 10px;border-bottom:1.5px solid #cbd5e1;background:#f8fafc}
+  .t td{padding:9px 10px;border-bottom:1px solid #eef2f6;vertical-align:top}
+  .t .n{text-align:end;white-space:nowrap}.t .sub{display:block;font-size:11.5px;color:#94a3b8;margin-top:1px}
+  .t .cur{color:#94a3b8;font-size:11.5px}.t .doc{font-weight:600;white-space:nowrap}.t td{white-space:nowrap}.t td:first-child{white-space:normal}
+  .t tfoot td{font-weight:700;border-bottom:0;border-top:1.5px solid #cbd5e1;background:#f8fafc}
+  .pl{width:100%;border-collapse:collapse}.pl td{padding:8px 10px;border-bottom:1px solid #eef2f6}.pl td.n{text-align:end;white-space:nowrap;width:200px}
+  .pl tr.res td{font-size:15px;font-weight:700;border-bottom:0;border-top:2px solid #0f172a;padding-top:12px}
+  .pl .m{color:#64748b;font-size:12px;font-weight:500}
+  .two{display:block}
+  .empty{color:#94a3b8;font-size:12.5px;margin:6px 0}.due{margin:8px 0 0;font-size:12.5px;color:#b45309}.paid{margin:8px 0 0;font-size:12.5px;color:#047857;font-weight:600}
+  .note{font-size:11.5px;color:#64748b;margin:-12px 0 22px}
+  footer{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:34px;padding-top:12px}
+  footer div{border-top:1px solid #94a3b8;padding-top:6px;font-size:11.5px;color:#64748b}
+  .gen{margin-top:16px;font-size:10.5px;color:#94a3b8;text-align:center}
+  @media print{body{background:#fff}.bar{display:none}.page{box-shadow:none;margin:0;padding:0;max-width:none;border-radius:0}}
+  @media (max-width:700px){.kpis,.parties{grid-template-columns:1fr 1fr}.page{padding:20px}}
+</style></head><body>
+<div class="bar"><b>Car report · ${esc(v ? v.vin : po.number)}</b><div><button class="p" onclick="window.print()">Print / Save as PDF</button><button class="c" onclick="window.close()">Close</button></div></div>
+<div class="page">
+  <header class="top">
+    <div class="brand">${typeof LOGO_FULL !== 'undefined' && LOGO_FULL ? `<img src="${LOGO_FULL}" alt="">` : ''}<div><div class="n">${esc(co.legalName || 'Goldstern')}</div><div class="s">${esc([co.address, co.taxRegNo ? 'Tax reg. ' + co.taxRegNo : ''].filter(Boolean).join(' · '))}</div></div></div>
+    <div class="doc-id"><div class="k">Car report</div><div class="v">${esc(po.number)}</div><div class="d">${esc(kind)} · ordered ${po.date}</div><div class="d">Printed ${todayCairo()}</div></div>
+  </header>
+  <div class="car"><div><h1>${v ? `${esc(makeName(v.makeId))} ${esc(modelName(v.makeId, v.modelId))} ${v.year}` : esc(po.number)}</h1>
+    <div class="meta">${v ? `Chassis <b>${esc(v.vin)}</b> · ${esc(v.code)}${v.exteriorColor ? ' · ' + esc(v.exteriorColor) : ''}` : ''}</div></div>
+    <span class="chip ${carClosed(v || {}) ? 'g' : cy.sold ? '' : 'w'}">${esc(statusTxt)}</span></div>
+  <div class="kpis">
+    <div class="kpi"><div class="k">Selling price</div><div class="v">${cy.sold ? money(net) : '—'} <span class="u">EGP</span></div></div>
+    <div class="kpi"><div class="k">Total cost</div><div class="v">${money(costEgp)} <span class="u">EGP</span></div></div>
+    <div class="kpi hi"><div class="k">${cy.sold ? 'Profit' : 'Result so far'}</div><div class="v ${neg(result) ? 'neg' : 'pos'}">${money(result)} <span class="u">EGP</span></div></div>
+    <div class="kpi"><div class="k">Margin</div><div class="v">${margin}</div></div>
   </div>
-
-  <div class="header-box">
-    <div>
-      <img src="${typeof LOGO_FULL !== 'undefined' ? LOGO_FULL : ''}" alt="Goldstern" class="logo-img">
-      <h2 style="margin:8px 0 2px;font-size:18px;font-weight:700">${esc(co.legalName || 'Goldstern Luxury Cars')}</h2>
-      <div style="color:#64748b;font-size:12px">${esc(co.address || '')} · Tax Reg: ${esc(co.taxRegNo || '—')}</div>
-    </div>
-    <div style="text-align:right">
-      <h1 style="margin:0 0 4px;font-size:19px;font-weight:750;letter-spacing:-0.01em;color:#0f172a">VEHICLE REPORT</h1>
-      <div style="font-size:12px;color:#64748b;margin-bottom:6px">تقرير شامل للمركبة والحسابات</div>
-      <div style="font-size:13px"><b>Order Ref:</b> <span class="mono">${esc(po.number)}</span></div>
-      <div style="font-size:12px;color:#64748b"><b>Date:</b> ${po.date} · <b>Generated:</b> ${todayCairo()}</div>
-    </div>
+  <div class="parties">
+    <div class="pc"><div class="k">Customer</div>${cust ? `<div class="nm">${esc(cust.legalName)}</div><div class="sm">${esc([cust.code, cust.phone].filter(Boolean).join(' · '))}</div>` : '<div class="sm">Not sold yet</div>'}</div>
+    <div class="pc"><div class="k">${poKind(po) === 'local' ? 'Bought from' : 'Supplier'}</div>${sup ? `<div class="nm">${esc(sup.legalName)}</div><div class="sm">${esc(sup.code)} · ${pCur}${po.rate ? ' · order rate ' + fmtNum(po.rate, 4) : ''}</div>` : '<div class="sm">—</div>'}</div>
   </div>
-
-  <div class="grid-2">
-    <div class="card-box">
-      <div class="card-title">Vehicle Specifications &amp; Status</div>
-      <div style="font-size:15px;font-weight:700;color:#0f172a">${v ? `${esc(makeName(v.makeId))} ${esc(modelName(v.makeId, v.modelId))} ${v.year}` : '—'}</div>
-      <div style="font-size:12.5px;margin-top:6px"><b>Chassis / VIN:</b> <span class="mono" style="font-weight:650">${v ? esc(v.vin) : '—'}</span></div>
-      <div style="font-size:12px;color:#475569;margin-top:3px"><b>Color:</b> ${v && v.exteriorColor ? esc(v.exteriorColor) : '—'}${v && v.interiorColor ? ` / ${esc(v.interiorColor)}` : ''} · <b>Status:</b> ${v ? esc(vStatus(v.status).name) : '—'}</div>
-      <div style="font-size:12px;color:#475569;margin-top:3px"><b>Location:</b> ${v ? esc(locName(v.location)) : '—'} · <b>Internal Code:</b> ${v ? esc(v.code) : '—'}</div>
-    </div>
-    <div class="card-box">
-      <div class="card-title">Commercial Parties</div>
-      <div style="font-size:12.5px"><b>Customer:</b> ${cust ? `<b>${esc(cust.legalName)}</b> (${esc(cust.code)})` : '<span style="color:#64748b">Showroom Stock</span>'}</div>
-      ${cust && cust.phone ? `<div style="font-size:12px;color:#475569;margin-top:3px"><b>Phone:</b> ${esc(cust.phone)}</div>` : ''}
-      <div style="font-size:12.5px;margin-top:6px"><b>Supplier:</b> ${sup ? `<b>${esc(sup.legalName)}</b> (${esc(sup.code)})` : '—'}</div>
-      <div style="font-size:12px;color:#475569;margin-top:3px"><b>Order Currency:</b> ${po.currency} ${po.currency !== 'EGP' && po.rate ? `· <b>Exchange Rate:</b> ${fmtNum(po.rate, 4)} EGP` : ''}</div>
-    </div>
+  <section class="blk"><h2>Cost of the car</h2>
+    <table class="t"><thead><tr><th>Item</th><th class="n">Amount</th><th class="n">Rate</th><th class="n">EGP</th></tr></thead><tbody>
+      ${costLines.map(r => `<tr><td>${esc(r.label)}${r.sub || r.share ? `<span class="sub">${esc(r.sub)}${r.share ? ` · this car's share of ${r.share} cars` : ''}</span>` : ''}</td><td class="n">${r.fc || '<span class="cur">EGP</span>'}</td><td class="n">${r.rate || ''}</td><td class="n">${money(r.egp)}</td></tr>`).join('') || '<tr><td colspan="4" class="empty">No costs recorded yet.</td></tr>'}
+    </tbody><tfoot><tr><td colspan="3">Total cost</td><td class="n">${money(costEgp)} EGP</td></tr></tfoot></table>
+  </section>
+  ${!po.rate && pCur !== 'EGP' && !cy.invoiced ? '<p class="note">The order has no exchange rate yet, so the cost is shown only once the supplier bill is recorded.</p>' : ''}
+  <section class="blk"><h2>Profit</h2>
+    <table class="pl"><tbody>
+      <tr><td>Selling price${sale ? ` <span class="m">· ${esc(sale.number)}${sale.currency !== 'EGP' ? ` · ${money(sale.total)} ${sale.currency}` : ''}</span>` : ''}</td><td class="n">${cy.sold ? money(net) : '—'}</td></tr>
+      <tr><td>Cost of the car</td><td class="n">− ${money(cy.sold && vp ? vp.cogs : costEgp)}</td></tr>
+      ${vp && vp.otherInc.gt(0) ? `<tr><td>Commission &amp; other income</td><td class="n">+ ${money(vp.otherInc)}</td></tr>` : ''}
+      ${vp && vp.importExp.gt(0) ? `<tr><td>Import costs expensed</td><td class="n">− ${money(vp.importExp)}</td></tr>` : ''}
+      ${vp && vp.direct.gt(0) ? `<tr><td>Other expenses on this car</td><td class="n">− ${money(vp.direct)}</td></tr>` : ''}
+      ${vp && vp.losses.gt(0) ? `<tr><td>Write-downs</td><td class="n">− ${money(vp.losses)}</td></tr>` : ''}
+      ${vp && !vp.fx.eq(0) ? `<tr><td>Exchange differences</td><td class="n">${vp.fx.lt(0) ? '− ' : '+ '}${money(vp.fx.abs())}</td></tr>` : ''}
+      <tr class="res"><td>${cy.sold ? 'Profit on this car' : 'Result so far'} <span class="m">· margin ${margin}</span></td><td class="n ${neg(result) ? 'neg' : 'pos'}">${money(result)} EGP</td></tr>
+    </tbody></table>
+  </section>
+  <div class="two">
+    ${pay('Received from customer', moneyIn, tIn, dueIn, sale ? sale.currency : '', 'Nothing received yet.')}
+    ${pay('Paid to supplier', moneyOut, tOut, dueOut, supInv ? supInv.currency : '', 'Nothing paid yet.')}
   </div>
-
-  <h3 style="margin:16px 0 6px;font-size:13px;text-transform:uppercase;letter-spacing:0.04em;color:#475569">1. Landed Vehicle Cost &amp; Profit (تكلفة المركبة والمجمل الربحي)</h3>
-  <table>
-    <thead>
-      <tr>
-        <th>Expense / Cost Item</th>
-        <th class="n">Original Amount</th>
-        <th class="n">Exchange Rate</th>
-        <th class="n">Cost in EGP</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><b>Vehicle Purchase Price (سعر الشراء)</b></td>
-        <td class="n mono">${money(poTotal)} ${po.currency}</td>
-        <td class="n mono">${po.rate ? fmtNum(po.rate, 4) : '—'}</td>
-        <td class="n mono"><b>${sm.priceEgp ? money(sm.priceEgp) : '—'} EGP</b></td>
-      </tr>
-      ${cx.map(({ x, share, egp }) => `
-        <tr>
-          <td>${esc(costTypeName(x.carExp.type))}${x.carExp.description ? ` <span style="color:#64748b">(${esc(x.carExp.description)})</span>` : ''}<br><small style="color:#94a3b8">${esc(x.number)} · ${x.date}${x.carExp.cars.length > 1 ? ` · share of ${x.carExp.cars.length} cars` : ''}</small></td>
-          <td class="n mono">${money(share)} ${x.currency}</td>
-          <td class="n mono">${x.currency !== 'EGP' ? (x.rate ? fmtNum(x.rate, 4) : '—') : '1.0000'}</td>
-          <td class="n mono">${money(egp)} EGP</td>
-        </tr>
-      `).join('')}
-      ${adj.abs().gte(D('0.01')) ? `<tr><td>Exchange differences &amp; other adjustments<br><small style="color:#94a3b8">from the car's journal entries</small></td><td></td><td></td><td class="n mono">${money(adj)} EGP</td></tr>` : ''}
-      <tr style="font-weight:700;background:#f8fafc;border-top:2px solid #cbd5e1">
-        <td colspan="3">TOTAL LANDED CAR COST (تكلفة السيارة الإجمالية)</td>
-        <td class="n mono" style="font-size:14px;color:#0f172a">${money(totalCostEgp)} EGP</td>
-      </tr>
-      ${c.sold ? `
-        <tr style="border-top:1.5px solid #0f172a">
-          <td><b>Customer Selling Price (سعر بيع العميل)</b></td>
-          <td colspan="2" class="n mono">${money(sm.revenue)} EGP</td>
-          <td class="n mono"><b>${money(sm.revenue)} EGP</b></td>
-        </tr>
-        <tr style="font-weight:700;background:#f0fdf4">
-          <td colspan="3" style="color:#16a34a">GROSS PROFIT (المجمل الربحي)</td>
-          <td class="n mono" style="font-size:14px;color:#16a34a">${money(sm.profit)} EGP</td>
-        </tr>
-      ` : ''}
-    </tbody>
-  </table>
-
-  <div class="grid-2">
-    <div>
-      <h3 style="margin:12px 0 6px;font-size:12.5px;text-transform:uppercase;color:#16a34a">2. Received from customer (${depAll.length})</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>Ref &amp; Date</th>
-            <th class="n">Amount</th>
-            <th class="n">EGP Equivalent</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${depAll.length ? depAll.map(d => `
-            <tr>
-              <td><b>${d.number}</b><br><small style="color:#64748b">${d.date}</small></td>
-              <td class="n mono"><b>${money(d.amount)} ${d.currency}</b></td>
-              <td class="n mono">${egpOf(d)}</td>
-            </tr>
-          `).join('') : '<tr><td colspan="3" style="color:#64748b;text-align:center">Nothing received yet</td></tr>'}
-          <tr style="font-weight:700;background:#f8fafc">
-            <td>Total Received</td>
-            <td class="n mono" colspan="2">${byCur(depAll)}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div>
-      <h3 style="margin:12px 0 6px;font-size:12.5px;text-transform:uppercase;color:#2563eb">3. Paid to supplier (${advAll.length})</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>Ref &amp; Date</th>
-            <th class="n">Amount</th>
-            <th class="n">EGP Equivalent</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${advAll.length ? advAll.map(d => `
-            <tr>
-              <td><b>${d.number}</b><br><small style="color:#64748b">${d.date}</small></td>
-              <td class="n mono"><b>${money(d.amount)} ${d.currency}</b></td>
-              <td class="n mono">${egpOf(d)}</td>
-            </tr>
-          `).join('') : '<tr><td colspan="3" style="color:#64748b;text-align:center">Nothing paid yet</td></tr>'}
-          <tr style="font-weight:700;background:#f8fafc">
-            <td>Total Paid to Supplier</td>
-            <td class="n mono" colspan="2">${byCur(advAll)}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <div class="sig-row">
-    <div><b>Prepared by:</b> _________________________</div>
-    <div><b>Chief Accountant:</b> _________________________</div>
-    <div><b>Authorized Signature:</b> _________________________</div>
-  </div>
-
-
-</body>
-</html>`;
-
-  try {
-    const w = window.open('', '_blank');
-    if (w) {
-      w.document.open();
-      w.document.write(html);
-      w.document.close();
-      return;
-    }
-  } catch (err) {}
-
-  // Fallback: print via hidden iframe if pop-ups blocked
-  const frame = document.createElement('iframe');
-  frame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;';
-  document.body.appendChild(frame);
-  frame.contentWindow.document.open();
-  frame.contentWindow.document.write(html);
-  frame.contentWindow.document.close();
-  frame.contentWindow.focus();
-  setTimeout(() => {
-    frame.contentWindow.print();
-    setTimeout(() => frame.remove(), 3000);
-  }, 400);
+  <footer><div>Prepared by</div><div>Chief accountant</div><div>Approved by</div></footer>
+  <div class="gen">Figures in EGP come from posted journal entries · ${esc(co.legalName || 'Goldstern')} ERP</div>
+</div></body></html>`;
+  try { const w = window.open('', '_blank'); if (w){ w.document.open(); w.document.write(html); w.document.close(); return; } } catch (err) {}
+  const frame = document.createElement('iframe'); frame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;';
+  document.body.appendChild(frame); frame.contentWindow.document.open(); frame.contentWindow.document.write(html); frame.contentWindow.document.close();
+  frame.contentWindow.focus(); setTimeout(() => { frame.contentWindow.print(); setTimeout(() => frame.remove(), 3000); }, 400);
 }
 function printInvoice(inv){
   const SD = SIDES[inv.side], p = partnerById(inv.side, inv.partnerId), st = inv.type === 'credit' ? null : invState(inv), co = S.company || {};
@@ -9768,11 +9694,21 @@ function poView(po){
       <td class="num"><b>${money(x.amount)} ${x.currency}</b><div class="muted" style="font-size:12px">${x.paidCurrency ? `paid ${money(x.paidAmount)} ${x.paidCurrency}` : ''}${x.currency === 'EGP' ? '' : `${x.paidCurrency ? ' · ' : ''}at ${fmtNum(x.rate, 4)}`}</div></td><td class="num">${money(r2(D(x.amount).mul(x.rate || '1')))}</td><td class="num">${av ? (av.gt(0) ? `<span class="pill gold">${money(av)} ${x.currency} open</span>` : '<span class="pill mute">Applied</span>') : badge(entryStatus(x))}</td>
       <td style="white-space:nowrap;text-align:end">${closed ? '' : `${av && av.gt(0) && S.invoices.some(i => i.side === x.side && i.partnerId === x.partnerId && invIsLive(i) && invState(i).open.gt(0)) && can(SIDES[x.side].mod, 'create') ? `<button type="button" class="btn sm" data-act="adv-alloc" data-side="${x.side}" data-id="${x.id}">Apply</button>` : ''}${docButtons(setRef(x).kind, x)}`}</td></tr>`;
   };
-  const depRows = dep.sort((a, b) => a.date < b.date ? -1 : 1).map(renderPayRow).join('');
-  const advRows = adv.sort((a, b) => a.date < b.date ? -1 : 1).map(renderPayRow).join('');
+  /* Payments made directly against the car's invoices (cash receipts, credit notes, deposits from outside this order) */
+  const invPays = (inv, own) => inv ? invState(inv).reductions.filter(r => ACTIVE_ST.includes(r.status) && !own.some(x => x.id === r.src.id || x.id === r.src.sourceId)).map(r => ({ r, inv, date: r.src.date, currency: inv.currency, amount: r.applied, egp: D(r.carrying || 0) })) : [];
+  const custPays = invPays(c.sale, dep), supPays = invPays(c.supInv, adv);
+  const renderInvPay = ({ r, inv }) => { const x = r.src, e = entryById(x.entryId), isC = x.type === 'credit', isA = x.type === 'advance';
+    const via = x.bankId ? esc(((bankById(x.bankId) || {}).name || '').replace(' — ', ' ')) : '';
+    const lbl = isC ? 'Credit note' : isA ? (inv.side === 'ar' ? 'Deposit applied' : 'Advance applied') : (inv.side === 'ar' ? 'Payment received' : 'Payment');
+    return `<tr><td class="wrap"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">${e ? entryLink(e).replace(esc(entryRef(e)), esc(x.number)) : esc(x.number)}<span class="pill ${inv.side === 'ar' ? 'ok' : 'info'}">${lbl}</span></div><div class="muted" style="font-size:12px">${x.date}${via ? ' · via ' + via : ''} · on ${esc(inv.number)}</div></td>
+      <td class="num"><b>${money(r.applied)} ${inv.currency}</b>${x.currency && x.currency !== inv.currency ? `<div class="muted" style="font-size:12px">paid ${money(x.amount)} ${x.currency}</div>` : ''}</td><td class="num">${money(r.carrying || 0)}</td><td class="num"><span class="pill mute">Applied</span></td><td></td></tr>`; };
+  const byDate = (a, b) => a.date < b.date ? -1 : 1;
+  const depRows = [...dep.map(x => ({ date: x.date, h: renderPayRow(x) })), ...custPays.map(z => ({ date: z.date, h: renderInvPay(z) }))].sort(byDate).map(z => z.h).join('');
+  const advRows = [...adv.map(x => ({ date: x.date, h: renderPayRow(x) })), ...supPays.map(z => ({ date: z.date, h: renderInvPay(z) }))].sort(byDate).map(z => z.h).join('');
+  const depAll = [...dep, ...custPays], advAll = [...adv, ...supPays];
   const depTotal = dep.reduce((t, x) => t.plus(x.amount), D0());
   const advTotal = adv.reduce((t, x) => t.plus(x.amount), D0());
-  const payTot = list => { const m = new Map(); let egp = D0(); for (const x of list){ m.set(x.currency, (m.get(x.currency) || D0()).plus(x.amount)); egp = egp.plus(x.currency === 'EGP' ? D(x.amount) : r2(D(x.amount).mul(x.rate || '1'))); }
+  const payTot = list => { const m = new Map(); let egp = D0(); for (const x of list){ m.set(x.currency, (m.get(x.currency) || D0()).plus(x.amount)); egp = egp.plus(x.egp ? x.egp : x.currency === 'EGP' ? D(x.amount) : r2(D(x.amount).mul(x.rate || '1'))); }
     const fc = [...m].filter(([c0]) => c0 !== 'EGP').map(([c0, t0]) => `${money(t0)} ${c0}`); return fc.length ? `${fc.join(' + ')} = <b>${money(egp)} EGP</b>` : `<b>${money(egp)} EGP</b>`; };
   openModal({ screen: { key: 'po:' + po.id, reopen: () => { const x = poById(po.id); if (x) poView(x); } }, title: `Purchase order ${po.number}`, xwide: true, body: `
     <div class="rec">
@@ -9855,12 +9791,12 @@ function poView(po){
           </div>
         </section>
         ${v ? carExpensesTable(v.id) : ''}
-        ${(dep.length || (cust && can('ar', 'create') && !shut && !c.sold)) ? `
+        ${(depAll.length || (cust && can('ar', 'create') && !shut && !c.sold)) ? `
         <section class="rc" id="po-cust-pay">
           <header style="display:flex;justify-content:space-between;align-items:center">
             <div style="display:flex;align-items:center;gap:8px">
-              <h3>${ic('invoices', 16)} Customer Deposits &amp; Payments <span class="cnt">${dep.length}</span></h3>
-              ${dep.length ? `<span class="pill ok" style="font-size:12px">Total received: ${payTot(dep)}</span>` : ''}
+              <h3>${ic('invoices', 16)} Customer Deposits &amp; Payments <span class="cnt">${depAll.length}</span></h3>
+              ${depAll.length ? `<span class="pill ok" style="font-size:12px">Total received: ${payTot(depAll)}</span>` : ''}
             </div>
             ${po.customerId && can('ar', 'create') && po.status !== 'cancelled' && !c.sold && !shut ? `
               <button type="button" class="btn sm primary" data-act="po-adv" data-side="ar" data-id="${po.id}">${ic('plus', 14)} Customer deposit</button>
@@ -9873,15 +9809,15 @@ function poView(po){
                 <tbody>${depRows}</tbody>
               </table>
             </div>
-          ` : '<div class="muted" style="padding:14px 16px;font-size:13px">No customer deposits recorded yet.</div>'}
+          ` : '<div class="muted" style="padding:14px 16px;font-size:13px">No money received from the customer yet.</div>'}
         </section>` : ''}
 
-        ${(adv.length || (sup && can('ap', 'create') && !shut && !c.invoiced)) ? `
+        ${(advAll.length || (sup && can('ap', 'create') && !shut && !c.invoiced)) ? `
         <section class="rc" id="po-supp-pay" style="margin-top:16px">
           <header style="display:flex;justify-content:space-between;align-items:center">
             <div style="display:flex;align-items:center;gap:8px">
-              <h3>${ic('purchases', 16)} Vendor Payments &amp; Advances <span class="cnt">${adv.length}</span></h3>
-              ${adv.length ? `<span class="pill info" style="font-size:12px">Total paid: ${payTot(adv)}</span>` : ''}
+              <h3>${ic('purchases', 16)} Vendor Payments &amp; Advances <span class="cnt">${advAll.length}</span></h3>
+              ${advAll.length ? `<span class="pill info" style="font-size:12px">Total paid: ${payTot(advAll)}</span>` : ''}
             </div>
             ${po.status === 'approved' && can('ap', 'create') && !c.invoiced && !shut ? `
               <button type="button" class="btn sm" data-act="po-adv" data-side="ap" data-id="${po.id}">${ic('plus', 14)} Supplier advance</button>
@@ -9894,7 +9830,7 @@ function poView(po){
                 <tbody>${advRows}</tbody>
               </table>
             </div>
-          ` : '<div class="muted" style="padding:14px 16px;font-size:13px">No vendor advances recorded yet.</div>'}
+          ` : '<div class="muted" style="padding:14px 16px;font-size:13px">Nothing paid to the supplier yet.</div>'}
         </section>` : ''}
       </div><aside class="rec-aside">
         <section class="rc"><header><h3>Customer</h3></header>${cust ? `<a href="#/partners/statement?side=ar&id=${cust.id}" class="rc-big">${esc(cust.legalName)}</a>${cust.phone ? `<div class="muted">${esc(cust.phone)}</div>` : ''}` : `<div class="muted">${po.kind === 'local' ? 'Not sold yet — choose the buyer when you sell' : 'Stock car — choose the buyer when you sell'}</div>`}
