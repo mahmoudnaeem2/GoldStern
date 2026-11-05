@@ -1536,6 +1536,60 @@ td.nw,th{white-space:nowrap}
 .subnav .sm-sep{height:1px;background:#e5e7eb;margin:6px 0}
 .je-grid .input.bad-in{border-bottom-color:var(--bad)!important;background:var(--bad-soft)}
 .ex-ed .jf .fa-in .btn{white-space:nowrap}
+
+/* ==== Accounting dashboard ==== */
+.ad{display:flex;flex-direction:column;gap:18px;max-width:1360px}
+.ad-hero{background:#0f172a;color:#fff;border-radius:16px;padding:26px 28px 22px;position:relative;overflow:hidden}
+.ad-hero::after{content:"";position:absolute;inset:auto -60px -90px auto;width:320px;height:320px;border-radius:50%;border:44px solid rgba(197,155,39,.10);pointer-events:none}
+.ad-hi h1{margin:0;font-size:24px;font-weight:700;letter-spacing:-.015em;color:#fff}
+.ad-hi p{margin:4px 0 20px;color:#94a3b8;font-size:13.5px}
+.ad-ks-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;position:relative;z-index:1}
+.ad-k{display:grid;grid-template-columns:40px 1fr;grid-template-rows:auto auto auto;column-gap:12px;row-gap:2px;padding:14px 16px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:#fff!important;text-decoration:none!important;transition:background .15s}
+.ad-k:hover{background:rgba(255,255,255,.09)}
+.ad-kic{grid-row:1/4;width:40px;height:40px;border-radius:11px;display:grid;place-items:center;background:rgba(197,155,39,.16);color:#e9c46a}
+.ad-kic.warn{background:rgba(248,113,113,.16);color:#fca5a5}
+.ad-kl{font-size:12.5px;color:#cbd5e1}
+.ad-k b{font-size:21px;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums;white-space:nowrap}
+.ad-k b small{font-size:12px;font-weight:500;color:#94a3b8}
+.ad-k b.neg{color:#fca5a5}
+.ad-ks{font-size:12px;color:#94a3b8}
+.ad-k-p{position:relative}
+.ad-mini{position:absolute;right:14px;bottom:12px;display:flex;align-items:flex-end;gap:3px;height:28px}
+.ad-mini i{display:block;width:6px;border-radius:2px;background:#e9c46a;opacity:.85}
+.ad-qa{display:flex;gap:8px;flex-wrap:wrap}
+.ad-q{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid var(--border);background:var(--surface);color:var(--text)!important;font:inherit;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none!important}
+.ad-q:hover{border-color:#cbd5e1;background:var(--surface-2)}
+.ad-q svg{color:var(--gold)}
+.ad-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:16px}
+.ad-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 18px 14px;display:flex;flex-direction:column;gap:12px}
+.ad-card header{display:flex;align-items:flex-start;gap:12px}
+.ad-ic{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;flex:none;background:var(--cs);color:var(--c)}
+.ad-t{flex:1;min-width:0}.ad-t h3{margin:0;font-size:15px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ad-t p{margin:1px 0 0;font-size:12.5px;color:var(--muted)}
+.ad-badge{font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:999px;background:var(--ok-soft);color:var(--ok);white-space:nowrap}
+.ad-badge.warn{background:var(--warn-soft);color:var(--warn)}.ad-badge.bad{background:var(--bad-soft);color:var(--bad)}
+.ad-main{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.ad-num b{display:block;font-size:24px;font-weight:700;letter-spacing:-.015em;font-variant-numeric:tabular-nums;color:var(--text)}
+.ad-num b small{font-size:13px;font-weight:500;color:var(--muted)}.ad-num b.neg{color:var(--bad)}
+.ad-num span{font-size:12.5px;color:var(--muted)}
+.ad-chart{margin-top:-2px}
+.ad-bars,.ad-spark{display:block;width:100%;height:52px}
+.ad-bl{display:flex;justify-content:space-between;font-size:10.5px;color:var(--faint);margin-top:3px}
+.ad-bl span{flex:1;text-align:center}.ad-spark + .ad-bl span{flex:none}
+.ad-ring{width:64px;height:64px;flex:none}
+.ad-card footer{display:flex;gap:6px;margin-top:auto;padding-top:4px}
+.ad-recent{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.ad-recent header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border)}
+.ad-recent h2{margin:0;font-size:15px}
+.ad-recent ul{list-style:none;margin:0;padding:0}
+.ad-recent li{display:flex;align-items:center;gap:14px;padding:11px 18px;border-bottom:1px solid #f1f5f9;cursor:pointer}
+.ad-recent li:last-child{border-bottom:0}.ad-recent li:hover{background:var(--surface-2)}
+.ad-j{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;flex:none;color:var(--c);background:color-mix(in srgb,var(--c) 10%,white)}
+.ad-rd{flex:1;min-width:0;display:flex;flex-direction:column}.ad-rd b{font-weight:550;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ad-rd span{font-size:12px;color:var(--muted)}
+.ad-ra{font-weight:650;font-variant-numeric:tabular-nums;white-space:nowrap}.ad-ra small{color:var(--muted);font-weight:500}
+.ad-empty{color:var(--muted);cursor:default!important}
+@media (max-width:1100px){.ad-ks-row{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:640px){.ad-ks-row{grid-template-columns:1fr}.ad-hero{padding:20px}}
+@media (prefers-reduced-motion:reduce){.ad-k{transition:none}}
 </style>
 </head>
 <body>
@@ -6491,32 +6545,80 @@ function entryTotalEgp(e){
 /* ---------- Accounting dashboard ---------- */
 function pageAccDash(){
   if (!S.accounts.length) return H(t('acc_dashboard'), '') + needChart();
-  const live = i => invIsLive(i) && i.type !== 'credit', today = todayCairo();
+  const live = i => invIsLive(i) && i.type !== 'credit', today = todayCairo(), ym = today.slice(0, 7), lastYm = addMonthsYM(ym, -1), cl = closeChecklist(lastYm);
   const side = sd => { const open = S.invoices.filter(i => i.side === sd && live(i) && invState(i).open.gt(0)), over = open.filter(i => i.dueDate && i.dueDate < today);
-    const egp = l => l.reduce((t, i) => t.plus(invState(i).egpOpen || 0), D0()); return { open, over, tot: egp(open), overTot: egp(over) }; };
-  const ar = side('ar'), ap = side('ap'), ym = today.slice(0, 7), lastYm = addMonthsYM(ym, -1), cl = closeChecklist(lastYm);
-  const jcard = (o) => `<div class="jc"><div class="jc-h"><span class="jc-ic" style="--c:${o.c}">${ic(o.i, 18)}</span><div><b>${o.t}</b><div class="muted">${o.sub}</div></div></div>
-    <div class="jc-b"><div class="jc-act">${o.btn || ''}</div><div class="jc-fig">${o.fig.map(([l, v, bad]) => `<div><span>${l}</span><b${bad ? ' style="color:var(--bad)"' : ''}>${v}</b></div>`).join('')}</div></div></div>`;
-  const banks = S.banks.filter(b => b.active).map(b => { const bal = bankBalance(b), rec = S.statements.filter(st => st.bankId === b.id && st.status === 'reconciled').sort((x, y) => x.to < y.to ? 1 : -1)[0];
-    return jcard({ i: b.kind === 'cash' ? 'wallet' : 'banking', c: 'var(--info)', t: esc(b.name), sub: b.kind === 'cash' ? 'Cash' : 'Bank', btn: `<a class="btn primary sm" href="#/bank/statements">Reconcile</a><a class="btn sm" href="#/bank/book?id=${b.id}">Book</a>`,
-      fig: [['Balance', `${money(bal.fc)} ${b.currency}`, bal.fc.lt(0)], ...(b.currency !== 'EGP' ? [['In EGP', money(bal.egp)]] : []), ['Last reconciled', rec ? rec.to : 'never']] });  }).join('');
-  const recent = S.entries.filter(e => isPostedStatus(e.status)).sort((a, b) => a.postedAt < b.postedAt ? 1 : -1).slice(0, 8);
-  return H(t('acc_dashboard'), '') + `
-    <div class="jcs">
-      ${jcard({ i: 'sales', c: 'var(--ok)', t: 'Customer Invoices', sub: 'Sales', btn: can('ar', 'create') ? `<button class="btn primary sm" data-act="inv-new" data-side="ar">New invoice</button><a class="btn sm" href="#/ar/invoices">Open</a>` : '',
-        fig: [[`${ar.open.length} unpaid`, `${money(ar.tot)} EGP`], [`${ar.over.length} overdue`, `${money(ar.overTot)} EGP`, ar.over.length > 0]] })}
-      ${jcard({ i: 'purchases', c: 'var(--bad)', t: 'Supplier Invoices', sub: 'Purchases', btn: can('ap', 'create') ? `<button class="btn primary sm" data-act="inv-new" data-side="ap">New invoice</button><a class="btn sm" href="#/ap/invoices">Open</a>` : '',
-        fig: [[`${ap.open.length} to pay`, `${money(ap.tot)} EGP`], [`${ap.over.length} late`, `${money(ap.overTot)} EGP`, ap.over.length > 0]] })}
-      ${banks}
-      ${jcard({ i: 'accounting', c: 'var(--muted)', t: 'Miscellaneous', sub: 'Journal entries', btn: can('journals', 'create') ? `<button class="btn primary sm" data-act="je-new">New entry</button><a class="btn sm" href="#/acc/journals">Open</a>` : '',
-        fig: [['Posted this month', String(S.entries.filter(e => isPostedStatus(e.status) && e.accountingDate.startsWith(ym)).length)], ['Not posted', String(S.entries.filter(e => ['draft','submitted','approved'].includes(e.status)).length)]] })}
-      ${jcard({ i: 'calendar', c: 'var(--gold)', t: `Close ${lastYm}`, sub: 'Month-end', btn: `<a class="btn primary sm" href="#/acc/close">Open checklist</a>`,
-        fig: [['Done', `${cl.steps.filter(x => x.state === 'done').length} of ${cl.steps.filter(x => x.state !== 'na').length}`], ['To fix', String(cl.steps.filter(x => x.state === 'issue').length), cl.steps.some(x => x.state === 'issue')]] })}
+    const egp = l => l.reduce((t0, i) => t0.plus(invState(i).egpOpen || 0), D0()); return { open, over, tot: egp(open), overTot: egp(over) }; };
+  const ar = side('ar'), ap = side('ap');
+  const agAr = (() => { try { return aging('ar', today).tot; } catch (e){ return BUCKETS.map(() => D0()); } })(), agAp = (() => { try { return aging('ap', today).tot; } catch (e){ return BUCKETS.map(() => D0()); } })();
+  const banks = S.banks.filter(b => b.active);
+  const cash = banks.reduce((t0, b) => t0.plus(bankBalance(b).egp), D0());
+  const f0 = ((S.company && S.company.fyStartMonth) || 1) - 1, y0 = +today.slice(0, 4), fy = +today.slice(5, 7) - 1 < f0 ? y0 - 1 : y0, fyFrom = ymd(fy, f0, 1);
+  const ytd = incomeStatement(fyFrom, today);
+  const months = [...Array(6)].map((_, i) => addMonthsYM(ym, i - 5)).map(m => ({ m, net: incomeStatement(m + '-01', monthEnd(m) > today ? today : monthEnd(m)).net }));
+  const posted = S.entries.filter(e => isPostedStatus(e.status)), drafts = S.entries.filter(e => ['draft','submitted','approved'].includes(e.status));
+  /* tiny charts (SVG, no library) */
+  const bars = (vals, color, labels) => { const mx = vals.reduce((m, v) => v.abs().gt(m) ? v.abs() : m, D0()), n = vals.length, w = 100 / n;
+    return `<svg class="ad-bars" viewBox="0 0 100 44" preserveAspectRatio="none" role="img" aria-label="${esc(labels.map((l, i) => l + ' ' + money(vals[i])).join(', '))}">${vals.map((v, i) => { const h = mx.eq(0) ? 0 : Math.max(v.eq(0) ? 0 : 3, +v.abs().div(mx).mul(38).toFixed(2));
+      return `<rect x="${(i * w + w * .18).toFixed(2)}" y="${(40 - h).toFixed(2)}" width="${(w * .64).toFixed(2)}" height="${h}" rx="1.2" fill="${v.lt(0) ? 'var(--bad)' : color}" opacity="${i === 0 && labels[0] === 'Not due' ? .45 : 1}"/>`; }).join('')}<line x1="0" y1="40.5" x2="100" y2="40.5" stroke="var(--border)" stroke-width=".6"/></svg>
+      <div class="ad-bl">${labels.map(l => `<span>${esc(l)}</span>`).join('')}</div>`; };
+  const spark = (vals, color) => { const nums = vals.map(v => +v), mn = Math.min(...nums), mx = Math.max(...nums), rg = mx - mn || 1;
+    const pts = nums.map((v, i) => [(i / (nums.length - 1) * 100).toFixed(2), (36 - (v - mn) / rg * 30).toFixed(2)]);
+    return `<svg class="ad-spark" viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true"><polygon points="0,40 ${pts.map(p0 => p0.join(',')).join(' ')} 100,40" fill="${color}" opacity=".10"/><polyline points="${pts.map(p0 => p0.join(',')).join(' ')}" fill="none" stroke="${color}" stroke-width="1.6" vector-effect="non-scaling-stroke" stroke-linejoin="round"/></svg>`; };
+  const ring = (done, total) => { const r = 22, c = 2 * Math.PI * r, f = total ? done / total : 0;
+    return `<svg class="ad-ring" viewBox="0 0 56 56" aria-hidden="true"><circle cx="28" cy="28" r="${r}" fill="none" stroke="var(--surface-2)" stroke-width="6"/><circle cx="28" cy="28" r="${r}" fill="none" stroke="var(--gold)" stroke-width="6" stroke-linecap="round" stroke-dasharray="${(c * f).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 28 28)"/></svg>`; };
+  const card = o => `<section class="ad-card" style="--c:${o.c};--cs:${o.cs}">
+      <header><span class="ad-ic">${ic(o.i, 20)}</span><div class="ad-t"><h3>${o.t}</h3><p>${o.sub}</p></div>${o.badge || ''}</header>
+      <div class="ad-main"><div class="ad-num"><b class="${o.neg ? 'neg' : ''}">${o.num}</b><span>${o.numSub}</span></div>${o.side || ''}</div>
+      ${o.chart ? `<div class="ad-chart">${o.chart}</div>` : ''}
+      <footer>${o.btn || ''}</footer></section>`;
+  const bankCards = banks.map(b => { const bal = bankBalance(b), rec = S.statements.filter(st => st.bankId === b.id && st.status === 'reconciled').sort((x, y) => x.to < y.to ? 1 : -1)[0];
+    const pts = [...Array(13)].map((_, k) => { try { return bankBalance(b, addDays(today, -60 + k * 5)).fc; } catch (e){ return D0(); } });
+    return card({ i: b.kind === 'cash' ? 'wallet' : 'banking', c: b.kind === 'cash' ? '#0e7490' : '#1d4ed8', cs: b.kind === 'cash' ? '#ecfeff' : '#eff6ff', t: esc(b.name), sub: `${b.kind === 'cash' ? 'Cash' : 'Bank'} · ${b.currency}`,
+      num: `${money(bal.fc)} <small>${b.currency}</small>`, neg: bal.fc.lt(0), numSub: b.currency !== 'EGP' ? `${money(bal.egp)} EGP` : 'Balance today',
+      badge: `<span class="ad-badge ${rec ? '' : 'warn'}">${rec ? 'Reconciled to ' + rec.to : 'Not reconciled'}</span>`,
+      chart: spark(pts, b.kind === 'cash' ? '#0e7490' : '#1d4ed8') + '<div class="ad-bl"><span>60 days ago</span><span>Today</span></div>',
+      btn: `<a class="btn primary sm" href="#/bank/statements">Reconcile</a><a class="btn sm" href="#/bank/book?id=${b.id}">Transactions</a>` }); }).join('');
+  const kp = (i, label, v, sub, href, tone) => `<a class="ad-k" href="${href}"><span class="ad-kic ${tone || ''}">${ic(i, 20)}</span><span class="ad-kl">${label}</span><b class="${v.lt(0) ? 'neg' : ''}">${money(v)}<small> EGP</small></b><span class="ad-ks">${sub}</span></a>`;
+  const done = cl.steps.filter(x => x.state === 'done').length, tot = cl.steps.filter(x => x.state !== 'na').length, issues = cl.steps.filter(x => x.state === 'issue').length;
+  const jb = { SJ: ['sales', '#047857'], PJ: ['purchases', '#b45309'], BJ: ['banking', '#1d4ed8'], GJ: ['accounting', '#475569'], OB: ['calendar', '#7c3aed'] };
+  const recent = posted.slice().sort((x, y) => x.postedAt < y.postedAt ? 1 : -1).slice(0, 8);
+  const hello = (n => n < 12 ? 'Good morning' : n < 17 ? 'Good afternoon' : 'Good evening')(+new Date().toLocaleString('en-GB', { hour: '2-digit', hour12: false, timeZone: 'Africa/Cairo' }));
+  return `<div class="ad">
+    <div class="ad-hero">
+      <div class="ad-hi"><h1>${hello}, ${esc((currentUser().name || '').split(' ')[0] || 'there')}</h1><p>Here is where the money stands on ${new Date(today + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}.</p></div>
+      <div class="ad-ks-row">
+        ${kp('coins', 'Cash &amp; bank', cash, `${banks.length} account${banks.length === 1 ? '' : 's'}`, '#/bank/accounts')}
+        ${kp('inbox', 'Customers owe you', ar.tot, ar.over.length ? `${money(ar.overTot)} overdue` : `${ar.open.length} open invoice${ar.open.length === 1 ? '' : 's'}`, '#/ar/aging', ar.over.length ? 'warn' : '')}
+        ${kp('truck', 'You owe vendors', ap.tot, ap.over.length ? `${money(ap.overTot)} past due` : `${ap.open.length} open bill${ap.open.length === 1 ? '' : 's'}`, '#/ap/aging', ap.over.length ? 'warn' : '')}
+        <a class="ad-k ad-k-p" href="#/rep/statements?s=is"><span class="ad-kic">${ic('reports', 20)}</span><span class="ad-kl">Profit since ${fyFrom.slice(0, 7)}</span><b class="${ytd.net.lt(0) ? 'neg' : ''}">${money(ytd.net)}<small> EGP</small></b>
+          <span class="ad-mini">${months.map(x => { const mx = months.reduce((m, y) => y.net.abs().gt(m) ? y.net.abs() : m, D0()); const h = mx.eq(0) ? 2 : Math.max(2, +x.net.abs().div(mx).mul(26).toFixed(1)); return `<i title="${x.m}: ${money(x.net)}" style="height:${h}px;${x.net.lt(0) ? 'background:#fca5a5' : ''}"></i>`; }).join('')}</span></a>
+      </div>
     </div>
-    <div class="card" style="margin-top:4px"><div class="card-h"><h2>Recently posted</h2><div class="actions"><a class="btn sm" href="#/acc/journals">All entries</a></div></div><div class="tbl-wrap"><table class="o-list">
-      <thead><tr><th>Number</th><th>Date</th><th>Description</th><th class="num">Amount (EGP)</th></tr></thead><tbody>
-      ${recent.map(e => `<tr data-act="je-view" data-id="${e.id}" style="cursor:pointer"><td><b>${esc(entryRef(e))}</b></td><td style="white-space:nowrap">${e.accountingDate}</td><td class="wrap">${esc(e.description)}</td><td class="num">${money(e.totals.egpDebit)}</td></tr>`).join('') || '<tr><td colspan="4" class="empty">No posted entries yet.</td></tr>'}
-    </tbody></table></div></div>`;
+    <div class="ad-qa">
+      ${can('ar', 'create') ? `<button class="ad-q" data-act="inv-new" data-side="ar">${ic('invoices', 16)}New customer invoice</button>` : ''}
+      ${can('ap', 'create') ? `<button class="ad-q" data-act="inv-new" data-side="ap">${ic('bill', 16)}New vendor bill</button>` : ''}
+      ${can('journals', 'create') ? `<button class="ad-q" data-act="je-new">${ic('accounting', 16)}New journal entry</button>` : ''}
+      <a class="ad-q" href="#/acc/partner-ledger">${ic('reports', 16)}Partner ledger</a><a class="ad-q" href="#/rep/statements?s=bs">${ic('file', 16)}Balance sheet</a>
+    </div>
+    <div class="ad-grid">
+      ${card({ i: 'invoices', c: '#047857', cs: '#ecfdf5', t: 'Customer invoices', sub: 'Sales journal', num: `${money(ar.tot)} <small>EGP</small>`, numSub: `${ar.open.length} waiting for payment`,
+        badge: ar.over.length ? `<span class="ad-badge bad">${ar.over.length} overdue</span>` : '', chart: bars(agAr, '#047857', BUCKETS),
+        btn: (can('ar', 'create') ? `<button class="btn primary sm" data-act="inv-new" data-side="ar">New invoice</button>` : '') + `<a class="btn sm" href="#/ar/invoices">Invoices</a>` })}
+      ${card({ i: 'bill', c: '#b45309', cs: '#fffbeb', t: 'Vendor bills', sub: 'Purchase journal', num: `${money(ap.tot)} <small>EGP</small>`, numSub: `${ap.open.length} to pay`,
+        badge: ap.over.length ? `<span class="ad-badge bad">${ap.over.length} late</span>` : '', chart: bars(agAp, '#b45309', BUCKETS),
+        btn: (can('ap', 'create') ? `<button class="btn primary sm" data-act="inv-new" data-side="ap">New bill</button>` : '') + `<a class="btn sm" href="#/ap/invoices">Bills</a>` })}
+      ${bankCards}
+      ${card({ i: 'accounting', c: '#475569', cs: '#f1f5f9', t: 'Miscellaneous operations', sub: 'General journal', num: String(posted.filter(e => e.accountingDate.startsWith(ym)).length), numSub: 'entries posted this month',
+        badge: drafts.length ? `<span class="ad-badge warn">${drafts.length} not posted</span>` : '',
+        btn: (can('journals', 'create') ? `<button class="btn primary sm" data-act="je-new">New entry</button>` : '') + `<a class="btn sm" href="#/acc/journals">Entries</a>` })}
+      ${card({ i: 'calendar', c: '#a16207', cs: '#fefce8', t: `Close ${lastYm}`, sub: 'Month-end checklist', num: `${done}<small> of ${tot}</small>`, numSub: issues ? `${issues} step${issues === 1 ? '' : 's'} to fix` : (done === tot ? 'Ready to lock' : 'steps done'), neg: false,
+        side: ring(done, tot), badge: issues ? `<span class="ad-badge bad">${issues} to fix</span>` : '', btn: `<a class="btn primary sm" href="#/acc/close">Open checklist</a>` })}
+    </div>
+    <section class="ad-recent"><header><h2>Recently posted</h2><a class="btn sm" href="#/acc/journals">All entries</a></header>
+      <ul>${recent.map(e => { const [ii, cc] = jb[e.journal] || ['file', '#475569']; return `<li data-act="je-view" data-id="${e.id}"><span class="ad-j" style="--c:${cc}">${ic(ii, 16)}</span>
+        <div class="ad-rd"><b>${esc(e.description)}</b><span>${esc(entryRef(e))} · ${e.accountingDate}</span></div><span class="ad-ra">${money(e.totals.egpDebit)} <small>EGP</small></span></li>`; }).join('') || '<li class="ad-empty">Nothing posted yet. Your first invoice or journal entry will show here.</li>'}</ul>
+    </section>
+  </div>`;
 }
 
 /* ---------- Chart of accounts ---------- */
