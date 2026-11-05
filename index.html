@@ -5292,7 +5292,7 @@ Object.assign(A, {
     const arr = k => [].concat(f[k] ?? []);
     const lines = arr('ex_cat').map((c, i) => ({ cat: S.expenseCats.find(x => x.id === c), description: String(arr('ex_desc')[i] || '').trim(), amount: String(arr('ex_amount')[i] || '').trim().replace(/,/g, ''), costCenter: arr('ex_cc')[i] || '', vehicle: String(arr('ex_vehicle')[i] || '').trim().toUpperCase() })).filter(l => l.amount || l.description);
     if (!lines.length) throw new AppError('Add at least one expense line.');
-    const ref = String(f.ref || '').trim(); if (!ref) throw new AppError('Enter the receipt / invoice reference.');
+    const ref = String(f.ref || '').trim();
     let cur = 'EGP', b = null; if (method === 'bank'){ b = bankById(f.bankId); if (!b || !b.active) throw new AppError('Select the bank or cash account.'); cur = b.currency; }
     const idx = vehicleIndex();
     lines.forEach((l, i) => { if (!l.cat) throw new AppError(`Line ${i + 1}: select a category.`); if (!amtOk(l.amount, cur) || !D(l.amount).gt(0)) throw new AppError(`Line ${i + 1}: enter a positive ${cur} amount.`);
@@ -5306,8 +5306,8 @@ Object.assign(A, {
     if (method === 'employee' && !payee) throw new AppError('Enter the employee being reimbursed.');
     const number = previewNumber(S.sequences.find(s => s.doc === 'expense_claim'), f.date);
     const jl = lines.map(l => ({ id: uid('jl'), accountId: l.cat.accountId, debit: D(l.amount).toFixed(2), credit: '', costCenter: l.costCenter, partner: payee, vehicle: l.vehicle, vehicleId: l.vehicleId || undefined, description: `${l.cat.name}${l.description ? ': ' + l.description : ''}` }));
-    jl.push({ id: uid('jl'), accountId: method === 'bank' ? b.glAccountId : getMapping('employee_payable').id, debit: '', credit: total.toFixed(2), costCenter: '', partner: payee, vehicle: '', description: method === 'bank' ? `Paid ${ref}` : `Reimbursement due to ${payee}` });
-    const e = docEntryShell(me, method === 'bank' ? 'BJ' : 'GJ', f.date, cur, 'official', number, `Expense ${number} — ${payee || ref}`, jl, { reference: ref });
+    jl.push({ id: uid('jl'), accountId: method === 'bank' ? b.glAccountId : getMapping('employee_payable').id, debit: '', credit: total.toFixed(2), costCenter: '', partner: payee, vehicle: '', description: method === 'bank' ? (ref ? `Paid ${ref}` : 'Expense settlement') : `Reimbursement due to ${payee}` });
+    const e = docEntryShell(me, method === 'bank' ? 'BJ' : 'GJ', f.date, cur, 'official', number, `Expense ${number}${payee ? ' — ' + payee : (ref ? ' — ' + ref : '')}`, jl, { reference: ref });
     submitDocEntry(e, me); nextNumber('expense_claim', f.date);
     const x = { id: uid('ex'), number, date: f.date, method, ref, payee, bankId: b ? b.id : '', total: total.toFixed(2), currency: cur, lines: lines.map(l => ({ category: l.cat.name, amount: l.amount, costCenter: l.costCenter, vehicle: l.vehicle, description: l.description })), entryId: e.id, createdBy: me.id, createdAt: nowISO() };
     S.expenses.push(x); log('expense_create', 'expenses', x.id, null, x, '', number); saveState(); return x;
@@ -5650,8 +5650,9 @@ const NAV = [
     { key:'supp_bills', route:'ap/invoices', phase:4, mod:'ap' }, { key:'payments', route:'ap/receipts', phase:4, mod:'ap' }, { key:'supp_adv', route:'ap/advances', phase:4, mod:'ap' }, { key:'suppliers', route:'partners/suppliers', phase:4, mod:'suppliers' },
     { key:'fs', route:'rep/statements', phase:10, mod:'ledger' }, { key:'ar', route:'ar/aging', phase:4, mod:'ar' }, { key:'ap', route:'ap/aging', phase:4, mod:'ap' }, { key:'tax_rep', route:'tax/report', phase:9, mod:'tax' }, { key:'profitability', route:'ana/profit', phase:8, mod:'analytics' },
     { key:'tax_codes', route:'tax/codes', phase:9, mod:'tax' }, { key:'mappings', route:'acc/mappings', phase:2, mod:'mappings' }, { key:'fiscal', route:'settings/fiscal', phase:1, mod:'fiscal' }, { key:'rates', route:'settings/rates', phase:1, mod:'exchange_rates' }, { key:'analytic_accounts', route:'ana/accounts', phase:8, mod:'analytics' }, { key:'month_close', route:'acc/close', phase:2, mod:'ledger' }, { key:'journals', route:'acc/journals', phase:2, mod:'journals' },
-    { key:'expense_docs', route:'exp/list', phase:9, mod:'expenses' }, { key:'schedules', route:'exp/schedules', phase:9, mod:'expenses' }, { key:'fixed_assets', route:'fa/register', phase:9, mod:'assets' },
+    { key:'fixed_assets', route:'fa/register', phase:9, mod:'assets' },
     { key:'coa', route:'acc/coa', phase:2, mod:'coa' }, { key:'gl', route:'acc/gl', phase:2, mod:'ledger' }, { key:'tb', route:'acc/tb', phase:2, mod:'ledger' }, { key:'opening', route:'acc/opening', phase:2, mod:'journals' } ] },
+  { key:'expenses', group:true, children:[ { key:'expense_docs', route:'exp/list', phase:9, mod:'expenses' }, { key:'schedules', route:'exp/schedules', phase:9, mod:'expenses' } ] },
   { key:'reports', group:true, children:[ { key:'fs', route:'rep/statements', phase:10, mod:'ledger' }, { key:'profitability', route:'ana/profit', phase:8, mod:'analytics' }, { key:'ar', route:'ar/aging', phase:4, mod:'ar' }, { key:'ap', route:'ap/aging', phase:4, mod:'ap' },
     { key:'valuation', route:'inv/valuation', phase:5, mod:'inventory' }, { key:'costing', route:'imp/landed', phase:6, mod:'imports' }, { key:'tax_rep', route:'tax/report', phase:9, mod:'tax' }, { key:'budgets', route:'rep/budgets', phase:10, mod:'ledger' }, { key:'rep_center', route:'rep/center', phase:10, mod:'dashboard' } ] },
   { key:'settings', group:true, children:[
@@ -5784,14 +5785,14 @@ const ICONS = {
 };
 const ic = (n, sz = 18) => `<svg class="ic" width="${sz}" height="${sz}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n] || ''}</svg>`;
 /* Odoo-style navigation: the sidebar lists the apps; the current app's menu runs across the top of the screen. */
-const NAV_PREFIX = { veh:'cars', inv:'cars', pur:'purchases', imp:'purchases', ap:'purchases', ar:'sales', sal:'sales', bank:'banking', acc:'accounting', exp:'accounting', fa:'accounting', rep:'reports', ana:'reports', tax:'reports', settings:'settings' };
+const NAV_PREFIX = { veh:'cars', inv:'cars', pur:'purchases', imp:'purchases', ap:'purchases', ar:'sales', sal:'sales', bank:'banking', acc:'accounting', exp:'expenses', fa:'accounting', rep:'reports', ana:'reports', tax:'reports', settings:'settings' };
 function navGroupOf(r){
   if (UI.curApp){ const g0 = NAV.find(n => n.key === UI.curApp && n.group); if (g0 && g0.children.some(c => c.route === r)) return g0; }
   for (const n of NAV) if (n.group ? n.children.some(c => c.route === r) : n.route === r) return n;
   if (r.startsWith('partners/')){ const side = (location.hash.match(/side=(ar|ap)/) || [])[1]; const k = r === 'partners/suppliers' || side === 'ap' ? 'purchases' : 'sales'; return NAV.find(n => n.key === k); }
   return NAV.find(n => n.key === NAV_PREFIX[r.split('/')[0]]) || null;
 }
-const NAV_ICON = { dashboard:'◧', cars:'⛟', purchases:'⇩', sales:'⇧', banking:'▤', accounting:'∑', reports:'▦', settings:'⚙' };
+const NAV_ICON = { dashboard:'◧', cars:'⛟', purchases:'⇩', sales:'⇧', banking:'▤', accounting:'∑', expenses:'expenses', reports:'▦', settings:'⚙' };
 function navHTML(){
   const r = route(), u = currentUser(), g = navGroupOf(r);
   UI.navLast = UI.navLast || {}; if (g && g.group && g.children.some(c => c.route === r)) UI.navLast[g.key] = r;
@@ -5799,7 +5800,7 @@ function navHTML(){
   const sections = [
     { items: ['dashboard'] },
     { items: ['purchases', 'sales', 'cars'] },
-    { items: ['banking', 'accounting', 'reports'] },
+    { items: ['banking', 'accounting', 'expenses', 'reports'] },
     { items: ['settings'] }
   ];
 
@@ -5823,9 +5824,9 @@ const NAV_MENUS = {
   cars: [['inv/overview'], ['Cars', ['veh/list', 'inv/stock']], ['Operations', ['inv/receipts', 'inv/deliveries', 'inv/moves', 'inv/counts']]],
   banking: [['bank/accounts'], ['Operations', ['bank/txns', 'bank/transfers']], ['bank/statements'], ['Currency', ['settings/rates', 'bank/reval']]],
   accounting: [['acc/dashboard'], ['Customers', ['ar/invoices', 'ar/receipts', 'ar/advances', 'partners/customers']], ['Vendors', ['ap/invoices', 'ap/receipts', 'ap/advances', 'partners/suppliers']],
-    ['Expenses', ['exp/list', 'exp/schedules']], ['fa/register'],
-    ['Accounting', ['acc/journals', 'acc/opening', 'acc/close']], ['Reporting', ['rep/statements', 'acc/gl', 'acc/tb', 'acc/partner-ledger', 'ar/aging', 'ap/aging', 'tax/report', 'ana/profit']],
+    ['Accounting', ['acc/journals', 'fa/register', 'acc/opening', 'acc/close']], ['Reporting', ['rep/statements', 'acc/gl', 'acc/tb', 'acc/partner-ledger', 'ar/aging', 'ap/aging', 'tax/report', 'ana/profit']],
     ['Configuration', ['acc/coa', 'tax/codes', 'acc/mappings', 'settings/fiscal', 'settings/rates', 'ana/accounts']]],
+  expenses: [['exp/list'], ['exp/schedules']],
   reports: [['Financial', ['rep/statements', 'rep/budgets', 'tax/report']], ['Cars', ['ana/profit', 'imp/landed', 'inv/valuation']], ['Partners', ['acc/partner-ledger', 'ar/aging', 'ap/aging']], ['rep/center']],
   settings: [['General', ['settings/company', 'settings/users', 'settings/roles', 'settings/currencies', 'settings/fiscal']], ['Cars & tax', ['veh/settings', 'tax/codes', 'tax/einvoice']],
     ['Accounting', ['acc/mappings', 'ana/accounts', 'settings/sequences']], ['System', ['acc/integrity', 'settings/audit', 'settings/tests', 'settings/data']]]
@@ -8692,7 +8693,7 @@ const P9_CLICKS = {
   },
   'ex-new'(){ openModal({ title: 'New expense', xwide: true, submit: 'Save & submit for approval', body: `<div class="row"><div class="field"><label>Date *</label><input class="input" type="date" name="date" value="${todayCairo()}"></div><div class="field"><label>Paid via *</label><select class="input" name="method"><option value="bank">bank / cash (paid now)</option><option value="employee">employee reimbursement</option><option value="supplier">supplier invoice (payable)</option></select></div>
       <div class="field"><label>Bank / cash</label><select class="input" name="bankId">${bankOptions('')}</select></div><div class="field"><label>Supplier</label><select class="input" name="supplierId"><option value="">—</option>${supOpts('')}</select></div></div>
-    <div class="row"><div class="field"><label>Employee (reimbursement)</label><input class="input" name="employee"></div><div class="field"><label>Payee</label><input class="input" name="payee"></div><div class="field"><label>Receipt / invoice ref *</label><input class="input" name="ref"></div></div>
+    <div class="row"><div class="field"><label>Employee (reimbursement)</label><input class="input" name="employee"></div><div class="field"><label>Payee</label><input class="input" name="payee"></div><div class="field"><label>Receipt / invoice ref</label><input class="input" name="ref"></div></div>
     <div class="tbl-wrap" style="border:1px solid var(--border);border-radius:8px"><table><thead><tr><th>Category</th><th>Description</th><th class="num">Amount</th><th>CC</th><th>Vehicle (VIN, if vehicle-specific)</th></tr></thead><tbody>${[0, 1, 2].map(() => `<tr><td><select class="input" name="ex_cat">${S.expenseCats.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select></td><td><input class="input" name="ex_desc"></td><td><input class="input mono" name="ex_amount" style="text-align:end;width:120px"></td><td><select class="input" name="ex_cc">${ccOptions('')}</select></td><td><input class="input mono" name="ex_vehicle"></td></tr>`).join('')}</tbody></table></div>`,
     onSubmit: f => { const x = A.createExpense(f); toast(`${x.number} submitted for approval.`, 'ok'); } }); },
   'sc-new'(){ openModal({ title: 'New accrual / prepayment schedule', wide: true, body: `<div class="row"><div class="field"><label>Type</label><select class="input" name="type"><option value="prepayment">prepayment (release prepaid expense)</option><option value="accrual">accrual (recurring accrued expense)</option></select></div><div class="field"><label>Start month *</label><input class="input" type="month" name="start"></div><div class="field"><label>Months *</label><input class="input" name="months" value="12"></div></div>
