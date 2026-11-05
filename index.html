@@ -972,6 +972,44 @@ td.nw,th{white-space:nowrap}
 .rec-layout.stack .rec-aside{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--sp-4);align-items:start}
 .rec-layout.stack .rec-aside .rc{margin:0}
 @media (max-width:1000px){.rec-layout.stack .rec-aside{grid-template-columns:1fr}}
+
+/* Journal entry editor (Odoo-style) */
+.je-ed{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--el-1);padding:var(--sp-6) var(--sp-6) var(--sp-4);max-width:1400px}
+.je-head .je-kind{font-size:var(--fs-sm);color:var(--muted)}
+.je-head h2{margin:2px 0 var(--sp-4);font-size:var(--fs-2xl);font-weight:700;letter-spacing:-.01em}
+.je-fields{display:grid;grid-template-columns:1fr 1fr;gap:0 var(--sp-8)}
+.jf{display:grid;grid-template-columns:150px 1fr;align-items:center;gap:var(--sp-3);padding:4px 0;border-bottom:1px solid transparent}
+.jf > span{font-size:13px;font-weight:600;color:var(--text-2)}
+.jf .input{border:0;border-bottom:1px solid var(--border);border-radius:0;background:transparent;height:34px;padding:0 4px;box-shadow:none}
+.jf .input:focus{border-bottom-color:var(--gold);outline:0;box-shadow:none}
+.je-tabs{display:flex;align-items:flex-end;gap:2px;margin:var(--sp-5) 0 0;border-bottom:1px solid var(--border)}
+.je-tabs button{border:1px solid transparent;border-bottom:0;background:none;padding:8px 16px;font-weight:600;font-size:13px;color:var(--muted);border-radius:var(--r-md) var(--r-md) 0 0;margin-bottom:-1px}
+.je-tabs button.on{background:var(--surface);border-color:var(--border);color:var(--text)}
+.je-an-tog{margin-inline-start:auto;font-size:12.5px;color:var(--muted);display:flex;gap:6px;align-items:center;padding-bottom:8px;cursor:pointer}
+.je-pane{padding-top:var(--sp-2)}
+.je-grid{width:100%;border-collapse:collapse;font-size:13.5px}
+.je-grid th{font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:600;text-align:start;padding:10px 6px;border-bottom:1px solid var(--border);white-space:nowrap}
+.je-grid th.num{text-align:end}
+.je-grid td{padding:2px 6px;border-bottom:1px solid #f1f5f9;vertical-align:middle}
+.je-grid .input{border:0;border-bottom:1px solid transparent;border-radius:0;background:transparent;height:36px;padding:0 4px;box-shadow:none;width:100%;font-size:13.5px}
+.je-grid tr.jl-row:hover .input{border-bottom-color:var(--border)}
+.je-grid .input:focus{border-bottom-color:var(--gold)!important;outline:0;box-shadow:none;background:var(--gold-soft)}
+.je-grid .input.num{text-align:end;font-variant-numeric:tabular-nums}
+.je-grid .input:disabled{color:var(--faint);background:transparent}
+.je-grid .c-acc{min-width:230px}.je-grid .c-par{min-width:150px}.je-grid .c-lbl{min-width:170px}
+.je-grid .c-cur{width:84px}.je-grid .c-amt{width:120px}.je-grid .c-rate{width:90px}.je-grid .c-egp{width:130px;color:var(--muted);font-size:12.5px;white-space:nowrap}
+.je-grid .c-an{display:none;width:120px}.je-grid.an .c-an{display:table-cell}
+.je-grid .c-del{width:30px}
+.jl-del{border:0;background:none;color:var(--faint);padding:6px;border-radius:6px;display:grid;place-items:center;opacity:0}
+.jl-row:hover .jl-del{opacity:1}.jl-del:hover{color:var(--bad);background:var(--bad-soft)}
+.je-grid tfoot td{border-bottom:0;padding:10px 6px}
+.je-add{border:0;background:none;color:var(--info);font-weight:600;font-size:13px;padding:4px 0;margin-inline-end:16px}
+.je-add:hover{text-decoration:underline}
+#je-totals{font-size:13px;white-space:nowrap}
+.je-bal{margin-inline-start:10px;padding:2px 10px;border-radius:999px;font-weight:600;font-size:12px}
+.je-bal.ok{background:var(--ok-soft);color:var(--ok)}.je-bal.bad{background:var(--bad-soft);color:var(--bad)}
+.je-hint{font-size:12.5px;color:var(--muted);margin:var(--sp-2) 0 0}
+@media (max-width:900px){.je-fields{grid-template-columns:1fr}.jf{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -1670,7 +1708,9 @@ function validateEntry(e, full){
   if (!e.lines.length) errs.push('Add at least one line.');
   e.lines.forEach((l, i) => {
     const n = i + 1, a = acc(l.accountId);
-    if (!a){ errs.push(`Line ${n}: select an account.`); return; }
+    if (!a){ errs.push(l._badAcc ? `Line ${n}: no account matches "${l._badAcc}".` : `Line ${n}: select an account.`); return; }
+    if (l.fcCurrency && (l._rateMissing || !l.fcRate || !(D(l.fcRate).gt(0)))) errs.push(`Line ${n}: enter the ${l.fcCurrency} exchange rate.`);
+    if (l.fcCurrency && ((l.fcDebit && !amtOk(l.fcDebit, l.fcCurrency)) || (l.fcCredit && !amtOk(l.fcCredit, l.fcCurrency)))) errs.push(`Line ${n}: invalid ${l.fcCurrency} amount.`);
     const d = l.debit || '', c = l.credit || '';
     if (d && !amtOk(d, cur)){ errs.push(`Line ${n}: invalid debit amount "${d}" (max ${currencyDecimals(cur)} decimals, no negatives).`); return; }
     if (c && !amtOk(c, cur)){ errs.push(`Line ${n}: invalid credit amount "${c}" (max ${currencyDecimals(cur)} decimals, no negatives).`); return; }
@@ -1710,17 +1750,27 @@ function validateEntry(e, full){
   }
   if (errs.length) throw new AppError(errs.slice(0, 6).join(' • ') + (errs.length > 6 ? ` (+${errs.length - 6} more)` : ''));
 }
+function jeAccFromText(v){
+  const t = String(v || '').trim(); if (!t) return ''; if (acc(t)) return t;
+  const code = t.split(/\s|—/)[0]; const a = S.accounts.find(x => !x.isGroup && x.code === code) || S.accounts.find(x => !x.isGroup && accName(x).toLowerCase() === t.toLowerCase());
+  return a ? a.id : '';
+}
 function entryFromForm(f){
   const arr = k => [].concat(f[k] ?? []);
   const clean = v => String(v || '').trim().replace(/,/g, '');
   const ids = arr('l_account');
-  const lines = ids.map((a, i) => ({ id: uid('jl'), accountId: a || '', debit: clean(arr('l_debit')[i]), credit: clean(arr('l_credit')[i]),
-    costCenter: arr('l_cc')[i] || '', partner: String(arr('l_partner')[i] || '').trim(), vehicle: String(arr('l_vehicle')[i] || '').trim(), description: String(arr('l_desc')[i] || '').trim() }))
-    .filter(l => l.accountId || l.debit || l.credit);
-  return { journal: f.journal, accountingDate: f.accountingDate, documentDate: f.documentDate || '', currency: f.currency || 'EGP', rateType: f.rateType || 'official',
+  const r2 = (x, r) => { try { return D(x).mul(r).toDecimalPlaces(2, Decimal.ROUND_HALF_UP).toFixed(2); } catch (e){ return x; } };
+  const lines = ids.map((a, i) => {
+    const cur = arr('l_cur')[i] || 'EGP', d = clean(arr('l_debit')[i]), c = clean(arr('l_credit')[i]), rate = clean(arr('l_rate')[i]);
+    const base = { id: uid('jl'), accountId: jeAccFromText(a), costCenter: arr('l_cc')[i] || '', partner: String(arr('l_partner')[i] || '').trim(), vehicle: String(arr('l_vehicle')[i] || '').trim(), description: String(arr('l_desc')[i] || '').trim(), _raw: String(a || '').trim() };
+    if (cur === 'EGP') return { ...base, debit: d, credit: c };
+    const ok = /^\d+(\.\d+)?$/.test(rate) && D(rate).gt(0), num = v => /^\d+(\.\d+)?$/.test(v);
+    return { ...base, fcCurrency: cur, fcDebit: d, fcCredit: c, fcRate: rate, debit: d && ok && num(d) ? r2(d, rate) : (d && !ok ? '' : d), credit: c && ok && num(c) ? r2(c, rate) : (c && !ok ? '' : c), _rateMissing: !ok && !!(d || c) };
+  }).filter(l => l._raw || l.debit || l.credit || l.fcDebit || l.fcCredit);
+  for (const l of lines){ if (!l.accountId && l._raw) l._badAcc = l._raw; delete l._raw; }
+  return { journal: f.journal, accountingDate: f.accountingDate, documentDate: f.documentDate || '', currency: 'EGP', rateType: f.rateType || 'official',
     reference: String(f.reference || '').trim(), sourceRef: String(f.sourceRef || '').trim(), description: String(f.description || '').trim(), lines };
 }
-/* Posting: snapshots rate, EGP amounts and number. Posted records are never edited afterwards. */
 function doPost(e, me, snapshot){
   const j = journalOf(e.journal);
   let c;
@@ -4877,6 +4927,8 @@ function markClickableRows(){ document.querySelectorAll('main.content td:not(.nw
 if (typeof MutationObserver !== 'undefined') new MutationObserver(() => { clearTimeout(window.__mcr); window.__mcr = setTimeout(markClickableRows, 30); }).observe(document.documentElement, { childList: true, subtree: true });
 /* Line icons (24 × 24, stroke = currentColor) — Modern Feather/Lucide vector set. */
 const ICONS = {
+  printer: '<path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>',
+  close: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
   dashboard: '<rect width="7" height="9" x="3" y="3" rx="1.5"/><rect width="7" height="5" x="14" y="3" rx="1.5"/><rect width="7" height="9" x="14" y="12" rx="1.5"/><rect width="7" height="5" x="3" y="16" rx="1.5"/>',
   cars: '<path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.5 2.8C2 10.9 2 11.2 2 11.5V16c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/>',
   purchases: '<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/>',
@@ -5502,49 +5554,97 @@ function accOptions(selected){
     .map(a => `<option value="${a.id}" ${a.id === selected ? 'selected' : ''}>${esc(a.code)} — ${esc(accName(a))}${a.currency ? ' [' + a.currency + ']' : ''}${!a.allowManual ? ' (control)' : ''}</option>`).join('');
 }
 function ccOptions(selected){ return '<option value=""></option>' + S.costCenters.filter(c => c.active || c.code === selected).map(c => `<option value="${c.code}" ${c.code === selected ? 'selected' : ''}>${esc(c.code)}</option>`).join(''); }
-function jeLineRow(l = {}){
-  return `<tr><td style="min-width:240px"><select class="input" name="l_account">${accOptions(l.accountId)}</select></td>
-    <td><input class="input mono" style="text-align:end;min-width:110px" name="l_debit" value="${esc(l.debit || '')}" inputmode="decimal"></td>
-    <td><input class="input mono" style="text-align:end;min-width:110px" name="l_credit" value="${esc(l.credit || '')}" inputmode="decimal"></td>
-    <td><select class="input" name="l_cc" style="min-width:80px">${ccOptions(l.costCenter)}</select></td>
-    <td><input class="input" name="l_partner" value="${esc(l.partner || '')}" placeholder="partner" style="min-width:110px"></td>
-    <td><input class="input" name="l_vehicle" value="${esc(l.vehicle || '')}" placeholder="VIN / vehicle" style="min-width:110px"></td>
-    <td><input class="input" name="l_desc" value="${esc(l.description || '')}" style="min-width:140px"></td>
-    <td><button type="button" class="btn sm" data-act="je-del-line" aria-label="Remove line">×</button></td></tr>`;
+function jeLineRow(l = {}, eCur = 'EGP', eRate = ''){
+  const a0 = l.accountId ? acc(l.accountId) : null;
+  const cur = l.fcCurrency || (eCur !== 'EGP' ? eCur : (a0 && a0.currency) || 'EGP');
+  const d = l.fcCurrency ? l.fcDebit : l.debit, c = l.fcCurrency ? l.fcCredit : l.credit, rate = l.fcCurrency ? l.fcRate : (eCur !== 'EGP' ? eRate : '');
+  const curs = S.companyCurrencies.filter(x => x.active || x.code === cur).map(x => x.code);
+  return `<tr class="jl-row">
+    <td class="c-acc"><input class="input" name="l_account" list="je-accs" value="${a0 ? esc(a0.code + ' ' + accName(a0)) : ''}" placeholder="Search account…" autocomplete="off"></td>
+    <td class="c-par"><input class="input" name="l_partner" list="je-partners" value="${esc(l.partner || '')}" autocomplete="off"></td>
+    <td class="c-lbl"><input class="input" name="l_desc" value="${esc(l.description || '')}"></td>
+    <td class="c-cur"><select class="input" name="l_cur">${curs.map(x => `<option ${x === cur ? 'selected' : ''}>${x}</option>`).join('')}</select></td>
+    <td class="c-amt"><input class="input num" name="l_debit" value="${esc(d || '')}" inputmode="decimal"></td>
+    <td class="c-amt"><input class="input num" name="l_credit" value="${esc(c || '')}" inputmode="decimal"></td>
+    <td class="c-rate"><input class="input num" name="l_rate" value="${esc(rate || '')}" inputmode="decimal" ${rate ? '' : 'data-auto="1"'} ${cur === 'EGP' ? 'disabled' : ''}></td>
+    <td class="c-egp num"><span class="jl-egp"></span></td>
+    <td class="c-an"><select class="input" name="l_cc">${ccOptions(l.costCenter)}</select></td>
+    <td class="c-an"><input class="input" name="l_vehicle" list="je-cars" value="${esc(l.vehicle || '')}" autocomplete="off"></td>
+    <td class="c-del"><button type="button" class="jl-del" data-act="je-del-line" aria-label="Remove line">${ic('close', 14)}</button></td></tr>`;
 }
 function jeEditor(e = {}, opts = {}){
   const journals = S.journals.filter(j => j.active && j.manual && (!opts.journal || j.code === opts.journal));
   const lines = (e.lines && e.lines.length) ? e.lines : [{}, {}];
-  const cur = S.companyCurrencies.filter(c => c.active).map(c => c.code);
-  return `<div class="row">
-      <div class="field"><label>Journal *</label><select class="input" name="journal">${journals.map(j => `<option value="${j.code}" ${(e.journal || opts.journal) === j.code ? 'selected' : ''}>${esc(j.code)} — ${esc(j.name)}</option>`).join('')}</select></div>
-      <div class="field"><label>Accounting date *</label><input class="input" type="date" name="accountingDate" value="${esc(e.accountingDate || todayCairo())}" required></div>
-      <div class="field"><label>Document date</label><input class="input" type="date" name="documentDate" value="${esc(e.documentDate || '')}"></div>
-      <div class="field"><label>Currency</label><select class="input" name="currency">${cur.map(c => `<option ${(e.currency || 'EGP') === c ? 'selected' : ''}>${c}</option>`).join('')}</select></div>
-      <div class="field"><label>Rate type</label><select class="input" name="rateType">${S.rateTypes.filter(r => r.active).map(r => `<option value="${r.code}" ${(e.rateType || 'official') === r.code ? 'selected' : ''}>${esc(r.name)}</option>`).join('')}</select></div></div>
-    <div class="row"><div class="field" style="flex:2"><label>Description *</label><input class="input" name="description" value="${esc(e.description || '')}" required></div>
-      <div class="field"><label>Reference</label><input class="input" name="reference" value="${esc(e.reference || '')}"></div>
-      <div class="field"><label>Source document no.</label><input class="input" name="sourceRef" value="${esc(e.sourceRef || '')}" placeholder="e.g. invoice no."></div></div>
-    <div class="tbl-wrap" style="border:1px solid var(--border);border-radius:8px"><table><thead><tr><th>Account</th><th class="num">Debit</th><th class="num">Credit</th><th>CC</th><th>Partner</th><th>Vehicle</th><th>Line note</th><th></th></tr></thead>
-      <tbody id="je-lines">${lines.map(jeLineRow).join('')}</tbody></table></div>
-    <div class="row" style="margin-top:10px;align-items:center"><button type="button" class="btn sm" data-act="je-add-line">+ Add line</button>
-      ${opts.journal === 'OB' ? '<button type="button" class="btn sm" data-act="je-balance-obe">Balance difference to Opening Balance Equity</button>' : ''}
-      <div id="je-totals" class="mono" style="margin-inline-start:auto;font-size:13px"></div></div>
-    <p class="muted" style="font-size:12px;margin:10px 0 0">The rate is not entered by hand: at posting, the approved rate of the chosen type effective on the accounting date is snapshotted. Saved as draft; it must be submitted and approved by another user before posting.</p>`;
+  const eCur = e.currency || 'EGP', eRate = e.fixedRate ? e.fixedRate.rate : '';
+  const accs = S.accounts.filter(a => !a.isGroup && a.active).sort((a, b) => a.code < b.code ? -1 : 1);
+  const showAn = lines.some(l => l.costCenter || l.vehicle);
+  return `
+    <datalist id="je-accs">${accs.map(a => `<option value="${esc(a.code + ' ' + accName(a))}">${a.currency ? a.currency + ' · ' : ''}${esc(ACC_TYPES[a.type].en)}${!a.allowManual ? ' · control' : ''}</option>`).join('')}</datalist>
+    <datalist id="je-partners">${[...S.customers.map(p => [p.legalName, 'Customer']), ...S.suppliers.map(p => [p.legalName, 'Vendor'])].map(([n, k]) => `<option value="${esc(n)}">${k}</option>`).join('')}</datalist>
+    <datalist id="je-cars">${S.vehicles.map(v => `<option value="${esc(v.vin)}">${esc(carName(v))}</option>`).join('')}</datalist>
+    <div class="je-ed">
+      <div class="je-head"><div class="je-kind">${opts.journal === 'OB' ? 'Opening balance' : 'Journal entry'}</div><h2>${e.id ? esc(entryRef(e)) : 'Draft'}</h2></div>
+      <div class="je-fields">
+        <div class="je-col">
+          <label class="jf"><span>Reference</span><input class="input" name="reference" value="${esc(e.reference || '')}" placeholder="e.g. Accrual for October rent"></label>
+          <label class="jf"><span>Description *</span><input class="input" name="description" value="${esc(e.description || '')}" required placeholder="What is this entry for?"></label>
+        </div><div class="je-col">
+          <label class="jf"><span>Accounting date *</span><input class="input" type="date" name="accountingDate" value="${esc(e.accountingDate || todayCairo())}" required></label>
+          <label class="jf"><span>Journal *</span><select class="input" name="journal">${journals.map(j => `<option value="${j.code}" ${(e.journal || opts.journal) === j.code ? 'selected' : ''}>${esc(j.name)}</option>`).join('')}</select></label>
+        </div></div>
+      <div class="je-tabs"><button type="button" class="on" data-act="je-tab" data-t="items">Journal items</button><button type="button" data-act="je-tab" data-t="other">Other info</button>
+        <label class="je-an-tog"><input type="checkbox" id="je-an" ${showAn ? 'checked' : ''}> Cost centre &amp; car</label></div>
+      <div class="je-pane" data-p="items">
+        <div class="tbl-wrap"><table class="je-grid ${showAn ? 'an' : ''}" id="je-grid"><thead><tr><th>Account</th><th>Partner</th><th>Label</th><th>Currency</th><th class="num">Debit</th><th class="num">Credit</th><th class="num">Rate</th><th class="num">EGP</th><th class="c-an">Cost centre</th><th class="c-an">Car</th><th></th></tr></thead>
+          <tbody id="je-lines">${lines.map(l => jeLineRow(l, eCur, eRate)).join('')}</tbody>
+          <tfoot><tr><td colspan="4"><button type="button" class="je-add" data-act="je-add-line">Add a line</button>${opts.journal === 'OB' ? ' <button type="button" class="je-add" data-act="je-balance-obe">Balance difference to Opening Balance Equity</button>' : ''}</td><td colspan="4" id="je-totals" class="num"></td><td class="c-an" colspan="2"></td><td></td></tr></tfoot></table></div>
+        <p class="je-hint">Debit and credit are in the line's currency. Pick EUR or USD on a line and the rate fills in from the rate table for the accounting date; you can change it. The entry must balance in EGP.</p>
+      </div>
+      <div class="je-pane" data-p="other" hidden>
+        <div class="je-fields"><div class="je-col">
+          <label class="jf"><span>Document date</span><input class="input" type="date" name="documentDate" value="${esc(e.documentDate || '')}"></label>
+          <label class="jf"><span>Source document no.</span><input class="input" name="sourceRef" value="${esc(e.sourceRef || '')}" placeholder="e.g. invoice no."></label>
+        </div><div class="je-col">
+          <label class="jf"><span>Default rate type</span><select class="input" name="rateType">${S.rateTypes.filter(r => r.active).map(r => `<option value="${r.code}" ${(e.rateType || 'official') === r.code ? 'selected' : ''}>${esc(r.name)}</option>`).join('')}</select></label>
+        </div></div>
+      </div>
+    </div>`;
+}
+function jeFillRates(force){
+  const form = document.getElementById('mform'); if (!form) return;
+  const date = (form.querySelector('[name=accountingDate]') || {}).value, type = (form.querySelector('[name=rateType]') || {}).value || 'official';
+  form.querySelectorAll('#je-lines tr').forEach(tr => {
+    const cur = tr.querySelector('[name=l_cur]').value, r = tr.querySelector('[name=l_rate]');
+    if (cur === 'EGP'){ r.value = ''; r.disabled = true; r.dataset.auto = '1'; return; }
+    r.disabled = false;
+    if (r.dataset.auto === '1' || force || !r.value){ try { r.value = fmtNum(getRate(cur, 'EGP', date, type).rate, 4).replace(/,/g, ''); r.dataset.auto = '1'; r.title = ''; } catch (x){ r.value = ''; r.title = x.message + ' Type the rate.'; r.placeholder = 'Enter rate'; } }
+  });
 }
 function jeRecalc(){
   const form = document.getElementById('mform'); const out = document.getElementById('je-totals'); if (!form || !out) return;
-  const e = entryFromForm(formData(form));
+  const rows = [...form.querySelectorAll('#je-lines tr')];
   let d = D0(), c = D0(), bad = false;
-  for (const l of e.lines){ for (const [k, v] of [['d', l.debit], ['c', l.credit]]){ if (!v) continue; if (!/^\d+(\.\d+)?$/.test(v)){ bad = true; continue; } if (k === 'd') d = d.plus(v); else c = c.plus(v); } }
-  const diff = d.minus(c);
-  let egp = '';
-  if (e.currency !== 'EGP' && isISODate(e.accountingDate)){
-    try { const r = getRate(e.currency, 'EGP', e.accountingDate, e.rateType); egp = ` · rate ${fmtNum(r.rate, RATE_DP)} → ≈ ${money(d.mul(r.rate))} EGP`; }
-    catch (x){ egp = ` · <span style="color:var(--bad)">${esc(x.message)}</span>`; }
+  const num = v => /^\d+(\.\d+)?$/.test(v);
+  for (const tr of rows){
+    const g = n => String(tr.querySelector(`[name=${n}]`).value || '').trim().replace(/,/g, '');
+    const cur = tr.querySelector('[name=l_cur]').value, dv = g('l_debit'), cv = g('l_credit'), rate = cur === 'EGP' ? '1' : g('l_rate');
+    const cell = tr.querySelector('.jl-egp'); let egp = null;
+    if ((dv && !num(dv)) || (cv && !num(cv))) bad = true;
+    else if (dv || cv){ if (!num(rate) || !D(rate).gt(0)){ bad = true; cell.innerHTML = '<span class="neg">rate?</span>'; continue; }
+      egp = D(dv || cv).mul(rate).toDecimalPlaces(2, Decimal.ROUND_HALF_UP); if (dv) d = d.plus(egp); else c = c.plus(egp); }
+    cell.textContent = egp && cur !== 'EGP' ? money(egp) + (dv ? ' Dr' : ' Cr') : '';
   }
-  out.innerHTML = `Dr ${money(d)} · Cr ${money(c)} ${esc(e.currency)} · <b style="color:${diff.eq(0) && !bad ? 'var(--ok)' : 'var(--bad)'}">${bad ? 'invalid amount' : diff.eq(0) ? 'balanced' : 'difference ' + money(diff.abs())}</b>${egp}`;
+  const diff = d.minus(c);
+  out.innerHTML = `<span class="muted">Total EGP</span> <b>${money(d)}</b> <span class="muted">Dr</span> · <b>${money(c)}</b> <span class="muted">Cr</span> <span class="je-bal ${diff.eq(0) && !bad ? 'ok' : 'bad'}">${bad ? 'check amounts' : diff.eq(0) ? 'Balanced' : 'Off by ' + money(diff.abs())}</span>`;
 }
+document.addEventListener('change', e => {
+  const t = e.target; if (!t.closest || !t.closest('#mform[data-je]')) return;
+  if (t.name === 'l_account'){ const a = acc(jeAccFromText(t.value)), tr = t.closest('tr'); if (a && a.currency){ const s0 = tr.querySelector('[name=l_cur]'); if (s0.value !== a.currency && [...s0.options].some(o => o.value === a.currency)){ s0.value = a.currency; tr.querySelector('[name=l_rate]').dataset.auto = '1'; } } jeFillRates(); }
+  if (t.name === 'l_cur'){ const r = t.closest('tr').querySelector('[name=l_rate]'); r.dataset.auto = '1'; jeFillRates(); }
+  if (t.name === 'accountingDate' || t.name === 'rateType') jeFillRates();
+  if (t.id === 'je-an'){ document.getElementById('je-grid').classList.toggle('an', t.checked); }
+});
+document.addEventListener('input', e => { if (e.target.name === 'l_rate' && e.target.closest('#mform[data-je]')) e.target.dataset.auto = '0'; });
 document.addEventListener('input', e => { if (e.target.closest('#mform[data-je]')) jeRecalc(); });
 document.addEventListener('change', e => { if (e.target.closest('#mform[data-je]')) jeRecalc(); });
 function jeView(e){
@@ -7903,7 +8003,7 @@ function openEntryEditor(e, opts = {}){
     onSubmit: f => { const saved = A.saveEntry(e && e.id ? e.id : null, entryFromForm(f));
       if (!APPROVALS){ const posted = A.postEntry(saved.id); toast(`${posted.number} posted.`, 'ok'); return () => jeView(posted); }
       toast(`Draft ${saved.draftRef} saved.`, 'ok'); return () => jeView(saved); } });
-  jeRecalc();
+  jeFillRates(); jeRecalc();
 }
 Object.assign(FORM_HANDLERS, {
   gl(f){ UI.gl = { ...f, _pre: routeParam('account') }; render(); },
@@ -7949,7 +8049,8 @@ Object.assign(CLICK, {
   'ob-new'(){ openEntryEditor({ journal: 'OB', description: 'Opening balances at go-live', accountingDate: todayCairo() }, { journal: 'OB' }); },
   'je-view'(el){ const e = S.entries.find(x => x.id === el.dataset.id); if (e) jeView(e); },
   'je-edit'(el){ const e = S.entries.find(x => x.id === el.dataset.id); closeModal(); openEntryEditor(e, e.journal === 'OB' ? { journal: 'OB' } : {}); },
-  'je-add-line'(){ document.getElementById('je-lines').insertAdjacentHTML('beforeend', jeLineRow({})); jeRecalc(); },
+  'je-add-line'(){ document.getElementById('je-lines').insertAdjacentHTML('beforeend', jeLineRow({})); jeFillRates(); jeRecalc(); const r = document.querySelector('#je-lines tr:last-child [name=l_account]'); if (r) r.focus(); },
+  'je-tab'(el){ const f = el.closest('.je-ed'); f.querySelectorAll('.je-tabs [data-t]').forEach(b => b.classList.toggle('on', b === el)); f.querySelectorAll('.je-pane').forEach(p => { p.hidden = p.dataset.p !== el.dataset.t; }); },
   'je-del-line'(el){ const tb = document.getElementById('je-lines'); if (tb.children.length > 1){ el.closest('tr').remove(); jeRecalc(); } },
   'je-balance-obe'(){
     let obe; try { obe = getMapping('opening_equity'); } catch (e){ toast(e.message, 'bad'); return; }
@@ -8091,11 +8192,15 @@ Object.assign(CLICK, {
     const dep = poAdvances(po, 'ar').filter(x => ACTIVE_ST.includes(entryStatus(x))), adv = poAdvances(po, 'ap').filter(x => ACTIVE_ST.includes(entryStatus(x)));
     const cx = v ? carExpensesOf(v.id) : [];
     const cxTot = cx.reduce((t, r) => t.plus(r.egp), D0());
+    const carInvs = side => S.invoices.filter(i => i.side === side && i.type !== 'credit' && entryStatus(i) === 'posted' && (side === 'ap' ? i.poId === po.id : (v && (i.lines || []).some(l => l.vehicleId === v.id))));
+    const paidOn = side => carInvs(side).flatMap(i => invState(i).reductions.filter(r => ACTIVE_ST.includes(r.status) && r.src.type !== 'advance').map(r => ({ number: r.src.number, date: r.src.date, amount: r.applied, currency: i.currency })));
+    const depAll = [...dep, ...paidOn('ar')], advAll = [...adv, ...paidOn('ap')];
+    const byCur = list => { const m = new Map(); for (const x of list) m.set(x.currency, (m.get(x.currency) || D0()).plus(x.amount)); return [...m].map(([c0, t]) => `${money(t)} ${c0}`).join(' + ') || '0.00'; };
+    const costTot = c.invoiced ? sm.cost : (sm.priceEgp || D0()).plus(cxTot), adj = D(costTot).minus(sm.priceEgp || D0()).minus(cxTot);
     
     openModal({
       title: `Car Report — ${v ? v.vin : po.number}`,
       wide: true,
-      submit: 'Print / Save as PDF',
       body: `
         <div id="print-car-report" style="padding:10px;font-family:inherit;color:#0f172a">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #0f172a;padding-bottom:14px;margin-bottom:18px">
@@ -8144,17 +8249,18 @@ Object.assign(CLICK, {
                   <td style="padding:6px 10px;text-align:end" class="mono">${po.rate ? fmtNum(po.rate, 4) : '—'}</td>
                   <td style="padding:6px 10px;text-align:end" class="mono"><b>${sm.priceEgp ? money(sm.priceEgp) : '—'} EGP</b></td>
                 </tr>
-                ${cx.map(x => `
+                ${cx.map(({ x, share, egp }) => `
                   <tr>
-                    <td style="padding:6px 10px;color:#334155">${esc(costTypeName(x.carExp.type))}${x.carExp.description ? ` (${esc(x.carExp.description)})` : ''}</td>
-                    <td style="padding:6px 10px;text-align:end" class="mono">${money(x.total)} ${x.currency}</td>
-                    <td style="padding:6px 10px;text-align:end" class="mono">${x.currency !== 'EGP' ? fmtNum(x.rate, 4) : '1.0000'}</td>
-                    <td style="padding:6px 10px;text-align:end" class="mono">${money(x.egp)} EGP</td>
+                    <td style="padding:6px 10px;color:#334155">${esc(costTypeName(x.carExp.type))}${x.carExp.description ? ` (${esc(x.carExp.description)})` : ''}<div style="font-size:11px;color:#94a3b8">${esc(x.number)} · ${x.date}${x.carExp.cars.length > 1 ? ` · share of ${x.carExp.cars.length} cars` : ''}</div></td>
+                    <td style="padding:6px 10px;text-align:end" class="mono">${money(share)} ${x.currency}</td>
+                    <td style="padding:6px 10px;text-align:end" class="mono">${x.currency !== 'EGP' ? (x.rate ? fmtNum(x.rate, 4) : '—') : '1.0000'}</td>
+                    <td style="padding:6px 10px;text-align:end" class="mono">${money(egp)} EGP</td>
                   </tr>
                 `).join('')}
+                ${adj.abs().gte(D('0.01')) ? `<tr><td style="padding:6px 10px;color:#334155">Exchange differences &amp; other adjustments<div style="font-size:11px;color:#94a3b8">from the car's journal entries</div></td><td></td><td></td><td style="padding:6px 10px;text-align:end" class="mono">${money(adj)} EGP</td></tr>` : ''}
                 <tr style="font-weight:700;background:#f8fafc;border-top:1px solid #cbd5e1">
                   <td style="padding:8px 10px" colspan="3">TOTAL CAR COST (تكلفة السيارة الإجمالية)</td>
-                  <td style="padding:8px 10px;text-align:end;color:#0f172a;font-size:14px" class="mono">${money(c.invoiced ? sm.cost : (sm.priceEgp || D0()).plus(cxTot))} EGP</td>
+                  <td style="padding:8px 10px;text-align:end;color:#0f172a;font-size:14px" class="mono">${money(costTot)} EGP</td>
                 </tr>
                 ${c.sold ? `
                   <tr style="border-top:2px solid #0f172a">
@@ -8173,19 +8279,19 @@ Object.assign(CLICK, {
 
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px">
             <div style="background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:10px 12px">
-              <h4 style="margin:0 0 6px;font-size:12px;color:#16a34a;text-transform:uppercase">Customer Deposits (${dep.length})</h4>
-              ${dep.map(d => `<div style="display:flex;justify-content:space-between;font-size:11.5px;padding:2px 0"><span>${d.number} (${d.date})</span><span class="mono"><b>${money(d.amount)} ${d.currency}</b></span></div>`).join('') || '<div class="muted" style="font-size:11px">No deposits recorded</div>'}
+              <h4 style="margin:0 0 6px;font-size:12px;color:#16a34a;text-transform:uppercase">Received from customer (${depAll.length})</h4>
+              ${depAll.map(d => `<div style="display:flex;justify-content:space-between;font-size:11.5px;padding:2px 0"><span>${esc(d.number)} (${d.date})</span><span class="mono"><b>${money(d.amount)} ${d.currency}</b></span></div>`).join('') || '<div class="muted" style="font-size:11px">Nothing received yet</div>'}
               <div style="display:flex;justify-content:space-between;font-weight:700;font-size:12px;border-top:1px solid #e2e8f0;padding-top:4px;margin-top:4px">
-                <span>Total Received:</span>
-                <span class="mono">${money(dep.reduce((t, x) => t.plus(x.amount), D0()))} ${po.currency}</span>
+                <span>Total received</span>
+                <span class="mono">${byCur(depAll)}</span>
               </div>
             </div>
             <div style="background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:10px 12px">
-              <h4 style="margin:0 0 6px;font-size:12px;color:#0284c7;text-transform:uppercase">Supplier Payments (${adv.length})</h4>
-              ${adv.map(d => `<div style="display:flex;justify-content:space-between;font-size:11.5px;padding:2px 0"><span>${d.number} (${d.date})</span><span class="mono"><b>${money(d.amount)} ${d.currency}</b></span></div>`).join('') || '<div class="muted" style="font-size:11px">No supplier payments recorded</div>'}
+              <h4 style="margin:0 0 6px;font-size:12px;color:#0284c7;text-transform:uppercase">Paid to supplier (${advAll.length})</h4>
+              ${advAll.map(d => `<div style="display:flex;justify-content:space-between;font-size:11.5px;padding:2px 0"><span>${d.number} (${d.date})</span><span class="mono"><b>${money(d.amount)} ${d.currency}</b></span></div>`).join('') || '<div class="muted" style="font-size:11px">Nothing paid yet</div>'}
               <div style="display:flex;justify-content:space-between;font-weight:700;font-size:12px;border-top:1px solid #e2e8f0;padding-top:4px;margin-top:4px">
-                <span>Total Paid to Supplier:</span>
-                <span class="mono">${money(adv.reduce((t, x) => t.plus(x.amount), D0()))} ${po.currency}</span>
+                <span>Total paid</span>
+                <span class="mono">${byCur(advAll)}</span>
               </div>
             </div>
           </div>
@@ -8197,10 +8303,14 @@ Object.assign(CLICK, {
           </div>
         </div>
       `,
-      onSubmit: () => {
-        window.print();
-      }
+      footer: `<button type="button" class="btn" data-act="modal-close">Close</button><button type="button" class="btn primary" data-act="car-report-print">${ic('printer', 14)} Print / Save as PDF</button>`
     });
+  },
+  'car-report-print'(){
+    const el = document.getElementById('print-car-report'); if (!el) return;
+    const w = window.open('', '_blank'); if (!w){ toast('Allow pop-ups for this page to print the report.', 'bad'); return; }
+    w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(document.querySelector('.modal-h h3') ? document.querySelector('.modal-h h3').textContent : 'Car report')}</title><style>body{font-family:Inter,Arial,sans-serif;margin:24px;color:#0f172a}.mono{font-variant-numeric:tabular-nums}.muted{color:#64748b}table td,table th{text-align:start}@page{size:A4;margin:14mm}</style></head><body>${el.outerHTML}<script>window.onload=()=>{window.print();}<\/script></body></html>`);
+    w.document.close();
   },
   'aging-csv'(el){ const side = el.dataset.side; run(() => { requirePerm(SIDES[side].mod, 'export'); const asOf = (UI.aging || {})[side] || todayCairo(), ag = aging(side, asOf), rows = [];
     for (const r of ag.list) for (const d of r.docs) rows.push([r.partner.code, r.partner.legalName, d.inv.number, d.inv.partnerRef, d.inv.date, d.inv.dueDate, d.days, BUCKETS[d.bucket], d.inv.currency, d.open.toFixed(2), d.egpOpen.toFixed(2)]);
