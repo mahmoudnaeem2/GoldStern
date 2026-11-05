@@ -28,4 +28,6 @@ Browser tests write screenshots to `tests/out/`. GitHub runs the feature check a
 
 **Before editing `index.html`, always get the latest copy first** (`git pull`, or download it from GitHub). Editing an old copy and pushing it silently removes newer features; the Check workflow fails when that happens.
 
+**Chart of accounts:** the Odoo 6-digit chart is built in. A new company gets it automatically; data on the older 4-digit chart is renumbered to the Odoo codes in place the first time the new version opens (same accounts, so entries and balances do not change; the old code is kept as `prevCode`).
+
 **Settings → Data & Backup → Update data** brings saved data up to date (missing accounts, mappings, journals, categories, permissions) without changing existing records. It also runs automatically when the system opens.

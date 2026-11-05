@@ -8,7 +8,7 @@ const { chromium } = require('playwright'); const fs = require('fs');
   await p.click('button.primary'); await p.waitForTimeout(400); await p.evaluate(() => { OVERDRAFT_CONTROL = false; });
   const out = await p.evaluate(() => { if (!S.accounts.length) A.seedChart();
     const po = A.createImportOrder({ makeName:'BMW', modelName:'1 Series', vin:'98191', customerName:'Mahmoud Naeem', customerPhone:'01001234567', supplierName:'AMG', price:'150000', currency:'EUR', rate:'92' });
-    const eur = 'gl:' + S.accounts.find(a => a.code === '1122').id, cash = 'gl:' + S.accounts.find(a => a.code === '1110').id;
+    const eur = 'gl:' + S.accounts.find(a => a.code === '101220').id, cash = 'gl:' + S.accounts.find(a => a.code === '101100').id;
     A.createSettlement('ap', { side:'ap', partnerId: po.supplierId, bankId: cash, date: todayCairo(), amount:'15000', currency:'EGP', rate:'92', poId: po.id });
     const bill = A.billImportOrder(po.id, { pi_line: [po.lines[0].id], date: todayCairo(), partnerRef: 'AMG-9', destination:'transit' });
     const binv = poCycle(poById(po.id)).supInv; const bo = invState(binv).open;

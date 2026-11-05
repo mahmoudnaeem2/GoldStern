@@ -28,7 +28,7 @@ const { chromium } = require('playwright'); const fs = require('fs');
   await p.click('button[data-act="car-close"]'); await p.waitForTimeout(300); await p.screenshot({ path: require('path').join(__dirname, 'out', 'close-modal.png') });
   await p.click('.modal-f button.primary, #mform button[type=submit]'); await p.waitForTimeout(400);
   await p.screenshot({ path: require('path').join(__dirname, 'out', 'po-shut.png') });
-  const r2 = await p.evaluate(ids => { let err = ''; try { A.createCarExpense({ costTypeName:'Port charges', amount:'100', currency:'EGP', payMode:'now', bankId:'gl:' + S.accounts.find(a => a.code === '1110').id, cx_car:[ids.va], date: todayCairo() }); } catch (e){ err = e.message; }
+  const r2 = await p.evaluate(ids => { let err = ''; try { A.createCarExpense({ costTypeName:'Port charges', amount:'100', currency:'EGP', payMode:'now', bankId:'gl:' + S.accounts.find(a => a.code === '101100').id, cx_car:[ids.va], date: todayCairo() }); } catch (e){ err = e.message; }
     const listed = carExpenseForm({}).includes(ids.va); return { closed: !!vehById(ids.va).closedAt, err, listed }; }, ids);
   console.log(r2, 'errors', errs); await b.close();
 })();

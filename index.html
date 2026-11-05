@@ -3157,7 +3157,7 @@ function lineFc(e, l){
   if (l.fcCurrency) return { cur: l.fcCurrency, d: D(l.fcDebit || '0'), c: D(l.fcCredit || '0'), rate: l.fcRate || null };
   return { cur: e.currency, d: D(l.debit || '0'), c: D(l.credit || '0'), rate: e.rate || null };
 }
-const isCashAccount = a => !!a && a.type === 'asset' && !a.isGroup && a.active && a.allowManual && !!a.currency && String(a.code).startsWith('11');
+const isCashAccount = a => !!a && a.type === 'asset' && !a.isGroup && a.active && a.allowManual && !!a.currency && (/^11\d{2}$/.test(String(a.code)) || /^101[12]\d{2}$/.test(String(a.code)));
 const glBank = a => ({ id: 'gl:' + a.id, name: accName(a), currency: a.currency, glAccountId: a.id, kind: /cash|خزين|نقد/i.test(a.nameEn + ' ' + (a.nameAr || '')) ? 'cash' : 'bank', active: true, virtual: true, openingBalance: '0.00' });
 const bankById = id => { if (typeof id === 'string' && id.startsWith('newcash:')){ const cur = id.slice(8); return { id, name: `Cash on Hand — ${cur} (new)`, currency: cur, glAccountId: '', kind: 'cash', active: true, virtual: true, openingBalance: '0.00' }; }
   if (typeof id === 'string' && id.startsWith('gl:')){ const a = acc(id.slice(3)); if (!a) return null; return S.banks.find(b => b.glAccountId === a.id) || (isCashAccount(a) ? glBank(a) : null); } return S.banks.find(b => b.id === id) || null; };
@@ -3173,9 +3173,9 @@ function bankOptions(sel, filter = () => true, cur = null){
 }
 /* “New cash account” for a currency that has none yet: added to the chart next to 1110 Cash on Hand. */
 function newCashAccount(cur){
-  const base = S.accounts.find(a => a.code === '1110'); if (!base) throw new AppError('Load the chart of accounts first.');
+  const base = (() => { try { return getMapping('cash'); } catch (e){ return null; } })() || S.accounts.find(a => a.code === '1110' || a.code === '101100'); if (!base) throw new AppError('The chart of accounts is missing. Open Settings → Data & Backup → Update data.');
   const ex = S.accounts.find(a => isCashAccount(a) && a.currency === cur && /cash/i.test(a.nameEn)); if (ex) return ex;
-  let code = ''; for (let k = 1111; k <= 1119; k++) if (!S.accounts.some(a => a.code === String(k))){ code = String(k); break; } if (!code) throw new AppError('No free account code next to 1110.');
+  const step = base.code.length >= 6 ? 10 : 1; let code = ''; for (let k = 1; k <= 9; k++){ const c = String(+base.code + k * step); if (!S.accounts.some(a => a.code === c)){ code = c; break; } } if (!code) throw new AppError(`No free account code next to ${base.code}.`);
   const curName = (CURRENCIES.find(c => c.code === cur) || {}), n = { ...clone(base), id: uid('ac'), code, nameEn: `Cash on Hand — ${cur}`, nameAr: `النقدية بالخزينة — ${curName.ar || cur}`, currency: cur, revalue: cur !== 'EGP', system: false, active: true, createdAt: nowISO() };
   S.accounts.push(n); log('account_create', 'coa', n.id, null, n, `Added automatically for ${cur} cash receipts`, n.code); return n;
 }
@@ -4440,9 +4440,10 @@ Object.assign(A, {
 });
 
 function commissionAccount(){
-  let a = S.accounts.find(x => x.commissionIncome && x.active) || S.accounts.find(x => x.code === '4350');
-  if (!a){ const sib = S.accounts.find(x => x.code === '4300'), parent = sib ? acc(sib.parentId) : S.accounts.find(x => x.code === '4');
-    a = { id: uid('ac'), code: '4350', nameEn: 'Commission Income', nameAr: 'إيرادات عمولات', parentId: parent ? parent.id : '', type: 'revenue', isGroup: false, normal: 'credit', allowManual: true, reconcile: false, currency: '', requireCostCenter: false, revalue: false, system: false, active: true, description: 'Commission kept from sellers on cars bought from customers', commissionIncome: true, createdAt: nowISO() };
+  const od = chartFamily() === 'odoo', cc = od ? '403500' : '4350';
+  let a = S.accounts.find(x => x.commissionIncome && x.active) || S.accounts.find(x => x.code === cc);
+  if (!a){ const sib = S.accounts.find(x => x.code === (od ? '403000' : '4300')), parent = sib ? acc(sib.parentId) : S.accounts.find(x => x.code === (od ? '400000' : '4'));
+    a = { id: uid('ac'), code: cc, nameEn: 'Commission Income', nameAr: 'إيرادات عمولات', parentId: parent ? parent.id : '', type: 'revenue', isGroup: false, normal: 'credit', allowManual: true, reconcile: false, currency: '', requireCostCenter: false, revalue: false, system: false, active: true, description: 'Commission kept from sellers on cars bought from customers', commissionIncome: true, createdAt: nowISO() };
     S.accounts.push(a); log('account_create', 'coa', a.id, null, a, 'Added automatically for commissions on cars bought from customers', a.code); }
   return a;
 }
@@ -6636,6 +6637,7 @@ const drcr = v => { const d = D(v); return d.eq(0) ? '0.00' : `${money(d.abs())}
 const entryLink = e => `<a href="#" data-act="je-view" data-id="${e.id}" class="mono">${esc(entryRef(e))}</a>`;
 function needChart(){
   if (S.accounts.length) return '';
+  if (S.company){ setTimeout(() => { try { updateData(); render(); } catch (e){ console.warn(e); } }, 0); return '<div class="note">Setting up the Odoo chart of accounts…</div>'; }
   return `<div class="note warn">The chart of accounts is empty. ${can('coa', 'read') ? '<a href="#/acc/coa">Set it up first</a>.' : 'Ask a Finance Manager to set it up.'}</div>`;
 }
 function entryTotalEgp(e){
@@ -6740,17 +6742,7 @@ function pageAccDash(){
 /* ---------- Chart of accounts ---------- */
 function pageCOA(){
   const F = UI.filters;
-  if (!S.accounts.length){
-    return H(t('coa'), 'Hierarchical, bilingual chart of accounts.', can('coa', 'create') ? '<button class="btn" data-act="acc-new">New account</button>' : '') + `
-      <div class="card"><div class="card-b">
-        <p>The chart is empty. Choose which chart of accounts you want to apply. Both templates include vehicle inventory, goods in transit, advances, multi-currency banks, FX revaluations, customs and VAT mappings.</p>
-        ${can('coa', 'create') ? `
-        <div style="display:flex;gap:12px;margin-top:14px;flex-wrap:wrap">
-          <button class="btn primary" data-act="coa-seed-odoo" style="padding:10px 18px"><b>Apply Odoo Chart of Accounts</b> <span style="opacity:.8;font-size:12px">(78 accounts · 6-digit Odoo standard)</span></button>
-          <button class="btn" data-act="coa-seed" style="padding:10px 18px">Load Goldstern standard chart <span class="muted" style="font-size:12px">(74 accounts · 4-digit)</span></button>
-        </div>` : '<span class="muted">You do not have permission to create accounts.</span>'}
-      </div></div>`;
-  }
+  if (!S.accounts.length) return H(t('coa'), '') + needChart();
   const CATS = [['', 'All'], ['asset', 'Assets'], ['liability', 'Liabilities'], ['equity', 'Equity'], ['revenue', 'Income'], ['cogs', 'Cost of sales'], ['expense', 'Expenses']];
   let list = S.accounts.filter(a => !a.isGroup).sort((a, b) => a.code < b.code ? -1 : 1);
   if (F.c_type) list = list.filter(a => a.type === F.c_type);
@@ -6773,7 +6765,7 @@ function pageCOA(){
     return `<tr class="grp" data-act="coa-fold" data-id="${g.id}" style="cursor:pointer"><td colspan="5"><span class="fold">${shut ? '▸' : '▾'}</span> <b>${esc(g.code)} ${esc(g.nameEn)}</b> <span class="muted">(${rows.length})</span></td><td class="num"><b>${signed(tot)}</b></td></tr>` + (shut ? '' : rows.map(row).join(''));
   }).join('');
   const cnt = k => S.accounts.filter(a => !a.isGroup && a.active && (!k || a.type === k)).length;
-  return H(t('coa'), '', `${can('coa', 'edit') ? '<button class="btn gold" data-act="coa-apply-odoo" title="Switch or update to Odoo standard 6-digit Chart of Accounts">Apply Odoo Chart</button>' : ''}${can('coa', 'export') ? '<button class="btn" data-act="coa-csv">Export</button>' : ''}${can('coa', 'create') ? '<button class="btn primary" data-act="acc-new">New account</button>' : ''}`) + `
+  return H(t('coa'), '', `${can('coa', 'export') ? '<button class="btn" data-act="coa-csv">Export</button>' : ''}${can('coa', 'create') ? '<button class="btn primary" data-act="acc-new">New account</button>' : ''}`) + `
     <div class="card"><div class="o-pills">${CATS.map(([k, l]) => `<button type="button" class="o-pill ${(F.c_type || '') === k ? 'on' : ''}" data-act="set-filter" data-k="c_type" data-v="${k}">${l} <span>${cnt(k)}</span></button>`).join('')}</div>
       <div class="filters"><input class="input" data-filter="c_q" placeholder="Search code or account name…" value="${esc(F.c_q || '')}" style="min-width:300px">
         <select class="input" data-filter="c_group"><option value="">Group by account group</option><option value="none" ${F.c_group === 'none' ? 'selected' : ''}>No grouping</option></select>
@@ -9984,7 +9976,7 @@ function pageTests(){
 const FORM_HANDLERS = {
   async setup(f){
     const err = document.getElementById('setup-err');
-    try { await A.setupCompany(f); seedCatalogue(); location.hash = '#/dashboard'; render(); toast('Company created. You can start with a customer import order.', 'ok'); }
+    try { await A.setupCompany(f); seedCatalogue(); try { updateData(); } catch (e){ console.warn(e); } location.hash = '#/dashboard'; render(); toast('Company created. You can start with a customer import order.', 'ok'); }
     catch (e){ err.textContent = e.message; err.style.display = 'block'; }
   },
   async login(f){
@@ -12784,18 +12776,73 @@ function runTestSuite(){
 }
 
 
+
+/* ---------- Odoo chart of accounts is the only chart: renumber an old standard chart in place ---------- */
+const STD_ODOO_MANUAL = { '1160':'101600', '12':'102000', '2160':'201600', '2170':'201700', '2210':'202100', '4':'400000', '4300':'403000', '5':'500000',
+  '6110':'601100', '6120':'601200', '6130':'601300', '6150':'601400', '6160':'601500', '6170':'601600', '6180':'601700', '6210':'602100' };
+function stdToOdooMap(){
+  const m = {}, on = new Map(ODOO_COA_TEMPLATE.map(r => [r[1].trim().toLowerCase(), r[0]]));
+  for (const r of COA_TEMPLATE){ const c = on.get(r[1].trim().toLowerCase()); if (c) m[r[0]] = c; }
+  for (const [k, , , c] of MAPPING_KEYS) if (ODOO_MAPPING[k]) m[c] = ODOO_MAPPING[k];
+  Object.assign(m, STD_ODOO_MANUAL);
+  return m;
+}
+function convertToOdooChart(){
+  if (!S.accounts.length || chartFamily() === 'odoo') return [];
+  const map = stdToOdooMap(), stdBy = new Map(COA_TEMPLATE.map(r => [r[0], r])), odBy = new Map(ODOO_COA_TEMPLATE.map(r => [r[0], r]));
+  const used = new Set(), changed = [];
+  /* 1. template accounts get their Odoo code (same account object, so every entry and balance stays) */
+  for (const a of S.accounts){
+    const target = map[a.code]; if (!target || used.has(target)) continue;
+    const old = a.code, std = stdBy.get(old), od = odBy.get(target);
+    a.prevCode = old; a.code = target; used.add(target);
+    if (std && od && String(a.nameEn).trim() === std[1]){ a.nameEn = od[1]; a.nameAr = od[2]; }
+    changed.push(`${old} → ${target}`);
+  }
+  /* 2. Odoo accounts that do not exist yet */
+  const byCode = {}; for (const a of S.accounts) byCode[a.code] = a; let added = 0;
+  for (const [code, en, ar, type, parent, flags] of ODOO_COA_TEMPLATE){
+    if (byCode[code]) continue;
+    const fl = String(flags).split(' ').filter(Boolean), get = k => (fl.find(x => x.startsWith(k + '=')) || '').split('=')[1];
+    const a = { id: uid('ac'), code, nameEn: en, nameAr: ar, parentId: null, type, isGroup: fl.includes('g'), normal: get('n') || ACC_TYPES[type].normal, allowManual: !fl.includes('m0'), reconcile: fl.includes('rec'),
+      currency: get('cur') || '', requireCostCenter: fl.includes('cc'), revalue: fl.includes('rv'), system: fl.includes('s') || !parent, active: true, description: '', createdAt: nowISO(), addedBy: 'odoo_chart' };
+    byCode[code] = a; S.accounts.push(a); added++;
+  }
+  /* 3. Odoo hierarchy for template accounts */
+  for (const [code, , , , parent] of ODOO_COA_TEMPLATE) if (byCode[code]) byCode[code].parentId = parent && byCode[parent] ? byCode[parent].id : null;
+  /* 4. your own accounts (not in any template): a 6-digit code next to their parent */
+  const roots = { asset: '100000', liability: '200000', equity: '300000', revenue: '400000', cogs: '500000', expense: '600000' };
+  let renum = 0;
+  for (const a of S.accounts.filter(x => !/^\d{6}$/.test(x.code))){
+    let par = a.parentId ? acc(a.parentId) : null; if (!par || !/^\d{6}$/.test(par.code)){ par = byCode[roots[a.type]] || null; if (par) a.parentId = par.id; }
+    const base = par ? +par.code : +(roots[a.type] || '900000'), step = par && par.code.endsWith('0000') ? 1000 : par && par.code.endsWith('00') ? 10 : 1;
+    let code = ''; for (let k = 1; k < 99; k++){ const c = String(base + k * step); if (!byCode[c] && !odBy.has(c)){ code = c; break; } }
+    if (!code) continue; const old = a.code; a.prevCode = old; a.code = code; byCode[code] = a; changed.push(`${old} → ${code}`); renum++;
+  }
+  /* 5. mappings point at the Odoo accounts */
+  for (const [key, code] of Object.entries(ODOO_MAPPING)){ const cur = S.mappings[key] && acc(S.mappings[key]); if ((!cur || !cur.active) && byCode[code]) S.mappings[key] = byCode[code].id; }
+  S.meta.chart = 'odoo';
+  log('coa_convert_odoo', 'coa', null, null, { renumbered: changed.length, added, custom: renum, changes: changed }, 'Chart renumbered to the Odoo chart of accounts (entries unchanged)');
+  return [`Chart converted to Odoo codes: ${changed.length} renumbered, ${added} added`];
+}
 /* ---------- Update data: bring saved data up to the current version without touching existing records ---------- */
 function chartFamily(){ return (S.accounts || []).some(a => /^\d{6}$/.test(a.code)) && !(S.accounts || []).some(a => a.code === '1130') ? 'odoo' : 'std'; }
 /* Finds the account for a standard-chart code in whichever chart the company uses (1210 ↔ 102100 by name). */
 function famAcc(code){
   const act = a => a && a.active && !a.isGroup ? a : null;
   const direct = act((S.accounts || []).find(a => a.code === code)); if (direct) return direct;
+  if (chartFamily() === 'odoo'){ const oc = stdToOdooMap()[code]; const o = oc && act((S.accounts || []).find(a => a.code === oc)); if (o) return o; }
   const t = COA_TEMPLATE.find(r => r[0] === code); if (!t) return null;
   const byName = (S.accounts || []).filter(a => a.active && !a.isGroup && String(a.nameEn).trim().toLowerCase() === t[1].trim().toLowerCase());
   return byName[0] || null;
 }
 function updateData(opts = {}){
-  const changes = [], fam = chartFamily(), tmpl = fam === 'odoo' ? ODOO_COA_TEMPLATE : COA_TEMPLATE;
+  const changes0 = [];
+  if (S.company && !opts.noChart){
+    if (!S.accounts.length){ A.seedChart('odoo'); changes0.push('Odoo chart of accounts installed'); }
+    else if (chartFamily() === 'std') changes0.push(...convertToOdooChart());
+  }
+  const changes = changes0, fam = chartFamily(), tmpl = fam === 'odoo' ? ODOO_COA_TEMPLATE : COA_TEMPLATE;
   const note = (what, n) => { if (n) changes.push(`${what}: ${n}`); };
   if (!S.company) return changes;
   /* 1. accounts missing from the chart template (only when a chart exists; never renames or moves yours) */
@@ -12931,7 +12978,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261105-205102';
+const APP_BUILD = 'build-20261105-210357';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {

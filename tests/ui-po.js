@@ -10,7 +10,7 @@ const { chromium } = require('playwright'); const fs = require('fs');
     const po = A.createImportOrder({ makeName:'BMW', modelName:'3 Series', vin:'87393283', customerName:'Ahmed Hamdy', customerPhone:'01001234567', supplierName:'AMG', price:'9000', currency:'EUR', rate:'72', deliveryTerms:'CIF Alexandria' });
     location.hash = '#/pur/import'; render(); setTimeout(() => poView(poById(po.id)), 50); });
   await p.waitForTimeout(400); await p.screenshot({ path: require('path').join(__dirname, 'out', 'po-new.png'), fullPage: true });
-  await p.evaluate(() => { const po = S.purchaseOrders[0], bank = S.accounts.find(a => a.code === '1122');
+  await p.evaluate(() => { const po = S.purchaseOrders[0], bank = S.accounts.find(a => a.code === '101220');
     A.createSettlement('ar', { side:'ar', partnerId: po.customerId, bankId: 'gl:' + bank.id, date: todayCairo(), amount:'2000', currency:'EUR', poId: po.id });
     A.createSettlement('ap', { side:'ap', partnerId: po.supplierId, bankId: 'gl:' + bank.id, date: todayCairo(), amount:'3000', currency:'EUR', poId: po.id });
     const inv = A.invoicePO(po.id, { pi_line: [po.lines[0].id], partnerRef:'AMG-1', date: todayCairo(), destination:'transit' }); A.applyOrderAdvances(po.id, 'ap', inv.id);

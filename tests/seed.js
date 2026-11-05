@@ -1,6 +1,6 @@
 module.exports = async function seed(p){
   await p.evaluate(() => { if (!S.accounts.length) A.seedChart();
-    const eur = 'gl:' + S.accounts.find(a => a.code === '1122').id, cash = 'gl:' + S.accounts.find(a => a.code === '1110').id;
+    const eur = 'gl:' + S.accounts.find(a => a.code === '101220').id, cash = 'gl:' + S.accounts.find(a => a.code === '101100').id;
     const mk = (mkN, m, vin, c, pr, rate) => A.createImportOrder({ makeName:mkN, modelName:m, vin, customerName:c, customerPhone:'010012345' + vin.slice(-2), supplierName:'AMG', price:pr, currency:'EUR', rate });
     const a = mk('BMW','X5','WBAX5111','Mahmoud Naeem','60000','55'), b = mk('BMW','X3','WBAX3222','Ahmed Hamdy','40000','55'), c = mk('Porsche','Cayenne','WP0CY333','Sara Ali','90000','56'), d = mk('Mercedes-Benz','CLE','W1K44444','Kamal','70000','57');
     A.createSettlement('ar', { side:'ar', partnerId: a.customerId, bankId: cash, date: todayCairo(), amount:'500000', currency:'EGP', poId: a.id });

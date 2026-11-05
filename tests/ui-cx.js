@@ -26,13 +26,13 @@ const { chromium } = require('playwright'); const fs = require('fs');
   // EUR expense on credit for car A only
   const r = await p.evaluate(ids => {
     A.createCarExpense({ costTypeName:'Customs clearance', amount:'1000', currency:'EUR', rate:'56', payMode:'credit', supplierName:'Alex Clearing Co', cx_car:[ids.va], date: todayCairo(), ref:'CL-77' });
-    A.createCarExpense({ costTypeName:'Car wash', amount:'500', currency:'EGP', payMode:'now', bankId:'gl:' + S.accounts.find(a => a.code === '1110').id, cx_car:[ids.va, ids.vb], split:'equal', date: todayCairo() });
+    A.createCarExpense({ costTypeName:'Car wash', amount:'500', currency:'EGP', payMode:'now', bankId:'gl:' + S.accounts.find(a => a.code === '101100').id, cx_car:[ids.va, ids.vb], split:'equal', date: todayCairo() });
     const va = vehById(ids.va), vb = vehById(ids.vb);
     const before = { a: vehicleCost(va).total.toFixed(2), b: vehicleCost(vb).total.toFixed(2), aExp: carExpensesOf(va.id).map(x => x.egp.toFixed(2)), bExp: carExpensesOf(vb.id).map(x => x.egp.toFixed(2)) };
     // complete car B: receive + sell
     A.sellImportOrder(ids.b, { price:'2000000', currency:'EGP', date: todayCairo(), deliver:'no' });
     // post-sale expense on B
-    A.createCarExpense({ costTypeName:'Import-related transportation', amount:'3000', currency:'EGP', payMode:'now', bankId:'gl:' + S.accounts.find(a => a.code === '1110').id, cx_car:[ids.vb], date: todayCairo() });
+    A.createCarExpense({ costTypeName:'Import-related transportation', amount:'3000', currency:'EGP', payMode:'now', bankId:'gl:' + S.accounts.find(a => a.code === '101100').id, cx_car:[ids.vb], date: todayCairo() });
     const sm = orderSummary(poById(ids.b));
     const bad = integrityChecks().filter(c => c.status !== 'OK').map(c => c.status + ' ' + c.name + ': ' + c.detail);
     return { before, bCost: vehicleCost(vehById(ids.vb)).total.toFixed(2), bProfit: sm.profit.toFixed(2), bCogs: sm.cost.toFixed(2), bad, n: S.expenses.length };
