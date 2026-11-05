@@ -8515,8 +8515,215 @@ function pageSchedules(){
     </tbody></table></div></div>`;
 }
 
+
+function assetScheduleBoard(a){
+  const cat = assetCat(a) || {};
+  const deprList = a.depr || [];
+  const moves = assetMoves(a, false);
+  const rows = [];
+  const cost = D(a.cost);
+  const residual = D(a.residual || 0);
+  let curAccum = D0();
+  let startYm = a.availableDate.slice(0, 7);
+  const totalMonths = a.lifeMonths || (cat.lifeMonths || 60);
+
+  for (let i = 0; i < totalMonths; i++){
+    const ym = addMonthsYM(startYm, i);
+    const mEnd = monthEnd(ym);
+    const existing = deprList.find(d => d.month === ym && d.type === 'depr');
+    let mDepr = D0();
+
+    if (existing){
+      mDepr = D(existing.amount);
+    } else {
+      const remainingRoom = cost.minus(residual).minus(curAccum);
+      if (remainingRoom.gt(0)){
+        if (a.method === 'declining'){
+          mDepr = r2(cost.minus(curAccum).mul(a.ratePct || 20).div(1200));
+        } else {
+          mDepr = (i === totalMonths - 1) ? remainingRoom : r2(cost.minus(residual).div(totalMonths));
+        }
+        if (mDepr.gt(remainingRoom)) mDepr = remainingRoom;
+      }
+    }
+    curAccum = curAccum.plus(mDepr);
+    const curNBV = cost.minus(curAccum);
+    const entry = existing && existing.entryId ? S.entries.find(e => e.id === existing.entryId) : null;
+    const isPosted = entry && isPostedStatus(entry.status);
+
+    rows.push({
+      idx: i + 1,
+      month: ym,
+      date: mEnd,
+      amount: mDepr,
+      accum: curAccum,
+      nbv: curNBV.lt(0) ? D0() : curNBV,
+      existing,
+      entry,
+      isPosted
+    });
+  }
+  return rows;
+}
+
+function assetView(a){
+  const cat = assetCat(a) || {};
+  const v = assetNBV(a);
+  const cost = D(a.cost);
+  const residual = D(a.residual || 0);
+  const board = assetScheduleBoard(a);
+  const postedRows = board.filter(r => r.isPosted);
+  const f = (l, v0) => '<div class="o-f"><div class="l">' + l + '</div><div class="v">' + (v0 || '<span class="muted">—</span>') + '</div></div>';
+
+  const isClosed = a.status === 'disposed' || v.nbv.lte(residual);
+  const statusStr = a.status === 'disposed' ? 'Disposed' : (isClosed ? 'Closed / Depreciated' : 'Running');
+  const statusCls = a.status === 'disposed' ? 'bad' : (isClosed ? 'info' : 'ok');
+
+  const acts = [
+    '<button type="button" class="btn gold" data-act="dep-run" style="font-weight:700">⚡ Run / Post Due Depreciation</button>'
+  ];
+  if (a.status === 'active'){
+    acts.push('<button type="button" class="btn" data-act="fa-move" data-id="' + a.id + '">Transfer Location</button>');
+    acts.push('<button type="button" class="btn" data-act="fa-imp" data-id="' + a.id + '">Impair Asset</button>');
+    acts.push('<button type="button" class="btn danger" data-act="fa-disp" data-id="' + a.id + '">Sell / Dispose</button>');
+  }
+
+  openModal({
+    screen: { key: 'fa:' + a.id, reopen: () => { const x = assetById(a.id); if (x) assetView(x); } },
+    title: 'Asset ' + a.code + ' — ' + a.description,
+    xwide: true,
+    body: '<div class="o-bar">' +
+      '<div class="btns">' + acts.join('') + '</div>' +
+      '<div class="o-status">' +
+        '<span class="' + (a.status === 'active' && !isClosed ? 'on' : '') + '">Running</span>' +
+        '<span class="' + (isClosed ? 'on' : '') + '">' + (a.status === 'disposed' ? 'Disposed' : 'Closed') + '</span>' +
+      '</div>' +
+    '</div>' +
+    '<div class="o-sheet rec" style="margin:0 auto">' +
+      '<div class="o-head">' +
+        '<div>' +
+          '<div class="muted" style="font-size:12.5px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">' + esc(cat.name || 'Fixed Asset') + '</div>' +
+          '<h2 style="font-size:24px;font-weight:700;margin:0 0 6px;color:var(--text)">' + esc(a.description) + ' <span class="mono" style="font-size:16px;color:var(--muted)">(' + esc(a.code) + ')</span></h2>' +
+          '<span class="pill ' + statusCls + '" style="font-size:12px;padding:3px 10px">' + statusStr + '</span>' +
+        '</div>' +
+        '<div class="o-stats">' +
+          '<div class="o-stat"><div style="font-size:11px;color:var(--muted);text-transform:uppercase">Original Cost</div><b>' + money(cost) + ' <small>EGP</small></b></div>' +
+          '<div class="o-stat"><div style="font-size:11px;color:var(--muted);text-transform:uppercase">Depreciated</div><b style="color:var(--bad,#dc2626)">' + money(v.accum) + ' <small>EGP</small></b></div>' +
+          '<div class="o-stat"><div style="font-size:11px;color:var(--muted);text-transform:uppercase">Book Value</div><b style="color:var(--primary,#008784);font-size:16px">' + money(v.nbv) + ' <small>EGP</small></b></div>' +
+          '<div class="o-stat"><div style="font-size:11px;color:var(--muted);text-transform:uppercase">Duration</div><b>' + a.lifeMonths + ' <small>Months</small></b></div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="o-sec c-info" style="border-top:0;padding-top:0;margin-top:14px">' +
+        '<h3>' + ic('file', 16) + ' Asset Information & Depreciation Method (Odoo Asset Model)</h3>' +
+        '<div class="o-grid">' +
+          '<div>' +
+            f('Asset Category', '<b>' + esc(cat.name || '—') + '</b>') +
+            f('Acquisition Date', esc(a.acquisitionDate)) +
+            f('Available / In-service Date', esc(a.availableDate)) +
+            f('Location', esc(a.location || 'Showroom')) +
+            f('Custodian', esc(a.custodian || 'Company Administration')) +
+          '</div>' +
+          '<div>' +
+            f('Depreciation Method', '<b>' + (a.method === 'straight' ? 'Straight Line (قسط ثابت)' : (a.method === 'declining' ? 'Declining Balance (قسط متناقص ' + a.ratePct + '%)' : 'Manual')) + '</b>') +
+            f('Useful Life', a.lifeMonths + ' Months (' + (a.lifeMonths/12).toFixed(1) + ' Years)') +
+            f('Salvage / Residual Value', money(residual) + ' EGP') +
+            f('Depreciable Base', money(cost.minus(residual)) + ' EGP') +
+            f('Monthly Depreciation Rate', money(r2(cost.minus(residual).div(a.lifeMonths || 60))) + ' EGP / month') +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="o-sec c-gold">' +
+        '<h3>' + ic('accounting', 16) + ' General Ledger Accounts Mapping</h3>' +
+        '<div class="o-grid">' +
+          '<div>' +
+            f('Fixed Asset Account (Asset)', '<span class="mono">' + esc(accLabel(acc(cat.assetAccountId))) + '</span>') +
+            f('Accumulated Depreciation (Contra)', '<span class="mono">' + esc(accLabel(acc(cat.accumAccountId))) + '</span>') +
+          '</div>' +
+          '<div>' +
+            f('Depreciation Expense (P&L)', '<span class="mono">' + esc(accLabel(acc(cat.expenseAccountId))) + '</span>') +
+            f('Journal', '<b>ADJ — Adjusting Journal (Monthly Auto-post)</b>') +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="o-sec">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">' +
+          '<h3 style="margin:0">' + ic('calendar', 16) + ' Depreciation Board (جدول الإهلاك الشهري)</h3>' +
+          '<span class="muted" style="font-size:12.5px">' + postedRows.length + ' of ' + board.length + ' months posted</span>' +
+        '</div>' +
+        '<div class="tbl-wrap" style="max-height:360px;overflow-y:auto;border:1px solid var(--border);border-radius:8px">' +
+          '<table class="o-list">' +
+            '<thead>' +
+              '<tr>' +
+                '<th style="width:40px">#</th>' +
+                '<th>Period Date</th>' +
+                '<th class="num">Depreciation</th>' +
+                '<th class="num">Accumulated</th>' +
+                '<th class="num">Net Book Value</th>' +
+                '<th>Journal Entry</th>' +
+                '<th>Status</th>' +
+              '</tr>' +
+            '</thead>' +
+            '<tbody>' +
+              board.map(r => {
+                const stPill = r.isPosted ? '<span class="pill ok">Posted ✓</span>' : (r.date <= todayCairo() ? '<span class="pill gold">Due to post</span>' : '<span class="pill mute">Scheduled</span>');
+                const jeLink = r.entry ? entryLink(r.entry) : (r.isPosted ? 'Posted' : '<span class="muted">—</span>');
+                return '<tr>' +
+                  '<td class="mono muted">' + r.idx + '</td>' +
+                  '<td style="white-space:nowrap"><b>' + r.date + '</b> <span class="muted" style="font-size:12px">(' + r.month + ')</span></td>' +
+                  '<td class="num"><b>' + money(r.amount) + '</b> <span class="muted">EGP</span></td>' +
+                  '<td class="num" style="color:var(--bad,#dc2626)">' + money(r.accum) + '</td>' +
+                  '<td class="num"><b style="color:var(--primary,#008784)">' + money(r.nbv) + '</b> <span class="muted">EGP</span></td>' +
+                  '<td>' + jeLink + '</td>' +
+                  '<td>' + stPill + '</td>' +
+                '</tr>';
+              }).join('') +
+            '</tbody>' +
+          '</table>' +
+        '</div>' +
+      '</div>' +
+    '</div>'
+  });
+}
+
+
+function autoPostDueDepreciation(){
+  const today = todayCairo();
+  const currentYm = today.slice(0, 7);
+  const activeAssets = (S.assets || []).filter(a => a.status === 'active' && a.method !== 'manual');
+  if (!activeAssets.length) return false;
+
+  let hasDue = false;
+  for (const a of activeAssets){
+    if (a.acquisitionEntryId && (S.entries.find(e => e.id === a.acquisitionEntryId) || {}).status !== 'posted') continue;
+    const doneMonths = new Set(assetMoves(a, false).filter(d => d.type === 'depr').map(d => d.month));
+    let ym = a.availableDate.slice(0, 7);
+    while (ym <= currentYm){
+      if (!doneMonths.has(ym)){
+        const amt = deprForMonth(a, ym);
+        if (amt.gt(0)) { hasDue = true; break; }
+      }
+      ym = addMonthsYM(ym, 1);
+    }
+    if (hasDue) break;
+  }
+
+  if (hasDue){
+    try {
+      const pc = checkPostingAllowed(today);
+      if (pc.ok){
+        A.runDepreciation(today);
+        return true;
+      }
+    } catch(err){
+      // Silently handle if closed period or other rule
+    }
+  }
+  return false;
+}
+
 function pageAssets(){
   ensureStandardAssetCats();
+  autoPostDueDepreciation();
   const ed = can('assets', 'approve');
   const F = UI.filters, q = String(F.fa_q || '').trim().toLowerCase(), stf = F.fa_s || '';
   let list = [...S.assets];
@@ -8528,10 +8735,10 @@ function pageAssets(){
   if (q) list = list.filter(a => (a.code + ' ' + (a.description || '') + ' ' + ((assetCat(a) || {}).name || '') + ' ' + (a.location || '') + ' ' + (a.custodian || '')).toLowerCase().includes(q));
   if (stf) list = list.filter(a => a.status === stf);
 
-  const tabs = [['', 'All Assets'], ['active', 'Active'], ['inactive', 'Inactive'], ['disposed', 'Disposed']];
+  const tabs = [['', 'All Assets'], ['active', 'Running'], ['inactive', 'Inactive'], ['disposed', 'Disposed']];
 
-  return H(t('fixed_assets'), 'Fixed Asset Register & Automated Depreciation — showroom fixtures, equipment, and company service vehicles.',
-    (can('assets', 'create') ? '<button type="button" class="btn gold" data-act="dep-run" style="font-weight:700"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-inline-end:4px"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg> ⚡ Run Depreciation</button>' : '') +
+  return H(t('fixed_assets'), 'Odoo Fixed Assets & Automated Monthly Depreciation — showroom assets, equipment, and company service vehicles with automatic monthly ledger postings.',
+    (can('assets', 'create') ? '<button type="button" class="btn gold" data-act="dep-run" style="font-weight:700"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-inline-end:4px"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg> ⚡ Post Due Depreciation</button>' : '') +
     (can('assets', 'create') ? '<button type="button" class="btn primary" data-act="fa-new"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-inline-end:4px"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> + Register Asset</button>' : '') +
     (ed ? '<button type="button" class="btn" data-act="fc-new">+ New Category</button>' : '')) +
     `<div class="grid g4" style="margin-bottom:16px">
@@ -8543,7 +8750,7 @@ function pageAssets(){
       <div class="card stat-card" style="padding:14px 18px">
         <div class="muted" style="font-size:12px;font-weight:600;text-transform:uppercase">Accumulated Depreciation</div>
         <div class="val" style="font-size:22px;font-weight:700;color:var(--bad,#dc2626);margin-top:4px">${money(totalAccum)} <small style="font-size:13px;font-weight:400;color:var(--muted)">EGP</small></div>
-        <div class="sub" style="font-size:12px;color:var(--muted);margin-top:2px">Expensed to P&L to date</div>
+        <div class="sub" style="font-size:12px;color:var(--muted);margin-top:2px">Expensed to P&L automatically</div>
       </div>
       <div class="card stat-card" style="padding:14px 18px">
         <div class="muted" style="font-size:12px;font-weight:600;text-transform:uppercase">Net Book Value (NBV)</div>
@@ -8551,9 +8758,9 @@ function pageAssets(){
         <div class="sub" style="font-size:12px;color:var(--muted);margin-top:2px">Carrying balance on Balance Sheet</div>
       </div>
       <div class="card stat-card" style="padding:14px 18px">
-        <div class="muted" style="font-size:12px;font-weight:600;text-transform:uppercase">Asset Categories</div>
-        <div class="val" style="font-size:22px;font-weight:700;margin-top:4px">${S.assetCats.length}</div>
-        <div class="sub" style="font-size:12px;color:var(--muted);margin-top:2px">Configured depreciation rules</div>
+        <div class="muted" style="font-size:12px;font-weight:600;text-transform:uppercase">Auto-Depreciation Status</div>
+        <div class="val" style="font-size:20px;font-weight:700;color:var(--ok,#16a34a);margin-top:4px">Active ✓</div>
+        <div class="sub" style="font-size:12px;color:var(--muted);margin-top:2px">Posts monthly entries automatically</div>
       </div>
     </div>
     <div class="card">
@@ -8582,8 +8789,9 @@ function pageAssets(){
             ${list.map(a => {
               const v = assetNBV(a);
               const cat = assetCat(a) || {};
-              const stBadge = a.status === 'active' ? '<span class="pill ok">Active</span>' : (a.status === 'disposed' ? '<span class="pill bad">Disposed</span>' : '<span class="pill mute">Inactive</span>');
-              return `<tr>
+              const isClosed = a.status === 'disposed' || v.nbv.lte(a.residual || 0);
+              const stBadge = a.status === 'disposed' ? '<span class="pill bad">Disposed</span>' : (isClosed ? '<span class="pill info">Closed</span>' : '<span class="pill ok">Running</span>');
+              return `<tr data-act="fa-view" data-id="${a.id}" style="cursor:pointer">
                 <td><b>${esc(a.code)}</b></td>
                 <td>
                   <div style="font-weight:600">${esc(a.description)}</div>
@@ -8596,11 +8804,10 @@ function pageAssets(){
                 <td class="num"><b style="font-size:14px;color:var(--primary,#008784)">${money(v.nbv)}</b> <span class="muted">EGP</span></td>
                 <td style="font-size:12.5px">${esc([a.location, a.custodian].filter(Boolean).join(' / ') || '—')}</td>
                 <td>${stBadge}</td>
-                <td style="white-space:nowrap;text-align:end">
-                  <button type="button" class="btn sm" data-act="fa-sched" data-id="${a.id}" title="View monthly depreciation schedule">Schedule</button>
+                <td style="white-space:nowrap;text-align:end" onclick="event.stopPropagation()">
+                  <button type="button" class="btn sm" data-act="fa-view" data-id="${a.id}" title="Open Odoo Asset View & Schedule">Odoo View</button>
                   ${a.status === 'active' && can('assets', 'create') ? `
                     <button type="button" class="btn sm" data-act="fa-move" data-id="${a.id}" title="Transfer location/custodian">Transfer</button>
-                    <button type="button" class="btn sm" data-act="fa-imp" data-id="${a.id}" title="Record impairment">Impair</button>
                     <button type="button" class="btn sm danger" data-act="fa-disp" data-id="${a.id}" title="Dispose / write-off asset">Dispose</button>
                   ` : ''}
                 </td>
@@ -8612,23 +8819,22 @@ function pageAssets(){
     </div>
     <div class="card" style="margin-top:16px">
       <div class="card-h" style="display:flex;justify-content:space-between;align-items:center">
-        <h2>Asset Categories & Depreciation Rules</h2>
+        <h2>Asset Models & Depreciation Rules (Odoo Asset Models)</h2>
         ${ed ? '<button type="button" class="btn sm" data-act="fc-new">+ Add Asset Category</button>' : ''}
       </div>
       <div class="card-b">
         <div class="grid g3">
-          ${S.assetCats.map(c => `<div style="padding:10px 14px;background:var(--surface-2);border-radius:6px;border:1px solid var(--border)">
-            <div style="font-weight:700;font-size:13.5px;color:var(--text)">${esc(c.name)}</div>
-            <div style="font-size:12px;color:var(--muted);margin-top:2px">Rule: <b>${c.lifeMonths} months (${(c.lifeMonths/12).toFixed(1)} yrs)</b> · ${esc(c.method)}</div>
-            <div style="font-size:11.5px;color:var(--muted);margin-top:2px">Asset Cost GL: <span class="mono">${esc(acc(c.assetAccountId).code)}</span></div>
-            <div style="font-size:11.5px;color:var(--muted);margin-top:2px">Accum. Depr GL: <span class="mono">${esc(acc(c.accumAccountId).code)}</span></div>
-            <div style="font-size:11.5px;color:var(--muted);margin-top:2px">Depr Expense GL: <span class="mono">${esc(acc(c.expenseAccountId).code)}</span></div>
+          ${S.assetCats.map(c => `<div style="padding:12px 14px;background:var(--surface-2);border-radius:6px;border:1px solid var(--border)">
+            <div style="font-weight:700;font-size:14px;color:var(--text)">${esc(c.name)}</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:4px">Depreciation Rule: <b style="color:var(--primary,#008784)">${c.lifeMonths} months (${(c.lifeMonths/12).toFixed(1)} yrs)</b> · ${esc(c.method)}</div>
+            <div style="font-size:11.5px;color:var(--muted);margin-top:4px">Asset Account: <span class="mono">${esc(acc(c.assetAccountId).code)} — ${esc(accName(acc(c.assetAccountId)))}</span></div>
+            <div style="font-size:11.5px;color:var(--muted);margin-top:2px">Accum. Depr Account: <span class="mono">${esc(acc(c.accumAccountId).code)} — ${esc(accName(acc(c.accumAccountId)))}</span></div>
+            <div style="font-size:11.5px;color:var(--muted);margin-top:2px">Depr. Expense Account: <span class="mono">${esc(acc(c.expenseAccountId).code)} — ${esc(accName(acc(c.expenseAccountId)))}</span></div>
           </div>`).join('') || '<span class="muted">No categories configured.</span>'}
         </div>
       </div>
     </div>`;
 }
-
 const P9_FORMS = { taxr(f){ UI.taxr = { from: f.from, to: f.to }; render(); } };
 const accOptsOf = types => S.accounts.filter(a => !a.isGroup && a.active && types.includes(a.type)).sort((x, y) => x.code < y.code ? -1 : 1).map(a => `<option value="${a.id}">${esc(a.code)} — ${esc(accName(a))}</option>`).join('');
 const P9_CLICKS = {
@@ -8702,6 +8908,11 @@ const P9_CLICKS = {
   'sc-run'(){ openModal({ title: 'Generate due postings', body: `<div class="field"><label>Post all months ending on or before</label><input class="input" type="date" name="upto" value="${todayCairo()}"></div>`, onSubmit: f => { const r = A.runSchedules(f.upto); toast(`${r.created.length} entr${r.created.length === 1 ? 'y' : 'ies'} submitted for approval${r.skipped.length ? `; ${r.skipped.length} skipped (closed periods)` : ''}.`, r.skipped.length ? 'bad' : 'ok'); } }); },
   'fc-new'(){ openModal({ title: 'New asset category', wide: true, body: `<div class="row"><div class="field"><label>Name *</label><input class="input" name="name"></div><div class="field"><label>Useful life (months) *</label><input class="input" name="lifeMonths" value="60"></div><div class="field"><label>Method</label><select class="input" name="method"><option value="straight">straight-line</option><option value="declining">declining balance</option><option value="manual">manual</option></select></div></div>
     <div class="row"><div class="field"><label>Cost account *</label><select class="input" name="assetAccountId">${accOptsOf(['asset'])}</select></div><div class="field"><label>Accumulated depreciation *</label><select class="input" name="accumAccountId">${accOptsOf(['asset'])}</select></div><div class="field"><label>Depreciation expense *</label><select class="input" name="expenseAccountId">${accOptsOf(['expense'])}</select></div></div>`, onSubmit: f => A.saveAssetCat(f) }); },
+
+  'fa-view'(el){
+    const a = assetById(el.dataset.id);
+    if (a) assetView(a);
+  },
   'fa-new'(){ openModal({ title: 'Register fixed asset', wide: true, body: `<div class="row"><div class="field" style="flex:2"><label>Description *</label><input class="input" name="description"></div><div class="field"><label>Category *</label><select class="input" name="categoryId">${S.assetCats.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select></div></div>
     <div class="row"><div class="field"><label>Acquisition date *</label><input class="input" type="date" name="acquisitionDate"></div><div class="field"><label>Available for use *</label><input class="input" type="date" name="availableDate"></div><div class="field"><label>Cost (EGP) *</label><input class="input mono" name="cost"></div><div class="field"><label>Residual value</label><input class="input mono" name="residual" value="0"></div></div>
     <div class="row"><div class="field"><label>Useful life (months)</label><input class="input" name="lifeMonths"></div><div class="field"><label>Method</label><select class="input" name="method"><option value="">category default</option><option value="straight">straight-line</option><option value="declining">declining balance</option><option value="manual">manual</option></select></div><div class="field"><label>Declining rate % / year</label><input class="input mono" name="ratePct"></div></div>
