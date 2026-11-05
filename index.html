@@ -1590,6 +1590,24 @@ td.nw,th{white-space:nowrap}
 @media (max-width:1100px){.ad-ks-row{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:640px){.ad-ks-row{grid-template-columns:1fr}.ad-hero{padding:20px}}
 @media (prefers-reduced-motion:reduce){.ad-k{transition:none}}
+
+/* Smart buttons (Odoo stat buttons) */
+.sbs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:1100px){.sbs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.sb{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:12px;color:var(--text)!important;text-decoration:none!important;position:relative;transition:border-color .15s,background .15s}
+.sb:hover{border-color:#cbd5e1;background:var(--surface-2)}
+.sb:focus-visible{outline:2px solid var(--info);outline-offset:2px}
+.sb-ic{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;flex:none;background:var(--surface-2);color:#475569}
+.sb-tx{display:flex;flex-direction:column;min-width:0;line-height:1.25}
+.sb-tx b{font-size:19px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.01em;white-space:nowrap}
+.sb-tx b small{font-size:13px;color:var(--muted);font-weight:600}
+.sb-l{font-size:13px;font-weight:600;color:var(--text)}
+.sb-s{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb.alert{border-color:#fecaca;background:#fff7f7}.sb.alert .sb-ic{background:var(--bad-soft);color:var(--bad)}.sb.alert b{color:var(--bad)}
+.sb.warn .sb-ic{background:var(--warn-soft);color:var(--warn)}
+.sb.ok .sb-ic{background:var(--ok-soft);color:var(--ok)}.sb.ok .sb-s{color:var(--ok)}
+.sb.alert::before{content:"";position:absolute;top:10px;right:10px;width:7px;height:7px;border-radius:50%;background:var(--bad)}
+@media (prefers-reduced-motion:reduce){.sb{transition:none}}
 </style>
 </head>
 <body>
@@ -6581,6 +6599,26 @@ function pageAccDash(){
   const kp = (i, label, v, sub, href, tone) => `<a class="ad-k" href="${href}"><span class="ad-kic ${tone || ''}">${ic(i, 20)}</span><span class="ad-kl">${label}</span><b class="${v.lt(0) ? 'neg' : ''}">${money(v)}<small> EGP</small></b><span class="ad-ks">${sub}</span></a>`;
   const done = cl.steps.filter(x => x.state === 'done').length, tot = cl.steps.filter(x => x.state !== 'na').length, issues = cl.steps.filter(x => x.state === 'issue').length;
   const jb = { SJ: ['sales', '#047857'], PJ: ['purchases', '#b45309'], BJ: ['banking', '#1d4ed8'], GJ: ['accounting', '#475569'], OB: ['calendar', '#7c3aed'] };
+  /* ---- smart buttons: what needs action first, then the books, then the cars ---- */
+  const in7 = addDays(today, 7);
+  const apSoon = ap.open.filter(i => i.dueDate && i.dueDate <= in7), apSoonTot = apSoon.reduce((t0, i) => t0.plus(invState(i).egpOpen || 0), D0());
+  const lastMonthEnd = monthEnd(lastYm);
+  const unrec = banks.filter(b => !S.statements.some(st => st.bankId === b.id && st.status === 'reconciled' && st.to >= lastMonthEnd));
+  let k0 = null; try { k0 = kpis(fyFrom, today); } catch (e){}
+  const inStock = k0 ? (k0.grp.stock || 0) + (k0.grp.reserved || 0) : S.vehicles.filter(v => ['stock','reserved'].includes(vStatus(v.status).group)).length;
+  const toDeliver = S.vehicles.filter(v => v.status === 'sold' && !S.deliveries.some(d => d.vehicleId === v.id && d.status === 'delivered'));
+  const held = (() => { try { const id = getMapping('cust_adv').id; let t0 = D0(); for (const { l } of ledgerLines()) if (l.accountId === id) t0 = t0.plus(l.egpCredit || 0).minus(l.egpDebit || 0); return t0; } catch (e){ return D0(); } })();
+  const sb = (o) => `<a class="sb ${o.tone || ''}" href="${o.href}" title="${esc(o.tip || '')}"><span class="sb-ic">${ic(o.i, 18)}</span><span class="sb-tx"><b>${o.n}</b><span class="sb-l">${o.l}</span><span class="sb-s">${o.s}</span></span></a>`;
+  const smart = [
+    sb({ i: 'inbox', n: ar.over.length, l: 'Overdue invoices', s: ar.over.length ? `${money(ar.overTot)} EGP to chase` : 'Nobody is late', tone: ar.over.length ? 'alert' : 'ok', href: '#/ar/aging', tip: 'Customer invoices past their due date' }),
+    sb({ i: 'truck', n: apSoon.length, l: 'Bills due in 7 days', s: apSoon.length ? `${money(apSoonTot)} EGP` : 'Nothing due this week', tone: ap.over.length ? 'alert' : apSoon.length ? 'warn' : 'ok', href: '#/ap/aging', tip: 'Vendor bills due by ' + in7 }),
+    sb({ i: 'banking', n: unrec.length, l: 'Banks to reconcile', s: unrec.length ? 'last month not reconciled' : 'All reconciled', tone: unrec.length ? 'warn' : 'ok', href: '#/bank/statements', tip: unrec.map(b => b.name).join(', ') }),
+    sb({ i: 'file', n: drafts.length, l: 'Entries to post', s: drafts.length ? 'drafts waiting' : 'All posted', tone: drafts.length ? 'warn' : 'ok', href: '#/acc/journals' }),
+    sb({ i: 'calendar', n: `${done}<small>/${tot}</small>`, l: `Close ${lastYm}`, s: issues ? `${issues} to fix` : done === tot ? 'Ready to lock' : 'in progress', tone: issues ? 'alert' : done === tot ? 'ok' : 'warn', href: '#/acc/close' }),
+    sb({ i: 'cars', n: toDeliver.length, l: 'Cars to deliver', s: 'sold, not handed over', tone: toDeliver.length ? 'warn' : '', href: '#/inv/deliveries' }),
+    sb({ i: 'cars', n: inStock, l: 'Cars in stock', s: k0 ? `${money(k0.inventory)} at cost` : 'at cost', href: '#/inv/stock' }),
+    sb({ i: 'wallet', n: money(held), l: 'Deposits held', s: 'EGP from customers, not invoiced', href: '#/ar/advances' })
+  ].join('');
   const recent = posted.slice().sort((x, y) => x.postedAt < y.postedAt ? 1 : -1).slice(0, 8);
   const hello = (n => n < 12 ? 'Good morning' : n < 17 ? 'Good afternoon' : 'Good evening')(+new Date().toLocaleString('en-GB', { hour: '2-digit', hour12: false, timeZone: 'Africa/Cairo' }));
   return `<div class="ad">
@@ -6594,12 +6632,7 @@ function pageAccDash(){
           <span class="ad-mini">${months.map(x => { const mx = months.reduce((m, y) => y.net.abs().gt(m) ? y.net.abs() : m, D0()); const h = mx.eq(0) ? 2 : Math.max(2, +x.net.abs().div(mx).mul(26).toFixed(1)); return `<i title="${x.m}: ${money(x.net)}" style="height:${h}px;${x.net.lt(0) ? 'background:#fca5a5' : ''}"></i>`; }).join('')}</span></a>
       </div>
     </div>
-    <div class="ad-qa">
-      ${can('ar', 'create') ? `<button class="ad-q" data-act="inv-new" data-side="ar">${ic('invoices', 16)}New customer invoice</button>` : ''}
-      ${can('ap', 'create') ? `<button class="ad-q" data-act="inv-new" data-side="ap">${ic('bill', 16)}New vendor bill</button>` : ''}
-      ${can('journals', 'create') ? `<button class="ad-q" data-act="je-new">${ic('accounting', 16)}New journal entry</button>` : ''}
-      <a class="ad-q" href="#/acc/partner-ledger">${ic('reports', 16)}Partner ledger</a><a class="ad-q" href="#/rep/statements?s=bs">${ic('file', 16)}Balance sheet</a>
-    </div>
+    <nav class="sbs" aria-label="What needs attention">${smart}</nav>
     <div class="ad-grid">
       ${card({ i: 'invoices', c: '#047857', cs: '#ecfdf5', t: 'Customer invoices', sub: 'Sales journal', num: `${money(ar.tot)} <small>EGP</small>`, numSub: `${ar.open.length} waiting for payment`,
         badge: ar.over.length ? `<span class="ad-badge bad">${ar.over.length} overdue</span>` : '', chart: bars(agAr, '#047857', BUCKETS),
