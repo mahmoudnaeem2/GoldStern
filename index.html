@@ -395,33 +395,235 @@ a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline}
 .modal-h h3{font-size:14px!important;font-weight:500!important;color:var(--g500);letter-spacing:0!important}
 .modal-h .back{min-height:32px;padding:5px 12px!important;font-size:13px!important;border-color:var(--g300)!important;box-shadow:0 1px 2px rgba(0,0,0,.05)}
 .modal-b{padding-top:20px}
-/* action bar + status */
-.o-bar{margin:0 0 16px;gap:12px}
-.o-bar .btns{gap:8px}
-.o-status{display:inline-flex;background:#fff;border:1px solid var(--g200);border-radius:8px;padding:3px;gap:2px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
-.o-status span,.o-status span:first-child{clip-path:none!important;border:0!important;border-radius:6px!important;margin:0!important;padding:5px 12px!important;font-size:12.5px;color:var(--g400);background:none;font-weight:500}
-.o-status span.on{background:var(--g900)!important;color:#fff!important;font-weight:600}
-/* the record: header block, then one white card per section */
-.o-sheet.rec{background:none;border:0;box-shadow:none;padding:0;max-width:1120px}
-.o-sheet.rec > .o-head{background:#fff;border:1px solid var(--g200);border-radius:12px;padding:20px 24px;margin:0 0 16px;box-shadow:0 1px 2px rgba(0,0,0,.04);align-items:center}
-.o-head h2{font-size:24px;font-weight:600;letter-spacing:-.02em;line-height:1.2}
-.o-head .muted{font-size:13px!important;color:var(--g500)}
-.o-sheet.rec > .o-sec{background:#fff;border:1px solid var(--g200)!important;border-radius:12px;padding:20px 24px!important;margin:0 0 16px!important;box-shadow:0 1px 2px rgba(0,0,0,.04)}
-.o-sec > h3,.o-sec > h3{border:0!important;padding:0!important;margin:0 0 14px;font-size:15px;font-weight:600;color:var(--g900)}
-.o-sec > h3 .cnt{background:var(--g100);border:0;color:var(--g600);font-weight:600;padding:1px 8px}
-.o-sheet.rec .o-sec .tbl-wrap{margin:0 -24px}
-.o-sheet.rec .o-sec table th:first-child,.o-sheet.rec .o-sec table td:first-child{padding-inline-start:24px}
-.o-sheet.rec .o-sec table th:last-child,.o-sheet.rec .o-sec table td:last-child{padding-inline-end:24px}
-/* stat chips */
-.o-stats{border:0;gap:8px;overflow:visible}
-.o-stat{border:1px solid var(--g200)!important;border-radius:8px;padding:8px 14px;background:#fff;min-width:0;box-shadow:0 1px 2px rgba(0,0,0,.04);transition:background-color .15s,border-color .15s}
-.o-stat:hover{background:var(--g50);border-color:var(--g300)!important}
-.o-stat b{font-size:13px;font-weight:600}.o-stat small{font-size:12px;color:var(--g500);margin-top:2px}
-/* field list */
-.o-grid{gap:0 40px}
-.o-f{grid-template-columns:150px 1fr}
-.o-sheet .o-f{border-bottom:1px solid var(--g100);padding:10px 0}
-.o-grid > div > .o-f:last-child{border-bottom:0}
+/* ---- Authentic Odoo Form View & Statusbar Stepper Pipeline ---- */
+.o-bar {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 8px !important;
+  padding: 8px 16px !important;
+  margin: 0 auto 16px !important;
+  max-width: 1200px !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03) !important;
+  gap: 16px !important;
+  flex-wrap: wrap !important;
+}
+.o-bar .btns {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  flex-wrap: wrap !important;
+}
+
+/* Odoo Chevron Arrow Pipeline (The Iconic Pointy Arrow Stepper) */
+.o-status {
+  display: inline-flex !important;
+  align-items: stretch !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 6px !important;
+  overflow: hidden !important;
+  background: #f1f5f9 !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04) !important;
+  padding: 0 !important;
+  height: 36px !important;
+}
+.o-status span {
+  display: inline-flex !important;
+  align-items: center !important;
+  position: relative !important;
+  padding: 0 18px 0 24px !important;
+  font-size: 13px !important;
+  font-weight: 550 !important;
+  color: #64748b !important;
+  background: #ffffff !important;
+  border: 0 !important;
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 0 100%, 10px 50%) !important;
+  margin-inline-start: -9px !important;
+  transition: all 0.15s ease !important;
+  user-select: none !important;
+}
+.o-status span:first-child {
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 0 100%) !important;
+  margin-inline-start: 0 !important;
+  padding-inline-start: 16px !important;
+}
+.o-status span:last-child {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 10px 50%) !important;
+  padding-inline-end: 18px !important;
+}
+.o-status span.on {
+  background: #0f172a !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  z-index: 2 !important;
+}
+
+/* Authentic Continuous Odoo Paper Document Sheet */
+.o-sheet, .o-sheet.rec {
+  background: #ffffff !important;
+  border: 1px solid #d8dadd !important;
+  border-radius: 6px !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.03) !important;
+  padding: 32px 42px !important;
+  max-width: 1200px !important;
+  margin: 0 auto 32px !important;
+  position: relative !important;
+}
+.o-sheet.rec > .o-head {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 0 20px 0 !important;
+  margin: 0 0 20px 0 !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: flex-start !important;
+}
+.o-head h2 {
+  font-size: 28px !important;
+  font-weight: 750 !important;
+  letter-spacing: -0.02em !important;
+  color: #0f172a !important;
+  margin: 2px 0 8px 0 !important;
+}
+.o-head .muted {
+  font-size: 12px !important;
+  text-transform: uppercase !important;
+  font-weight: 650 !important;
+  letter-spacing: 0.05em !important;
+  color: #64748b !important;
+}
+
+/* Odoo Smart Buttons Box (oe_button_box) */
+.o-stats {
+  display: inline-flex !important;
+  flex-wrap: wrap !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04) !important;
+  background: #ffffff !important;
+  gap: 0 !important;
+}
+.o-stat {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: center !important;
+  padding: 8px 16px !important;
+  min-width: 110px !important;
+  border: 0 !important;
+  border-inline-start: 1px solid #e2e8f0 !important;
+  background: #ffffff !important;
+  color: #0f172a !important;
+  font-family: inherit !important;
+  cursor: pointer !important;
+  text-decoration: none !important;
+  transition: all 0.15s ease !important;
+}
+.o-stat:first-child {
+  border-inline-start: 0 !important;
+}
+.o-stat:hover {
+  background: #f8fafc !important;
+}
+.o-stat b {
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  color: #0284c7 !important;
+}
+.o-stat small {
+  font-size: 11.5px !important;
+  color: #64748b !important;
+  margin-top: 2px !important;
+}
+
+/* Odoo 2-Column Info Grid */
+.o-grid {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 0 60px !important;
+}
+.o-f {
+  display: grid !important;
+  grid-template-columns: 130px 1fr !important;
+  gap: 12px !important;
+  align-items: baseline !important;
+  padding: 8px 0 !important;
+  border-bottom: 1px solid #f8fafc !important;
+}
+.o-f .l {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: #64748b !important;
+}
+.o-f .v {
+  font-size: 13.5px !important;
+  color: #0f172a !important;
+  font-weight: 500 !important;
+}
+.o-f .v a {
+  color: #0284c7 !important;
+  font-weight: 600 !important;
+  text-decoration: none !important;
+}
+.o-f .v a:hover {
+  text-decoration: underline !important;
+}
+
+/* Odoo Notebook Tab Sections */
+.o-sheet.rec > .o-sec {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 24px 0 0 0 !important;
+  margin: 28px 0 0 0 !important;
+  border-top: 1px solid #eef2f6 !important;
+}
+.o-sec > h3 {
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  color: #0f172a !important;
+  margin: 0 0 14px 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+.o-sec thead th {
+  background: #f8fafc !important;
+  border-bottom: 2px solid #e2e8f0 !important;
+  color: #475569 !important;
+  font-size: 12.5px !important;
+  font-weight: 650 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.03em !important;
+  padding: 10px 14px !important;
+}
+.o-sec tbody td {
+  padding: 12px 14px !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  color: #0f172a !important;
+}
+.o-sec .o-tot table {
+  margin-inline-start: auto !important;
+  width: auto !important;
+  min-width: 320px !important;
+  border-collapse: collapse !important;
+}
+.o-sec .o-tot td {
+  padding: 6px 12px !important;
+  font-size: 13.5px !important;
+}
+.o-sec .o-tot tr:last-child td {
+  font-size: 16px !important;
+  font-weight: 750 !important;
+  color: #0f172a !important;
+  border-top: 2px solid #0f172a !important;
+}
+
 .o-f .l{font-weight:500!important;color:var(--g500)!important;font-size:13px}
 .o-f .v{color:var(--g900);font-size:14px}
 .o-f .v .lnk{border-color:var(--g300);color:var(--g700)}
@@ -599,85 +801,31 @@ a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline}
   border-color: rgba(255, 255, 255, 0.22) !important;
 }
 
-/* Dedicated Glowing Colors for Each Application */
-.nav-item[data-app="dashboard"] .nav-ic {
-  color: #818cf8 !important;
-  background: rgba(99, 102, 241, 0.18) !important;
-}
-.nav-item[data-app="dashboard"].active .nav-ic,
-.nav-item[data-app="dashboard"]:hover .nav-ic {
-  background: rgba(99, 102, 241, 0.32) !important;
-  box-shadow: 0 0 14px rgba(99, 102, 241, 0.45) !important;
-}
-
-.nav-item[data-app="purchases"] .nav-ic {
-  color: #38bdf8 !important;
-  background: rgba(56, 189, 248, 0.18) !important;
-}
-.nav-item[data-app="purchases"].active .nav-ic,
-.nav-item[data-app="purchases"]:hover .nav-ic {
-  background: rgba(56, 189, 248, 0.32) !important;
-  box-shadow: 0 0 14px rgba(56, 189, 248, 0.45) !important;
-}
-
-.nav-item[data-app="sales"] .nav-ic {
-  color: #34d399 !important;
-  background: rgba(52, 211, 153, 0.18) !important;
-}
-.nav-item[data-app="sales"].active .nav-ic,
-.nav-item[data-app="sales"]:hover .nav-ic {
-  background: rgba(52, 211, 153, 0.32) !important;
-  box-shadow: 0 0 14px rgba(52, 211, 153, 0.45) !important;
-}
-
-.nav-item[data-app="cars"] .nav-ic {
-  color: #fbbf24 !important;
-  background: rgba(251, 191, 36, 0.18) !important;
-}
-.nav-item[data-app="cars"].active .nav-ic,
-.nav-item[data-app="cars"]:hover .nav-ic {
-  background: rgba(251, 191, 36, 0.32) !important;
-  box-shadow: 0 0 14px rgba(251, 191, 36, 0.5) !important;
-}
-
-.nav-item[data-app="banking"] .nav-ic {
-  color: #60a5fa !important;
-  background: rgba(96, 165, 250, 0.18) !important;
-}
-.nav-item[data-app="banking"].active .nav-ic,
-.nav-item[data-app="banking"]:hover .nav-ic {
-  background: rgba(96, 165, 250, 0.32) !important;
-  box-shadow: 0 0 14px rgba(96, 165, 250, 0.45) !important;
-}
-
-.nav-item[data-app="accounting"] .nav-ic {
-  color: #c084fc !important;
-  background: rgba(192, 132, 252, 0.18) !important;
-}
-.nav-item[data-app="accounting"].active .nav-ic,
-.nav-item[data-app="accounting"]:hover .nav-ic {
-  background: rgba(192, 132, 252, 0.32) !important;
-  box-shadow: 0 0 14px rgba(192, 132, 252, 0.45) !important;
-}
-
-.nav-item[data-app="reports"] .nav-ic {
-  color: #f472b6 !important;
-  background: rgba(244, 114, 182, 0.18) !important;
-}
-.nav-item[data-app="reports"].active .nav-ic,
-.nav-item[data-app="reports"]:hover .nav-ic {
-  background: rgba(244, 114, 182, 0.32) !important;
-  box-shadow: 0 0 14px rgba(244, 114, 182, 0.45) !important;
-}
-
-.nav-item[data-app="settings"] .nav-ic {
+/* ---- Calm, Eye-Friendly Odoo Style Navigation Icons ---- */
+.nav-item .nav-ic {
+  width: 28px !important;
+  height: 28px !important;
+  border-radius: 6px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: transparent !important;
   color: #94a3b8 !important;
-  background: rgba(148, 163, 184, 0.18) !important;
+  border: none !important;
+  box-shadow: none !important;
+  transition: all 0.15s ease !important;
+  flex-shrink: 0 !important;
 }
-.nav-item[data-app="settings"].active .nav-ic,
-.nav-item[data-app="settings"]:hover .nav-ic {
-  background: rgba(148, 163, 184, 0.32) !important;
-  box-shadow: 0 0 14px rgba(148, 163, 184, 0.45) !important;
+.nav-item:hover .nav-ic {
+  color: #ffffff !important;
+  transform: none !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+.nav-item.active .nav-ic {
+  color: #f1f5f9 !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+  box-shadow: none !important;
+  transform: none !important;
 }
 /* lists */
 th{color:var(--g500);font-weight:500;background:var(--g50)}
@@ -753,9 +901,7 @@ th{color:var(--g500);font-weight:500;background:var(--g50)}
 .o-f .l{font-weight:500}
 .o-sec .o-tot table{background:transparent!important;padding:0;min-width:340px}
 .o-sec .o-tot tr:last-child td{border-top:1px dashed var(--border)!important}
-.o-status{gap:0;align-items:center;background:#fff;border:1px solid var(--border);border-radius:999px;padding:4px}
-.o-status span{clip-path:none!important;border:0!important;margin:0!important;background:transparent;border-radius:999px!important;padding:5px 12px!important;font-size:12.5px;color:var(--muted)}
-.o-status span.on{background:#1c1d21;color:#fff;font-weight:600}
+/* o-status styled via Odoo pipeline */
 .o-ribbon{border-radius:999px!important;top:20px;inset-inline-end:20px;padding:3px 12px;font-size:11.5px;letter-spacing:.04em}
 .o-bar{gap:12px}
 .o-stats{border-radius:10px}
