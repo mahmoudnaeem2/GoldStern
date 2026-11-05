@@ -1466,6 +1466,36 @@ td.nw,th{white-space:nowrap}
 .je-bal.ok{background:var(--ok-soft);color:var(--ok)}.je-bal.bad{background:var(--bad-soft);color:var(--bad)}
 .je-hint{font-size:12.5px;color:var(--muted);margin:var(--sp-2) 0 0}
 @media (max-width:900px){.je-fields{grid-template-columns:1fr}.jf{grid-template-columns:1fr}}
+
+/* Partner ledger */
+.pl-tbl td{font-size:13px}
+.pl-tbl td.num{width:130px}
+.pl-tbl tr.pl-side td{background:var(--surface-2);font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700;padding-top:12px}
+.pl-tbl tr.pl-p{cursor:pointer}.pl-tbl tr.pl-p td{padding-top:11px;padding-bottom:11px;border-bottom:1px solid var(--border)}
+.pl-tbl tr.pl-p:hover td{background:var(--surface-2)}
+.pl-tbl tr.pl-p td.b{font-weight:700}
+.pl-n{display:inline-block;margin-inline-start:8px;font-size:11px;color:var(--muted);background:var(--surface-2);border:1px solid var(--border);border-radius:999px;padding:0 7px}
+.pl-tbl tr.pl-init td{color:var(--muted);font-style:italic;font-size:12.5px;padding-inline-start:36px}
+.pl-tbl tr.pl-init td.num{font-style:normal}
+.pl-tbl tr.pl-l{cursor:pointer}.pl-tbl tr.pl-l td:first-child{padding-inline-start:36px;white-space:nowrap}
+.pl-tbl tr.pl-l:hover td{background:var(--info-soft)}
+.pl-tbl .jnl{font-size:11.5px;font-weight:600;background:var(--surface-2);border-radius:4px;padding:1px 6px}
+.pl-tbl td.acc{color:var(--muted);font-variant-numeric:tabular-nums}
+.pl-tbl td.ref{max-width:360px;white-space:normal}
+.pl-tbl td.fc{color:var(--muted);font-size:12px}
+.pl-tbl tr.pl-more td{padding:4px 0 12px 36px;font-size:12.5px;border-bottom:1px solid var(--border)}
+.pl-tbl tfoot td{padding:12px var(--sp-4)}
+
+.pl-tbl td:first-child,.pl-tbl th:first-child{min-width:0}
+.pl-tbl th,.pl-tbl td{padding-inline:10px}
+.pl-tbl td.num{width:auto;min-width:104px;white-space:nowrap}
+.pl-tbl tr.pl-l td{white-space:nowrap}
+.pl-tbl tr.pl-l td.ref{white-space:normal;min-width:200px;max-width:none}
+.pl-tbl thead th{white-space:normal;line-height:1.25}
+.pl-tbl td.num{font-size:12.5px}
+.pl-tbl tr.pl-l td:first-child{padding-inline-start:28px}
+.pl-tbl tr.pl-p td:first-child{white-space:nowrap}
+.pl-tbl .zero{color:var(--faint)}
 </style>
 </head>
 <body>
@@ -6370,7 +6400,7 @@ function pageGL(){
       <select class="input" name="currency"><option value="">All currencies</option>${S.currencies.map(c => `<option ${G.currency === c.code ? 'selected' : ''}>${c.code}</option>`).join('')}</select>
       <select class="input" name="cc"><option value="">All cost centers</option>${S.costCenters.map(c => `<option value="${c.code}" ${G.cc === c.code ? 'selected' : ''}>${c.code}</option>`).join('')}</select>
       <input class="input" name="partner" placeholder="Partner / vehicle" value="${esc(G.partner || '')}">
-      <button class="btn">Apply</button>${can('ledger', 'export') ? '<button type="button" class="btn sm" data-act="gl-csv">Export CSV</button>' : ''}</div>
+      <button class="btn">Apply</button>${can('ledger', 'export') ? '<button type="button" class="btn sm" data-act="gl-csv">Export Excel</button>' : ''}</div>
       ${data.some(b => b.filtered) ? '<div class="card-b muted" style="font-size:12.5px">Journal / currency / cost center / partner filters hide lines, so running balances are not shown.</div>' : ''}</form>
     ${blocks || '<div class="card"><div class="empty">No posted activity for these filters.</div></div>'}`;
 }
@@ -6392,7 +6422,7 @@ function pageTB(){
       <label class="muted" style="align-self:center">From</label><input class="input" type="date" name="from" value="${T0.from}"><label class="muted" style="align-self:center">To</label><input class="input" type="date" name="to" value="${T0.to}">
       <select class="input" name="mode">${[['unadjusted','Unadjusted (excl. ADJ & closing)'], ['adjusted','Adjusted (excl. closing)'], ['postclosing','Post-closing (all)']].map(([v, l]) => `<option value="${v}" ${T0.mode === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
       <label class="muted" style="align-self:center">Compare</label><input class="input" type="date" name="cfrom" value="${T0.cfrom}" title="Comparative from"><input class="input" type="date" name="cto" value="${T0.cto}" title="Comparative to">
-      <button class="btn">Run</button>${can('ledger', 'export') ? '<button type="button" class="btn sm" data-act="tb-csv">Export CSV</button>' : ''}</div></form>
+      <button class="btn">Run</button>${can('ledger', 'export') ? '<button type="button" class="btn sm" data-act="tb-csv">Export Excel</button>' : ''}</div></form>
     <div class="note ${tb.balanced ? '' : 'bad'}">${tb.balanced ? '✓ Balanced: opening, period and closing debits equal credits.' : '✕ Out of balance — see Integrity Checks.'}</div>
     <div class="card"><div class="tbl-wrap"><table><thead><tr><th>Code</th><th>Account</th><th class="num">Opening Dr</th><th class="num">Opening Cr</th><th class="num">Period Dr</th><th class="num">Period Cr</th><th class="num">Closing Dr</th><th class="num">Closing Cr</th>${comp ? '<th class="num">Comparative</th>' : ''}</tr></thead><tbody>
       ${all.map(r => `<tr><td class="mono"><a href="#/acc/gl?account=${r.account.id}">${esc(r.account.code)}</a></td><td>${esc(accName(r.account))}</td><td class="num">${n(r.openD)}</td><td class="num">${n(r.openC)}</td><td class="num">${n(r.perD)}</td><td class="num">${n(r.perC)}</td><td class="num">${n(r.closeD)}</td><td class="num">${n(r.closeC)}</td>${comp ? `<td class="num">${drcr(compMap.get(r.account.id) || D0())}</td>` : ''}</tr>`).join('') || `<tr><td colspan="${comp ? 9 : 8}" class="empty">No posted balances.</td></tr>`}
@@ -7045,7 +7075,7 @@ function pageAging(side){
   const glv = gl ? (side === 'ar' ? gl.bal : gl.bal.negated()) : null;
   return H(t(side), `Aging by days past due at ${asOf}, from posted documents only, in EGP carrying value.`) + `
     <form class="card" data-form="aging" data-side="${side}"><div class="filters"><label class="muted" style="align-self:center">As at</label><input class="input" type="date" name="asOf" value="${asOf}"><button class="btn">Run</button>
-      ${can(SD.mod, 'export') ? `<button type="button" class="btn sm" data-act="aging-csv" data-side="${side}">Export CSV</button>` : ''}</div></form>
+      ${can(SD.mod, 'export') ? `<button type="button" class="btn sm" data-act="aging-csv" data-side="${side}">Export Excel</button>` : ''}</div></form>
     ${gl ? `<div class="note ${glv.eq(ag.total) ? '' : 'bad'}">${glv.eq(ag.total) ? '✓' : '✕'} Aging total ${money(ag.total)} EGP vs GL ${esc(gl.account.code)} ${money(glv)} EGP (excluding open revaluation adjustments).</div>` : ''}
     <div class="card"><div class="tbl-wrap"><table><thead><tr><th>${SD.partner}</th>${BUCKETS.map(b => `<th class="num">${b}</th>`).join('')}<th class="num">Total</th></tr></thead><tbody>
       ${ag.list.map(r => `<tr><td><a href="#/partners/statement?side=${side}&id=${r.partner.id}">${esc(partnerLabel(r.partner))}</a><details><summary>${r.docs.length} document(s)</summary>${r.docs.map(d => `<div style="font-size:12px">${esc(d.inv.number)} · due ${d.inv.dueDate} (${d.days > 0 ? d.days + 'd overdue' : 'not due'}) · ${money(d.open)} ${d.inv.currency}</div>`).join('')}</details></td>
@@ -7055,218 +7085,6 @@ function pageAging(side){
 }
 
 /* ---------- Partner Ledger (Odoo-style Payables & Receivables) ---------- */
-function pagePartnerLedger(){
-  const F = UI.filters;
-  UI.plFold = UI.plFold || {};
-  const today = todayCairo();
-  const startOfYear = today.slice(0, 4) + '-01-01';
-  const fromDate = F.pl_from || startOfYear;
-  const toDate = F.pl_to || today;
-  const filterType = F.pl_type || 'all';
-  const filterStatus = F.pl_status || 'open';
-  const searchQ = (F.pl_q || '').trim().toLowerCase();
-
-  const sides = filterType === 'ar' ? ['ar'] : filterType === 'ap' ? ['ap'] : ['ar', 'ap'];
-  const partners = [];
-
-  for (const s of sides){
-    for (const p of partnersOf(s)){
-      if (searchQ && !(p.legalName + ' ' + p.code + ' ' + (p.commercialName || '')).toLowerCase().includes(searchQ)) continue;
-      
-      const ev = [];
-      for (const i of S.invoices.filter(x => x.side === s && x.partnerId === p.id && entryStatus(x) === 'posted')){
-        const isC = i.type === 'credit';
-        const debit = (s === 'ar' && !isC) || (s === 'ap' && isC) ? D(i.total) : D0();
-        const credit = (s === 'ar' && isC) || (s === 'ap' && !isC) ? D(i.total) : D0();
-        const netEgp = r2(D(i.total).mul(i.rate || '1'));
-        ev.push({
-          date: i.date,
-          ref: i.number,
-          invId: i.id,
-          type: isC ? 'Credit Note' : (s === 'ar' ? 'Customer Invoice' : 'Supplier Bill'),
-          desc: i.partnerRef ? `${i.partnerRef} ` : (i.reason || ''),
-          currency: i.currency,
-          rate: i.rate || '1',
-          debit: debit,
-          credit: credit,
-          debitEgp: (s === 'ar' && !isC) || (s === 'ap' && isC) ? netEgp : D0(),
-          creditEgp: (s === 'ar' && isC) || (s === 'ap' && !isC) ? netEgp : D0(),
-          status: invState(i).open.eq(0) ? 'paid' : 'open',
-          open: invState(i).open
-        });
-      }
-
-      for (const st of S.settlements.filter(x => x.side === s && x.partnerId === p.id && entryStatus(x) === 'posted')){
-        const isAdv = st.type === 'cash';
-        const netEgp = r2(D(st.amount).mul(st.rate || '1'));
-        const debit = s === 'ap' ? D(st.amount) : D0();
-        const credit = s === 'ar' ? D(st.amount) : D0();
-        ev.push({
-          date: st.date,
-          ref: st.number,
-          settlementId: st.id,
-          entryId: st.entryId,
-          type: isAdv ? (s === 'ar' ? 'Customer Deposit' : 'Supplier Advance') : (s === 'ar' ? 'Customer Receipt' : 'Supplier Payment'),
-          desc: st.reference || '',
-          currency: st.currency,
-          rate: st.rate || '1',
-          debit: debit,
-          credit: credit,
-          debitEgp: s === 'ap' ? netEgp : D0(),
-          creditEgp: s === 'ar' ? netEgp : D0(),
-          status: isAdv && advState(st).availPosted.gt(0) ? 'open' : 'applied',
-          open: isAdv ? advState(st).availPosted : D0()
-        });
-      }
-
-      let initDebEgp = D0(), initCredEgp = D0();
-      for (const item of ev.filter(x => x.date < fromDate)){
-        initDebEgp = initDebEgp.plus(item.debitEgp);
-        initCredEgp = initCredEgp.plus(item.creditEgp);
-      }
-      const initBalEgp = s === 'ar' ? initDebEgp.minus(initCredEgp) : initCredEgp.minus(initDebEgp);
-
-      const periodEv = ev.filter(x => x.date >= fromDate && x.date <= toDate).sort((a, b) => a.date < b.date ? -1 : 1);
-      let periodDebEgp = D0(), periodCredEgp = D0();
-      for (const item of periodEv){
-        periodDebEgp = periodDebEgp.plus(item.debitEgp);
-        periodCredEgp = periodCredEgp.plus(item.creditEgp);
-      }
-      const endBalEgp = s === 'ar' 
-        ? initBalEgp.plus(periodDebEgp).minus(periodCredEgp) 
-        : initBalEgp.plus(periodCredEgp).minus(periodDebEgp);
-
-      if (filterStatus === 'open' && endBalEgp.eq(0) && periodEv.length === 0) continue;
-
-      partners.push({
-        partner: p,
-        side: s,
-        sideLabel: s === 'ar' ? 'Customer' : 'Vendor',
-        initBalEgp,
-        periodDebEgp,
-        periodCredEgp,
-        endBalEgp,
-        events: periodEv
-      });
-    }
-  }
-
-  let totArEgp = D0(), totApEgp = D0();
-  for (const item of partners){
-    if (item.side === 'ar') totArEgp = totArEgp.plus(item.endBalEgp);
-    else totApEgp = totApEgp.plus(item.endBalEgp);
-  }
-  const netPositionEgp = totArEgp.minus(totApEgp);
-
-  const rowsHtml = partners.map(item => {
-    const p = item.partner;
-    const s = item.side;
-    const isFolded = UI.plFold[p.id] === undefined ? false : !!UI.plFold[p.id];
-    let running = item.initBalEgp;
-
-    const eventRows = item.events.map(ev => {
-      const net = s === 'ar' ? ev.debitEgp.minus(ev.creditEgp) : ev.creditEgp.minus(ev.debitEgp);
-      running = running.plus(net);
-      const linkHtml = ev.invId ? `<button type="button" class="lnk0 mono" data-act="inv-view" data-id="${ev.invId}">${esc(ev.ref)}</button>`
-        : ev.entryId ? `<button type="button" class="lnk0 mono" data-act="je-view" data-id="${ev.entryId}">${esc(ev.ref)}</button>`
-        : `<span class="mono">${esc(ev.ref)}</span>`;
-
-      return `<tr style="background:#fff;font-size:12.5px">
-        <td style="padding-inline-start:34px">${ev.date}</td>
-        <td>${linkHtml} <span class="pill ${s === 'ar' ? 'ok' : 'info'}" style="font-size:10.5px">${ev.type}</span></td>
-        <td class="wrap">${esc(ev.desc || '—')}</td>
-        <td class="num">${ev.debitEgp.gt(0) ? money(ev.debitEgp) : ''} ${ev.currency !== 'EGP' ? `<div class="muted" style="font-size:11px">${money(ev.debit)} ${ev.currency}</div>` : ''}</td>
-        <td class="num">${ev.creditEgp.gt(0) ? money(ev.creditEgp) : ''} ${ev.currency !== 'EGP' ? `<div class="muted" style="font-size:11px">${money(ev.credit)} ${ev.currency}</div>` : ''}</td>
-        <td class="num" style="font-weight:600">${money(running)}</td>
-        <td>${ev.status === 'open' ? `<span class="pill gold">${money(ev.open)} due</span>` : '<span class="pill mute">Settled</span>'}</td>
-      </tr>`;
-    }).join('');
-
-    return `
-      <tr class="grp" data-act="pl-fold" data-id="${p.id}" style="cursor:pointer;background:#f8fafc">
-        <td colspan="3">
-          <span class="fold">${isFolded ? '▸' : '▾'}</span>
-          <b style="font-size:14px">${esc(p.legalName)}</b>
-          <span class="muted" style="margin-inline-start:6px">(${esc(p.code)})</span>
-          <span class="pill ${s === 'ar' ? 'ok' : 'info'}" style="margin-inline-start:8px">${item.sideLabel}</span>
-          <span class="muted" style="font-size:12px;margin-inline-start:6px">${item.events.length} movement(s)</span>
-        </td>
-        <td class="num"><b style="color:var(--text)">${money(item.periodDebEgp)}</b></td>
-        <td class="num"><b style="color:var(--text)">${money(item.periodCredEgp)}</b></td>
-        <td class="num"><b style="color:${item.endBalEgp.gt(0) ? (s === 'ar' ? 'var(--ok)' : 'var(--warn)') : 'var(--muted)'};font-size:14px">${money(item.endBalEgp)}</b></td>
-        <td style="white-space:nowrap;text-align:end">
-          <a class="btn sm" href="#/partners/statement?side=${s}&id=${p.id}" onclick="event.stopPropagation()">Statement</a>
-        </td>
-      </tr>
-      ${isFolded ? '' : (eventRows || `<tr><td colspan="7" class="muted" style="padding-inline-start:34px;font-size:12.5px">No movements in this date range. Initial balance: ${money(item.initBalEgp)} EGP</td></tr>`)}
-    `;
-  }).join('');
-
-  return H('Partner Ledger', 'Consolidated ledger of receivables and payables by customer and vendor (Odoo-style).', `
-    <button type="button" class="btn" data-act="pl-unfold-all">Expand all</button>
-    <button type="button" class="btn" data-act="pl-fold-all">Collapse all</button>
-    <button type="button" class="btn" data-act="pl-csv">Export CSV</button>
-    <button type="button" class="btn" onclick="window.print()">Print</button>
-  `) + `
-    <div class="grid g4" style="margin-bottom:16px">
-      <div class="card stat" style="border-top:3px solid #16a34a">
-        <div class="k">Total Customer Receivables (AR)</div>
-        <div class="v" style="color:#16a34a">${money(totArEgp)} <small style="font-size:12px;font-weight:400;color:#64748b">EGP</small></div>
-      </div>
-      <div class="card stat" style="border-top:3px solid #f59e0b">
-        <div class="k">Total Vendor Payables (AP)</div>
-        <div class="v" style="color:#f59e0b">${money(totApEgp)} <small style="font-size:12px;font-weight:400;color:#64748b">EGP</small></div>
-      </div>
-      <div class="card stat" style="border-top:3px solid #3b82f6">
-        <div class="k">Net Balance (AR − AP)</div>
-        <div class="v" style="color:${netPositionEgp.lt(0) ? 'var(--bad)' : 'var(--ok)'}">${money(netPositionEgp)} <small style="font-size:12px;font-weight:400;color:#64748b">EGP</small></div>
-      </div>
-      <div class="card stat" style="border-top:3px solid #6366f1">
-        <div class="k">Active Partners</div>
-        <div class="v">${partners.length} <small style="font-size:12px;font-weight:400;color:#64748b">listed</small></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="filters">
-        <input class="input" data-filter="pl_q" placeholder="Search partner name or code…" value="${esc(F.pl_q || '')}" style="min-width:240px">
-        <select class="input" data-filter="pl_type">
-          <option value="all" ${filterType === 'all' ? 'selected' : ''}>All Partners (Receivables &amp; Payables)</option>
-          <option value="ar" ${filterType === 'ar' ? 'selected' : ''}>Customers Only (Receivables)</option>
-          <option value="ap" ${filterType === 'ap' ? 'selected' : ''}>Vendors Only (Payables)</option>
-        </select>
-        <select class="input" data-filter="pl_status">
-          <option value="open" ${filterStatus === 'open' ? 'selected' : ''}>With Balance / Activity Only</option>
-          <option value="all" ${filterStatus === 'all' ? 'selected' : ''}>All Partners</option>
-        </select>
-        <label class="muted" style="align-self:center;font-size:12.5px">From</label>
-        <input class="input" type="date" data-filter="pl_from" value="${fromDate}">
-        <label class="muted" style="align-self:center;font-size:12.5px">To</label>
-        <input class="input" type="date" data-filter="pl_to" value="${toDate}">
-      </div>
-
-      <div class="tbl-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th style="min-width:110px">Date</th>
-              <th style="min-width:220px">JRNL / Reference</th>
-              <th>Description</th>
-              <th class="num" style="min-width:120px">Debit (EGP)</th>
-              <th class="num" style="min-width:120px">Credit (EGP)</th>
-              <th class="num" style="min-width:120px">Balance (EGP)</th>
-              <th style="min-width:100px">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${rowsHtml || '<tr><td colspan="7" class="empty" style="padding:28px">No partner ledger records found for the selected criteria.</td></tr>'}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  `;
-}
-
 function pagePartnerStatement(){
   const side = routeParam('side') === 'ap' ? 'ap' : 'ar', SD = SIDES[side], p = partnerById(side, routeParam('id'));
   if (!p) return H('Statement', '') + '<div class="card"><div class="empty">Not found.</div></div>';
@@ -8011,7 +7829,7 @@ function pageProfit(){
   return H(t('profitability'), 'Gross profit = net sales revenue − cost of goods sold. Net vehicle contribution = gross profit − direct selling expenses. Sales tax is shown separately and never counted as revenue or profit.') + `
     <form class="card" data-form="profit"><div class="filters"><label class="muted" style="align-self:center">From</label><input class="input" type="date" name="from" value="${P0.from === '0001-01-01' ? '' : P0.from}"><label class="muted" style="align-self:center">To</label><input class="input" type="date" name="to" value="${P0.to}">
       <select class="input" name="by">${[['vehicle','By vehicle'],['make','By make'],['model','By model'],['supplier','By supplier'],['shipment','By shipment'],['salesperson','By salesperson'],['month','By month'],['quarter','By quarter'],['year','By year']].map(([k, l]) => `<option value="${k}" ${P0.by === k ? 'selected' : ''}>${l}</option>`).join('')}</select>
-      <button class="btn">Run</button>${can('analytics', 'export') ? '<button type="button" class="btn sm" data-act="profit-csv">Export CSV</button>' : ''}</div></form>
+      <button class="btn">Run</button>${can('analytics', 'export') ? '<button type="button" class="btn sm" data-act="profit-csv">Export Excel</button>' : ''}</div></form>
     <div class="grid g4"><div class="card stat"><div class="k">Net sales revenue</div><div class="v">${money(tot.net)}</div><div class="s">gross ${money(tot.gross)} − discounts ${money(tot.disc)} − returns ${money(tot.ret)}</div></div>
       <div class="card stat"><div class="k">Gross profit</div><div class="v">${money(tot.gp)}</div><div class="s">margin ${tot.net.gt(0) ? tot.gp.div(tot.net).mul(100).toFixed(1) + '%' : '—'}</div></div>
       <div class="card stat"><div class="k">Net vehicle contribution</div><div class="v">${money(tot.contribution)}</div><div class="s">after ${money(tot.direct)} direct selling expenses</div></div>
@@ -8032,10 +7850,7 @@ function pageAnalyticAccounts(){
     </tbody></table></div></div>`;
 }
 const P8_FORMS = { profit(f){ UI.profit = { from: isISODate(f.from) ? f.from : '0001-01-01', to: isISODate(f.to) ? f.to : todayCairo(), by: f.by }; render(); } };
-const P8_CLICKS = { 'profit-csv'(){ run(() => { requirePerm('analytics', 'export'); const P0 = UI.profit || { from: '0001-01-01', to: todayCairo(), by: 'vehicle' }; const rows = profitability(P0.from, P0.to, P0.by);
-  downloadCSV(`profitability-${P0.by}.csv`, ['group','vehicles','selling_price','discounts','returns','net_revenue','sales_tax','cogs','gross_profit','margin_pct','direct_selling','net_contribution','realized_fx','other_vehicle_costs','landed_cost'],
-    rows.map(r => [r.label, r.count, ...['gross','disc','ret','net','tax','cogs','gp'].map(k => r[k].toFixed(2)), r.margin == null ? '' : r.margin.toFixed(2), r.direct.toFixed(2), r.contribution.toFixed(2), r.fx.toFixed(2), r.losses.plus(r.importExp).toFixed(2), r.landed.toFixed(2)]));
-  log('export', 'analytics', null, null, { by: P0.by, rows: rows.length }, 'Profitability CSV'); saveState(); }); } };
+const P8_CLICKS = { 'profit-csv'(){ finExport(['profit']); } };
 
 /* =========================================================================
    PHASE 9 PAGES
@@ -8181,12 +7996,12 @@ function pageReportCenter(){
   const L = (r, l, m) => !m || can(m, 'read') ? `<li><a href="#/${r}">${esc(l)}</a></li>` : '';
   const groups = [['Accounting', [['rep/statements?s=bs','Balance sheet','ledger'], ['rep/statements?s=is','Income statement','ledger'], ['rep/statements?s=cf','Cash flow statement','ledger'], ['rep/statements?s=eq','Statement of changes in equity','ledger'], ['acc/tb','Trial balance','ledger'], ['acc/gl','General ledger','ledger'], ['acc/journals','Journal report','journals'], ['acc/coa','Chart of accounts','coa'], ['acc/opening','Opening balances','journals'], ['rep/budgets','Budget vs actual','ledger'], ['acc/integrity','Financial integrity','integrity'], ['settings/fiscal','Period closing','fiscal']]],
     ['Banking & FX', [['bank/accounts','Bank balances / bank book','banking'], ['bank/statements','Bank reconciliation','banking'], ['bank/fx','Realized & unrealized FX, exposure','banking'], ['bank/reval','FX revaluation','fx_reval']]],
-    ['Receivables', [['ar/aging','AR aging & overdue','ar'], ['ar/invoices','Customer invoices','ar'], ['ar/receipts','Collections','ar'], ['ar/advances','Customer advances','ar'], ['partners/customers','Customer statements','customers']]],
+    ['Receivables', [['ar/aging','AR aging & overdue','ar'], ['ar/invoices','Customer invoices','ar'], ['ar/receipts','Collections','ar'], ['ar/advances','Customer advances','ar'], ['acc/partner-ledger','Partner ledger','ledger'], ['partners/customers','Customer statements','customers']]],
     ['Payables', [['ap/aging','AP aging & overdue','ap'], ['ap/invoices','Supplier bills','ap'], ['ap/receipts','Payments','ap'], ['ap/advances','Supplier advances','ap'], ['partners/suppliers','Supplier statements','suppliers']]],
     ['Inventory & imports', [['inv/valuation','Inventory valuation / goods in transit','inventory'], ['veh/list','Vehicles by status','vehicles'], ['inv/moves','Vehicle movements','inventory'], ['imp/landed','Landed cost & cost reconciliation','imports'], ['imp/costs','Import cost analysis','imports'], ['imp/shipments','Shipment register','imports']]],
     ['Sales & profitability', [['sal/orders','Sales register','sales'], ['ana/profit','Vehicle profitability / gross margin','analytics'], ['sal/deliveries','Deliveries & sales returns','sales']]],
     ['Tax', [['tax/report','Tax report','tax'], ['tax/einvoice','E-invoice readiness','tax']]], ['Assets & expenses', [['fa/register','Fixed asset register','assets'], ['exp/list','Expenses','expenses'], ['exp/schedules','Accruals & prepayments','expenses']]]];
-  return H(t('rep_center'), 'Every report is computed from posted data. Statements export to Excel; any page prints to PDF from the browser (Print → Save as PDF), including Arabic layouts.') +
+  return H(t('rep_center'), 'Every report is computed from posted data. Statements export to Excel; any page prints to PDF from the browser (Print → Save as PDF), including Arabic layouts.', `<button class="btn primary" data-act="fin-xlsx" data-k="is,bs,cf,tb,pl,ar,ap,profit" data-name="goldstern-financial-pack">Financial pack (Excel)</button>`) +
     `<div class="grid g3">${groups.map(([g, items]) => { const li = items.map(([r, l, m]) => L(r, l, m)).join(''); return li ? `<div class="card"><div class="card-h"><h2>${esc(g)}</h2></div><div class="card-b"><ul class="scope" style="margin:0;padding-inline-start:18px">${li}</ul></div></div>` : ''; }).join('')}</div>`;
 }
 function pageStatements(){
@@ -8325,6 +8140,303 @@ const IS_CLICKS = {
   'is-gl'(el){ UI.gl = { ...(UI.gl || {}), from: el.dataset.from, to: el.dataset.to, accountId: el.dataset.id, _pre: el.dataset.id }; location.hash = '#/acc/gl?account=' + el.dataset.id; }
 };
 document.addEventListener('change', e => { if (e.target && e.target.id === 'is-cmp'){ UI.is.cmp = e.target.value; render(); } });
+/* =========================================================================
+   Excel writer — real .xlsx (Office Open XML) built in the browser, no library.
+   Styled: company/title/period header, dark column header, sections, totals,
+   number formats, column widths, frozen header, A4 landscape fit-to-width.
+   ========================================================================= */
+const XW = (() => {
+  const CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++){ let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+  const crc32 = b => { let c = 0xFFFFFFFF; for (let i = 0; i < b.length; i++) c = CRC[(c ^ b[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; };
+  const enc = s => new TextEncoder().encode(s);
+  function zip(files){ /* store-only zip */
+    const parts = [], cen = []; let off = 0;
+    const u16 = n => [n & 255, (n >>> 8) & 255], u32 = n => [n & 255, (n >>> 8) & 255, (n >>> 16) & 255, (n >>> 24) & 255];
+    for (const f of files){ const name = enc(f.name), data = enc(f.data), c = crc32(data);
+      const hdr = [0x50,0x4b,0x03,0x04, ...u16(20), ...u16(0x0800), ...u16(0), ...u16(0), ...u16(0x21), ...u32(c), ...u32(data.length), ...u32(data.length), ...u16(name.length), ...u16(0)];
+      parts.push(new Uint8Array(hdr), name, data);
+      cen.push(new Uint8Array([0x50,0x4b,0x01,0x02, ...u16(20), ...u16(20), ...u16(0x0800), ...u16(0), ...u16(0), ...u16(0x21), ...u32(c), ...u32(data.length), ...u32(data.length), ...u16(name.length), ...u16(0), ...u16(0), ...u16(0), ...u16(0), ...u32(0), ...u32(off)]), name);
+      off += hdr.length + name.length + data.length; }
+    const cenLen = cen.reduce((t, x) => t + x.length, 0);
+    const end = new Uint8Array([0x50,0x4b,0x05,0x06, ...u16(0), ...u16(0), ...u16(files.length), ...u16(files.length), ...u32(cenLen), ...u32(off), ...u16(0)]);
+    return new Blob([...parts, ...cen, end], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  }
+  const x = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '');
+  const col = n => { let s = ''; n++; while (n > 0){ const m = (n - 1) % 26; s = String.fromCharCode(65 + m) + s; n = Math.floor((n - 1) / 26); } return s; };
+  /* style ids — keep in sync with STYLES below */
+  const ST = { def: 0, company: 1, title: 2, sub: 3, head: 4, headN: 5, text: 6, num: 7, secT: 8, secN: 9, grpT: 10, grpN: 11, totT: 12, totN: 13, grandT: 14, grandN: 15, ind1: 16, ind2: 17, pct: 18, center: 19, muted: 20, hiT: 21, hiN: 22, rate: 23, totP: 24, grandP: 25, hiP: 26, secP: 27, int: 28, mutedN: 29 };
+  const STYLES = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+<numFmts count="5"><numFmt numFmtId="168" formatCode="#,##0.00;(#,##0.00);\\-"/><numFmt numFmtId="164" formatCode="#,##0.00;[Red]\\-#,##0.00;\\-"/><numFmt numFmtId="165" formatCode="0.0%;[Red]\\-0.0%;\\-"/><numFmt numFmtId="166" formatCode="0.0000"/><numFmt numFmtId="167" formatCode="#,##0"/></numFmts>
+<fonts count="8"><font><sz val="10"/><name val="Calibri"/><family val="2"/></font>
+<font><b/><sz val="11"/><color rgb="FFB8860B"/><name val="Calibri"/><family val="2"/></font>
+<font><b/><sz val="16"/><color rgb="FF0F172A"/><name val="Calibri"/><family val="2"/></font>
+<font><sz val="10"/><color rgb="FF64748B"/><name val="Calibri"/><family val="2"/></font>
+<font><b/><sz val="10"/><color rgb="FFFFFFFF"/><name val="Calibri"/><family val="2"/></font>
+<font><b/><sz val="10"/><color rgb="FF0F172A"/><name val="Calibri"/><family val="2"/></font>
+<font><i/><sz val="9"/><color rgb="FF94A3B8"/><name val="Calibri"/><family val="2"/></font>
+<font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/><family val="2"/></font></fonts>
+<fills count="6"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill>
+<fill><patternFill patternType="solid"><fgColor rgb="FF0F172A"/><bgColor indexed="64"/></patternFill></fill>
+<fill><patternFill patternType="solid"><fgColor rgb="FFF1F5F9"/><bgColor indexed="64"/></patternFill></fill>
+<fill><patternFill patternType="solid"><fgColor rgb="FFF8FAFC"/><bgColor indexed="64"/></patternFill></fill>
+<fill><patternFill patternType="solid"><fgColor rgb="FFFEF6E0"/><bgColor indexed="64"/></patternFill></fill></fills>
+<borders count="4"><border><left/><right/><top/><bottom/><diagonal/></border>
+<border><left/><right/><top/><bottom style="hair"><color rgb="FFE2E8F0"/></bottom><diagonal/></border>
+<border><left/><right/><top style="thin"><color rgb="FF94A3B8"/></top><bottom style="thin"><color rgb="FF94A3B8"/></bottom><diagonal/></border>
+<border><left/><right/><top style="medium"><color rgb="FF0F172A"/></top><bottom style="medium"><color rgb="FF0F172A"/></bottom><diagonal/></border></borders>
+<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
+<cellXfs count="30">
+<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>
+<xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/>
+<xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1"/>
+<xf numFmtId="0" fontId="3" fillId="0" borderId="0" xfId="0" applyFont="1"/>
+<xf numFmtId="0" fontId="4" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf>
+<xf numFmtId="0" fontId="4" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment horizontal="right" vertical="center" wrapText="1"/></xf>
+<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf>
+<xf numFmtId="164" fontId="0" fillId="0" borderId="1" xfId="0" applyNumberFormat="1" applyBorder="1" applyAlignment="1"><alignment vertical="top"/></xf>
+<xf numFmtId="0" fontId="5" fillId="3" borderId="0" xfId="0" applyFont="1" applyFill="1"/>
+<xf numFmtId="164" fontId="5" fillId="3" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1"/>
+<xf numFmtId="0" fontId="5" fillId="0" borderId="1" xfId="0" applyFont="1" applyBorder="1" applyAlignment="1"><alignment indent="1"/></xf>
+<xf numFmtId="164" fontId="5" fillId="0" borderId="1" xfId="0" applyNumberFormat="1" applyFont="1" applyBorder="1"/>
+<xf numFmtId="0" fontId="5" fillId="4" borderId="2" xfId="0" applyFont="1" applyFill="1" applyBorder="1"/>
+<xf numFmtId="164" fontId="5" fillId="4" borderId="2" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1" applyBorder="1"/>
+<xf numFmtId="0" fontId="7" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/>
+<xf numFmtId="168" fontId="7" fillId="2" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1"/>
+<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment indent="2" vertical="top" wrapText="1"/></xf>
+<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment indent="4" vertical="top" wrapText="1"/></xf>
+<xf numFmtId="165" fontId="3" fillId="0" borderId="1" xfId="0" applyNumberFormat="1" applyFont="1" applyBorder="1"/>
+<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="top"/></xf>
+<xf numFmtId="0" fontId="6" fillId="0" borderId="0" xfId="0" applyFont="1" applyAlignment="1"><alignment wrapText="1" vertical="top"/></xf>
+<xf numFmtId="0" fontId="5" fillId="5" borderId="2" xfId="0" applyFont="1" applyFill="1" applyBorder="1"/>
+<xf numFmtId="164" fontId="5" fillId="5" borderId="2" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1" applyBorder="1"/>
+<xf numFmtId="166" fontId="3" fillId="0" borderId="1" xfId="0" applyNumberFormat="1" applyFont="1" applyBorder="1" applyAlignment="1"><alignment vertical="top"/></xf>
+<xf numFmtId="165" fontId="5" fillId="4" borderId="2" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1" applyBorder="1"/>
+<xf numFmtId="165" fontId="7" fillId="2" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1"/>
+<xf numFmtId="165" fontId="5" fillId="5" borderId="2" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1" applyBorder="1"/>
+<xf numFmtId="165" fontId="5" fillId="3" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1"/>
+<xf numFmtId="167" fontId="0" fillId="0" borderId="1" xfId="0" applyNumberFormat="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="top"/></xf>
+<xf numFmtId="164" fontId="3" fillId="0" borderId="1" xfId="0" applyNumberFormat="1" applyFont="1" applyBorder="1" applyAlignment="1"><alignment vertical="top"/></xf>
+</cellXfs>
+<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>
+</styleSheet>`;
+  /* row kinds → [text style, number style, pct style] */
+  const KIND = { line: [ST.text, ST.num, ST.pct], ind1: [ST.ind1, ST.num, ST.pct], ind2: [ST.ind2, ST.num, ST.pct], section: [ST.secT, ST.secN, ST.secP], group: [ST.grpT, ST.grpN, ST.pct],
+    total: [ST.totT, ST.totN, ST.totP], grand: [ST.grandT, ST.grandN, ST.grandP], hi: [ST.hiT, ST.hiN, ST.hiP], muted: [ST.muted, ST.mutedN, ST.pct] };
+  function sheetXml(sh){
+    const cols = sh.columns, n = cols.length, rows = [], merges = [];
+    let r = 0;
+    const put = (cells) => { r++; rows.push(`<row r="${r}"${cells.ht ? ` ht="${cells.ht}" customHeight="1"` : ''}>${cells.join('')}</row>`); };
+    const str = (ci, v, s) => `<c r="${col(ci)}${r + 1}" s="${s}" t="inlineStr"><is><t xml:space="preserve">${x(v)}</t></is></c>`;
+    const numc = (ci, v, s) => `<c r="${col(ci)}${r + 1}" s="${s}"><v>${v}</v></c>`;
+    const blank = (ci, s) => `<c r="${col(ci)}${r + 1}" s="${s}"/>`;
+    const co = S.company || {};
+    put([str(0, co.legalName || 'Goldstern', ST.company)]);
+    put([str(0, sh.title, ST.title)]); merges.push(`A${r}:${col(Math.max(n - 1, 0))}${r}`);
+    put([str(0, sh.subtitle || '', ST.sub)]); merges.push(`A${r}:${col(Math.max(n - 1, 0))}${r}`);
+    put([]);
+    const headRow = r + 1;
+    const hc = cols.map((c0, i) => str(i, c0.h, c0.t && c0.t !== 'text' && c0.t !== 'date' ? ST.headN : ST.head)); hc.ht = 20; put(hc);
+    for (const row of sh.rows){
+      if (row.k === 'blank'){ put([]); continue; }
+      const [ts, ns, ps] = KIND[row.k] || KIND.line;
+      const cells = cols.map((c0, i) => {
+        const v = row.c[i];
+        const filled = ['section','total','grand','hi'].includes(row.k);
+        if (v === null || v === undefined || v === ''){ return filled ? blank(i, c0.t === 'money' || c0.t === 'pct' ? ns : ts) : ''; }
+        if (c0.t === 'money' && typeof v !== 'string') return numc(i, Number(v), ns);
+        if (c0.t === 'pct' && typeof v !== 'string') return numc(i, Number(v), ps);
+        if (c0.t === 'rate' && typeof v !== 'string') return numc(i, Number(v), ST.rate);
+        if (c0.t === 'int' && typeof v !== 'string') return numc(i, Number(v), ST.int);
+        if (c0.t === 'date') return str(i, v, filled ? ts : ST.center);
+        return str(i, v, i === 0 || c0.t === 'text' ? ts : (filled ? ts : ST.text));
+      }).filter(Boolean);
+      put(cells);
+    }
+    if (sh.note){ put([]); put([str(0, sh.note, ST.muted)]); merges.push(`A${r}:${col(Math.max(n - 1, 0))}${r}`); }
+    put([]); merges.push(`A${r + 1}:${col(Math.max(n - 1, 0))}${r + 1}`); put([str(0, `Generated ${new Date().toLocaleString('en-GB', { timeZone: 'Africa/Cairo' })} · ${co.legalName || 'Goldstern'} ERP · amounts in EGP unless stated`, ST.muted)]);
+    const colsXml = `<cols>${cols.map((c0, i) => `<col min="${i + 1}" max="${i + 1}" width="${c0.w || (c0.t === 'money' ? 16 : c0.t === 'date' ? 12 : 22)}" customWidth="1"/>`).join('')}</cols>`;
+    return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+<sheetPr><pageSetUpPr fitToPage="1"/></sheetPr>
+<sheetViews><sheetView workbookViewId="0" showGridLines="0"><pane ySplit="${headRow}" topLeftCell="A${headRow + 1}" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>
+<sheetFormatPr defaultRowHeight="15"/>${colsXml}<sheetData>${rows.join('')}</sheetData>
+${merges.length ? `<mergeCells count="${merges.length}">${merges.map(m => `<mergeCell ref="${m}"/>`).join('')}</mergeCells>` : ''}
+<printOptions horizontalCentered="1"/><pageMargins left="0.4" right="0.4" top="0.5" bottom="0.5" header="0.3" footer="0.3"/>
+<pageSetup paperSize="9" orientation="${sh.portrait ? 'portrait' : 'landscape'}" fitToWidth="1" fitToHeight="0"/>
+<headerFooter><oddFooter>&amp;L${x(sh.title)}&amp;RPage &amp;P of &amp;N</oddFooter></headerFooter>
+</worksheet>`;
+  }
+  function book(sheets){
+    const names = []; const safe = s => { let b = String(s).replace(/[\\/?*\[\]:]/g, ' ').slice(0, 31) || 'Sheet'; let n0 = b, k = 2; while (names.includes(n0)) n0 = b.slice(0, 28) + ' ' + k++; names.push(n0); return n0; };
+    const nm = sheets.map(sh => safe(sh.name || sh.title));
+    const files = [
+      { name: '[Content_Types].xml', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>${sheets.map((_, i) => `<Override PartName="/xl/worksheets/sheet${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join('')}<Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/></Types>` },
+      { name: '_rels/.rels', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/></Relationships>` },
+      { name: 'docProps/core.xml', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><dc:title>${x(sheets[0].title)}</dc:title><dc:creator>${x((S.company || {}).legalName || 'Goldstern')} ERP</dc:creator><dcterms:created xsi:type="dcterms:W3CDTF">${new Date().toISOString().slice(0, 19)}Z</dcterms:created></cp:coreProperties>` },
+      { name: 'xl/workbook.xml', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>${nm.map((n0, i) => `<sheet name="${x(n0)}" sheetId="${i + 1}" r:id="rId${i + 1}"/>`).join('')}</sheets><definedNames>${sheets.map((sh, i) => `<definedName name="_xlnm.Print_Titles" localSheetId="${i}">'${x(nm[i]).replace(/'/g, "''")}'!$5:$5</definedName>`).join('')}</definedNames></workbook>` },
+      { name: 'xl/_rels/workbook.xml.rels', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${sheets.map((_, i) => `<Relationship Id="rId${i + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i + 1}.xml"/>`).join('')}<Relationship Id="rId${sheets.length + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>` },
+      { name: 'xl/styles.xml', data: STYLES },
+      ...sheets.map((sh, i) => ({ name: `xl/worksheets/sheet${i + 1}.xml`, data: sheetXml(sh) }))
+    ];
+    return zip(files);
+  }
+  function save(filename, sheets){
+    const blob = book(sheets);
+    if (typeof window !== 'undefined' && window.__xlsxCapture){ window.__xlsxCapture(filename, blob); return blob; }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename.endsWith('.xlsx') ? filename : filename + '.xlsx';
+    document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500); return blob;
+  }
+  return { save, book };
+})();
+/* ---------- Report → sheet builders (one per financial report) ---------- */
+const xn = v => v == null || v === '' ? null : Number(D(v).toFixed(2));
+const FIN_X = {
+  is(){ const P = UI.is || { preset: 'this_year', cmp: 'none' }; if (!P.from){ const d = isPresetRange(P.preset || 'this_year'); P.from = d[0]; P.to = d[1]; }
+    const cols = isColumns(P), M = isModel(cols), main = Math.max(0, cols.findIndex(c => c.total)), rev = M.revenue[main], single = cols.length === 1;
+    const pct = v => single ? (rev.eq(0) ? null : Number(v[0].div(rev).toFixed(4))) : undefined;
+    const row = (k, label, v) => ({ k, c: [label, ...v.map(xn), ...(single ? [pct(v)] : [])] });
+    const rows = [];
+    M.sections.forEach((sec, si) => { rows.push({ k: 'section', c: [sec.label] });
+      for (const G of sec.groups){ const one = sec.groups.length === 1 && G.accounts.length === 1; if (!one) rows.push(row('group', G.label, G.v)); for (const a of G.accounts) rows.push(row(one ? 'ind1' : 'ind2', `${a.account.code}  ${accName(a.account)}`, a.v)); }
+      if (!sec.groups.length) rows.push({ k: 'muted', c: [`   No ${sec.label.toLowerCase()} in this period`] });
+      rows.push(row('total', sec.totLabel, sec.v));
+      if (si === 1) rows.push(row('hi', 'Gross profit', M.gross)); if (si === 2) rows.push(row('hi', 'Operating profit', M.operating)); rows.push({ k: 'blank' }); });
+    rows.push(row('grand', 'Net profit', M.net));
+    return { name: 'Income statement', title: 'Income statement', subtitle: `${P.from} to ${P.to} · EGP · posted entries`, columns: [{ h: 'Account', w: 46, t: 'text' }, ...cols.map(c => ({ h: c.label, t: 'money', w: cols.length > 3 ? 14 : 18 })), ...(single ? [{ h: '% of revenue', t: 'pct', w: 13 }] : [])], rows };
+  },
+  bs(){ const asOf = (UI.fs || {}).asOf || todayCairo(), b = balanceSheet(asOf), rows = [];
+    for (const [k, l, tl, tot] of [['asset','Assets','Total assets', b.assets], ['liability','Liabilities','Total liabilities', b.liabilities], ['equity','Equity','Total equity', b.equity]]){
+      rows.push({ k: 'section', c: [l] }); const groups = new Map(); for (const r of b.sec[k]){ if (!groups.has(r.group)) groups.set(r.group, []); groups.get(r.group).push(r); }
+      for (const [g, list] of groups){ rows.push({ k: 'group', c: [g, xn(list.reduce((t, r) => t.plus(r.amount), D0()))] }); for (const r of list) rows.push({ k: 'ind2', c: [`${r.account.code}  ${accName(r.account)}`, xn(r.amount)] }); }
+      if (k === 'equity' && !b.earnings.eq(0)) rows.push({ k: 'ind1', c: ['Current year earnings (not yet closed)', xn(b.earnings)] });
+      rows.push({ k: 'total', c: [tl, xn(tot)] }, { k: 'blank' }); }
+    rows.push({ k: 'grand', c: ['Total liabilities + equity', xn(b.liabilities.plus(b.equity))] });
+    return { name: 'Balance sheet', title: 'Balance sheet', subtitle: `As at ${asOf} · EGP`, portrait: true, columns: [{ h: 'Account', w: 52 }, { h: asOf, t: 'money', w: 20 }], rows, note: b.balanced ? 'Assets equal liabilities plus equity.' : 'Warning: the balance sheet does not balance.' };
+  },
+  cf(){ const R0 = UI.fs || {}, from = R0.from || todayCairo().slice(0, 4) + '-01-01', to = R0.to || todayCairo(), src = statementRows('cf', { from, to }), rows = [];
+    for (const r of src.slice(1)){ if (r.length === 1) rows.push({ k: 'section', c: [r[0]] }); else if (/^(Net |Closing|Opening)/.test(r[1])) rows.push({ k: /^Closing/.test(r[1]) ? 'grand' : 'total', c: [r[1], xn(r[2])] }); else rows.push({ k: 'ind1', c: [r[1], xn(r[2])] }); }
+    return { name: 'Cash flow', title: 'Cash flow statement', subtitle: `${from} to ${to} · EGP`, portrait: true, columns: [{ h: 'Item', w: 56 }, { h: 'EGP', t: 'money', w: 20 }], rows };
+  },
+  eq(){ const R0 = UI.fs || {}, from = R0.from || todayCairo().slice(0, 4) + '-01-01', to = R0.to || todayCairo(), src = statementRows('eq', { from, to }), rows = [];
+    for (const r of src.slice(2)) rows.push({ k: r[0] ? 'line' : /^Total/.test(r[1]) ? 'grand' : 'total', c: [r[0] ? `${r[0]}  ${r[1]}` : r[1], ...r.slice(2).map(v => v === '' ? null : xn(v))] });
+    return { name: 'Changes in equity', title: 'Statement of changes in equity', subtitle: `${from} to ${to} · EGP`, columns: [{ h: 'Component', w: 40 }, { h: 'Opening', t: 'money' }, { h: 'Movements', t: 'money' }, { h: 'Year-end close', t: 'money' }, { h: 'Closing', t: 'money' }], rows };
+  },
+  tb(){ const T0 = UI.tb || {}, from = T0.from || todayCairo().slice(0, 4) + '-01-01', to = T0.to || todayCairo(), tb = trialBalance(from, to, T0.mode), rows = [];
+    let last = null;
+    for (const r of tb.rows){ const t0 = ACC_TYPES[r.account.type].en; if (t0 !== last){ rows.push({ k: 'section', c: [t0] }); last = t0; }
+      rows.push({ k: 'ind1', c: [r.account.code, accName(r.account), ...['openD','openC','perD','perC','closeD','closeC'].map(k => xn(r[k]))] }); }
+    rows.push({ k: 'grand', c: ['', 'Total', ...['openD','openC','perD','perC','closeD','closeC'].map(k => xn(tb.totals[k]))] });
+    const m = h => ({ h, t: 'money', w: 15 });
+    return { name: 'Trial balance', title: 'Trial balance', subtitle: `${from} to ${to} · EGP${T0.mode ? ' · ' + T0.mode : ''}`, columns: [{ h: 'Code', w: 9, t: 'text' }, { h: 'Account', w: 36 }, m('Opening debit'), m('Opening credit'), m('Period debit'), m('Period credit'), m('Closing debit'), m('Closing credit')], rows };
+  },
+  gl(){ const G = UI.gl || { from: todayCairo().slice(0, 4) + '-01-01', to: todayCairo() }, rows = [];
+    for (const b of generalLedger(G)){ rows.push({ k: 'section', c: [`${b.account.code}  ${accName(b.account)}`, '', '', '', '', '', '', b.filtered ? null : xn(b.opening)] });
+      rows.push({ k: 'muted', c: ['', G.from || '', '', 'Opening balance', '', null, null, b.filtered ? null : xn(b.opening)] });
+      for (const x0 of b.lines){ const f = lineFc(x0.e, x0.l); rows.push({ k: 'line', c: ['', x0.e.accountingDate, x0.e.number || '', x0.l.description || x0.e.description, f.cur !== 'EGP' ? `${money(f.d.plus(f.c))} ${f.cur}` : '', xn(x0.l.egpDebit), xn(x0.l.egpCredit), b.filtered ? null : xn(x0.balance)] }); }
+      rows.push({ k: 'total', c: [`Total ${b.account.code}`, '', '', '', '', xn(b.lines.reduce((t, z) => t.plus(z.l.egpDebit || 0), D0())), xn(b.lines.reduce((t, z) => t.plus(z.l.egpCredit || 0), D0())), b.filtered ? null : xn(b.closing)] }, { k: 'blank' }); }
+    return { name: 'General ledger', title: 'General ledger', subtitle: `${G.from || ''} to ${G.to || ''} · EGP`, columns: [{ h: 'Account', w: 28 }, { h: 'Date', t: 'date' }, { h: 'Entry', w: 16 }, { h: 'Label', w: 44 }, { h: 'Currency amount', w: 18 }, { h: 'Debit', t: 'money' }, { h: 'Credit', t: 'money' }, { h: 'Balance', t: 'money' }], rows };
+  },
+  pl(){ const L = partnerLedger(UI.pled || {}), rows = [];
+    for (const g of L.groups){ rows.push({ k: 'section', c: [g.name, '', '', '', '', xn(g.debit), xn(g.credit), '', xn(g.end)] });
+      rows.push({ k: 'muted', c: ['   Initial balance', '', '', '', '', null, null, '', xn(g.initial)] });
+      for (const z of g.lines) rows.push({ k: 'line', c: [z.date, z.jnl, z.account, z.ref, z.due || '', xn(z.debit), xn(z.credit), z.fc || '', xn(z.bal)] });
+      rows.push({ k: 'blank' }); }
+    rows.push({ k: 'grand', c: ['Total', '', '', '', '', xn(L.debit), xn(L.credit), '', xn(L.balance)] });
+    return { name: 'Partner ledger', title: 'Partner ledger', subtitle: `${L.from} to ${L.to} · ${L.typeLabel} · EGP`, columns: [{ h: 'Date', t: 'date', w: 12 }, { h: 'Journal', w: 8 }, { h: 'Account', w: 22 }, { h: 'Reference', w: 40 }, { h: 'Due date', t: 'date', w: 12 }, { h: 'Debit', t: 'money' }, { h: 'Credit', t: 'money' }, { h: 'Amount in currency', w: 18 }, { h: 'Balance', t: 'money' }], rows };
+  },
+  aging(side){ const asOf = (UI.aging || {})[side] || todayCairo(), ag = aging(side, asOf), rows = [];
+    for (const r of ag.list){ rows.push({ k: 'group', c: [`${r.partner.code}  ${r.partner.legalName}`, '', '', '', ...r.b.map(xn), xn(r.total)] });
+      for (const d of r.docs){ const b = BUCKETS.map((_, i) => i === d.bucket ? xn(d.egpOpen) : null); rows.push({ k: 'ind2', c: [`${d.inv.number}${d.inv.partnerRef ? ' · ' + d.inv.partnerRef : ''}`, d.inv.date, d.inv.dueDate || '', d.inv.currency !== 'EGP' ? `${money(d.open)} ${d.inv.currency}` : '', ...b, xn(d.egpOpen)] }); } }
+    rows.push({ k: 'grand', c: ['Total', '', '', '', ...ag.tot.map(xn), xn(ag.total)] });
+    return { name: side === 'ar' ? 'Receivables aging' : 'Payables aging', title: side === 'ar' ? 'Aged receivables' : 'Aged payables', subtitle: `As at ${asOf} · EGP`, columns: [{ h: side === 'ar' ? 'Customer / invoice' : 'Vendor / bill', w: 40 }, { h: 'Date', t: 'date' }, { h: 'Due', t: 'date' }, { h: 'Open in currency', w: 17 }, ...BUCKETS.map(b => ({ h: b, t: 'money', w: 14 })), { h: 'Total', t: 'money' }], rows };
+  },
+  profit(){ const P0 = UI.profit || { from: '0001-01-01', to: todayCairo(), by: 'vehicle' }, list = profitability(P0.from, P0.to, P0.by), rows = [];
+    const sum = k => list.reduce((t, r) => t.plus(r[k]), D0());
+    for (const r of list) rows.push({ k: 'line', c: [r.label, r.count, xn(r.net), xn(r.cogs), xn(r.gp), r.margin == null ? null : Number(D(r.margin).div(100).toFixed(4)), xn(r.direct), xn(r.fx), xn(r.contribution)] });
+    const net = sum('net'); rows.push({ k: 'grand', c: ['Total', list.reduce((t, r) => t + r.count, 0), xn(net), xn(sum('cogs')), xn(sum('gp')), net.eq(0) ? null : Number(sum('gp').div(net).toFixed(4)), xn(sum('direct')), xn(sum('fx')), xn(sum('contribution'))] });
+    return { name: 'Profit by car', title: 'Profit by car', subtitle: `${P0.from === '0001-01-01' ? 'All dates' : P0.from} to ${P0.to} · grouped by ${P0.by} · EGP`, columns: [{ h: P0.by === 'vehicle' ? 'Car' : 'Group', w: 40 }, { h: 'Cars', t: 'int', w: 7 }, { h: 'Net revenue', t: 'money' }, { h: 'Cost of sales', t: 'money' }, { h: 'Gross profit', t: 'money' }, { h: 'Margin', t: 'pct', w: 10 }, { h: 'Selling costs', t: 'money' }, { h: 'Exchange diff.', t: 'money' }, { h: 'Net contribution', t: 'money' }], rows };
+  }
+};
+function finExport(keys, filename){
+  run(() => { requirePerm('ledger', 'export');
+    const sheets = keys.map(k => k === 'ar' || k === 'ap' ? FIN_X.aging(k) : FIN_X[k]());
+    XW.save(`${filename || sheets[0].name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${todayCairo()}.xlsx`, sheets);
+    log('export', 'ledger', null, null, { reports: keys, format: 'xlsx' }, 'Excel export'); saveState(); toast('Excel file downloaded.', 'ok'); });
+}
+
+/* ---------- Partner ledger (Odoo-style: receivable / payable lines grouped by partner) ---------- */
+function partnerLedger(P){
+  const pr = P.preset && P.preset !== 'custom' ? isPresetRange(P.preset) : null;
+  const from = pr ? pr[0] : (P.from || todayCairo().slice(0, 4) + '-01-01'), to = pr ? pr[1] : (P.to || todayCairo()), type = P.type || 'all';
+  const mid = k => { try { return getMapping(k).id; } catch (e){ return null; } };
+  const accSide = new Map(); for (const [k, sd] of [['ar','ar'], ['cust_adv','ar'], ['ap','ap'], ['supp_adv','ap']]){ const id = mid(k); if (id) accSide.set(id, sd); }
+  const byKey = new Map(); for (const sd of ['ar','ap']) for (const p of partnersOf(sd)){ const ent = { side: sd, p }; for (const key of [partnerLabel(p), p.code, p.legalName, p.commercialName].filter(Boolean)) byKey.set(sd + '|' + String(key).trim().toLowerCase(), ent); }
+  const resolve = (sd, label) => { const t = String(label || '').trim(); if (!t) return null; const code = t.split(' — ')[0].trim().toLowerCase(); return byKey.get(sd + '|' + t.toLowerCase()) || byKey.get(sd + '|' + code) || null; };
+  const invByEntry = new Map(S.invoices.map(i => [i.entryId, i]));
+  const groups = new Map(), q = String(P.q || '').trim().toLowerCase();
+  for (const { e, l } of ledgerLines()){
+    const sd = accSide.get(l.accountId); if (!sd || (type !== 'all' && type !== sd) || e.accountingDate > to) continue;
+    const ent = resolve(sd, l.partner), key = ent ? sd + ':' + ent.p.id : sd + ':?' + (l.partner || '');
+    if (!groups.has(key)) groups.set(key, { key, side: sd, p: ent ? ent.p : null, name: ent ? `${ent.p.legalName}` : (l.partner ? String(l.partner) : 'No partner'), code: ent ? ent.p.code : '', initial: D0(), debit: D0(), credit: D0(), lines: [] });
+    const g = groups.get(key), d = D(l.egpDebit || 0), c = D(l.egpCredit || 0);
+    if (e.accountingDate < from){ g.initial = g.initial.plus(d).minus(c); continue; }
+    const a = acc(l.accountId), inv = invByEntry.get(e.id), f = lineFc(e, l);
+    g.debit = g.debit.plus(d); g.credit = g.credit.plus(c);
+    g.lines.push({ e, date: e.accountingDate, jnl: e.journal, account: a ? `${a.code} ${accName(a)}` : '', acode: a ? a.code : '', ref: [e.number, l.description || e.description].filter(Boolean).join(' · '), due: inv && inv.dueDate && inv.type !== 'credit' ? inv.dueDate : '', inv,
+      debit: d, credit: c, fc: f.cur && f.cur !== 'EGP' ? `${d.gt(0) ? '' : '-'}${money(f.d.plus(f.c))} ${f.cur}` : '' });
+  }
+  let list = [...groups.values()];
+  for (const g of list){ g.lines.sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : String(a.e.number || '') < String(b.e.number || '') ? -1 : 1); let run0 = g.initial; for (const z of g.lines){ run0 = run0.plus(z.debit).minus(z.credit); z.bal = run0; } g.end = run0; }
+  if (q) list = list.filter(g => (g.name + ' ' + g.code).toLowerCase().includes(q));
+  if (P.nonzero) list = list.filter(g => !g.end.eq(0));
+  if (!P.withInitialOnly) list = list.filter(g => g.lines.length || !g.initial.eq(0));
+  list.sort((a, b) => a.side === b.side ? (a.name < b.name ? -1 : 1) : a.side === 'ar' ? -1 : 1);
+  const sum = k => list.reduce((t, g) => t.plus(g[k]), D0());
+  return { from, to, type, typeLabel: type === 'ar' ? 'Receivable accounts' : type === 'ap' ? 'Payable accounts' : 'Receivable and payable accounts', groups: list, debit: sum('debit'), credit: sum('credit'), initial: sum('initial'), balance: sum('end') };
+}
+function pagePartnerLedger(){
+  const P = UI.pled = UI.pled || { preset: 'this_year', type: 'all', fold: {}, nonzero: false, q: '' };
+  const L = partnerLedger(P), ar = L.groups.filter(g => g.side === 'ar'), ap = L.groups.filter(g => g.side === 'ap');
+  const unfolded = k => P.fold[k] === true;
+  const amt = (v, cls = '') => `<td class="num ${cls}${v.lt(0) ? ' neg' : ''}">${v.eq(0) ? '<span class="zero">0.00</span>' : money(v)}</td>`;
+  const presets = IS_PRESETS.map(([k, l]) => `<button type="button" class="o-pill ${P.preset === k ? 'on' : ''}" data-act="pled-set" data-f="preset" data-v="${k}">${l}</button>`).join('');
+  const types = [['all','All'], ['ar','Receivable'], ['ap','Payable']].map(([k, l]) => `<button type="button" class="o-pill ${P.type === k ? 'on' : ''}" data-act="pled-set" data-f="type" data-v="${k}">${l}</button>`).join('');
+  const grp = g => { const open = unfolded(g.key);
+    let h = `<tr class="pl-p" data-act="pled-fold" data-k="${esc(g.key)}"><td colspan="5"><span class="is-caret">${ic(open ? 'chev' : 'chev-right', 14)}</span><b>${esc(g.name)}</b>${g.code ? ` <span class="muted mono">${esc(g.code)}</span>` : ''}<span class="pl-n">${g.lines.length}</span></td>${amt(g.debit)}${amt(g.credit)}<td></td>${amt(g.end, 'b')}</tr>`;
+    if (open){
+      h += `<tr class="pl-init"><td colspan="5">Initial balance</td><td></td><td></td><td></td>${amt(g.initial)}</tr>`;
+      h += g.lines.map(z => `<tr class="pl-l" data-act="je-view" data-id="${z.e.id}"><td>${z.date}</td><td><span class="jnl">${esc(z.jnl)}</span></td><td class="acc">${esc(z.acode)}</td><td class="ref">${esc(z.ref)}</td><td>${z.due ? `<span class="${z.inv && invState(z.inv).open.gt(0) && z.due < todayCairo() ? 'neg' : ''}">${z.due}</span>` : ''}</td>${amt(z.debit)}${amt(z.credit)}<td class="num fc">${esc(z.fc)}</td>${amt(z.bal)}</tr>`).join('');
+      if (g.p) h += `<tr class="pl-more"><td colspan="9"><a href="#/partners/statement?side=${g.side}&id=${g.p.id}">Open ${esc(g.name)}'s statement →</a></td></tr>`;
+    }
+    return h; };
+  const head = side => `<tr class="pl-side"><td colspan="9">${side === 'ar' ? 'Customers · receivable' : 'Vendors · payable'}</td></tr>`;
+  const kp = (k, v, s) => `<div class="is-kpi"><div class="k">${k}</div><div class="v${v.lt(0) ? ' neg' : ''}">${money(v)}</div><div class="s">${s}</div></div>`;
+  const recv = ar.reduce((t, g) => t.plus(g.end), D0()), pay = ap.reduce((t, g) => t.plus(g.end), D0());
+  return H('Partner ledger', `${L.from} to ${L.to} · EGP · posted entries · ${L.typeLabel.toLowerCase()}`, `<button class="btn" data-act="fin-xlsx" data-k="pl">Export Excel</button><button class="btn" onclick="window.print()">Print / PDF</button>`) + `
+    <div class="card is-tools">
+      <div class="is-row"><span class="lbl">Period</span><div class="o-pills">${presets}</div></div>
+      ${P.preset === 'custom' ? `<form class="is-row" data-form="pled-range"><span class="lbl">Dates</span><input class="input" type="date" name="from" value="${P.from || L.from}"><span class="muted">to</span><input class="input" type="date" name="to" value="${P.to || L.to}"><button class="btn sm">Apply</button></form>` : ''}
+      <div class="is-row"><span class="lbl">Accounts</span><div class="o-pills">${types}</div>
+        <input class="input" id="pled-q" placeholder="Search partner…" value="${esc(P.q || '')}" style="width:220px;margin-inline-start:12px">
+        <label class="is-chk"><input type="checkbox" data-act="pled-tog" data-f="nonzero" ${P.nonzero ? 'checked' : ''}> Only partners with a balance</label>
+        <span class="spacer"></span><button type="button" class="btn sm" data-act="pled-all" data-v="1">Unfold all</button><button type="button" class="btn sm" data-act="pled-all" data-v="0">Fold all</button></div></div>
+    <div class="is-kpis">${kp('Customers owe us', recv, ar.length + ' customer' + (ar.length === 1 ? '' : 's'))}${kp('We owe vendors', pay.negated(), ap.length + ' vendor' + (ap.length === 1 ? '' : 's'))}${kp('Debits in period', L.debit, 'invoices, payments made')}${kp('Credits in period', L.credit, 'bills, payments received')}</div>
+    <div class="card is-card"><div class="tbl-wrap"><table class="is-tbl pl-tbl"><thead><tr><th>Date</th><th>JRNL</th><th>Account</th><th>Ref</th><th>Due date</th><th class="num">Debit</th><th class="num">Credit</th><th class="num">Amount currency</th><th class="num">Balance</th></tr></thead><tbody>
+      ${L.groups.length ? (ar.length && P.type !== 'ap' ? head('ar') + ar.map(grp).join('') : '') + (ap.length && P.type !== 'ar' ? head('ap') + ap.map(grp).join('') : '') : '<tr><td colspan="9" class="empty">No receivable or payable movements for this period.</td></tr>'}
+    </tbody><tfoot><tr class="is-sum net"><td colspan="5">Total</td>${amt(L.debit)}${amt(L.credit)}<td></td>${amt(L.balance)}</tr></tfoot></table></div></div>
+    <p class="je-hint">Balance = debit − credit. A positive balance on a customer means they owe you; a negative balance on a vendor means you owe them. Click a line to open its journal entry.</p>`;
+}
+const PLED_CLICKS = {
+  'pled-set'(el){ UI.pled[el.dataset.f] = el.dataset.v; render(); },
+  'pled-tog'(el){ UI.pled[el.dataset.f] = !UI.pled[el.dataset.f]; render(); },
+  'pled-fold'(el){ const k = el.dataset.k; UI.pled.fold[k] = !UI.pled.fold[k]; render(); },
+  'pled-all'(el){ const f = {}; if (el.dataset.v === '1') for (const g of partnerLedger(UI.pled).groups) f[g.key] = true; UI.pled.fold = f; render(); },
+  'fin-xlsx'(el){ finExport(el.dataset.k.split(','), el.dataset.name); }
+};
+document.addEventListener('keydown', e => { if (e.target && e.target.id === 'pled-q' && e.key === 'Enter'){ UI.pled.q = e.target.value; render(); } });
+document.addEventListener('change', e => { if (e.target && e.target.id === 'pled-q'){ UI.pled.q = e.target.value; render(); } });
+
 function pageBudgets(){
   const yr = UI.budYear || todayCairo().slice(0, 4), toM = yr === todayCairo().slice(0, 4) ? +todayCairo().slice(5, 7) : 12;
   const rows = budgetVsActual(yr, 1, toM);
@@ -8334,9 +8446,9 @@ function pageBudgets(){
       ${rows.map(r => `<tr><td>${esc(accLabel(r.account))}</td><td class="num">${money(r.budget)}</td><td class="num">${money(r.actual)}</td><td class="num" style="color:${r.variance.lt(0) ? 'var(--bad)' : 'var(--ok)'}">${money(r.variance)}</td><td class="num">${r.pct ? r.pct.toFixed(1) + '%' : '—'}</td></tr>`).join('') || '<tr><td colspan="5" class="empty">No budgets for this year.</td></tr>'}
     </tbody></table></div></div>`;
 }
-const P10_FORMS = { dash(f){ UI.dash = { from: f.from, to: f.to }; render(); }, fs(f){ UI.fs = { ...UI.fs, ...f }; render(); }, 'is-range'(f){ if (isISODate(f.from) && isISODate(f.to) && f.from <= f.to){ UI.is.from = f.from; UI.is.to = f.to; } else toast('Pick a start date on or before the end date.', 'bad'); render(); }, bud(f){ UI.budYear = /^\d{4}$/.test(f.year) ? f.year : todayCairo().slice(0, 4); render(); } };
+const P10_FORMS = { dash(f){ UI.dash = { from: f.from, to: f.to }; render(); }, fs(f){ UI.fs = { ...UI.fs, ...f }; render(); }, 'pled-range'(f){ if (isISODate(f.from) && isISODate(f.to) && f.from <= f.to){ UI.pled.from = f.from; UI.pled.to = f.to; } else toast('Pick a start date on or before the end date.', 'bad'); render(); }, 'is-range'(f){ if (isISODate(f.from) && isISODate(f.to) && f.from <= f.to){ UI.is.from = f.from; UI.is.to = f.to; } else toast('Pick a start date on or before the end date.', 'bad'); render(); }, bud(f){ UI.budYear = /^\d{4}$/.test(f.year) ? f.year : todayCairo().slice(0, 4); render(); } };
 const P10_CLICKS = {
-  'fs-xlsx'(el){ const k = el.dataset.k; run(async () => { requirePerm('ledger', 'export'); const rows = k === 'is' && UI.is ? isExportRows() : statementRows(k, UI.fs || {}); const how = await exportXlsx(`goldstern-${k}-${todayCairo()}`, [{ name: { bs: 'Balance sheet', is: 'Income statement', cf: 'Cash flow', eq: 'Equity' }[k], rows }]); log('export', 'ledger', null, null, { statement: k, format: how }, 'Financial statement export'); saveState(); }); },
+  'fs-xlsx'(el){ finExport([el.dataset.k]); },
   'bud-new'(){ openModal({ title: 'Set or revise budget', xwide: true, body: `<div class="row"><div class="field"><label>Year *</label><input class="input" name="year" value="${UI.budYear || todayCairo().slice(0, 4)}"></div><div class="field" style="flex:2"><label>Account *</label><select class="input" name="accountId">${accOptsOf(['revenue','cogs','expense'])}</select></div><div class="field"><label>Annual amount (spread evenly)</label><input class="input mono" name="annual"></div></div>
     <div class="field"><label>…or monthly amounts</label><div class="grid g4" style="gap:6px">${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].map(m => `<label style="font-size:12px">${m}<input class="input mono" name="m" value="0"></label>`).join('')}</div></div><div class="field"><label>Reason *</label><input class="input" name="reason" required></div>`, onSubmit: f => A.saveBudget(f) }); }
 };
@@ -8630,26 +8742,7 @@ Object.assign(CLICK, {
     'pl-fold'(el){ UI.plFold = UI.plFold || {}; UI.plFold[el.dataset.id] = !UI.plFold[el.dataset.id]; render(); },
   'pl-unfold-all'(){ UI.plFold = {}; for (const p of [...S.customers, ...S.suppliers]) UI.plFold[p.id] = false; render(); },
   'pl-fold-all'(){ UI.plFold = {}; for (const p of [...S.customers, ...S.suppliers]) UI.plFold[p.id] = true; render(); },
-  'pl-csv'(){
-    const rows = [];
-    for (const s of ['ar', 'ap']){
-      for (const p of partnersOf(s)){
-        for (const i of S.invoices.filter(x => x.side === s && x.partnerId === p.id && entryStatus(x) === 'posted')){
-          const isC = i.type === 'credit';
-          const d = (s === 'ar' && !isC) || (s === 'ap' && isC) ? i.total : '';
-          const c = (s === 'ar' && isC) || (s === 'ap' && !isC) ? i.total : '';
-          rows.push([p.code, p.legalName, s === 'ar' ? 'Customer' : 'Vendor', i.date, i.number, isC ? 'Credit' : 'Invoice', i.currency, d, c]);
-        }
-        for (const st of S.settlements.filter(x => x.side === s && x.partnerId === p.id && entryStatus(x) === 'posted')){
-          const d = s === 'ap' ? st.amount : '';
-          const c = s === 'ar' ? st.amount : '';
-          rows.push([p.code, p.legalName, s === 'ar' ? 'Customer' : 'Vendor', st.date, st.number, st.type === 'cash' ? 'Advance/Deposit' : 'Payment', st.currency, d, c]);
-        }
-      }
-    }
-    downloadCSV('partner-ledger.csv', ['Partner Code', 'Partner Name', 'Type', 'Date', 'Reference', 'Doc Type', 'Currency', 'Debit', 'Credit'], rows);
-  },
-'coa-seed'(){ openModal({ title: 'Load Goldstern standard chart', submit: 'Load chart', body: `<p>Creates ${COA_TEMPLATE.length} accounts, ${MAPPING_KEYS.length} account mappings and ${DEFAULT_COST_CENTERS.length} cost centers. Everything stays editable. This is recorded in the audit trail.</p>`, onSubmit: () => { A.seedChart('goldstern'); toast('Chart of accounts loaded.', 'ok'); } }); },
+  'pl-csv'(){ finExport(['pl']); },
   'coa-seed-odoo'(){ openModal({ title: 'Apply Odoo Chart of Accounts', submit: 'Apply Odoo Chart', body: `<p>Creates ${ODOO_COA_TEMPLATE.length} accounts following the <b>Odoo 6-digit standard Chart of Accounts</b> (Assets 100000, Liabilities 200000, Equity 300000, Revenue 400000, COGS 500000, Expenses 600000), with bilingual Arabic/English naming, reconciliation flags, and sets all ${Object.keys(ODOO_MAPPING).length} accounting mappings.</p>`, onSubmit: () => { A.seedChart('odoo'); toast('Odoo Chart of Accounts applied successfully.', 'ok'); } }); },
   'coa-apply-odoo'(){ openModal({ title: 'Apply Odoo Chart of Accounts', submit: 'Confirm & Apply', body: `<p>This will configure the <b>Odoo 6-digit Standard Chart of Accounts</b> (${ODOO_COA_TEMPLATE.length} accounts) and automatically link all 31 system accounting mappings to the standard Odoo accounts.</p><p class="muted">If you already have existing transactions, your existing accounts and ledger history will be preserved, and the Odoo accounts and mappings will be applied.</p>`, onSubmit: () => { A.applyOdooChart(false); toast('Odoo Chart of Accounts applied successfully.', 'ok'); } }); },
   'acc-new'(){ openModal({ title: 'New account', wide: true, body: accountForm({ type: 'expense', normal: 'debit', allowManual: true }), onSubmit: f => A.saveAccount(null, f) }); },
@@ -8698,15 +8791,8 @@ Object.assign(CLICK, {
     for (const e of S.entries) for (const l of e.lines){ const a = acc(l.accountId) || {}; rows.push([e.number || '', e.draftRef, e.status, e.journal, e.accountingDate, e.documentDate, e.reference, e.sourceRef, e.description, a.code, a.nameEn, l.debit, l.credit, e.currency, e.rate || '', l.egpDebit || '', l.egpCredit || '', l.costCenter, l.partner, l.vehicle, l.description]); }
     downloadCSV('journal-lines.csv', ['number','draft_ref','status','journal','accounting_date','document_date','reference','source_doc','description','account_code','account_name','debit','credit','currency','rate','egp_debit','egp_credit','cost_center','partner','vehicle','line_note'], rows);
     log('export', 'ledger', null, null, { rows: rows.length }, 'Journal lines CSV'); saveState(); }); },
-  'gl-csv'(){ run(() => { requirePerm('ledger', 'export'); const G = UI.gl || {}; const rows = [];
-    for (const b of generalLedger(G)){ rows.push([b.account.code, accName(b.account), G.from, '', 'Opening balance', '', '', '', '', b.opening.toFixed(2)]);
-      for (const x of b.lines) rows.push([b.account.code, accName(b.account), x.e.accountingDate, x.e.number, x.l.description || x.e.description, x.e.currency, x.l.debit || x.l.credit, x.l.egpDebit, x.l.egpCredit, b.filtered ? '' : x.balance.toFixed(2)]); }
-    downloadCSV('general-ledger.csv', ['account','account_name','date','entry','description','currency','txn_amount','egp_debit','egp_credit','balance_dr_positive'], rows);
-    log('export', 'ledger', null, null, { rows: rows.length, filters: G }, 'General ledger CSV'); saveState(); }); },
-  'tb-csv'(){ run(() => { requirePerm('ledger', 'export'); const T0 = UI.tb || {}; const tb = trialBalance(T0.from, T0.to, T0.mode);
-    downloadCSV('trial-balance.csv', ['code','account','opening_dr','opening_cr','period_dr','period_cr','closing_dr','closing_cr'], [...tb.rows.map(r => [r.account.code, accName(r.account), r.openD.toFixed(2), r.openC.toFixed(2), r.perD.toFixed(2), r.perC.toFixed(2), r.closeD.toFixed(2), r.closeC.toFixed(2)]),
-      ['', 'TOTAL', ...['openD','openC','perD','perC','closeD','closeC'].map(k => tb.totals[k].toFixed(2))]]);
-    log('export', 'ledger', null, null, { from: T0.from, to: T0.to, mode: T0.mode }, 'Trial balance CSV'); saveState(); }); },
+  'gl-csv'(){ finExport(['gl']); },
+  'tb-csv'(){ finExport(['tb']); },
   'cc-new'(){ openModal({ title: 'New cost center', body: '<div class="field"><label>Code *</label><input class="input mono" name="code" required></div><div class="field"><label>Name *</label><input class="input" name="name" required></div>', onSubmit: f => A.addCostCenter(f) }); },
   'cc-toggle'(el){ run(() => A.toggleCostCenter(el.dataset.code), 'Cost center updated.'); },
   'jnl-approval'(el){ const j = journalOf(el.dataset.code); openModal({ title: `${j.approval ? 'Remove' : 'Require'} approval — ${j.name}`, submit: 'Confirm', danger: j.approval,
@@ -8803,11 +8889,9 @@ Object.assign(CLICK, {
     openModal({ title: `Allocate advance ${src.number}`, wide: true, formAttrs: 'data-aa', submit: 'Save & submit for approval', body: advAllocForm(side, src),
       onSubmit: f => { const s = A.allocateAdvance(side, f); toast(`${s.number} submitted for approval.`, 'ok'); } }); aaRefresh(); },
   'car-report-pdf'(el){ const po = poById(el.dataset.id); if (po) printCarReport(po); },
-  'aging-csv'(el){ const side = el.dataset.side; run(() => { requirePerm(SIDES[side].mod, 'export'); const asOf = (UI.aging || {})[side] || todayCairo(), ag = aging(side, asOf), rows = [];
-    for (const r of ag.list) for (const d of r.docs) rows.push([r.partner.code, r.partner.legalName, d.inv.number, d.inv.partnerRef, d.inv.date, d.inv.dueDate, d.days, BUCKETS[d.bucket], d.inv.currency, d.open.toFixed(2), d.egpOpen.toFixed(2)]);
-    downloadCSV(`${side}-aging-${asOf}.csv`, ['code','name','document','reference','date','due','days_past_due','bucket','currency','open','open_egp'], rows); log('export', SIDES[side].mod, null, null, { asOf, rows: rows.length }, 'Aging CSV'); saveState(); }); }
+  'aging-csv'(el){ finExport([el.dataset.side]); }
 });
-Object.assign(FORM_HANDLERS, P5_FORMS); Object.assign(CLICK, P5_CLICKS); Object.assign(FORM_HANDLERS, P6_FORMS); Object.assign(CLICK, P6_CLICKS); Object.assign(FORM_HANDLERS, P7_FORMS); Object.assign(CLICK, P7_CLICKS); Object.assign(FORM_HANDLERS, P8_FORMS); Object.assign(CLICK, P8_CLICKS); Object.assign(FORM_HANDLERS, P9_FORMS); Object.assign(CLICK, P9_CLICKS); Object.assign(FORM_HANDLERS, P10_FORMS); Object.assign(CLICK, P10_CLICKS); Object.assign(CLICK, IS_CLICKS);
+Object.assign(FORM_HANDLERS, P5_FORMS); Object.assign(CLICK, P5_CLICKS); Object.assign(FORM_HANDLERS, P6_FORMS); Object.assign(CLICK, P6_CLICKS); Object.assign(FORM_HANDLERS, P7_FORMS); Object.assign(CLICK, P7_CLICKS); Object.assign(FORM_HANDLERS, P8_FORMS); Object.assign(CLICK, P8_CLICKS); Object.assign(FORM_HANDLERS, P9_FORMS); Object.assign(CLICK, P9_CLICKS); Object.assign(FORM_HANDLERS, P10_FORMS); Object.assign(CLICK, P10_CLICKS); Object.assign(CLICK, IS_CLICKS); Object.assign(CLICK, PLED_CLICKS);
 
 /* =========================================================================
    DOCUMENT EDITING — edit freely until posted; correct posted documents by
