@@ -4853,7 +4853,7 @@ function pageProformas(){
 
   const tabs = [['', 'All'], ['draft', 'Draft'], ['sent', 'Sent'], ['accepted', 'Accepted'], ['cancelled', 'Cancelled']];
 
-  return H(t('proforma') || 'Pro-forma Invoices', 'Car pro-forma invoices for bank financing, customer reservations, and quotations.', '<button type="button" class="btn primary" data-act="pf-new"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-inline-end:4px"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> + New pro-forma invoice</button>') +
+  return H(t('proforma') || 'Pro-forma Invoices', 'Car pro-forma invoices for bank financing, customer reservations, and quotations.', '<button type="button" class="btn primary" data-act="pf-new"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-inline-end:4px"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> New pro-forma invoice</button>') +
     '<div class="card">' +
       '<div class="o-pills">' + tabs.map(([k, l]) => '<button type="button" class="o-pill ' + (stf === k ? 'on' : '') + '" data-act="set-filter" data-k="pf_s" data-v="' + k + '">' + l + ' <span>' + (k ? all.filter(r => r.pf.status === k).length : all.length) + '</span></button>').join('') + '</div>' +
       '<div class="filters"><input class="input" data-filter="pf_q" placeholder="Search number, customer, car make/model, chassis…" value="' + esc(F.pf_q || '') + '" style="min-width:340px"><span class="muted" style="align-self:center;font-size:12.5px;margin-inline-start:auto">' + list.length + ' pro-forma' + (list.length === 1 ? '' : 's') + '</span></div>' +
@@ -5933,6 +5933,7 @@ function markClickableRows(){ document.querySelectorAll('main.content td:not(.nw
 if (typeof MutationObserver !== 'undefined') new MutationObserver(() => { clearTimeout(window.__mcr); window.__mcr = setTimeout(markClickableRows, 30); }).observe(document.documentElement, { childList: true, subtree: true });
 /* Line icons (24 × 24, stroke = currentColor) — Modern Feather/Lucide vector set. */
 const ICONS = {
+  expenses: '<path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 17.5v-11"/>',
   grid: '<rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="10" y="3" rx="1"/><rect width="5" height="5" x="17" y="3" rx="1"/><rect width="5" height="5" x="3" y="10" rx="1"/><rect width="5" height="5" x="10" y="10" rx="1"/><rect width="5" height="5" x="17" y="10" rx="1"/><rect width="5" height="5" x="3" y="17" rx="1"/><rect width="5" height="5" x="10" y="17" rx="1"/><rect width="5" height="5" x="17" y="17" rx="1"/>',
   invoices: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/>',
   bill: '<path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1-2-1Z"/><path d="M16 8h-8"/><path d="M16 12h-8"/><path d="M10 16h-2"/>',
@@ -6103,7 +6104,7 @@ function viewShell(){
         ${!OPEN_ACCESS ? `<button type="button" class="btn sm" data-act="logout">${t('signout')}</button>` : ''}
       </header>
       ${subnavHTML()}
-      <main class="content">${pageFor(r)}</main>
+      <main class="content">${safePage(r)}</main>
     </div></div>`;
 }
 function denied(module){
@@ -6403,6 +6404,11 @@ function pageData(){
       <div class="card"><div class="card-h"><h2>Restore backup</h2></div><div class="card-b"><p class="muted">Replaces all current data. The backup's audit chain must verify, or it is rejected.</p>
         ${can('settings', 'create') ? '<button class="btn" data-act="pick-restore">Choose file…</button><input type="file" id="restore-file" accept=".json,application/json" hidden>' : '<span class="muted">No restore permission.</span>'}</div></div>
     </div>
+
+    <div class="card"><div class="card-h"><h2>Update data</h2><span class="sub">${S.meta.dataUpdatedAt ? 'Last run ' + fmtTs(S.meta.dataUpdatedAt) : 'Not run yet'}</span></div><div class="card-b">
+      <p class="muted">Adds what newer versions need — missing accounts and account mappings, journals, document numbering, cost centres, expense and fixed-asset categories, permissions for new modules. Your cars, invoices, entries and settings are not changed. It also runs by itself each time the system opens.</p>
+      ${(UI.dataUpd || []).length ? `<div class="note ok" style="margin-bottom:12px"><b>Updated:</b><ul style="margin:6px 0 0;padding-inline-start:18px">${UI.dataUpd.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>` : UI.dataUpd ? '<div class="note" style="margin-bottom:12px">Your data is already up to date.</div>' : ''}
+      ${can('settings', 'edit') ? '<button class="btn primary" data-act="data-update">Update data now</button>' : '<span class="muted">No permission.</span>'}</div></div>
     ${currentUser().roles.includes('super_admin') ? `<div class="card"><div class="card-h"><h2 style="color:var(--bad)">Reset all data</h2></div><div class="card-b"><p class="muted">Permanently erases everything in this browser and returns to first-run setup. Download a backup first.</p><button class="btn danger" data-act="reset">Reset…</button></div></div>` : ''}`;
 }
 
@@ -8330,7 +8336,7 @@ function pageEInvoice(){
 function ensureStandardExpenseCats(){
   S.expenseCats = S.expenseCats || [];
   if (S.expenseCats.length) return;
-  const findA = code => (S.accounts || []).find(a => a.code === code && a.active);
+  const findA = code => famAcc(code);
   const defs = [
     { name: 'Showroom Rent', code: '6110', cc: 'SAL' },
     { name: 'Staff Salaries & Commissions', code: '6100', cc: 'ADM' },
@@ -8351,11 +8357,11 @@ function ensureStandardExpenseCats(){
 function ensureStandardAssetCats(){
   S.assetCats = S.assetCats || [];
   if (S.assetCats.length) return;
-  const findA = code => (S.accounts || []).find(a => a.code === code && a.active);
-  const costF = findA('1210') || (S.accounts || []).find(a => a.type === 'asset' && !a.isGroup);
+  const findA = code => famAcc(code);
+  const costF = findA('1210');
   const costV = findA('1220') || costF;
-  const accD = findA('1230') || (S.accounts || []).find(a => a.code.includes('123') || a.nameEn.toLowerCase().includes('deprec'));
-  const expD = findA('6220') || (S.accounts || []).find(a => a.type === 'expense' && a.active && !a.isGroup);
+  const accD = findA('1230');
+  const expD = findA('6220');
   if (costF && accD && expD){
     S.assetCats.push(
       { id: uid('fc'), name: 'Showroom Furniture & Fixtures', assetAccountId: costF.id, accumAccountId: accD.id, expenseAccountId: expD.id, lifeMonths: 60, method: 'straight' },
@@ -8370,7 +8376,8 @@ function pageExpenses(){
   ensureStandardExpenseCats();
   const ed = can('expenses', 'approve');
   const F = UI.filters, q = String(F.ex_q || '').trim().toLowerCase(), stf = F.ex_s || '';
-  let list = [...S.expenses].reverse();
+  const OPEX = S.expenses.filter(x => !x.carExp);
+  let list = [...OPEX].reverse();
   const totalSpent = list.reduce((t, x) => t.plus(x.total || 0), D0());
   const bankSpent = list.filter(x => x.method === 'bank').reduce((t, x) => t.plus(x.total || 0), D0());
   const suppSpent = list.filter(x => x.method === 'supplier').reduce((t, x) => t.plus(x.total || 0), D0());
@@ -8381,14 +8388,14 @@ function pageExpenses(){
 
   const tabs = [['', 'All Methods'], ['bank', 'Cash & Bank'], ['supplier', 'Supplier Bills'], ['employee', 'Employee Reimbursements']];
 
-  return H(t('expense_docs'), 'Operating and General Administrative Expenses (OPEX & G&A) — showroom rent, utilities, marketing, salaries, and office supplies.',
-    (ed ? '<button type="button" class="btn" data-act="ec-new"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-inline-end:4px"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> + New Category</button>' : '') +
-    (can('expenses', 'create') ? '<button type="button" class="btn primary" data-act="ex-new"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-inline-end:4px"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> + New Expense</button>' : '')) +
+  return H(t('expense_docs'), 'Operating and administrative expenses (OPEX & G&A) — showroom rent, utilities, marketing, salaries, office supplies. Costs of a specific car (shipping, customs…) are under Purchases → Car expenses and go into that car\'s cost.',
+    (ed ? '<button type="button" class="btn" data-act="ec-new"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-inline-end:4px"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> New Category</button>' : '') +
+    (can('expenses', 'create') ? '<button type="button" class="btn primary" data-act="ex-new"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-inline-end:4px"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> New Expense</button>' : '')) +
     `<div class="grid g4" style="margin-bottom:16px">
       <div class="card stat-card" style="padding:14px 18px">
         <div class="muted" style="font-size:12px;font-weight:600;text-transform:uppercase">Total OPEX & G&A</div>
         <div class="val" style="font-size:22px;font-weight:700;margin-top:4px">${money(totalSpent)} <small style="font-size:13px;font-weight:400;color:var(--muted)">EGP</small></div>
-        <div class="sub" style="font-size:12px;color:var(--muted);margin-top:2px">${S.expenses.length} recorded voucher${S.expenses.length === 1 ? '' : 's'}</div>
+        <div class="sub" style="font-size:12px;color:var(--muted);margin-top:2px">${OPEX.length} recorded voucher${OPEX.length === 1 ? '' : 's'}</div>
       </div>
       <div class="card stat-card" style="padding:14px 18px">
         <div class="muted" style="font-size:12px;font-weight:600;text-transform:uppercase">Paid via Cash / Bank</div>
@@ -8407,7 +8414,7 @@ function pageExpenses(){
       </div>
     </div>
     <div class="card">
-      <div class="o-pills">${tabs.map(([k, l]) => `<button type="button" class="o-pill ${stf === k ? 'on' : ''}" data-act="set-filter" data-k="ex_s" data-v="${k}">${l} <span>${k ? S.expenses.filter(x => x.method === k).length : S.expenses.length}</span></button>`).join('')}</div>
+      <div class="o-pills">${tabs.map(([k, l]) => `<button type="button" class="o-pill ${stf === k ? 'on' : ''}" data-act="set-filter" data-k="ex_s" data-v="${k}">${l} <span>${k ? OPEX.filter(x => x.method === k).length : OPEX.length}</span></button>`).join('')}</div>
       <div class="filters">
         <input class="input" data-filter="ex_q" placeholder="Search number, payee, reference, description…" value="${esc(F.ex_q || '')}" style="min-width:320px">
         <span class="muted" style="align-self:center;font-size:12.5px;margin-inline-start:auto">${list.length} expense voucher${list.length === 1 ? '' : 's'}</span>
@@ -8431,7 +8438,7 @@ function pageExpenses(){
             ${list.map(x => {
               const e = S.entries.find(y => y.id === x.entryId);
               const b = x.bankId ? bankById(x.bankId) : null;
-              const catNames = (x.lines && x.lines.length) ? x.lines.map(l => l.category).join(', ') : 'Operating Expense';
+              const catNames = (x.lines && x.lines.length) ? [...new Set(x.lines.map(l => l.category).filter(Boolean))].join(', ') : 'Operating Expense';
               const methodPill = x.method === 'bank' ? `<span class="pill ok">${esc(b ? bankLabel(b) : 'Cash / Bank')}</span>` : (x.method === 'supplier' ? '<span class="pill info">Supplier Bill</span>' : '<span class="pill gold">Employee Claim</span>');
               return `<tr data-act="ex-view" data-id="${x.id}" style="cursor:pointer">
                 <td><b>${esc(x.number)}</b></td>
@@ -8542,7 +8549,7 @@ function assetView(a){
   const statusCls = a.status === 'disposed' ? 'bad' : (isClosed ? 'info' : 'ok');
 
   const acts = [
-    '<button type="button" class="btn gold" data-act="dep-run" style="font-weight:700">⚡ Run / Post Due Depreciation</button>'
+    '<button type="button" class="btn gold" data-act="dep-run" style="font-weight:700">Post due depreciation</button>'
   ];
   if (a.status === 'active'){
     acts.push('<button type="button" class="btn" data-act="fa-move" data-id="' + a.id + '">Transfer Location</button>');
@@ -8700,8 +8707,8 @@ function pageAssets(){
   const tabs = [['', 'All Assets'], ['active', 'Running'], ['inactive', 'Inactive'], ['disposed', 'Disposed']];
 
   return H(t('fixed_assets'), 'Odoo Fixed Assets & Automated Monthly Depreciation — showroom assets, equipment, and company service vehicles with automatic monthly ledger postings.',
-    (can('assets', 'create') ? '<button type="button" class="btn gold" data-act="dep-run" style="font-weight:700"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-inline-end:4px"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg> ⚡ Post Due Depreciation</button>' : '') +
-    (can('assets', 'create') ? '<button type="button" class="btn primary" data-act="fa-new"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-inline-end:4px"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> + Register Asset</button>' : '') +
+    (can('assets', 'create') ? '<button type="button" class="btn gold" data-act="dep-run" style="font-weight:700"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-inline-end:4px"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>Post Due Depreciation</button>' : '') +
+    (can('assets', 'create') ? '<button type="button" class="btn primary" data-act="fa-new"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-inline-end:4px"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> Register Asset</button>' : '') +
     (ed ? '<button type="button" class="btn" data-act="fc-new">+ New Category</button>' : '')) +
     `<div class="grid g4" style="margin-bottom:16px">
       <div class="card stat-card" style="padding:14px 18px">
@@ -8711,7 +8718,7 @@ function pageAssets(){
       </div>
       <div class="card stat-card" style="padding:14px 18px">
         <div class="muted" style="font-size:12px;font-weight:600;text-transform:uppercase">Accumulated Depreciation</div>
-        <div class="val" style="font-size:22px;font-weight:700;color:var(--bad,#dc2626);margin-top:4px">${money(totalAccum)} <small style="font-size:13px;font-weight:400;color:var(--muted)">EGP</small></div>
+        <div class="val" style="font-size:22px;font-weight:700;color:${D(totalAccum).gt(0) ? 'var(--bad,#dc2626)' : 'var(--text)'};margin-top:4px">${money(totalAccum)} <small style="font-size:13px;font-weight:400;color:var(--muted)">EGP</small></div>
         <div class="sub" style="font-size:12px;color:var(--muted);margin-top:2px">Expensed to P&L automatically</div>
       </div>
       <div class="card stat-card" style="padding:14px 18px">
@@ -8893,7 +8900,7 @@ const P9_CLICKS = {
     openModal({
       title: 'Run Automatic Depreciation (إهلاك الأصول التلقائي)',
       wide: true,
-      submit: '⚡ Confirm & Run Depreciation',
+      submit: 'Post depreciation',
       body: `<div class="row">
         <div class="field" style="flex:1">
           <label>Depreciation Period End Date *</label>
@@ -9889,7 +9896,7 @@ Object.assign(CLICK, {
   'car-report-pdf'(el){ const po = poById(el.dataset.id); if (po) printCarReport(po); },
   'aging-csv'(el){ finExport([el.dataset.side]); }
 });
-Object.assign(FORM_HANDLERS, P5_FORMS); Object.assign(CLICK, P5_CLICKS); Object.assign(FORM_HANDLERS, P6_FORMS); Object.assign(CLICK, P6_CLICKS); Object.assign(FORM_HANDLERS, P7_FORMS); Object.assign(CLICK, P7_CLICKS); Object.assign(FORM_HANDLERS, P8_FORMS); Object.assign(CLICK, P8_CLICKS); Object.assign(FORM_HANDLERS, P9_FORMS); Object.assign(CLICK, P9_CLICKS); Object.assign(FORM_HANDLERS, P10_FORMS); Object.assign(CLICK, P10_CLICKS); Object.assign(CLICK, IS_CLICKS); Object.assign(CLICK, PLED_CLICKS);
+Object.assign(FORM_HANDLERS, P5_FORMS); Object.assign(CLICK, P5_CLICKS); Object.assign(FORM_HANDLERS, P6_FORMS); Object.assign(CLICK, P6_CLICKS); Object.assign(FORM_HANDLERS, P7_FORMS); Object.assign(CLICK, P7_CLICKS); Object.assign(FORM_HANDLERS, P8_FORMS); Object.assign(CLICK, P8_CLICKS); Object.assign(FORM_HANDLERS, P9_FORMS); Object.assign(CLICK, P9_CLICKS); Object.assign(FORM_HANDLERS, P10_FORMS); Object.assign(CLICK, P10_CLICKS); Object.assign(CLICK, IS_CLICKS); Object.assign(CLICK, PLED_CLICKS); CLICK['data-update'] = () => run(() => { requirePerm('settings', 'edit'); UI.dataUpd = updateData({ manual: true }); });
 
 /* =========================================================================
    DOCUMENT EDITING — edit freely until posted; correct posted documents by
@@ -12270,11 +12277,85 @@ function runTestSuite(){
   return { at: nowISO(), by, ms: Math.round(performance.now() - t0), passed, failed, skipped, results };
 }
 
+
+/* ---------- Update data: bring saved data up to the current version without touching existing records ---------- */
+function chartFamily(){ return (S.accounts || []).some(a => /^\d{6}$/.test(a.code)) && !(S.accounts || []).some(a => a.code === '1130') ? 'odoo' : 'std'; }
+/* Finds the account for a standard-chart code in whichever chart the company uses (1210 ↔ 102100 by name). */
+function famAcc(code){
+  const act = a => a && a.active && !a.isGroup ? a : null;
+  const direct = act((S.accounts || []).find(a => a.code === code)); if (direct) return direct;
+  const t = COA_TEMPLATE.find(r => r[0] === code); if (!t) return null;
+  const byName = (S.accounts || []).filter(a => a.active && !a.isGroup && String(a.nameEn).trim().toLowerCase() === t[1].trim().toLowerCase());
+  return byName[0] || null;
+}
+function updateData(opts = {}){
+  const changes = [], fam = chartFamily(), tmpl = fam === 'odoo' ? ODOO_COA_TEMPLATE : COA_TEMPLATE;
+  const note = (what, n) => { if (n) changes.push(`${what}: ${n}`); };
+  if (!S.company) return changes;
+  /* 1. accounts missing from the chart template (only when a chart exists; never renames or moves yours) */
+  if (S.accounts.length){
+    const byCode = {}; for (const a of S.accounts) byCode[a.code] = a; let added = 0, linked = 0;
+    for (const [code, en, ar, type, parent, flags] of tmpl){
+      if (byCode[code]) continue;
+      if ((S.accounts || []).some(a => !a.isGroup && String(a.nameEn).trim().toLowerCase() === en.trim().toLowerCase() && a.type === type) && !String(flags).includes('g')) continue;
+      const fl = String(flags).split(' ').filter(Boolean), get = k => (fl.find(x => x.startsWith(k + '=')) || '').split('=')[1];
+      const a = { id: uid('ac'), code, nameEn: en, nameAr: ar, parentId: parent && byCode[parent] ? byCode[parent].id : null, type, isGroup: fl.includes('g'),
+        normal: get('n') || ACC_TYPES[type].normal, allowManual: !fl.includes('m0'), reconcile: fl.includes('rec'), currency: get('cur') || '',
+        requireCostCenter: fl.includes('cc'), revalue: fl.includes('rv'), system: fl.includes('s') || !parent, active: true, description: '', createdAt: nowISO(), addedBy: 'data_update' };
+      byCode[code] = a; S.accounts.push(a); added++;
+    }
+    for (const [code, , , , parent] of tmpl) if (byCode[code] && parent && byCode[parent] && !byCode[code].parentId && byCode[code].addedBy === 'data_update'){ byCode[code].parentId = byCode[parent].id; linked++; }
+    note('Accounts added', added);
+    /* 2. account mappings that are missing or point at a missing / inactive account */
+    let fixed = 0;
+    const want = fam === 'odoo' ? Object.entries(ODOO_MAPPING) : MAPPING_KEYS.map(([k, , , c]) => [k, c]);
+    for (const [key, code] of want){
+      const cur = S.mappings[key] && acc(S.mappings[key]);
+      if (cur && cur.active && !cur.isGroup) continue;
+      let a = byCode[code] || (fam === 'odoo' ? null : famAcc(code));
+      if (a && !a.active){ a.active = true; }
+      if (a && !a.isGroup){ S.mappings[key] = a.id; fixed++; }
+    }
+    note('Account mappings set', fixed);
+  }
+  /* 3. defaults that later versions added */
+  let n = 0; for (const j of DEFAULT_JOURNALS) if (!S.journals.some(x => x.code === j.code)){ S.journals.push(clone(j)); n++; } note('Journals added', n);
+  n = 0; for (const [doc, name, prefix] of SEQUENCE_DOCS) if (!S.sequences.some(x => x.doc === doc)){ S.sequences.push({ doc, name, prefix, ...seqDefaults(doc), counters: {} }); n++; } note('Document numbering added', n);
+  n = 0; for (const r of DEFAULT_RATE_TYPES) if (!S.rateTypes.some(x => x.code === r.code)){ S.rateTypes.push(clone(r)); n++; } note('Rate types added', n);
+  n = 0; for (const c of CURRENCIES){ if (!S.currencies.some(x => x.code === c.code)){ S.currencies.push(clone(c)); n++; } if (!S.companyCurrencies.some(x => x.code === c.code)) S.companyCurrencies.push({ code: c.code, active: true }); } note('Currencies added', n);
+  n = 0; for (const t0 of DEFAULT_TAX_CODES) if (!S.taxCodes.some(x => x.code === t0.code)){ S.taxCodes.push(clone(t0)); n++; } note('Tax codes added', n);
+  n = 0; const ctKey = x => Array.isArray(x) ? x[0] : (x.code || x.id); for (const c of DEFAULT_COST_TYPES) if (!S.costTypes.some(x => ctKey(x) === ctKey(c))){ S.costTypes.push(clone(c)); n++; } note('Car cost types added', n);
+  n = 0; for (const v of DEFAULT_VEHICLE_STATUSES) if (!S.vehicleStatuses.some(x => x.code === v.code)){ S.vehicleStatuses.push(clone(v)); n++; } note('Car statuses added', n);
+  n = 0; for (const [code, name] of DEFAULT_COST_CENTERS) if (!S.costCenters.some(c => c.code === code)){ S.costCenters.push({ code, name, active: true }); n++; } note('Cost centres added', n);
+  n = 0; const defs = defaultPermissions(); for (const [role, mods] of Object.entries(defs)){ S.permissions[role] = S.permissions[role] || {}; for (const [m, acts] of Object.entries(mods)) if (!(m in S.permissions[role])){ S.permissions[role][m] = acts; n++; } } note('Permissions added for new modules', n);
+  for (const k of ['proformas','expenseCats','expenses','schedules','assetCats','assets','budgets','analyticAccounts','deliveries','inquiries','quotes']) if (!Array.isArray(S[k])) S[k] = [];
+  /* 4. expense and fixed-asset categories, and categories whose account no longer exists */
+  if (S.accounts.length){
+    const ec0 = S.expenseCats.length; ensureStandardExpenseCats(); note('Expense categories added', S.expenseCats.length - ec0);
+    const ac0 = S.assetCats.length; ensureStandardAssetCats(); note('Fixed-asset categories added', S.assetCats.length - ac0);
+    let rel = 0;
+    for (const c of S.expenseCats){ const a = acc(c.accountId); if (!a || !a.active){ const r = famAcc('6200'); if (r){ c.accountId = r.id; rel++; } } }
+    for (const c of S.assetCats) for (const [f, code] of [['assetAccountId','1210'], ['accumAccountId','1230'], ['expenseAccountId','6220']]){ const a = acc(c[f]); if (!a || !a.active){ const r = famAcc(code); if (r){ c[f] = r.id; rel++; } } }
+    note('Categories re-linked to an active account', rel);
+  }
+  S.meta.dataUpdatedAt = nowISO(); S.meta.version = APP_VERSION;
+  if (changes.length) log('data_update', 'settings', null, null, { changes, chart: fam }, opts.manual ? 'Data updated by user' : 'Data updated at startup');
+  saveState();
+  return changes;
+}
+function safePage(r){
+  try { return pageFor(r); }
+  catch (e){ console.error(e); return `<div class="card" style="max-width:640px;margin:40px auto"><div class="card-b"><h2 style="margin-top:0">This page could not be shown</h2><p class="muted">${esc(e.message)}</p>
+    <p class="muted">Try <b>Settings → Data &amp; Backup → Update data</b>, which adds missing accounts and settings to your data.</p>
+    <div style="display:flex;gap:8px"><a class="btn primary" href="#/settings/data">Open Data &amp; Backup</a><a class="btn" href="#/dashboard">Go to dashboard</a></div></div></div>`; }
+}
+
 /* ---------------- Boot ---------------- */
 S = loadState(); loadUI(); loadSession();
 if (S.meta.migratedAt && !S.meta.migrationLogged){ S.meta.migrationLogged = true; log('schema_migration', 'settings', null, null, { schema: S.schema, version: APP_VERSION }, `Data upgraded to schema ${SCHEMA} (existing records unchanged)`); saveState(); }
 if (!OPEN_ACCESS && SESSION && SESSION.userId && Date.now() - (SESSION.lastActive || 0) > IDLE_MINUTES * 60000){ SESSION = null; saveSession(); }
 if (S.company && !(S.makes || []).length) seedCatalogue();
+try { const ch = updateData(); if (ch.length) setTimeout(() => toast(`Data updated to the latest version (${ch.length} change${ch.length === 1 ? '' : 's'}). Details in Settings → Data & Backup.`, 'ok'), 600); } catch (e){ console.warn('data update failed', e); }
 render();
 </script>
 </body>

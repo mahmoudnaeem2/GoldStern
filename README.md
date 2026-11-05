@@ -18,9 +18,14 @@ Exchange differences on a car's invoices are charged to the car (its cost or its
 Requires Node.js 18+ and Playwright (`npm i playwright`).
 
 ```bash
+node tests/features.js index.html     # every shipped feature is still in the file
 node tests/harness.js index.html      # 228 accounting and control tests
 node tests/az3.js index.html          # full financial cycle, prints every journal entry
 node tests/ui-deals.js                # browser flow: the three ways to buy a car
 ```
 
-Browser tests write screenshots to `tests/out/`.
+Browser tests write screenshots to `tests/out/`. GitHub runs the feature check and the accounting tests on every push (Actions → Check).
+
+**Before editing `index.html`, always get the latest copy first** (`git pull`, or download it from GitHub). Editing an old copy and pushing it silently removes newer features; the Check workflow fails when that happens.
+
+**Settings → Data & Backup → Update data** brings saved data up to date (missing accounts, mappings, journals, categories, permissions) without changing existing records. It also runs automatically when the system opens.
