@@ -5823,7 +5823,8 @@ const NAV_MENUS = {
   cars: [['inv/overview'], ['Cars', ['veh/list', 'inv/stock']], ['Operations', ['inv/receipts', 'inv/deliveries', 'inv/moves', 'inv/counts']]],
   banking: [['bank/accounts'], ['Operations', ['bank/txns', 'bank/transfers']], ['bank/statements'], ['Currency', ['settings/rates', 'bank/reval']]],
   accounting: [['acc/dashboard'], ['Customers', ['ar/invoices', 'ar/receipts', 'ar/advances', 'partners/customers']], ['Vendors', ['ap/invoices', 'ap/receipts', 'ap/advances', 'partners/suppliers']],
-    ['Accounting', ['acc/journals', 'exp/list', 'exp/schedules', 'fa/register', 'acc/opening', 'acc/close']], ['Reporting', ['rep/statements', 'acc/gl', 'acc/tb', 'acc/partner-ledger', 'ar/aging', 'ap/aging', 'tax/report', 'ana/profit']],
+    ['Expenses', ['exp/list', 'exp/schedules']], ['fa/register'],
+    ['Accounting', ['acc/journals', 'acc/opening', 'acc/close']], ['Reporting', ['rep/statements', 'acc/gl', 'acc/tb', 'acc/partner-ledger', 'ar/aging', 'ap/aging', 'tax/report', 'ana/profit']],
     ['Configuration', ['acc/coa', 'tax/codes', 'acc/mappings', 'settings/fiscal', 'settings/rates', 'ana/accounts']]],
   reports: [['Financial', ['rep/statements', 'rep/budgets', 'tax/report']], ['Cars', ['ana/profit', 'imp/landed', 'inv/valuation']], ['Partners', ['acc/partner-ledger', 'ar/aging', 'ap/aging']], ['rep/center']],
   settings: [['General', ['settings/company', 'settings/users', 'settings/roles', 'settings/currencies', 'settings/fiscal']], ['Cars & tax', ['veh/settings', 'tax/codes', 'tax/einvoice']],
@@ -8362,34 +8363,271 @@ function pageEInvoice(){
       <td style="white-space:nowrap">${can('tax', 'export') ? `<button class="btn sm" data-act="ei-json" data-id="${i.id}">Payload JSON</button>` : ''}${can('tax', 'edit') ? `<button class="btn sm" data-act="ei-rec" data-id="${i.id}">Record result</button>` : ''}</td></tr>`; }).join('') || '<tr><td colspan="7" class="empty">No posted customer documents.</td></tr>'}
     </tbody></table></div></div>`;
 }
-function pageExpenses(){
-  const ed = can('expenses', 'approve');
-  return H(t('expense_docs'), 'Administrative, selling and other operating expenses with approval. Expense categories can only post to expense accounts, so they can never be capitalized into vehicle cost.',
-    (ed ? '<button class="btn" data-act="ec-new">New category</button>' : '') + (can('expenses', 'create') && S.expenseCats.length ? '<button class="btn primary" data-act="ex-new">New expense</button>' : '')) + `
-    <div class="card"><div class="card-h"><h2>Categories</h2></div><div class="card-b" style="font-size:13px">${S.expenseCats.map(c => `${esc(c.name)} → <span class="mono">${esc(accLabel(acc(c.accountId)))}</span>${c.costCenter ? ' · CC ' + esc(c.costCenter) : ''}`).join('<br>') || '<span class="muted">No categories yet.</span>'}</div></div>
-    <div class="card"><div class="tbl-wrap"><table><thead><tr><th>Number</th><th>Date</th><th>Paid via</th><th>Payee</th><th>Reference</th><th class="num">Total</th><th>Status</th></tr></thead><tbody>
-    ${[...S.expenses].reverse().map(x => { const e = S.entries.find(y => y.id === x.entryId); return `<tr><td class="mono">${esc(x.number)}</td><td>${x.date}</td><td>${esc(x.method === 'bank' ? bankLabel(bankById(x.bankId)) : x.method)}</td><td>${esc(x.payee || '')}</td><td>${esc(x.ref)}</td><td class="num">${money(x.total)} ${x.currency}</td><td>${e ? entryLink(e) + ' ' + badge(e.status) : ''}</td></tr>`; }).join('') || '<tr><td colspan="7" class="empty">No expenses yet.</td></tr>'}
-    </tbody></table></div></div>`;
+
+function ensureStandardExpenseCats(){
+  S.expenseCats = S.expenseCats || [];
+  if (S.expenseCats.length) return;
+  const findA = code => (S.accounts || []).find(a => a.code === code && a.active);
+  const defs = [
+    { name: 'Showroom Rent', code: '6110', cc: 'SAL' },
+    { name: 'Staff Salaries & Commissions', code: '6100', cc: 'ADM' },
+    { name: 'Utilities & Internet', code: '6120', cc: 'ADM' },
+    { name: 'Marketing & Advertising', code: '6130', cc: 'SAL' },
+    { name: 'Showroom Maintenance & Cleaning', code: '6290', cc: 'SAL' },
+    { name: 'Legal, Auditing & Licensing', code: '6170', cc: 'ADM' },
+    { name: 'Office Supplies & Hospitality', code: '6200', cc: 'ADM' },
+    { name: 'Operational Transportation & Fuel', code: '6150', cc: 'ADM' },
+    { name: 'Bank Charges & Commissions', code: '6180', cc: 'ADM' }
+  ];
+  for (const d of defs){
+    const a = findA(d.code) || findA('6200') || (S.accounts || []).find(x => x.type === 'expense' && x.active && !x.isGroup);
+    if (a) S.expenseCats.push({ id: uid('ec'), name: d.name, accountId: a.id, costCenter: d.cc, active: true });
+  }
 }
+
+function ensureStandardAssetCats(){
+  S.assetCats = S.assetCats || [];
+  if (S.assetCats.length) return;
+  const findA = code => (S.accounts || []).find(a => a.code === code && a.active);
+  const costF = findA('1210') || (S.accounts || []).find(a => a.type === 'asset' && !a.isGroup);
+  const costV = findA('1220') || costF;
+  const accD = findA('1230') || (S.accounts || []).find(a => a.code.includes('123') || a.nameEn.toLowerCase().includes('deprec'));
+  const expD = findA('6220') || (S.accounts || []).find(a => a.type === 'expense' && a.active && !a.isGroup);
+  if (costF && accD && expD){
+    S.assetCats.push(
+      { id: uid('fc'), name: 'Showroom Furniture & Fixtures', assetAccountId: costF.id, accumAccountId: accD.id, expenseAccountId: expD.id, lifeMonths: 60, method: 'straight' },
+      { id: uid('fc'), name: 'IT Equipment & Security Systems', assetAccountId: costF.id, accumAccountId: accD.id, expenseAccountId: expD.id, lifeMonths: 36, method: 'straight' },
+      { id: uid('fc'), name: 'Company Service Vehicles', assetAccountId: costV.id, accumAccountId: accD.id, expenseAccountId: expD.id, lifeMonths: 60, method: 'straight' }
+    );
+  }
+}
+
+
+function pageExpenses(){
+  ensureStandardExpenseCats();
+  const ed = can('expenses', 'approve');
+  const F = UI.filters, q = String(F.ex_q || '').trim().toLowerCase(), stf = F.ex_s || '';
+  let list = [...S.expenses].reverse();
+  const totalSpent = list.reduce((t, x) => t.plus(x.total || 0), D0());
+  const bankSpent = list.filter(x => x.method === 'bank').reduce((t, x) => t.plus(x.total || 0), D0());
+  const suppSpent = list.filter(x => x.method === 'supplier').reduce((t, x) => t.plus(x.total || 0), D0());
+  const empSpent = list.filter(x => x.method === 'employee').reduce((t, x) => t.plus(x.total || 0), D0());
+
+  if (q) list = list.filter(x => (x.number + ' ' + (x.payee || '') + ' ' + (x.ref || '') + ' ' + (x.method || '') + ' ' + ((x.lines || []).map(l => l.category + ' ' + l.description).join(' '))).toLowerCase().includes(q));
+  if (stf) list = list.filter(x => x.method === stf);
+
+  const tabs = [['', 'All Methods'], ['bank', 'Cash & Bank'], ['supplier', 'Supplier Bills'], ['employee', 'Employee Reimbursements']];
+
+  return H(t('expense_docs'), 'Operating and General Administrative Expenses (OPEX & G&A) — showroom rent, utilities, marketing, salaries, and office supplies.',
+    (ed ? '<button type="button" class="btn" data-act="ec-new"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-inline-end:4px"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> + New Category</button>' : '') +
+    (can('expenses', 'create') ? '<button type="button" class="btn primary" data-act="ex-new"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-inline-end:4px"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> + New Expense</button>' : '')) +
+    `<div class="grid g4" style="margin-bottom:16px">
+      <div class="card stat-card" style="padding:14px 18px">
+        <div class="muted" style="font-size:12px;font-weight:600;text-transform:uppercase">Total OPEX & G&A</div>
+        <div class="val" style="font-size:22px;font-weight:700;margin-top:4px">${money(totalSpent)} <small style="font-size:13px;font-weight:400;color:var(--muted)">EGP</small></div>
+        <div class="sub" style="font-size:12px;color:var(--muted);margin-top:2px">${S.expenses.length} recorded voucher${S.expenses.length === 1 ? '' : 's'}</div>
+      </div>
+      <div class="card stat-card" style="padding:14px 18px">
+        <div class="muted" style="font-size:12px;font-weight:600;text-transform:uppercase">Paid via Cash / Bank</div>
+        <div class="val" style="font-size:22px;font-weight:700;color:var(--primary,#008784);margin-top:4px">${money(bankSpent)} <small style="font-size:13px;font-weight:400;color:var(--muted)">EGP</small></div>
+        <div class="sub" style="font-size:12px;color:var(--muted);margin-top:2px">Direct settlement</div>
+      </div>
+      <div class="card stat-card" style="padding:14px 18px">
+        <div class="muted" style="font-size:12px;font-weight:600;text-transform:uppercase">Supplier Payables</div>
+        <div class="val" style="font-size:22px;font-weight:700;margin-top:4px">${money(suppSpent)} <small style="font-size:13px;font-weight:400;color:var(--muted)">EGP</small></div>
+        <div class="sub" style="font-size:12px;color:var(--muted);margin-top:2px">Vendor bills</div>
+      </div>
+      <div class="card stat-card" style="padding:14px 18px">
+        <div class="muted" style="font-size:12px;font-weight:600;text-transform:uppercase">Employee Claims</div>
+        <div class="val" style="font-size:22px;font-weight:700;color:var(--gold,#d97706);margin-top:4px">${money(empSpent)} <small style="font-size:13px;font-weight:400;color:var(--muted)">EGP</small></div>
+        <div class="sub" style="font-size:12px;color:var(--muted);margin-top:2px">Reimbursements due</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="o-pills">${tabs.map(([k, l]) => `<button type="button" class="o-pill ${stf === k ? 'on' : ''}" data-act="set-filter" data-k="ex_s" data-v="${k}">${l} <span>${k ? S.expenses.filter(x => x.method === k).length : S.expenses.length}</span></button>`).join('')}</div>
+      <div class="filters">
+        <input class="input" data-filter="ex_q" placeholder="Search number, payee, reference, description…" value="${esc(F.ex_q || '')}" style="min-width:320px">
+        <span class="muted" style="align-self:center;font-size:12.5px;margin-inline-start:auto">${list.length} expense voucher${list.length === 1 ? '' : 's'}</span>
+      </div>
+      <div class="tbl-wrap">
+        <table class="o-list">
+          <thead>
+            <tr>
+              <th>Voucher</th>
+              <th>Date</th>
+              <th>Paid Via</th>
+              <th>Payee / Vendor</th>
+              <th>Reference</th>
+              <th>Description / Category</th>
+              <th class="num">Amount</th>
+              <th>Journal Entry</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${list.map(x => {
+              const e = S.entries.find(y => y.id === x.entryId);
+              const b = x.bankId ? bankById(x.bankId) : null;
+              const catNames = (x.lines && x.lines.length) ? x.lines.map(l => l.category).join(', ') : 'Operating Expense';
+              const methodPill = x.method === 'bank' ? `<span class="pill ok">${esc(b ? bankLabel(b) : 'Cash / Bank')}</span>` : (x.method === 'supplier' ? '<span class="pill info">Supplier Bill</span>' : '<span class="pill gold">Employee Claim</span>');
+              return `<tr data-act="ex-view" data-id="${x.id}" style="cursor:pointer">
+                <td><b>${esc(x.number)}</b></td>
+                <td style="white-space:nowrap">${esc(x.date)}</td>
+                <td>${methodPill}</td>
+                <td>${esc(x.payee || '—')}</td>
+                <td><span class="mono" style="font-size:12px">${esc(x.ref || '—')}</span></td>
+                <td class="wrap"><div style="font-weight:600">${esc(catNames)}</div>${(x.lines && x.lines[0] && x.lines[0].description) ? `<div class="muted" style="font-size:11.5px">${esc(x.lines[0].description)}</div>` : ''}</td>
+                <td class="num"><b>${money(x.total)}</b> <span class="muted">${x.currency}</span></td>
+                <td>${e ? entryLink(e) + ' ' + badge(e.status) : '<span class="muted">—</span>'}</td>
+                <td style="text-align:end"><button type="button" class="btn sm" data-act="ex-view" data-id="${x.id}">View</button></td>
+              </tr>`;
+            }).join('') || '<tr><td colspan="9" class="empty">' + (q || stf ? 'No expenses match the filter.' : 'No expenses recorded yet. Click "+ New Expense" to record operating or administrative costs.') + '</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <div class="card-h" style="display:flex;justify-content:space-between;align-items:center">
+        <h2>Expense Categories & GL Accounts</h2>
+        ${ed ? '<button type="button" class="btn sm" data-act="ec-new">+ Add Category</button>' : ''}
+      </div>
+      <div class="card-b">
+        <div class="grid g3">
+          ${S.expenseCats.map(c => `<div style="padding:10px 14px;background:var(--surface-2);border-radius:6px;border:1px solid var(--border)">
+            <div style="font-weight:700;font-size:13.5px;color:var(--text)">${esc(c.name)}</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:2px">GL: <span class="mono">${esc(accLabel(acc(c.accountId)))}</span></div>
+            <div style="font-size:11.5px;color:var(--muted);margin-top:2px">Cost Center: <b>${esc(c.costCenter || 'All Showroom')}</b></div>
+          </div>`).join('') || '<span class="muted">No categories configured.</span>'}
+        </div>
+      </div>
+    </div>`;
+}
+
+
+
 function pageSchedules(){
   return H(t('schedules'), 'Prepayments released to expense and recurring accruals, posted monthly through the adjusting journal with approval.',
-    (can('expenses', 'create') ? '<button class="btn" data-act="sc-run">Generate due postings</button><button class="btn primary" data-act="sc-new">New schedule</button>' : '')) + `
+    (can('expenses', 'create') ? '<button type="button" class="btn" data-act="sc-run">Generate due postings</button><button type="button" class="btn primary" data-act="sc-new">New schedule</button>' : '')) + `
     <div class="card"><div class="tbl-wrap"><table><thead><tr><th>Number</th><th>Type</th><th>Description</th><th>Period</th><th class="num">Total</th><th class="num">Posted / pending</th><th>Expense account</th><th>Status</th><th></th></tr></thead><tbody>
     ${S.schedules.map(sc => { const ps = schedPosted(sc); return `<tr><td class="mono">${esc(sc.number)}</td><td>${sc.type}${sc.autoReverse ? ' <span class="badge b-mute">auto-reverse</span>' : ''}</td><td>${esc(sc.description)}</td><td>${sc.start} · ${sc.months} months</td><td class="num">${money(sc.total)}</td>
       <td class="num">${money(ps.reduce((t, p) => t.plus(p.amount), D0()))} <span class="muted">(${ps.length})</span></td><td>${esc(accLabel(acc(sc.expenseAccountId)))}</td><td>${badge(sc.status === 'active' ? 'open' : 'closed').replace(/>[a-z]+</, '>' + sc.status + '<')}</td><td>${docButtons('schedule', sc)}</td></tr>`; }).join('') || '<tr><td colspan="9" class="empty">No schedules.</td></tr>'}
     </tbody></table></div></div>`;
 }
+
 function pageAssets(){
+  ensureStandardAssetCats();
   const ed = can('assets', 'approve');
-  return H(t('fixed_assets'), 'Assets used by the business (furniture, equipment, company cars) — never vehicle inventory held for sale.',
-    (ed ? '<button class="btn" data-act="fc-new">New category</button>' : '') + (can('assets', 'create') && S.assetCats.length ? '<button class="btn" data-act="dep-run">Run depreciation</button><button class="btn primary" data-act="fa-new">Register asset</button>' : '')) + `
-    <div class="card"><div class="card-h"><h2>Categories</h2></div><div class="card-b" style="font-size:13px">${S.assetCats.map(c => `${esc(c.name)}: cost ${esc(acc(c.assetAccountId).code)}, accumulated ${esc(acc(c.accumAccountId).code)}, expense ${esc(acc(c.expenseAccountId).code)}, ${c.lifeMonths} months ${c.method}`).join('<br>') || '<span class="muted">No categories yet.</span>'}</div></div>
-    <div class="card"><div class="tbl-wrap"><table><thead><tr><th>Code</th><th>Asset</th><th>Category</th><th>Available</th><th class="num">Cost</th><th class="num">Accumulated</th><th class="num">NBV</th><th>Location / custodian</th><th>Status</th><th></th></tr></thead><tbody>
-    ${S.assets.map(a => { const v = assetNBV(a); return `<tr><td class="mono">${esc(a.code)}</td><td>${esc(a.description)}<div class="muted" style="font-size:11.5px">${a.method}${a.method === 'declining' ? ' ' + a.ratePct + '%' : ''} · ${a.lifeMonths}m · residual ${money(a.residual)}</div></td><td>${esc((assetCat(a) || {}).name)}</td><td>${a.availableDate}</td>
-      <td class="num">${money(a.cost)}</td><td class="num">${money(v.accum)}</td><td class="num"><b>${money(v.nbv)}</b></td><td style="font-size:12.5px">${esc([a.location, a.custodian].filter(Boolean).join(' / '))}</td><td>${badge(a.status === 'active' ? 'active' : 'inactive').replace(/>[a-z]+</, '>' + a.status + '<')}</td>
-      <td style="white-space:nowrap">${docButtons('asset', a)}${a.status === 'active' && can('assets', 'create') ? `<button class="btn sm" data-act="fa-sched" data-id="${a.id}">Schedule</button><button class="btn sm" data-act="fa-move" data-id="${a.id}">Transfer</button><button class="btn sm" data-act="fa-imp" data-id="${a.id}">Impair</button><button class="btn sm danger" data-act="fa-disp" data-id="${a.id}">Dispose</button>` : ''}</td></tr>`; }).join('') || '<tr><td colspan="10" class="empty">No assets registered.</td></tr>'}
-    </tbody></table></div></div>`;
+  const F = UI.filters, q = String(F.fa_q || '').trim().toLowerCase(), stf = F.fa_s || '';
+  let list = [...S.assets];
+  const totalCost = list.reduce((t, a) => t.plus(a.cost || 0), D0());
+  const totalAccum = list.reduce((t, a) => t.plus(assetNBV(a).accum || 0), D0());
+  const totalNBV = totalCost.minus(totalAccum);
+  const activeCount = list.filter(a => a.status === 'active').length;
+
+  if (q) list = list.filter(a => (a.code + ' ' + (a.description || '') + ' ' + ((assetCat(a) || {}).name || '') + ' ' + (a.location || '') + ' ' + (a.custodian || '')).toLowerCase().includes(q));
+  if (stf) list = list.filter(a => a.status === stf);
+
+  const tabs = [['', 'All Assets'], ['active', 'Active'], ['inactive', 'Inactive'], ['disposed', 'Disposed']];
+
+  return H(t('fixed_assets'), 'Fixed Asset Register & Automated Depreciation — showroom fixtures, equipment, and company service vehicles.',
+    (can('assets', 'create') ? '<button type="button" class="btn gold" data-act="dep-run" style="font-weight:700"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-inline-end:4px"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg> ⚡ Run Depreciation</button>' : '') +
+    (can('assets', 'create') ? '<button type="button" class="btn primary" data-act="fa-new"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-inline-end:4px"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> + Register Asset</button>' : '') +
+    (ed ? '<button type="button" class="btn" data-act="fc-new">+ New Category</button>' : '')) +
+    `<div class="grid g4" style="margin-bottom:16px">
+      <div class="card stat-card" style="padding:14px 18px">
+        <div class="muted" style="font-size:12px;font-weight:600;text-transform:uppercase">Historical Asset Cost</div>
+        <div class="val" style="font-size:22px;font-weight:700;margin-top:4px">${money(totalCost)} <small style="font-size:13px;font-weight:400;color:var(--muted)">EGP</small></div>
+        <div class="sub" style="font-size:12px;color:var(--muted);margin-top:2px">${activeCount} active operational asset${activeCount === 1 ? '' : 's'}</div>
+      </div>
+      <div class="card stat-card" style="padding:14px 18px">
+        <div class="muted" style="font-size:12px;font-weight:600;text-transform:uppercase">Accumulated Depreciation</div>
+        <div class="val" style="font-size:22px;font-weight:700;color:var(--bad,#dc2626);margin-top:4px">${money(totalAccum)} <small style="font-size:13px;font-weight:400;color:var(--muted)">EGP</small></div>
+        <div class="sub" style="font-size:12px;color:var(--muted);margin-top:2px">Expensed to P&L to date</div>
+      </div>
+      <div class="card stat-card" style="padding:14px 18px">
+        <div class="muted" style="font-size:12px;font-weight:600;text-transform:uppercase">Net Book Value (NBV)</div>
+        <div class="val" style="font-size:22px;font-weight:700;color:var(--primary,#008784);margin-top:4px">${money(totalNBV)} <small style="font-size:13px;font-weight:400;color:var(--muted)">EGP</small></div>
+        <div class="sub" style="font-size:12px;color:var(--muted);margin-top:2px">Carrying balance on Balance Sheet</div>
+      </div>
+      <div class="card stat-card" style="padding:14px 18px">
+        <div class="muted" style="font-size:12px;font-weight:600;text-transform:uppercase">Asset Categories</div>
+        <div class="val" style="font-size:22px;font-weight:700;margin-top:4px">${S.assetCats.length}</div>
+        <div class="sub" style="font-size:12px;color:var(--muted);margin-top:2px">Configured depreciation rules</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="o-pills">${tabs.map(([k, l]) => `<button type="button" class="o-pill ${stf === k ? 'on' : ''}" data-act="set-filter" data-k="fa_s" data-v="${k}">${l} <span>${k ? S.assets.filter(a => a.status === k).length : S.assets.length}</span></button>`).join('')}</div>
+      <div class="filters">
+        <input class="input" data-filter="fa_q" placeholder="Search code, asset name, category, custodian, location…" value="${esc(F.fa_q || '')}" style="min-width:340px">
+        <span class="muted" style="align-self:center;font-size:12.5px;margin-inline-start:auto">${list.length} asset${list.length === 1 ? '' : 's'}</span>
+      </div>
+      <div class="tbl-wrap">
+        <table class="o-list">
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Asset Description</th>
+              <th>Category</th>
+              <th>In Service</th>
+              <th class="num">Original Cost</th>
+              <th class="num">Accum. Depr</th>
+              <th class="num">Net Book Value</th>
+              <th>Location / Custodian</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${list.map(a => {
+              const v = assetNBV(a);
+              const cat = assetCat(a) || {};
+              const stBadge = a.status === 'active' ? '<span class="pill ok">Active</span>' : (a.status === 'disposed' ? '<span class="pill bad">Disposed</span>' : '<span class="pill mute">Inactive</span>');
+              return `<tr>
+                <td><b>${esc(a.code)}</b></td>
+                <td>
+                  <div style="font-weight:600">${esc(a.description)}</div>
+                  <div class="muted" style="font-size:11.5px">${esc(a.method)}${a.method === 'declining' ? ' ' + a.ratePct + '%' : ''} · ${a.lifeMonths} months · Residual ${money(a.residual)}</div>
+                </td>
+                <td>${esc(cat.name || '—')}</td>
+                <td style="white-space:nowrap">${esc(a.availableDate)}</td>
+                <td class="num">${money(a.cost)} <span class="muted">EGP</span></td>
+                <td class="num" style="color:var(--bad,#dc2626)">${money(v.accum)}</td>
+                <td class="num"><b style="font-size:14px;color:var(--primary,#008784)">${money(v.nbv)}</b> <span class="muted">EGP</span></td>
+                <td style="font-size:12.5px">${esc([a.location, a.custodian].filter(Boolean).join(' / ') || '—')}</td>
+                <td>${stBadge}</td>
+                <td style="white-space:nowrap;text-align:end">
+                  <button type="button" class="btn sm" data-act="fa-sched" data-id="${a.id}" title="View monthly depreciation schedule">Schedule</button>
+                  ${a.status === 'active' && can('assets', 'create') ? `
+                    <button type="button" class="btn sm" data-act="fa-move" data-id="${a.id}" title="Transfer location/custodian">Transfer</button>
+                    <button type="button" class="btn sm" data-act="fa-imp" data-id="${a.id}" title="Record impairment">Impair</button>
+                    <button type="button" class="btn sm danger" data-act="fa-disp" data-id="${a.id}" title="Dispose / write-off asset">Dispose</button>
+                  ` : ''}
+                </td>
+              </tr>`;
+            }).join('') || '<tr><td colspan="10" class="empty">' + (q || stf ? 'No assets match the filter.' : 'No fixed assets registered yet. Click "+ Register Asset" to record showroom fixtures, equipment, or service vehicles.') + '</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <div class="card-h" style="display:flex;justify-content:space-between;align-items:center">
+        <h2>Asset Categories & Depreciation Rules</h2>
+        ${ed ? '<button type="button" class="btn sm" data-act="fc-new">+ Add Asset Category</button>' : ''}
+      </div>
+      <div class="card-b">
+        <div class="grid g3">
+          ${S.assetCats.map(c => `<div style="padding:10px 14px;background:var(--surface-2);border-radius:6px;border:1px solid var(--border)">
+            <div style="font-weight:700;font-size:13.5px;color:var(--text)">${esc(c.name)}</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:2px">Rule: <b>${c.lifeMonths} months (${(c.lifeMonths/12).toFixed(1)} yrs)</b> · ${esc(c.method)}</div>
+            <div style="font-size:11.5px;color:var(--muted);margin-top:2px">Asset Cost GL: <span class="mono">${esc(acc(c.assetAccountId).code)}</span></div>
+            <div style="font-size:11.5px;color:var(--muted);margin-top:2px">Accum. Depr GL: <span class="mono">${esc(acc(c.accumAccountId).code)}</span></div>
+            <div style="font-size:11.5px;color:var(--muted);margin-top:2px">Depr Expense GL: <span class="mono">${esc(acc(c.expenseAccountId).code)}</span></div>
+          </div>`).join('') || '<span class="muted">No categories configured.</span>'}
+        </div>
+      </div>
+    </div>`;
 }
+
 const P9_FORMS = { taxr(f){ UI.taxr = { from: f.from, to: f.to }; render(); } };
 const accOptsOf = types => S.accounts.filter(a => !a.isGroup && a.active && types.includes(a.type)).sort((x, y) => x.code < y.code ? -1 : 1).map(a => `<option value="${a.id}">${esc(a.code)} — ${esc(accName(a))}</option>`).join('');
 const P9_CLICKS = {
@@ -8400,6 +8638,58 @@ const P9_CLICKS = {
   'ei-json'(el){ const inv = S.invoices.find(i => i.id === el.dataset.id); run(() => { requirePerm('tax', 'export'); download(`eta-${inv.number}.json`, JSON.stringify(eInvoicePayload(inv), null, 2), 'application/json'); log('export', 'tax', inv.id, null, null, 'E-invoice payload draft', inv.number); saveState(); }); },
   'ei-rec'(el){ openModal({ title: 'Record ETA portal result', wide: true, body: `<div class="row"><div class="field"><label>Status</label><select class="input" name="status"><option>submitted</option><option>valid</option><option>rejected</option><option>cancelled</option></select></div><div class="field" style="flex:2"><label>UUID</label><input class="input mono" name="uuid"></div><div class="field"><label>Date</label><input class="input" type="date" name="date" value="${todayCairo()}"></div></div><div class="field"><label>Rejection reasons / validation errors</label><input class="input" name="errors"></div><div class="field"><label>Response notes</label><input class="input" name="response"></div>`, onSubmit: f => A.recordEInvoice(el.dataset.id, f) }); },
   'ec-new'(){ openModal({ title: 'New expense category', body: `<div class="field"><label>Name *</label><input class="input" name="name"></div><div class="field"><label>Expense account *</label><select class="input" name="accountId">${accOptsOf(['expense'])}</select></div><div class="field"><label>Default cost center</label><select class="input" name="costCenter">${ccOptions('')}</select></div>`, onSubmit: f => A.saveExpenseCat(f) }); },
+
+  'ex-view'(el){
+    const x = S.expenses.find(y => y.id === el.dataset.id);
+    if (!x) return;
+    const e = S.entries.find(y => y.id === x.entryId);
+    const b = x.bankId ? bankById(x.bankId) : null;
+    const f = (l, v0) => '<div class="o-f"><div class="l">' + l + '</div><div class="v">' + (v0 || '<span class="muted">—</span>') + '</div></div>';
+    openModal({
+      title: 'Expense Voucher ' + x.number,
+      wide: true,
+      body: '<div class="o-sheet rec" style="margin:0 auto">' +
+        '<div class="o-head">' +
+          '<div>' +
+            '<div class="muted" style="font-size:12px;text-transform:uppercase;font-weight:600">Operating Expense Voucher</div>' +
+            '<h2 style="margin:2px 0 6px">' + esc(x.number) + '</h2>' +
+            '<span class="pill ok">' + esc(x.method === 'bank' ? (b ? bankLabel(b) : 'Bank / Cash') : (x.method === 'supplier' ? 'Supplier Bill' : 'Employee Claim')) + '</span>' +
+          '</div>' +
+          (e ? '<div class="o-stats"><a class="o-stat" href="#/acc/journals" data-act="je-view" data-id="' + e.id + '"><div style="display:flex;align-items:center;gap:6px">' + ic('accounting', 16) + ' <b>' + esc(entryRef(e)) + '</b></div><small>Journal Entry</small></a></div>' : '') +
+        '</div>' +
+        '<div class="o-sec c-info" style="border-top:0;padding-top:0;margin-top:12px">' +
+          '<div class="o-grid">' +
+            '<div>' +
+              f('Voucher Date', esc(x.date)) +
+              f('Payment Method', esc(x.method === 'bank' ? (b ? bankLabel(b) : 'Bank / Cash') : (x.method === 'supplier' ? 'Supplier Bill' : 'Employee Claim'))) +
+              f('Payee / Vendor', esc(x.payee || '—')) +
+            '</div>' +
+            '<div>' +
+              f('Reference / Bill No.', esc(x.ref || '—')) +
+              f('Total Amount', '<b>' + money(x.total) + ' ' + x.currency + '</b>') +
+              f('Status', e ? entryLink(e) + ' ' + badge(e.status) : 'Recorded') +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="o-sec c-gold">' +
+          '<h3>' + ic('file', 16) + ' Expense Items Breakdown</h3>' +
+          '<div class="tbl-wrap"><table>' +
+            '<thead><tr><th>Category</th><th>Description</th><th>Cost Center</th><th>Vehicle</th><th class="num">Amount (' + x.currency + ')</th></tr></thead>' +
+            '<tbody>' +
+              ((x.lines && x.lines.length) ? x.lines.map(l => '<tr>' +
+                '<td><b>' + esc(l.category) + '</b></td>' +
+                '<td>' + esc(l.description || '—') + '</td>' +
+                '<td>' + esc(l.costCenter || '—') + '</td>' +
+                '<td>' + esc(l.vehicle || '—') + '</td>' +
+                '<td class="num"><b>' + money(l.amount) + '</b></td>' +
+              '</tr>').join('') : '<tr><td>Operating Expense</td><td>' + esc(x.ref) + '</td><td>—</td><td>—</td><td class="num"><b>' + money(x.total) + '</b></td></tr>') +
+            '</tbody>' +
+          '</table></div>' +
+          '<div class="o-tot"><table><tbody><tr><td><b>Total:</b></td><td><b style="font-size:16px">' + money(x.total) + ' ' + x.currency + '</b></td></tr></tbody></table></div>' +
+        '</div>' +
+      '</div>'
+    });
+  },
   'ex-new'(){ openModal({ title: 'New expense', xwide: true, submit: 'Save & submit for approval', body: `<div class="row"><div class="field"><label>Date *</label><input class="input" type="date" name="date" value="${todayCairo()}"></div><div class="field"><label>Paid via *</label><select class="input" name="method"><option value="bank">bank / cash (paid now)</option><option value="employee">employee reimbursement</option><option value="supplier">supplier invoice (payable)</option></select></div>
       <div class="field"><label>Bank / cash</label><select class="input" name="bankId">${bankOptions('')}</select></div><div class="field"><label>Supplier</label><select class="input" name="supplierId"><option value="">—</option>${supOpts('')}</select></div></div>
     <div class="row"><div class="field"><label>Employee (reimbursement)</label><input class="input" name="employee"></div><div class="field"><label>Payee</label><input class="input" name="payee"></div><div class="field"><label>Receipt / invoice ref *</label><input class="input" name="ref"></div></div>
@@ -8416,7 +8706,69 @@ const P9_CLICKS = {
     <div class="row"><div class="field"><label>Useful life (months)</label><input class="input" name="lifeMonths"></div><div class="field"><label>Method</label><select class="input" name="method"><option value="">category default</option><option value="straight">straight-line</option><option value="declining">declining balance</option><option value="manual">manual</option></select></div><div class="field"><label>Declining rate % / year</label><input class="input mono" name="ratePct"></div></div>
     <div class="row"><div class="field"><label>Location</label><input class="input" name="location"></div><div class="field"><label>Custodian</label><input class="input" name="custodian"></div></div>
     <div class="row"><div class="field"><label>Funding</label><select class="input" name="funding"><option value="bank">paid now from an EGP bank/cash account</option><option value="existing">already posted (e.g. via supplier bill to the cost account)</option></select></div><div class="field"><label>Bank / cash</label><select class="input" name="bankId">${S.banks.filter(b => b.active && b.currency === 'EGP').map(b => `<option value="${b.id}">${esc(bankLabel(b))}</option>`).join('')}</select></div><div class="field"><label>Reference</label><input class="input" name="ref"></div></div>`, onSubmit: f => { const a = A.createAsset(f); toast(`${a.code} registered.`, 'ok'); } }); },
-  'dep-run'(){ openModal({ title: 'Run depreciation', body: `<div class="field"><label>Up to and including the month of</label><input class="input" type="date" name="upto" value="${todayCairo()}"></div>`, onSubmit: f => { const e = A.runDepreciation(f.upto); toast(`${e.draftRef} submitted for approval.`, 'ok'); } }); },
+  'dep-run'(){
+    const today = todayCairo();
+    const activeAssets = S.assets.filter(x => x.status === 'active' && x.method !== 'manual');
+    const previews = activeAssets.map(a => {
+      const c = assetCat(a) || {};
+      const deprAmt = D(a.cost).minus(a.residual || 0).div(a.lifeMonths || 60);
+      return { a, c, deprAmt };
+    });
+    const estTotal = previews.reduce((t, p) => t.plus(p.deprAmt), D0());
+
+    openModal({
+      title: 'Run Automatic Depreciation (إهلاك الأصول التلقائي)',
+      wide: true,
+      submit: '⚡ Confirm & Run Depreciation',
+      body: `<div class="row">
+        <div class="field" style="flex:1">
+          <label>Depreciation Period End Date *</label>
+          <input class="input" type="date" name="upto" value="${today}" required>
+        </div>
+      </div>
+      <div style="margin:12px 0 8px;font-weight:700;font-size:13px;color:var(--text)">Eligible Active Assets for Automated Depreciation:</div>
+      <div class="tbl-wrap" style="border:1px solid var(--border);border-radius:8px;max-height:220px;overflow-y:auto;margin-bottom:14px">
+        <table class="o-list">
+          <thead>
+            <tr>
+              <th>Asset Code</th>
+              <th>Description</th>
+              <th>Category</th>
+              <th class="num">Original Cost</th>
+              <th>Rule</th>
+              <th class="num">Monthly Depr.</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${previews.map(p => `<tr>
+              <td><b>${esc(p.a.code)}</b></td>
+              <td>${esc(p.a.description)}</td>
+              <td>${esc(p.c.name || '—')}</td>
+              <td class="num">${money(p.a.cost)}</td>
+              <td>${p.a.lifeMonths}m (${p.a.method})</td>
+              <td class="num" style="color:var(--primary,#008784);font-weight:700">${money(p.deprAmt)} EGP</td>
+            </tr>`).join('') || '<tr><td colspan="6" class="empty">No active depreciable assets registered.</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+      <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:6px;padding:12px;font-size:12.5px;line-height:1.6">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+          <span class="muted">Estimated Monthly Total:</span>
+          <b style="font-size:15px;color:var(--primary,#008784)">${money(estTotal)} EGP</b>
+        </div>
+        <div class="muted"><b>Automatic Accounting Entry:</b> Automatically debits <b>Depreciation Expense (P&L 6220)</b> and credits <b>Accumulated Depreciation (Asset Contra 1230)</b> for all active assets.</div>
+      </div>`,
+      onSubmit: f => {
+        try {
+          const e = A.runDepreciation(f.upto);
+          toast(`Depreciation entry ${e.draftRef || e.number || ''} created & posted successfully!`, 'ok');
+          render();
+        } catch(err) {
+          toast(err.message, 'bad');
+        }
+      }
+    });
+  },
   'fa-sched'(el){ const a = assetById(el.dataset.id); openModal({ title: `Depreciation — ${a.code}`, body: `<table><thead><tr><th>Month</th><th>Type</th><th class="num">Amount</th><th>Entry</th></tr></thead><tbody>${a.depr.map(d => { const e = S.entries.find(x => x.id === d.entryId); return `<tr><td>${d.month}</td><td>${d.type}</td><td class="num">${money(d.amount)}</td><td>${e ? esc(entryRef(e)) + ' ' + badge(e.status) : ''}</td></tr>`; }).join('') || '<tr><td colspan="4" class="empty">None yet.</td></tr>'}</tbody></table><p class="muted" style="font-size:12.5px">${(a.history || []).map(h => `${h.date}: ${esc(h.what)}`).join('<br>')}</p>` }); },
   'fa-move'(el){ const a = assetById(el.dataset.id); openModal({ title: `Transfer ${a.code}`, body: `<div class="row"><div class="field"><label>Location</label><input class="input" name="location" value="${esc(a.location)}"></div><div class="field"><label>Custodian</label><input class="input" name="custodian" value="${esc(a.custodian)}"></div></div><div class="field"><label>Reason</label><input class="input" name="reason"></div>`, onSubmit: f => A.transferAsset(a.id, f) }); },
   'fa-imp'(el){ openModal({ title: 'Impairment', body: `<div class="row"><div class="field"><label>Date *</label><input class="input" type="date" name="date" value="${todayCairo()}"></div><div class="field"><label>Amount (EGP) *</label><input class="input mono" name="amount"></div></div><div class="field"><label>Reason *</label><input class="input" name="reason"></div>`, onSubmit: f => A.impairAsset(el.dataset.id, f) }); },
