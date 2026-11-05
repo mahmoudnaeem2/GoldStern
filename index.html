@@ -1795,6 +1795,7 @@ const A = {
     const old = clone(S.company);
     const keys = ['legalName','commercialName','taxRegNo','commercialRegNo','address','phone','email'];
     for (const k of keys) S.company[k] = String(f[k] || '').trim();
+    if ('fxToCar' in f) S.company.fxToCar = f.fxToCar === 'yes' || f.fxToCar === true || f.fxToCar === '1';
     const m = parseInt(f.fyStartMonth, 10); if (m >= 1 && m <= 12) S.company.fyStartMonth = m;
     log('company_update', 'company', S.company.id, old, clone(S.company), f.reason || '');
     saveState();
@@ -2812,7 +2813,8 @@ function invCarWeights(inv){
   return [...m.entries()].map(([vid, o]) => ({ v: vehById(vid), w: o.w, acc: o.acc })).filter(x => x.v);
 }
 function fxToCarLines(fx, inv, side, desc){
-  if (!FX_TO_CAR || !fx || fx.eq(0) || !inv) return null;
+  const fxActive = !(S.company && S.company.fxToCar === false);
+  if (!fxActive || !fx || fx.eq(0) || !inv) return null;
   const cars = invCarWeights(inv); if (!cars.length) return null;
   const parts = allocate(fx.abs(), cars.map(c => c.w)), gain = fx.gt(0);
   return cars.map((c, k) => { if (parts[k].eq(0)) return null;
@@ -5003,6 +5005,13 @@ function pageCompany(){
         <div class="field"><label>Functional currency</label><input class="input" value="EGP" readonly></div>
         <div class="field"><label>Reporting currency</label><input class="input" value="EGP" readonly></div>
         <div class="field"><label>Time zone</label><input class="input" value="Africa/Cairo" readonly></div></div>
+      <div class="field" style="margin-top:14px;padding:12px 14px;background:var(--surface-2,#f8fafc);border:1px solid var(--border,#e2e8f0);border-radius:6px">
+        <label style="display:flex;align-items:center;gap:8px;font-weight:600;cursor:pointer">
+          <input type="checkbox" name="fxToCar" value="yes" ${c.fxToCar !== false ? 'checked' : ''} ${ed ? '' : 'disabled'}>
+          Capitalize supplier exchange differences into vehicle inventory cost
+        </label>
+        <span class="hint" style="margin:4px 0 0 24px">When enabled (default), exchange differences when paying a car's supplier adjust the car's cost. When disabled, exchange differences are booked directly to P&L Realized FX Gain/Loss accounts and do not change the vehicle cost.</span>
+      </div>
       ${ed ? `<div class="row"><div class="field"><label>Reason for change</label><input class="input" name="reason" placeholder="Recorded in the audit trail"></div><div><button class="btn primary" style="margin-bottom:12px">${t('save')}</button></div></div>` : ''}
     </div></form>`;
 }
@@ -6194,25 +6203,181 @@ function pagePartnerStatement(){
   const side = routeParam('side') === 'ap' ? 'ap' : 'ar', SD = SIDES[side], p = partnerById(side, routeParam('id'));
   if (!p) return H('Statement', '') + '<div class="card"><div class="empty">Not found.</div></div>';
   UI.pst = UI.pst || {}; const R0 = UI.pst[p.id] || { from: todayCairo().slice(0, 4) + '-01-01', to: todayCairo() };
+  
+  const advs = S.settlements.filter(s => s.side === side && s.partnerId === p.id && s.type === 'cash' && entryStatus(s) === 'posted' && advState(s).availPosted.gt(0));
+  
   const ev = [];
+  // 1. Invoices
   for (const i of S.invoices.filter(x => x.side === side && x.partnerId === p.id && entryStatus(x) === 'posted'))
     ev.push({ date: i.date, cur: i.currency, ref: i.number, invId: i.id, text: i.type === 'credit' ? `${SD.credit}: ${i.reason}` : `${i.type === 'opening' ? 'Opening ' : ''}${SD.doc}${i.partnerRef ? ' ' + i.partnerRef : ''} · due ${i.dueDate}`, amt: i.type === 'credit' ? D(i.total).negated() : D(i.total) });
+  
+  // 2. Applied settlements / advances
   for (const s of S.settlements.filter(x => x.side === side && x.partnerId === p.id && entryStatus(x) === 'posted'))
     for (const a of s.allocations) ev.push({ date: s.date, cur: a.currency, ref: s.number, entryId: s.entryId, text: s.type === 'advance' ? `Advance applied to ${a.number}` : `${SD.set} ${money(a.portion)} ${s.currency} → ${a.number}`, amt: D(a.applied).negated() });
-  const curs = [...new Set(ev.map(x => x.cur))].sort();
-  const advs = S.settlements.filter(s => s.side === side && s.partnerId === p.id && s.type === 'cash' && entryStatus(s) === 'posted' && advState(s).availPosted.gt(0));
-  return H(`Statement — ${p.legalName}`, `${esc(p.code)} · amounts owed ${side === 'ar' ? 'by' : 'to'} the ${SD.partner.toLowerCase()} in each document currency`, `<button class="btn" onclick="window.print()">Print</button>`) + `
-    <form class="card" data-form="pst" data-id="${p.id}"><div class="filters"><label class="muted" style="align-self:center">From</label><input class="input" type="date" name="from" value="${R0.from}"><label class="muted" style="align-self:center">To</label><input class="input" type="date" name="to" value="${R0.to}"><button class="btn">Show</button></div></form>
-    ${curs.map(c => { const before = ev.filter(x => x.cur === c && x.date < R0.from).reduce((t, x) => t.plus(x.amt), D0()); let run = before;
-      const rows = ev.filter(x => x.cur === c && x.date >= R0.from && x.date <= R0.to).sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : (a.amt.gt(0) ? -1 : 1));
-      return `<div class="card"><div class="card-h"><h2>${c}</h2><div class="actions"><span class="pill">Opening ${money(before)}</span></div></div><div class="tbl-wrap"><table><thead><tr><th>Date</th><th>Ref</th><th>Details</th><th class="num">Charges</th><th class="num">Credits</th><th class="num">Balance</th><th class="num">Still due</th><th></th></tr></thead><tbody>
-        ${rows.map(x => { run = run.plus(x.amt); const iv = x.invId ? S.invoices.find(v => v.id === x.invId) : null, op = iv && iv.type !== 'credit' ? invState(iv).open : null;
-          return `<tr><td>${x.date}</td><td>${iv ? `<a href="#" class="mono" data-act="inv-view" data-id="${iv.id}">${esc(x.ref)}</a>` : x.entryId ? `<a href="#" class="mono" data-act="je-view" data-id="${x.entryId}">${esc(x.ref)}</a>` : `<span class="mono">${esc(x.ref)}</span>`}</td><td>${esc(x.text)}</td><td class="num">${x.amt.gt(0) ? money(x.amt) : ''}</td><td class="num">${x.amt.lt(0) ? money(x.amt.abs()) : ''}</td><td class="num">${money(run)}</td>
-            <td class="num">${op ? (op.gt(0) ? `<b>${money(op)}</b>` : '<span class="badge b-ok">paid</span>') : ''}</td><td style="white-space:nowrap">${iv ? `<button class="btn sm" data-act="inv-view" data-id="${iv.id}">Open</button>${op && op.gt(0) && can(SD.mod, 'create') ? `<button class="btn sm gold" data-act="inv-pay" data-id="${iv.id}">${side === 'ar' ? 'Receive' : 'Pay'}</button>` : ''}` : ''}</td></tr>`; }).join('') || '<tr><td colspan="8" class="empty">No movements in range.</td></tr>'}
-        <tr style="font-weight:700"><td colspan="5">Closing balance ${c}</td><td class="num">${money(run)}</td><td></td><td></td></tr></tbody></table></div></div>`; }).join('') || '<div class="card"><div class="empty">No posted documents.</div></div>'}
-    ${advs.length ? `<div class="card"><div class="card-h"><h2>Unallocated advances</h2></div><div class="card-b">${advs.map(s => `<a href="#" class="mono" data-act="je-view" data-id="${s.entryId}">${esc(s.number)}</a> · ${s.date} · <b>${money(advState(s).availPosted)} ${s.currency}</b>${can(SD.mod, 'create') && S.invoices.some(i => i.side === side && i.partnerId === p.id && invIsLive(i) && invState(i).open.gt(0)) ? ` <button class="btn sm" data-act="adv-alloc" data-side="${side}" data-id="${s.id}">Apply to an invoice</button>` : ''}`).join('<br>')}</div></div>` : ''}`;
-}
+  
+  // 3. Unallocated advances / deposits (so they appear in movements and balance)
+  for (const s of advs){
+    const av = advState(s).availPosted;
+    ev.push({ date: s.date, cur: s.currency, ref: s.number, entryId: s.entryId, isAdv: true, advId: s.id, text: side === 'ar' ? `Customer deposit / Advance (unallocated)` : `Supplier advance (prepayment)`, amt: D(av).negated() });
+  }
 
+  const allCurrencies = new Set(ev.map(x => x.cur));
+  for (const s of advs) allCurrencies.add(s.currency);
+  const curs = [...allCurrencies].sort();
+
+  // Summary of balances across all currencies
+  const balancesByCur = {};
+  const advTotByCur = {};
+  for (const s of advs){
+    const c = s.currency || 'EUR';
+    advTotByCur[c] = (advTotByCur[c] || D0()).plus(advState(s).availPosted);
+  }
+  for (const c of curs){
+    balancesByCur[c] = ev.filter(x => x.cur === c && x.date <= R0.to).reduce((t, x) => t.plus(x.amt), D0());
+  }
+
+  const summaryCardsHtml = curs.map(c => {
+    const bal = balancesByCur[c] || D0();
+    const isDue = bal.gt(0);
+    const isCredit = bal.lt(0);
+    const label = isDue ? (side === 'ar' ? 'Amount Due from Customer' : 'Amount Due to Supplier') : isCredit ? (side === 'ar' ? 'Customer in Credit (Advance Held)' : 'Supplier in Debit (Prepaid)') : 'Fully Settled';
+    const color = isDue ? 'var(--bad, #dc2626)' : isCredit ? 'var(--ok, #16a34a)' : 'var(--text-muted)';
+    return `
+      <div style="background:var(--surface,#fff);border:1px solid var(--border,#e2e8f0);border-radius:8px;padding:12px 16px;min-width:200px;flex:1">
+        <div style="font-size:11px;font-weight:600;color:var(--text-muted,#64748b);text-transform:uppercase">${c} Statement Balance</div>
+        <div style="font-size:18px;font-weight:700;color:${color};margin-top:2px">${money(bal.abs())} ${c} ${isDue ? '<small style="font-size:12px;font-weight:500">(Due)</small>' : isCredit ? '<small style="font-size:12px;font-weight:500">(In credit)</small>' : ''}</div>
+        <div style="font-size:11.5px;color:var(--text-muted,#64748b);margin-top:2px">${label}</div>
+      </div>
+    `;
+  }).join('');
+
+  return H(`Statement — ${p.legalName}`, `${esc(p.code)} · amounts owed ${side === 'ar' ? 'by' : 'to'} the ${SD.partner.toLowerCase()} in each document currency`, `<button class="btn" onclick="window.print()">Print</button>`) + `
+    <div style="display:flex;gap:12px;margin-bottom:14px;flex-wrap:wrap">
+      ${summaryCardsHtml}
+    </div>
+
+    <form class="card" data-form="pst" data-id="${p.id}">
+      <div class="filters">
+        <label class="muted" style="align-self:center">From</label>
+        <input class="input" type="date" name="from" value="${R0.from}">
+        <label class="muted" style="align-self:center">To</label>
+        <input class="input" type="date" name="to" value="${R0.to}">
+        <button class="btn">Show</button>
+      </div>
+    </form>
+
+    ${curs.map(c => {
+      const before = ev.filter(x => x.cur === c && x.date < R0.from).reduce((t, x) => t.plus(x.amt), D0());
+      let run = before;
+      const rows = ev.filter(x => x.cur === c && x.date >= R0.from && x.date <= R0.to).sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : (a.amt.gt(0) ? -1 : 1));
+      const curAdv = advTotByCur[c] || D0();
+      return `<div class="card" style="margin-bottom:16px">
+        <div class="card-h" style="display:flex;justify-content:space-between;align-items:center">
+          <h2>${c}</h2>
+          <div class="actions">
+            <span class="pill">Opening ${money(before)}</span>
+            ${curAdv.gt(0) ? `<span class="pill ok" style="margin-inline-start:6px">Advances available: ${money(curAdv)} ${c}</span>` : ''}
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Ref</th>
+                <th>Details</th>
+                <th class="num">Charges</th>
+                <th class="num">Credits</th>
+                <th class="num">Balance</th>
+                <th class="num">Still due</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows.map(x => {
+                run = run.plus(x.amt);
+                const iv = x.invId ? S.invoices.find(v => v.id === x.invId) : null, op = iv && iv.type !== 'credit' ? invState(iv).open : null;
+                return `<tr>
+                  <td>${x.date}</td>
+                  <td>${iv ? `<a href="#" class="mono" data-act="inv-view" data-id="${iv.id}">${esc(x.ref)}</a>` : x.entryId ? `<a href="#" class="mono" data-act="je-view" data-id="${x.entryId}">${esc(x.ref)}</a>` : `<span class="mono">${esc(x.ref)}</span>`}</td>
+                  <td>${esc(x.text)}${x.isAdv ? ' <span class="pill ok" style="font-size:10px;padding:1px 6px">Unallocated</span>' : ''}</td>
+                  <td class="num">${x.amt.gt(0) ? money(x.amt) : ''}</td>
+                  <td class="num" style="${x.amt.lt(0) ? 'color:var(--ok,#16a34a)' : ''}">${x.amt.lt(0) ? money(x.amt.abs()) : ''}</td>
+                  <td class="num"><b>${money(run)}</b></td>
+                  <td class="num">${op ? (op.gt(0) ? `<b>${money(op)}</b>` : '<span class="badge b-ok">paid</span>') : (x.isAdv ? `<span class="pill ok">${money(x.amt.abs())} open</span>` : '')}</td>
+                  <td style="white-space:nowrap;text-align:end">
+                    ${iv ? `<button class="btn sm" data-act="inv-view" data-id="${iv.id}">Open</button>${op && op.gt(0) && can(SD.mod, 'create') ? `<button class="btn sm gold" data-act="inv-pay" data-id="${iv.id}">${side === 'ar' ? 'Receive' : 'Pay'}</button>` : ''}` : ''}
+                    ${x.isAdv && can(SD.mod, 'create') && S.invoices.some(i => i.side === side && i.partnerId === p.id && invIsLive(i) && invState(i).open.gt(0)) ? `
+                      <button class="btn sm gold" data-act="adv-alloc" data-side="${side}" data-id="${x.advId}">Apply to invoice</button>
+                    ` : ''}
+                  </td>
+                </tr>`;
+              }).join('') || '<tr><td colspan="8" class="empty">No movements in range.</td></tr>'}
+              <tr style="font-weight:700;background:var(--surface-2,#f8fafc)">
+                <td colspan="5">Closing balance ${c}</td>
+                <td class="num" style="font-size:14px;color:${run.gt(0) ? 'var(--bad,#dc2626)' : run.lt(0) ? 'var(--ok,#16a34a)' : 'inherit'}">${money(run)} ${c}</td>
+                <td colspan="2"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>`;
+    }).join('') || '<div class="card"><div class="empty">No movements or posted documents found.</div></div>'}
+
+    ${advs.length ? `
+    <div class="card" style="border-top:3px solid var(--ok,#16a34a);margin-bottom:16px">
+      <div class="card-h" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+        <div>
+          <h2 style="margin:0;font-size:16px">${side === 'ar' ? 'Customer Deposits &amp; Unallocated Advances' : 'Supplier Advances &amp; Prepayments'} <span class="cnt">${advs.length}</span></h2>
+          <div class="muted" style="font-size:12px;margin-top:2px">Unallocated advance funds held for this ${side === 'ar' ? 'customer' : 'supplier'}</div>
+        </div>
+        <div class="actions">
+          ${Object.entries(advTotByCur).map(([c, amt]) => `<span class="pill ok" style="font-size:13px;padding:4px 10px">Total Available: <b>${money(amt)} ${c}</b></span>`).join(' ')}
+        </div>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Receipt / Advance</th>
+              <th>Channel / Bank</th>
+              <th>Reference / Memo</th>
+              <th class="num">Original Amount</th>
+              <th class="num">Available Balance</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${advs.map(s => {
+              const b = bankById(s.bankId);
+              const av = advState(s).availPosted;
+              return `<tr>
+                <td style="white-space:nowrap">${s.date}</td>
+                <td><button type="button" class="lnk0 mono" data-act="je-view" data-id="${s.entryId}"><b>${esc(s.number)}</b></button></td>
+                <td>${esc(b ? b.name : 'Cash/Bank')}</td>
+                <td class="wrap">${esc(s.reference || '—')}</td>
+                <td class="num">${money(s.amount)} ${s.currency}</td>
+                <td class="num"><b style="color:var(--ok,#16a34a);font-size:14px">${money(av)} ${s.currency}</b></td>
+                <td><span class="pill ok">Available</span></td>
+                <td style="white-space:nowrap;text-align:end">
+                  ${can(SD.mod, 'create') && S.invoices.some(i => i.side === side && i.partnerId === p.id && invIsLive(i) && invState(i).open.gt(0)) ? `
+                    <button class="btn sm gold" data-act="adv-alloc" data-side="${side}" data-id="${s.id}">Apply to invoice</button>
+                  ` : ''}
+                </td>
+              </tr>`;
+            }).join('')}
+            <tr style="font-weight:700;background:var(--surface-2,#f8fafc)">
+              <td colspan="5">Total Available Balance</td>
+              <td class="num" style="color:var(--ok,#16a34a);font-size:15px">${Object.entries(advTotByCur).map(([c, amt]) => `${money(amt)} ${c}`).join(' + ')}</td>
+              <td colspan="2"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>` : ''}`;
+}
 /* =========================================================================
    PHASE 5 PAGES — Vehicles & Inventory
    ========================================================================= */
@@ -8940,19 +9105,19 @@ function openPoAdvance(po, side){
 
     const orderVal = po.lines.reduce((t, l) => t.plus(l.price), D0());
     const prior = poAdvances(po, side).filter(x => ACTIVE_ST.includes(entryStatus(x)));
-    const paidTotal = prior.reduce((t, x) => t.plus(x.amount), D0());
-    const rem = orderVal.minus(paidTotal);
-    const remVal = rem.gt(0) ? rem : D0();
+    const priorPaidTotal = prior.reduce((t, x) => t.plus(x.amount), D0());
+    const fullRem = orderVal.minus(priorPaidTotal);
+    const fullRemVal = fullRem.gt(0) ? fullRem : D0();
 
     const amtInput = form.querySelector('[name=amount]');
-    if (amtInput && !amtInput.value && remVal.gt(0)){
-      amtInput.value = remVal.toFixed(2);
+    if (amtInput && !amtInput.value && fullRemVal.gt(0)){
+      amtInput.value = fullRemVal.toFixed(2);
       amtInput.dispatchEvent(new Event('input', { bubbles: true }));
       amtInput.dispatchEvent(new Event('change', { bubbles: true }));
     }
 
     const noteHtml = `
-      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px 14px;margin-bottom:12px">
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px 14px;margin-bottom:12px" id="po-adv-summary">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #e2e8f0">
           <div>
             <b style="color:#0f172a;font-size:14px">${side === 'ar' ? 'Customer Deposit' : 'Supplier Advance'}</b>
@@ -8967,19 +9132,20 @@ function openPoAdvance(po, side){
             ${po.rate && po.currency !== 'EGP' ? `<div style="font-size:11px;color:#64748b;margin-top:2px">@ ${fmtNum(po.rate, 4)} EGP</div>` : ''}
           </div>
           <div style="background:#f0fdf4;padding:8px;border-radius:6px;border:1px solid #bbf7d0">
-            <div style="font-size:11px;font-weight:600;color:#16a34a;text-transform:uppercase">${side === 'ar' ? 'Paid by Customer So Far' : 'Paid to Supplier So Far'}</div>
-            <div style="font-size:16px;font-weight:700;color:#16a34a;margin-top:2px">${money(paidTotal)} <small style="font-weight:500;font-size:11px">${po.currency}</small></div>
-            <div style="font-size:11px;color:#15803d;margin-top:2px">${prior.length ? `${prior.length} payment(s) made` : 'No prior payments'}</div>
+            <div style="font-size:11px;font-weight:600;color:#16a34a;text-transform:uppercase">${side === 'ar' ? 'Total Paid (Incl. This)' : 'Total Paid to Supplier'}</div>
+            <div style="font-size:16px;font-weight:700;color:#16a34a;margin-top:2px"><span id="po-adv-paid-val">${money(priorPaidTotal)}</span> <small style="font-weight:500;font-size:11px">${po.currency}</small></div>
+            <div style="font-size:11px;color:#15803d;margin-top:2px" id="po-adv-paid-sub">${prior.length ? `${prior.length} payment(s) prior` : 'No prior payments'}</div>
           </div>
-          <div style="background:#fff1f2;padding:8px;border-radius:6px;border:1px solid #fecdd3">
+          <div style="background:#fff1f2;padding:8px;border-radius:6px;border:1px solid #fecdd3" id="po-adv-rem-box">
             <div style="font-size:11px;font-weight:600;color:#e11d48;text-transform:uppercase">Remaining Balance</div>
-            <div style="font-size:16px;font-weight:700;color:#e11d48;margin-top:2px">${money(remVal)} <small style="font-weight:500;font-size:11px">${po.currency}</small></div>
-            ${remVal.gt(0) ? `<button type="button" class="btn sm" style="margin-top:3px;padding:1px 6px;font-size:11px;height:auto;line-height:1.3" onclick="const a=document.querySelector('#mform [name=amount]');if(a){a.value='${remVal.toFixed(2)}';a.dispatchEvent(new Event('input',{bubbles:true}));a.dispatchEvent(new Event('change',{bubbles:true}));}">Pay remaining</button>` : '<div style="font-size:11px;color:#9f1239;margin-top:2px">Settled</div>'}
+            <div style="font-size:16px;font-weight:700;color:#e11d48;margin-top:2px"><span id="po-adv-rem-val">${money(fullRemVal)}</span> <small style="font-weight:500;font-size:11px">${po.currency}</small></div>
+            <div style="font-size:11px;color:#64748b;margin-top:2px" id="po-adv-rem-sub">After this payment</div>
+            ${fullRemVal.gt(0) ? `<button type="button" class="btn sm" id="po-adv-pay-rem-btn" style="margin-top:3px;padding:1px 6px;font-size:11px;height:auto;line-height:1.3" onclick="const a=document.querySelector('#mform [name=amount]');if(a){a.value='${fullRemVal.toFixed(2)}';a.dispatchEvent(new Event('input',{bubbles:true}));a.dispatchEvent(new Event('change',{bubbles:true}));}">Pay full remaining (${money(fullRemVal)})</button>` : ''}
           </div>
         </div>
         ${prior.length ? `
         <div style="margin-top:10px;padding-top:8px;border-top:1px dashed #cbd5e1;font-size:12px">
-          <div style="font-weight:600;color:#475569;margin-bottom:4px">Prior recorded payments for this order:</div>
+          <div style="font-weight:600;color:#475569;margin-bottom:4px">Prior recorded payments for this order (${money(priorPaidTotal)} ${po.currency}):</div>
           <div style="display:flex;flex-direction:column;gap:3px">
             ${prior.map(pr => {
               const b = bankById(pr.bankId);
@@ -8993,6 +9159,52 @@ function openPoAdvance(po, side){
       </div>`;
 
     decorateModal(side === 'ar' ? `Customer deposit — ${po.number}` : `Advance to supplier — ${po.number}`, 'Save & submit for approval', noteHtml);
+
+    const syncCards = () => {
+      const aInp = form.querySelector('[name=amount]');
+      const raw = String(aInp ? aInp.value : '0').replace(/,/g, '').trim();
+      let curAmt = D0();
+      try { if (raw && !isNaN(Number(raw))) curAmt = D(raw); } catch (e){}
+      if (!curAmt.gt(0)) curAmt = D0();
+
+      const totalPaid = priorPaidTotal.plus(curAmt);
+      const remAfter = orderVal.minus(totalPaid);
+      const remAfterVal = remAfter.gt(0) ? remAfter : D0();
+
+      const elPaidVal = document.getElementById('po-adv-paid-val');
+      const elPaidSub = document.getElementById('po-adv-paid-sub');
+      const elRemVal = document.getElementById('po-adv-rem-val');
+      const elRemSub = document.getElementById('po-adv-rem-sub');
+      const elRemBox = document.getElementById('po-adv-rem-box');
+
+      if (elPaidVal) elPaidVal.textContent = money(totalPaid);
+      if (elPaidSub) {
+        if (curAmt.gt(0) && prior.length) elPaidSub.textContent = `${money(priorPaidTotal)} prior + ${money(curAmt)} this payment`;
+        else if (curAmt.gt(0)) elPaidSub.textContent = `${money(curAmt)} this payment`;
+        else elPaidSub.textContent = prior.length ? `${prior.length} prior payment(s)` : 'No payments yet';
+      }
+
+      if (elRemVal) {
+        elRemVal.textContent = money(remAfterVal);
+        elRemVal.style.color = remAfterVal.gt(0) ? '#e11d48' : '#16a34a';
+      }
+      if (elRemBox) {
+        elRemBox.style.background = remAfterVal.gt(0) ? '#fff1f2' : '#f0fdf4';
+        elRemBox.style.borderColor = remAfterVal.gt(0) ? '#fecdd3' : '#bbf7d0';
+      }
+      if (elRemSub) {
+        if (remAfterVal.gt(0)) elRemSub.innerHTML = 'Remaining after this payment';
+        else if (totalPaid.gt(orderVal)) elRemSub.innerHTML = `<span style="color:#b45309;font-weight:600">Overpaid by ${money(totalPaid.minus(orderVal))} ${po.currency}</span>`;
+        else elRemSub.innerHTML = '<span style="color:#16a34a;font-weight:600">✓ Fully paid (0.00 balance)</span>';
+      }
+    };
+
+    if (amtInput) {
+      amtInput.addEventListener('input', syncCards);
+      amtInput.addEventListener('change', syncCards);
+      setTimeout(syncCards, 10);
+      setTimeout(syncCards, 100);
+    }
 }
 Object.assign(CLICK, {
   'make-ren'(el){ const m = S.makes.find(x => x.id === el.dataset.id); openModal({ title: `Rename brand ${m.name}`, body: `<div class="field"><label>Brand name *</label><input class="input" name="name" value="${esc(m.name)}" required></div><div class="field"><label>Reason</label><input class="input" name="reason"></div>`, onSubmit: f => A.renameMake(m.id, f.name, f.reason) }); },
