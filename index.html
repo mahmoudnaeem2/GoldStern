@@ -859,119 +859,6 @@ th{color:var(--g500);font-weight:500;background:var(--g50)}
   font-size: 13px;
   color: #94a3b8;
 }
-.rc-sum.pl > div{padding:7px 0}.rc-sum.pl > div.sub{padding:3px 0 3px 16px;font-size:12.5px}.rc-sum.pl > div.sub dt,.rc-sum.pl > div.sub dd{color:var(--muted)}
-.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}
-.kpis > div{background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:2px}
-.kpis span{font-size:12.5px;color:var(--muted)}.kpis b{font-size:18px;font-weight:650;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
-.tl{list-style:none;margin:0;padding:0}.tl li{display:flex;gap:10px;padding:0 0 12px;position:relative}.tl li:not(:last-child)::before{content:'';position:absolute;left:4px;top:14px;bottom:0;width:2px;background:var(--border)}
-.tl .dot{width:10px;height:10px;border-radius:50%;background:var(--gold);margin-top:5px;flex:none}.tl b{font-size:13.5px;font-weight:600}.tl .muted{font-size:12.5px}
-@media (max-width:700px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
-
-/* ==== Goldstern design system v1 — single source of truth; loaded last so it wins ====
-   Tokens: spacing --sp-*, radius --r-*, type --fs-*, elevation --el-*. Components below reference only these. */
-:root{
-  --sp-1:4px;--sp-2:8px;--sp-3:12px;--sp-4:16px;--sp-5:20px;--sp-6:24px;--sp-8:32px;
-  --r-sm:6px;--r-md:8px;--r-lg:12px;--r-pill:999px;
-  --fs-xs:11.5px;--fs-sm:12.5px;--fs-md:14px;--fs-lg:16px;--fs-xl:20px;--fs-2xl:26px;
-  --el-1:0 1px 2px rgba(15,23,42,.05);--el-2:0 1px 3px rgba(15,23,42,.06),0 1px 2px rgba(15,23,42,.04);--el-3:0 12px 32px rgba(15,23,42,.14);
-  --ctl-h:36px;--text-2:#334155;--radius:var(--r-lg);
-}
-/* Record screens open under the app bar, so the top bar and app tabs stay visible */
-#modal-root .modal-bg{top:var(--chrome-top,0px)}
-body:has(#modal-root .modal-bg) .subnav{z-index:60}
-body:has(#modal-root .modal-bg) .top{z-index:61}
-/* Tables: dates, codes and amounts never break across lines */
-td.nw,th{white-space:nowrap}
-/* Filter bar: one control height, one radius, consistent widths */
-.filters{gap:var(--sp-2);padding:var(--sp-3) var(--sp-4)}
-.filters .input,.filters select,.filters input{height:var(--ctl-h);padding:0 var(--sp-3);border-radius:var(--r-md);font-size:13px;min-width:0}
-.filters select{width:auto;max-width:240px;padding-inline-end:28px}
-.filters input[type=date]{width:150px}
-.filters input[data-filter$="_q"],.filters input[placeholder^="Search"],.filters input[placeholder*="search" i]{flex:1 1 260px;max-width:420px}
-.filters .muted{font-size:var(--fs-sm)}
-/* Row actions: quiet text buttons that only look like buttons on hover */
-.row-acts{display:flex;gap:2px;justify-content:flex-end;white-space:nowrap}
-.row-acts .btn{border-color:transparent;background:transparent;box-shadow:none;padding:4px 10px;font-size:var(--fs-sm);color:var(--text-2)}
-.row-acts .btn:hover{background:var(--surface-2);border-color:var(--border)}
-.row-acts .btn.danger-t{color:var(--bad)}
-/* Status chip used inside tables */
-.chip{display:inline-flex;align-items:center;gap:6px;padding:2px 9px;border-radius:var(--r-pill);font-size:var(--fs-xs);font-weight:600;background:var(--surface-2);color:var(--text-2);white-space:nowrap}
-.chip::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.8}
-.chip.ok{background:var(--ok-soft);color:var(--ok)}.chip.warn{background:var(--warn-soft);color:var(--warn)}.chip.bad{background:var(--bad-soft);color:var(--bad)}.chip.info{background:var(--info-soft);color:var(--info)}
-/* Journal lines inside record pages */
-.rc .jl{width:100%;border-collapse:collapse;font-size:13.5px}
-.rc .jl th{font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:600;text-align:start;padding:var(--sp-2) var(--sp-4);border-bottom:1px solid var(--border);background:var(--surface-2)}
-.rc .jl td{padding:10px var(--sp-4);border-bottom:1px solid var(--border);vertical-align:top}
-.rc .jl th.num,.rc .jl td.num{text-align:end}
-.rc .jl tfoot td{font-weight:700;background:var(--surface-2);border-bottom:0}
-.rc .jl .acode{color:var(--muted);font-variant-numeric:tabular-nums;margin-inline-end:8px}
-.rc .jl .sub{display:block;color:var(--muted);font-size:var(--fs-xs)}
-.rc .flush{padding:0!important}
-.rc-note{font-size:13px;color:var(--muted);margin:0}
-
-/* Income statement */
-.is-tools{padding:var(--sp-3) var(--sp-4);display:flex;flex-direction:column;gap:var(--sp-3)}
-.is-tabs{display:flex;gap:6px;flex-wrap:wrap;padding-bottom:var(--sp-3);border-bottom:1px solid var(--border)}
-.is-row{display:flex;align-items:center;gap:var(--sp-2);flex-wrap:wrap;margin:0}
-.is-row .lbl{width:72px;font-size:var(--fs-sm);color:var(--muted);font-weight:600}
-.is-row .input{height:34px;width:auto;padding:0 var(--sp-3);font-size:13px}
-.is-row .spacer{flex:1}
-.is-chk{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-2);margin-inline-start:var(--sp-3);cursor:pointer}
-.is-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--sp-3);margin:var(--sp-4) 0}
-.is-kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:var(--sp-4);box-shadow:var(--el-1)}
-.is-kpi .k{font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600}
-.is-kpi .v{font-size:var(--fs-xl);font-weight:700;margin-top:4px;font-variant-numeric:tabular-nums}
-.is-kpi .s{font-size:var(--fs-sm);color:var(--muted);margin-top:2px}
-.neg{color:var(--bad)}
-.is-tbl{width:100%;border-collapse:collapse;font-size:13.5px}
-.is-tbl thead th{position:sticky;top:0;background:var(--surface-2);font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.04em;color:var(--muted);padding:10px var(--sp-4);border-bottom:1px solid var(--border)}
-.is-tbl td{padding:8px var(--sp-4);border-bottom:1px solid #f1f5f9}
-.is-tbl td.num{width:160px}
-.is-tbl td.pct{width:110px;color:var(--muted);font-size:12.5px}
-.is-tbl td.pct.up{color:var(--ok)}.is-tbl td.pct.down{color:var(--bad)}
-.is-sec{cursor:pointer}
-.is-sec td{font-weight:700;font-size:14px;padding-top:14px;color:var(--text)}
-.is-sec:hover td,.is-grp:hover td{background:var(--surface-2)}
-.is-grp{cursor:pointer}
-.is-grp td{font-weight:600;color:var(--text-2)}
-.is-grp td:first-child{padding-inline-start:36px}
-.is-acc{cursor:pointer}
-.is-acc td:first-child{padding-inline-start:58px;color:var(--text-2)}
-.is-acc.l1 td:first-child{padding-inline-start:36px}
-.is-acc:hover td{background:var(--info-soft)}
-.is-acc:hover td:first-child{color:var(--info)}
-.is-acc .acode{color:var(--muted);font-variant-numeric:tabular-nums;margin-inline-end:10px;font-size:12.5px}
-.is-caret{display:inline-flex;width:20px;color:var(--muted);vertical-align:-2px}
-.is-empty td{padding-inline-start:36px;color:var(--faint);font-size:12.5px;font-style:italic}
-.is-sum td{font-weight:700}
-.is-sum.sec-tot td{border-top:1px solid var(--border);color:var(--text-2)}
-.is-sum.sec-tot td:first-child{padding-inline-start:36px}
-.is-sum.hi td{background:var(--gold-soft);border-top:1px solid #f1e3b8;border-bottom:1px solid #f1e3b8;font-size:14px}
-.is-sum.net td{background:#0f172a;color:#fff;font-size:15px;border:0;padding-top:12px;padding-bottom:12px}
-.is-sum.net td.neg{color:#fca5a5}
-.is-sum.net td.pct{color:#cbd5e1}
-@media (max-width:900px){.is-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media print{.is-tools,.page-h .actions{display:none!important}}
-.is-tbl td:first-child,.is-tbl th:first-child{white-space:nowrap;min-width:280px}
-.is-tbl.many td.num{width:auto;min-width:96px;font-size:12.5px;padding-inline:10px}
-.is-tbl.many th.num{padding-inline:10px}
-.is-tbl.many th:first-child{background:var(--surface-2)!important}
-.is-tbl.many td:first-child,.is-tbl.many th:first-child{position:sticky;inset-inline-start:0;background:var(--surface);z-index:1;box-shadow:1px 0 0 var(--border)}
-.is-tbl.many tr.is-sum.hi td:first-child{background:var(--gold-soft)}.is-tbl.many tr.is-sum.net td:first-child{background:#0f172a}
-.is-tbl.many tr:last-child td:last-child,.is-tbl.many td.num:last-child{font-weight:700;background:var(--surface-2)}
-.is-tbl.many tr.is-sum.net td:last-child{background:#1e293b}
-.is-tbl td.zero{color:var(--faint)}
-.is-card .tbl-wrap{overflow-x:auto}
-.rc-doc.lnk-row{display:flex;width:100%;justify-content:space-between;align-items:center;background:none;border:0;border-top:1px solid var(--border);padding:10px 0;margin:0;cursor:pointer;font:inherit;color:var(--text);text-align:start}
-.rc-doc.lnk-row:first-of-type{border-top:0}
-.rc-doc.lnk-row span{display:inline-flex;align-items:center;gap:8px;color:var(--muted)}
-.rc-doc.lnk-row:hover b{color:var(--info)}
-.pill.bad{background:var(--bad-soft);color:var(--bad);border-color:#fecaca}
-.rec .rc header{display:flex;align-items:center;justify-content:space-between;gap:8px}
-.rec-layout.stack{grid-template-columns:minmax(0,1fr)!important}
-.rec-layout.stack .rec-aside{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--sp-4);align-items:start}
-.rec-layout.stack .rec-aside .rc{margin:0}
-@media (max-width:1000px){.rec-layout.stack .rec-aside{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -4124,41 +4011,22 @@ function soView(so){
   }
   if (live && !so.creditApproved && can('sales', 'approve') && !so.lines.every(l => S.deliveries.some(d => d.lineId === l.id && d.status === 'delivered'))) acts.push(`<button type="button" class="btn" data-act="so-credit" data-id="${so.id}">Allow delivery on credit</button>`);
   const ipo = so.importPoId ? poById(so.importPoId) : null; if (ipo) stats.unshift(`<button type="button" class="o-stat" data-act="po-view" data-id="${ipo.id}"><b>${esc(ipo.number)}</b><small>Import order</small></button>`);
-  const net = soNet(so), ipo0 = so.importPoId ? poById(so.importPoId) : null;
-  const invs = [...new Set(so.lines.map(saleInvoiceOf).filter(Boolean))], dls = so.lines.map(l => S.deliveries.find(d => d.lineId === l.id && ['pending','delivered'].includes(d.status))).filter(Boolean);
-  const paidTot = invs.reduce((t, i) => t.plus(D(i.total).minus(invState(i).open)), D0()), dueTot = invs.reduce((t, i) => t.plus(invState(i).open), D0());
-  const deps = ipo0 ? poAdvances(ipo0, 'ar').filter(x => isPostedStatus(entryStatus(x))) : [];
-  const primary = acts.length ? acts.map((x, i) => i === 0 ? x : x.replace('class="btn primary"', 'class="btn"')).join('') : '';
+  const net = soNet(so);
   openModal({ screen: { key: 'so:' + so.id, reopen: () => { const x = soById(so.id); if (x) soView(x); } }, title: `Sales order ${so.number}`, xwide: true, body: `
-    <div class="rec">
-      <div class="rec-top"><div class="rec-title"><div class="rec-ic">${ic('sales', 22)}</div><div>
-        <div class="rec-kind">Sales order${ipo0 ? ` · <button type="button" class="lnk0" data-act="po-view" data-id="${ipo0.id}">${esc(ipo0.number)}</button>` : ''}</div><h2>${esc(so.number)}</h2>
-        <div class="rec-meta"><span class="pill ${st[1]}">${st[0]}</span><span>${so.date}</span>${cu ? `<span>${esc(cu.legalName)}</span>` : ''}<span>${money(net)} ${so.currency}</span></div></div></div>
-        <div class="rec-actions">${[...new Set(acts)].join('')}</div></div>
-      <ol class="rec-path">${steps.map(([t0, ok], i) => `<li class="${i < cur || (i === cur && i === steps.length - 1 && ok) ? 'done' : i === cur ? 'cur' : ''}"><span class="dot">${i < cur || (i === cur && ok && i === steps.length - 1) ? ic('check', 12) : ''}</span>${t0}</li>`).join('')}</ol>
-      <div class="rec-layout"><div class="rec-main">
-        <section class="rc"><header><h3>Cars <span class="cnt">${so.lines.length}</span></h3></header>
-          ${so.lines.map(l => { const v = vehById(l.vehicleId); return `<div class="rc-line"><div class="rc-thumb">${ic('cars', 22)}</div><div class="rc-name">${v ? `<a href="#/veh/view?id=${v.id}"><b>${esc(carName(v))}</b></a><div class="muted">Chassis ${esc(v.vin)} · ${esc(v.code)}${v.exteriorColor ? ' · ' + esc(v.exteriorColor) : ''}</div>` : `<b>${esc(l.description)}</b><div class="muted">No car chosen yet</div>`}</div>
-            <div>${v ? invPillOf(v) : ''}</div><div class="rc-amt" style="text-align:end">${money(D(l.price).minus(l.discount || 0))} <span class="muted">${so.currency}</span>${D(l.discount || 0).gt(0) ? `<div class="muted" style="font-size:12px;font-weight:400">${money(l.price)} − ${money(l.discount)} discount</div>` : ''}</div></div>`; }).join('')}
-          <dl class="rc-sum">
-            ${invs.some(i => i.tax && D(i.tax.tax).gt(0)) ? invs.filter(i => i.tax && D(i.tax.tax).gt(0)).map(i => `<div><dt>VAT ${esc(i.tax.code)} ${esc(i.tax.rate)}% <span class="muted">(${i.tax.mode === 'inclusive' ? 'included' : 'added'})</span></dt><dd>${money(i.tax.tax)}</dd></div>`).join('') : ''}
-            <div class="tot"><dt>Total</dt><dd>${money(invs.length ? invs.reduce((t, i) => t.plus(i.total), D0()) : net)} <span class="muted">${so.currency}</span></dd></div>
-            ${invs.length ? `<div><dt>Paid</dt><dd style="color:var(--ok)">${money(paidTot)}</dd></div><div class="tot"><dt>Amount due</dt><dd${dueTot.gt(0) ? ' style="color:var(--bad)"' : ''}>${money(dueTot)} <span class="muted">${so.currency}</span></dd></div>` : ''}
-          </dl></section>
-        ${invs.length ? `<section class="rc"><header><h3>Invoices &amp; payments</h3></header><div class="tbl-wrap"><table><thead><tr><th>Document</th><th>Date</th><th class="num">Amount</th><th>Status</th></tr></thead><tbody>
-          ${invs.map(i => { const red = invState(i).reductions.filter(r => ACTIVE_ST.includes(r.status));
-            return `<tr data-act="inv-view" data-id="${i.id}" style="cursor:pointer"><td><b>${esc(i.number)}</b><div class="muted" style="font-size:12px">Customer invoice</div></td><td>${i.date}</td><td class="num">${money(i.total)} ${i.currency}</td><td>${invPill(i)}</td></tr>`
-              + red.map(r => { const se = entryById(r.src.entryId); return `<tr${se ? ` data-act="je-view" data-id="${se.id}" style="cursor:pointer"` : ''}><td style="padding-inline-start:34px">${esc(r.src.number)}<div class="muted" style="font-size:12px">${r.src.type === 'advance' ? 'Deposit applied' : r.src.type === 'credit' ? 'Credit note' : 'Payment received'}</div></td><td>${r.src.date}</td><td class="num" style="color:var(--ok)">− ${money(r.applied)} ${i.currency}</td><td></td></tr>`; }).join(''); }).join('')}
-          </tbody></table></div></section>` : ''}
-      </div><aside class="rec-aside">
-        <section class="rc"><header><h3>Customer</h3></header>${cu ? `<a href="#/partners/statement?side=ar&id=${cu.id}" class="rc-big">${esc(cu.legalName)}</a>${cu.phone ? `<div class="muted">${esc(cu.phone)}</div>` : ''}` : ''}
-          ${deps.length ? `<div class="rc-doc"><span>${deps.length} deposit${deps.length > 1 ? 's' : ''}</span><span class="muted">${deps.map(x => money(x.amount) + ' ' + x.currency).join(' + ')}</span></div>` : ''}</section>
-        <section class="rc"><header><h3>Details</h3></header><dl class="rc-kv">
-          <div><dt>Order date</dt><dd>${so.date}</dd></div><div><dt>Salesperson</dt><dd>${esc(userName(so.salespersonId) || '—')}</dd></div>${D(so.commissionPct || 0).gt(0) ? `<div><dt>Commission</dt><dd>${so.commissionPct}%</dd></div>` : ''}
-          <div><dt>Currency</dt><dd>${so.currency}</dd></div><div><dt>Payment</dt><dd>${so.creditApproved ? 'Delivery on credit allowed' : 'Pay before delivery'}</dd></div>${so.paymentTerms ? `<div><dt>Terms</dt><dd>${esc(so.paymentTerms)}</dd></div>` : ''}
-        </dl></section>
-        ${dls.length ? `<section class="rc"><header><h3>Delivery</h3></header>${dls.map(d => `<div class="rc-doc" style="border-top:0;margin-top:0;padding-top:0"><b>${esc(d.number)}</b><span class="pill ${d.status === 'delivered' ? 'ok' : 'gold'}">${d.status === 'delivered' ? 'Delivered' : 'Awaiting validation'}</span><div class="muted">${d.date || ''}${d.receivedBy ? ' · received by ' + esc(d.receivedBy) : ''}</div></div>`).join('')}</section>` : ''}
-      </aside></div>
+    <div class="o-bar"><div class="btns">${[...new Set(acts)].join('')}</div><div class="o-status">${steps.map(([t0], i) => `<span class="${i === cur ? 'on' : ''}">${t0}</span>`).join('')}</div></div>
+    <div class="o-sheet rec">
+      <div class="o-head"><div><div class="muted" style="font-size:13px">Sales order</div><h2>${esc(so.number)}</h2><span class="pill ${st[1]}" style="margin-top:6px">${st[0]}</span></div>${stats.length ? `<div class="o-stats">${stats.join('')}</div>` : ''}</div>
+      <div class="o-sec c-info" style="border-top:0;padding-top:0;margin-top:10px"><h3>Order details</h3><div class="o-grid"><div>
+        ${f('Customer', cu ? `<a href="#/partners/statement?side=ar&id=${cu.id}">${esc(cu.legalName)}</a>${cu.phone ? `<span class="sub">${esc(cu.phone)}</span>` : ''}` : '')}
+        ${f('Salesperson', esc(userName(so.salespersonId) || ''))}${D(so.commissionPct || 0).gt(0) ? f('Commission', so.commissionPct + '%') : ''}
+      </div><div>
+        ${f('Order date', so.date)}${f('Currency', so.currency)}${f('Payment', so.creditApproved ? '<span class="pill info">Delivery on credit allowed</span>' : 'Pay before delivery')}${so.paymentTerms ? f('Terms', esc(so.paymentTerms)) : ''}
+      </div></div></div>
+      <div class="o-sec c-gold"><h3>Cars</h3><div class="tbl-wrap"><table><thead><tr><th>Product</th><th>Status</th><th class="num">Price</th><th class="num">Discount</th><th class="num">Subtotal</th></tr></thead><tbody>
+        ${so.lines.map(l => { const v = vehById(l.vehicleId); return `<tr><td class="wrap"><b>${v ? `${esc(carName(v))} · ${esc(v.vin)}` : esc(l.description)}</b>${v ? `<div class="muted" style="font-size:12px">${esc(v.code)}${v.exteriorColor ? ' · ' + esc(v.exteriorColor) : ''}</div>` : '<div class="muted" style="font-size:12px">No car chosen yet</div>'}</td>
+          <td>${v ? invPillOf(v) : ''}</td><td class="num">${money(l.price)} ${so.currency}</td><td class="num">${D(l.discount || 0).gt(0) ? '− ' + money(l.discount) : ''}</td><td class="num"><b>${money(D(l.price).minus(l.discount || 0))}</b> ${so.currency}</td></tr>`; }).join('')}
+      </tbody></table></div>
+      <div class="o-tot"><table><tbody><tr><td><b>Total</b></td><td><b style="font-size:16px">${money(net)} ${so.currency}</b></td></tr></tbody></table></div></div>
     </div>` });
 }
 function pageDeliveries(){
@@ -4696,7 +4564,6 @@ function openModal({ title, body, submit = 'Save', wide = false, xwide = false, 
   SCREEN = screen; LAST_SCREEN = null;
   MODAL = { onSubmit };
   if (!APPROVALS) submit = String(submit).replace(/(Save|Create) & submit for approval/, 'Save & post').replace(/^Submit for approval$/, 'Save').replace(' (needs approval)', '').replace(/^Create car & purchase order$/, 'Create car & purchase order');
-  try { const ch = document.querySelector('.subnav') || document.querySelector('.top'); if (document.documentElement && document.documentElement.style) document.documentElement.style.setProperty('--chrome-top', (ch ? Math.max(0, Math.round(ch.getBoundingClientRect().bottom)) : 0) + 'px'); } catch (x){}
   document.getElementById('modal-root').innerHTML = `
     <div class="modal-bg"><div class="modal ${wide ? 'wide' : ''}" role="main" aria-label="${esc(title)}">
       <form id="mform" autocomplete="off" ${formAttrs}>
@@ -4872,11 +4739,13 @@ document.addEventListener('click', e => {
   const a = (tr.cells[0] && tr.cells[0].querySelector('a[href],[data-act$="-view"]')) || tr.querySelector('a[href]:not([href="#"]),[data-act$="-view"],a[data-act]');
   if (a) a.click();
 });
-const NW_RE = /^(\d{4}-\d{2}-\d{2}|[A-Z]{2,6}-\d{4}-\d{3,6}|-?[\d,]+\.\d{2}( [A-Z]{3})?)$/;
-function markClickableRows(){ document.querySelectorAll('main.content td:not(.nw), .modal td:not(.nw)').forEach(td => { if (td.children.length <= 2 && NW_RE.test(td.textContent.trim().split('\n')[0].trim())) td.classList.add('nw'); }); document.querySelectorAll('main.content tbody tr, .modal tbody tr').forEach(tr => { if (tr.closest('form') || tr.querySelector('input,select,textarea')) return; if (tr.dataset.act || tr.dataset.href || tr.querySelector('a[href]:not([href="#"]),[data-act$="-view"],a[data-act]')) tr.classList.add('row-link'); }); }
+function markClickableRows(){ document.querySelectorAll('main.content tbody tr, .modal tbody tr').forEach(tr => { if (tr.closest('form') || tr.querySelector('input,select,textarea')) return; if (tr.dataset.act || tr.dataset.href || tr.querySelector('a[href]:not([href="#"]),[data-act$="-view"],a[data-act]')) tr.classList.add('row-link'); }); }
 if (typeof MutationObserver !== 'undefined') new MutationObserver(() => { clearTimeout(window.__mcr); window.__mcr = setTimeout(markClickableRows, 30); }).observe(document.documentElement, { childList: true, subtree: true });
 /* Line icons (24 × 24, stroke = currentColor) — Modern Feather/Lucide vector set. */
 const ICONS = {
+  invoices: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/>',
+  bill: '<path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1-2-1Z"/><path d="M16 8h-8"/><path d="M16 12h-8"/><path d="M10 16h-2"/>',
+  printer: '<polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/>',
   dashboard: '<rect width="7" height="9" x="3" y="3" rx="1.5"/><rect width="7" height="5" x="14" y="3" rx="1.5"/><rect width="7" height="9" x="14" y="12" rx="1.5"/><rect width="7" height="5" x="3" y="16" rx="1.5"/>',
   cars: '<path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.5 2.8C2 10.9 2 11.2 2 11.5V16c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/>',
   purchases: '<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/>',
@@ -5056,7 +4925,7 @@ function pageFor(r){
     'acc/dashboard':['ledger', pageAccDash], 'acc/close':['ledger', pageMonthClose], 'acc/coa':['coa', pageCOA], 'acc/journals':['journals', pageJournals], 'acc/opening':['journals', pageOpening],
     'acc/gl':['ledger', pageGL], 'acc/tb':['ledger', pageTB], 'acc/partner-ledger':['ledger', pagePartnerLedger], 'acc/mappings':['mappings', pageMappings], 'acc/integrity':['integrity', pageIntegrity],
     'bank/accounts':['banking', pageBanks], 'bank/book':['banking', pageBankBook], 'bank/transfers':['banking', pageTransfers], 'bank/txns':['banking', pageBankTxns],
-    'bank/statements':['banking', pageBankStatements], 'bank/reconcile':['banking', pageReconcile], 'bank/reval':['fx_reval', pageReval], 'bank/fx':['banking', pageFxReport],
+    'bank/statements':['banking', pageStatements], 'bank/reconcile':['banking', pageReconcile], 'bank/reval':['fx_reval', pageReval], 'bank/fx':['banking', pageFxReport],
     'partners/customers':['customers', () => pagePartners('ar')], 'partners/suppliers':['suppliers', () => pagePartners('ap')], 'partners/statement':[routeParam('side') === 'ap' ? 'ap' : 'ar', pagePartnerStatement],
     'ar/invoices':['ar', () => pageInvoices('ar')], 'ap/invoices':['ap', () => pageInvoices('ap')], 'ar/receipts':['ar', () => pageSettlements('ar')], 'ap/receipts':['ap', () => pageSettlements('ap')],
     'ar/advances':['ar', () => pageAdvances('ar')], 'ap/advances':['ap', () => pageAdvances('ap')], 'ar/aging':['ar', () => pageAging('ar')], 'ap/aging':['ap', () => pageAging('ap')],
@@ -5141,7 +5010,13 @@ function pageCompany(){
         <div class="field"><label>Functional currency</label><input class="input" value="EGP" readonly></div>
         <div class="field"><label>Reporting currency</label><input class="input" value="EGP" readonly></div>
         <div class="field"><label>Time zone</label><input class="input" value="Africa/Cairo" readonly></div></div>
-      <input type="hidden" name="fxToCar" value="yes"><div class="note" style="margin-top:14px">Exchange differences on a car's invoices are always charged to that car (its cost or its revenue). The system does not post FX gain or loss.</div>
+      <div class="field" style="margin-top:14px;padding:12px 14px;background:var(--surface-2,#f8fafc);border:1px solid var(--border,#e2e8f0);border-radius:6px">
+        <label style="display:flex;align-items:center;gap:8px;font-weight:600;cursor:pointer">
+          <input type="checkbox" name="fxToCar" value="yes" ${c.fxToCar !== false ? 'checked' : ''} ${ed ? '' : 'disabled'}>
+          Capitalize supplier exchange differences into vehicle inventory cost
+        </label>
+        <span class="hint" style="margin:4px 0 0 24px">When enabled (default), exchange differences when paying a car's supplier adjust the car's cost. When disabled, exchange differences are booked directly to P&L Realized FX Gain/Loss accounts and do not change the vehicle cost.</span>
+      </div>
       ${ed ? `<div class="row"><div class="field"><label>Reason for change</label><input class="input" name="reason" placeholder="Recorded in the audit trail"></div><div><button class="btn primary" style="margin-bottom:12px">${t('save')}</button></div></div>` : ''}
     </div></form>`;
 }
@@ -5562,40 +5437,30 @@ function jeView(e){
   const rateTxt = e.currency !== 'EGP' ? `1 ${e.currency} = <b>${fmtNum(posted ? e.rate : calc ? calc.rate : 0, 4)}</b> EGP` : (() => { const l = lines.find(x => x.fcCurrency); return l ? `1 ${l.fcCurrency} = <b>${fmtNum(l.fcRate, 4)}</b> EGP` : 'EGP'; })();
   const f = (l, v0) => `<div class="o-f"><div class="l">${l}</div><div class="v">${v0 || '<span class="muted">—</span>'}</div></div>`;
   const stCls = { posted: 'ok', reversed: 'mute', draft: 'gold', submitted: 'info', approved: 'info', rejected: 'mute' }[e.status] || 'mute';
-  const stTxt = String(e.status).charAt(0).toUpperCase() + String(e.status).slice(1);
-  const kv = (k, v0) => v0 ? `<div><dt>${k}</dt><dd>${v0}</dd></div>` : '';
-  const steps = e.status === 'reversed' ? [['Draft', true], ['Posted', true], ['Reversed', true]] : (APPROVALS ? [['Draft', true], ['Submitted', ['submitted','approved','posted'].includes(e.status)], ['Approved', ['approved','posted'].includes(e.status)], ['Posted', posted]] : [['Draft', true], ['Posted', posted]]);
-  const dref0 = typeof docForEntry === 'function' ? docForEntry(e) : null;
-  const srcOpen = dref0 && dref0.kind === 'invoice' ? `data-act="inv-view" data-id="${dref0.doc.id}"` : '';
   const body = `
-    <div class="rec">
+    <div class="o-sheet rec je-sheet">
+      <div class="o-head"><div><div class="muted" style="font-size:13px">${esc(j ? j.name : e.journal)}</div><h2>${esc(entryRef(e))}</h2><div style="margin-top:4px;font-size:14px">${esc(e.description)}</div></div>
+        <div style="text-align:end"><span class="pill ${stCls}" style="font-size:13px;padding:4px 14px">${esc(String(e.status).charAt(0).toUpperCase() + String(e.status).slice(1))}</span></div></div>
       ${calcErr ? `<div class="note bad">${esc(calcErr)}</div>` : ''}${e.rejectReason && e.status === 'rejected' ? `<div class="note bad">Rejected: ${esc(e.rejectReason)}</div>` : ''}
-      <div class="rec-top"><div class="rec-title"><div class="rec-ic">${ic('accounting', 22)}</div><div>
-        <div class="rec-kind">${esc(j ? j.name : e.journal)}${e.number && e.draftRef ? ` · <span class="mono">${esc(e.draftRef)}</span>` : ''}</div><h2>${esc(entryRef(e))}</h2>
-        <div class="rec-meta"><span class="pill ${stCls}">${esc(stTxt)}</span><span>${e.accountingDate}</span>${partners.length ? `<span>${esc(partners.map(nm).join(', '))}</span>` : ''}<span>${money(td)} EGP</span></div></div></div>
-        <div class="rec-actions">__ACTS__</div></div>
-      <ol class="rec-path">${steps.map(([t0, ok]) => `<li class="${ok ? 'done' : 'cur'}"><span class="dot">${ok ? ic('check', 12) : ''}</span>${t0}</li>`).join('')}</ol>
-      <div class="rec-layout stack"><div class="rec-main">
-        <section class="rc"><header><h3>Journal items <span class="cnt">${lines.length}</span></h3>${bal ? '<span class="pill ok">Balanced</span>' : '<span class="pill bad">Not balanced</span>'}</header>
-          ${e.description ? `<p class="rc-note" style="margin-bottom:12px">${esc(e.description)}</p>` : ''}
-          <div class="tbl-wrap flush"><table class="jl"><thead><tr><th>Account</th><th>Label</th><th>Partner / car</th>${hasCC ? '<th>Cost centre</th>' : ''}${fc ? '<th class="num">Currency</th>' : ''}<th class="num">Debit</th><th class="num">Credit</th></tr></thead><tbody>
-          ${lines.map(l => { const a0 = acc(l.accountId), dr = l.egpDebit && D(l.egpDebit).gt(0), cr = l.egpCredit && D(l.egpCredit).gt(0);
-            const fcAmt = l.fcCurrency ? `${money(D(l.fcDebit || '0').plus(l.fcCredit || '0'))} ${l.fcCurrency}<span class="sub">at ${fmtNum(l.fcRate || '0', 4)}</span>` : (e.currency !== 'EGP' ? `${money(l.debit || l.credit || '0')} ${e.currency}` : '');
-            return `<tr><td>${a0 ? `<a href="#/acc/gl?account=${a0.id}"><span class="acode">${esc(a0.code)}</span>${esc(accName(a0))}</a>` : '?'}</td><td style="min-width:240px;white-space:normal">${esc(l.description || '')}</td><td>${esc(nm(l.partner))}${l.vehicle ? `<span class="sub">${esc(l.vehicle)}</span>` : ''}</td>${hasCC ? `<td>${esc(l.costCenter || '')}</td>` : ''}${fc ? `<td class="num">${fcAmt}</td>` : ''}
-              <td class="num">${dr ? money(l.egpDebit) : ''}</td><td class="num">${cr ? money(l.egpCredit) : ''}${l.roundingAdj && D(l.roundingAdj).gt(0) ? `<span class="sub">incl. rounding ${l.roundingAdj}</span>` : ''}</td></tr>`; }).join('')}
-          </tbody><tfoot><tr><td colspan="${3 + (hasCC ? 1 : 0) + (fc ? 1 : 0)}" style="text-align:end">Total (EGP)</td><td class="num">${money(td)}</td><td class="num">${money(tc)}</td></tr></tfoot></table></div></section>
-      </div><aside class="rec-aside">
-        <section class="rc"><header><h3>Details</h3></header><dl class="rc-kv">
-          ${kv('Accounting date', e.accountingDate)}${e.documentDate && e.documentDate !== e.accountingDate ? kv('Document date', e.documentDate) : ''}
-          ${kv('Journal', esc(j ? `${j.name} (${j.code})` : e.journal))}${kv('Currency', rateTxt)}
-          ${vehs.length ? kv('Car', esc(vehs.join(', '))) : ''}${kv('Prepared by', esc(userName(e.createdBy) || ''))}
-        </dl></section>
-        ${(e.sourceRef || e.reference || rev || revBy) ? `<section class="rc"><header><h3>Linked documents</h3></header>
-          ${e.sourceRef || e.reference ? `<${srcOpen ? 'button type="button"' : 'div'} class="rc-doc lnk-row" ${srcOpen}><span>${ic('file', 14)} Source document</span><b>${esc(e.sourceRef || e.reference)}</b></${srcOpen ? 'button' : 'div'}>` : ''}
-          ${rev ? `<button type="button" class="rc-doc lnk-row" data-act="je-view" data-id="${rev.id}"><span>${ic('back', 14)} Reversal of</span><b>${esc(entryRef(rev))}</b></button>` : ''}
-          ${revBy ? `<button type="button" class="rc-doc lnk-row" data-act="je-view" data-id="${revBy.id}"><span>${ic('back', 14)} Reversed by</span><b>${esc(entryRef(revBy))}</b></button>` : ''}</section>` : ''}
-        <section class="rc"><header><h3>Activity</h3></header><ol class="tl">${[...e.history].reverse().map(h => `<li><span class="dot"></span><div><b>${esc(userName(h.by))}</b> ${esc(h.action)}${h.note ? `<div class="muted">${esc(h.note)}</div>` : ''}<div class="muted" style="font-size:12px">${fmtTs(h.at)}</div></div></li>`).join('')}</ol></section>
-      </aside></div>
+      <div class="o-sec c-info" style="border-top:0;padding-top:0;margin-top:14px"><h3>Entry details</h3><div class="o-grid"><div>
+        ${f('Date', `<b>${e.accountingDate}</b>${e.documentDate && e.documentDate !== e.accountingDate ? `<span class="sub">document ${e.documentDate}</span>` : ''}`)}
+        ${f('Journal', esc(j ? `${j.name} (${j.code})` : e.journal))}
+        ${f('Source document', esc(e.sourceRef || e.reference || ''))}
+      </div><div>
+        ${f('Partner', esc(partners.map(nm).join(', ')))}
+        ${vehs.length ? f('Car', esc(vehs.join(', '))) : ''}
+        ${f('Currency', rateTxt)}
+        ${rev ? f('Reversal of', entryLink(rev)) : ''}${revBy ? f('Reversed by', entryLink(revBy)) : ''}
+      </div></div></div>
+      <div class="o-sec c-gold"><h3>Journal items <span class="cnt">${lines.length}</span>${bal ? '<span class="pill ok" style="margin-inline-start:auto">Balanced</span>' : '<span class="pill" style="margin-inline-start:auto;background:var(--bad-soft);color:var(--bad)">Not balanced</span>'}</h3>
+      <div class="tbl-wrap"><table class="je-items"><thead><tr><th>Account</th><th>Label</th><th>Partner</th>${hasCC ? '<th>Cost centre</th>' : ''}${fc ? '<th class="num">Amount in currency</th>' : ''}<th class="num">Debit</th><th class="num">Credit</th></tr></thead><tbody>
+        ${lines.map(l => { const a0 = acc(l.accountId), dr = l.egpDebit && D(l.egpDebit).gt(0), cr = l.egpCredit && D(l.egpCredit).gt(0);
+          const fcAmt = l.fcCurrency ? `${money(D(l.fcDebit || '0').plus(l.fcCredit || '0'))} ${l.fcCurrency}<div class="muted" style="font-size:12px">at ${fmtNum(l.fcRate || '0', 4)}</div>` : (e.currency !== 'EGP' ? `${money(l.debit || l.credit || '0')} ${e.currency}` : '');
+          return `<tr><td class="wrap"><span class="acc-code">${esc(a0 ? a0.code : '?')}</span> <b>${esc(a0 ? accName(a0) : '')}</b></td><td class="wrap" style="max-width:320px">${esc(l.description || '')}</td><td>${esc(nm(l.partner))}${l.vehicle ? `<div class="muted" style="font-size:12px">${esc(l.vehicle)}</div>` : ''}</td>${hasCC ? `<td>${esc(l.costCenter || '')}</td>` : ''}${fc ? `<td class="num">${fcAmt}</td>` : ''}
+            <td class="num dr">${dr ? money(l.egpDebit) : ''}</td><td class="num cr">${cr ? money(l.egpCredit) : ''}${l.roundingAdj && D(l.roundingAdj).gt(0) ? `<div class="muted" style="font-size:11px">incl. rounding ${l.roundingAdj}</div>` : ''}</td></tr>`; }).join('')}
+      </tbody><tfoot><tr><td colspan="${3 + (hasCC ? 1 : 0) + (fc ? 1 : 0)}" style="text-align:end;color:var(--muted)">Total (EGP)</td><td class="num"><b>${money(td)}</b></td><td class="num"><b>${money(tc)}</b></td></tr></tfoot></table></div></div>
+      <div class="o-sec c-ok"><h3>Activity <span class="cnt">${e.history.length}</span></h3>
+        <div class="je-log">${e.history.map(h => `<div><span class="dot"></span><b>${esc(userName(h.by))}</b> ${esc(h.action)}${h.note ? ` — <span class="muted">${esc(h.note)}</span>` : ''}<span class="muted" style="margin-inline-start:auto;font-size:12px">${fmtTs(h.at)}</span></div>`).join('')}</div></div>
     </div>`;
   const btn = (act, label, cls = '') => `<button type="button" class="btn ${cls}" data-act="${act}" data-id="${e.id}">${label}</button>`;
   const mine = e.createdBy === me.id;
@@ -5607,8 +5472,8 @@ function jeView(e){
   if (e.status === 'submitted' && can('journals', 'approve')) acts.push(mine || e.submittedBy === me.id ? '<span class="muted" style="align-self:center;font-size:12px">Awaiting another approver</span>' : btn('je-approve', 'Approve', 'primary'));
   if (['submitted','approved'].includes(e.status) && can('journals', 'approve') && !mine) acts.push(btn('je-reject', 'Reject', 'danger'));
   if (can('journals', APPROVALS ? 'post' : 'create') && (e.status === 'approved' || (!needsApproval(j) && ['draft','submitted','rejected'].includes(e.status)))) acts.push(btn('je-post', 'Post', 'gold'));
-  if (e.status === 'posted' && !e.reversalOf && can('journals', 'reverse')) acts.push(btn('je-reverse', 'Reverse', 'danger'));
-  openModal({ screen: { key: 'je:' + e.id, reopen: () => { const x = S.entries.find(y => y.id === e.id); if (x) jeView(x); } }, title: `Journal entry ${entryRef(e)}`, xwide: true, body: body.replace('__ACTS__', acts.join('')) });
+  if (e.status === 'posted' && !e.reversalOf && can('journals', 'reverse')) acts.push(btn('je-reverse', 'Reverse…', 'danger'));
+  openModal({ screen: { key: 'je:' + e.id, reopen: () => { const x = S.entries.find(y => y.id === e.id); if (x) jeView(x); } }, title: `Journal entry ${entryRef(e)}`, xwide: true, body: (acts.length ? `<div class="o-bar"><div class="btns">${acts.join('')}</div></div>` : '') + body, footer: `<button type="button" class="btn" data-act="modal-close">Close</button>` });
 }
 
 /* ---------- Opening balances ---------- */
@@ -5722,14 +5587,14 @@ function pageBanks(){
   const today = todayCairo();
   const rows = S.banks.map(b => { const bal = bankBalance(b, today); const last = S.statements.filter(s => s.bankId === b.id && s.status === 'reconciled').sort((x, y) => x.to < y.to ? 1 : -1)[0];
     return `<tr style="${b.active ? '' : 'opacity:.55'}"><td><b>${esc(b.name)}</b><div class="muted" style="font-size:12px">${esc([b.bankName, b.branch].filter(Boolean).join(' · '))}</div></td>
-      <td class="mono" style="font-size:12px">${esc(b.iban || b.accountNo || '')}${b.swift ? `<div class="muted">${esc(b.swift)}</div>` : ''}</td><td>${b.kind === 'cash' ? 'Cash' : 'Bank'}</td><td class="mono">${b.currency}</td>
+      <td class="mono" style="font-size:12px">${esc(b.iban || b.accountNo || '')}${b.swift ? `<div class="muted">${esc(b.swift)}</div>` : ''}</td><td>${b.kind}</td><td class="mono">${b.currency}</td>
       <td class="mono">${esc((acc(b.glAccountId) || {}).code || '?')}</td><td class="num"><b>${money(bal.fc)}</b> ${b.currency}</td><td class="num">${money(bal.egp)}</td>
-      <td style="font-size:12px">${last ? `up to ${last.to}` : '<span class="muted">Not yet</span>'}</td>
-      <td><div class="row-acts"><a class="btn sm" href="#/bank/book?id=${b.id}">Transactions</a>${can('banking', 'edit') ? `<button class="btn sm" data-act="bank-edit" data-id="${b.id}">Edit</button><button class="btn sm ${b.active ? 'danger-t' : ''}" data-act="bank-active" data-id="${b.id}">${b.active ? 'Archive' : 'Restore'}</button>` : ''}</div></td></tr>`; }).join('');
+      <td style="font-size:12px">${last ? `to ${last.to}` : '<span class="muted">never</span>'}</td>
+      <td style="white-space:nowrap"><a class="btn sm" href="#/bank/book?id=${b.id}">Book</a>${can('banking', 'edit') ? ` <button class="btn sm" data-act="bank-edit" data-id="${b.id}">Edit</button> <button class="btn sm" data-act="bank-active" data-id="${b.id}">${b.active ? 'Deactivate' : 'Activate'}</button>` : ''}</td></tr>`; }).join('');
   const byCur = {}; for (const b of S.banks){ const x = bankBalance(b, today); byCur[b.currency] = (byCur[b.currency] || D0()).plus(x.fc); }
   return H(t('bank_accounts'), 'Each account is linked to its own GL account and holds a single currency. Balances never mix currencies.',
     can('banking', 'create') && S.accounts.length ? '<button class="btn primary" data-act="bank-new">New bank / cash account</button>' : '') + needChart() + `
-    <div class="grid g3">${['EGP','EUR','USD'].map(c => `<div class="card stat"><div class="k">${c} balance</div><div class="v${D(byCur[c] || 0).lt(0) ? ' neg' : ''}">${money(byCur[c] || 0)}</div><div class="s">${(n => n === 1 ? '1 account' : n + ' accounts')(S.banks.filter(b => b.currency === c).length)}</div></div>`).join('')}</div>
+    <div class="grid g3">${['EGP','EUR','USD'].map(c => `<div class="card stat"><div class="k">${c} balance</div><div class="v">${money(byCur[c] || 0)}</div><div class="s">${S.banks.filter(b => b.currency === c).length} account(s)</div></div>`).join('')}</div>
     <div class="card"><div class="tbl-wrap"><table><thead><tr><th>Account</th><th>IBAN / number</th><th>Type</th><th>Cur</th><th>GL</th><th class="num">Balance</th><th class="num">EGP book value</th><th>Reconciled</th><th></th></tr></thead>
       <tbody>${rows || '<tr><td colspan="9" class="empty">No accounts yet.</td></tr>'}</tbody></table></div></div>`;
 }
@@ -5814,7 +5679,7 @@ function bankTxnForm(pre = {}){
     <div class="row"><div class="field"><label>Description *</label><input class="input" name="description" value="${esc(pre.description || '')}" required></div><div class="field"><label>Bank reference</label><input class="input" name="reference" value="${esc(pre.reference || '')}"></div></div>
     <p class="hint">Foreign-currency transactions are converted at the approved official rate on the date and submitted for approval in the Bank Journal.</p>`;
 }
-function pageBankStatements(){
+function pageStatements(){
   const F = UI.filters;
   let list = [...S.statements]; if (F.s_bank) list = list.filter(s => s.bankId === F.s_bank);
   list.sort((a, b) => a.to < b.to ? 1 : -1);
@@ -6817,61 +6682,41 @@ function pageVehicle(){
 ].join('');
   const cxT = carExpensesOf(v.id).reduce((t, r) => t.plus(r.egp), D0());
   const fxL = vehicleLines(v.id).filter(({ e, l }) => l.fxToCar && e.status === 'posted'), fxCost = fxL.filter(({ l }) => l.costType === 'fx_diff').reduce((t, { l }) => t.plus(l.egpDebit || '0').minus(l.egpCredit || '0'), D0()), fxRev = fxL.filter(({ l }) => l.costType !== 'fx_diff').reduce((t, { l }) => t.plus(l.egpCredit || '0').minus(l.egpDebit || '0'), D0());
-  const cust = v.customerId ? partnerById('ar', v.customerId) : null, sup = partnerById('ap', v.supplierId), bd = carCostBreakdown(v);
-  const line = (label, amt, o = {}) => `<div class="${o.cls || ''}"><dt>${label}</dt><dd${o.color ? ` style="color:${o.color}"` : ''}>${o.neg ? '− ' : o.plus ? '+ ' : ''}${money(D(amt).abs())}${o.unit ? ' <span class="muted">EGP</span>' : ''}</dd></div>`;
-  const subl = (label, amt, sign = true) => `<div class="sub"><dt>${label}</dt><dd>${sign ? (D(amt).lt(0) ? '− ' : '+ ') : ''}${money(D(amt).abs())}</dd></div>`;
-  const costRows = (expected ? [{ label: `Purchase price ${money(pAmt)} ${pCur} × ${fmtNum(po.rate, 4)} (expected)`, egp: r2(pAmt.mul(po.rate)) }] : []).concat(bd.map(r => ({ label: r.kind === 'purchase' && pCur !== 'EGP' ? `Purchase price ${money(pAmt)} ${pCur}` : r.label, egp: r.egp })));
-  const pnl = `<dl class="rc-sum pl">
-      ${line('Sales revenue', net)}${!fxRev.eq(0) ? subl('of which exchange difference on the customer’s payments', fxRev) : ''}
-      ${line(`Cost of the car${perCur ? ` <span class="muted">· ${fmtNum(perCur, 4)} EGP per ${pCur}</span>` : ''}`, costEgp, { neg: true })}
-      ${costRows.map(r => subl(esc(r.label), r.egp, false)).join('')}
-      ${vp.otherInc.gt(0) ? line('Commission & other income', vp.otherInc, { plus: true }) : ''}
-      ${vp.importExp.gt(0) ? line('Import costs expensed', vp.importExp, { neg: true }) : ''}
-      ${vp.direct.gt(0) ? line('Other expenses on this car', vp.direct, { neg: true }) : ''}
-      ${vp.losses.gt(0) ? line('Write-downs', vp.losses, { neg: true }) : ''}
-      ${!vp.fx.eq(0) ? line('Exchange differences', vp.fx, { neg: vp.fx.lt(0), plus: vp.fx.gt(0) }) : ''}
-      ${line(cy && cy.sold || vp.net.gt(0) ? 'Result on this car' : 'Result so far', result, { cls: 'tot', unit: true, color: result.lt(0) ? 'var(--bad)' : 'var(--ok)', neg: result.lt(0) })}
-    </dl>`;
+  const sub = (label, amt) => `<tr><td class="muted" style="padding-inline-start:22px;font-size:12.5px">${label}</td><td class="num muted" style="font-size:12.5px">${amt.lt(0) ? '− ' : '+ '}${money(amt.abs())}</td></tr>`;
+  const row = (label, val, strong, color) => `<tr${strong ? ' style="font-weight:700;border-top:1px solid var(--border)"' : ''}><td>${label}</td><td class="num"${color ? ` style="color:${color}"` : ''}>${val}</td></tr>`;
+  const pnl = `<table><tbody>
+      ${row('Sales revenue', money(net))}
+      ${!fxRev.eq(0) ? sub('of which exchange difference on the customer\'s payments', fxRev) : ''}
+      ${row(`Cost of the car${expected ? ' <span class="muted">(expected — supplier invoice not recorded yet)</span>' : ''}${perCur ? ` <span class="muted">(${money(pAmt)} ${pCur} → ${fmtNum(perCur, 4)} EGP per ${pCur}, all costs included)</span>` : ''}`, '− ' + money(costEgp))}
+      ${expected ? `<tr><td class="muted" style="padding-inline-start:22px;font-size:12.5px">of which purchase price ${money(pAmt)} ${pCur} × ${fmtNum(po.rate, 4)}</td><td class="num muted" style="font-size:12.5px">${money(r2(pAmt.mul(po.rate)))}</td></tr>` : ''}
+      ${!fxCost.eq(0) ? sub('of which exchange difference on supplier payments', fxCost) : ''}
+      ${cxT.gt(0) ? `<tr><td class="muted" style="padding-inline-start:22px;font-size:12.5px">of which car expenses (freight, customs…) — <a href="#" onclick="document.getElementById('car-exp').scrollIntoView({behavior:'smooth'});return false">see list</a></td><td class="num muted" style="font-size:12.5px">${money(cxT)}</td></tr>` : ''}
+      ${vp.importExp.gt(0) ? row('Import costs expensed', '− ' + money(vp.importExp)) : ''}
+      ${vp.direct.gt(0) ? row('Other expenses on this car', '− ' + money(vp.direct)) : ''}
+      ${vp.losses.gt(0) ? row('Write-downs', '− ' + money(vp.losses)) : ''}
+      ${vp.otherInc.gt(0) ? row('Other income', money(vp.otherInc)) : ''}
+      ${!vp.fx.eq(0) ? row('Exchange differences', (vp.fx.lt(0) ? '− ' : '') + money(vp.fx.abs()), false, vp.fx.lt(0) ? 'var(--bad)' : 'var(--ok)') : ''}
+      ${row(cy && cy.sold || vp.net.gt(0) ? 'Result on this car' : 'Result so far', money(result) + ' EGP', true, result.lt(0) ? 'var(--bad)' : 'var(--ok)')}
+    </tbody></table>`;
+  const je = ents.map(e => { const j = journalOf(e.journal);
+    return `<tr style="background:var(--surface-2)"><td style="white-space:nowrap"><b>${e.accountingDate}</b></td><td colspan="2">${entryLink(e)} <span class="muted">· ${esc(j ? j.name : e.journal)}</span><div style="font-size:12.5px">${esc(e.description || '')}</div></td><td class="num"><b>${money(e.totals ? e.totals.egpDebit : '0')}</b></td><td></td></tr>
+      ${e.lines.filter(l => !l.vehicleId || l.vehicleId === v.id).map(l => { const a = acc(l.accountId); return `<tr><td></td><td style="padding-inline-start:${D(l.egpCredit || '0').gt(0) ? 36 : 12}px">${esc(a ? a.code + ' ' + accName(a) : '?')}</td><td class="muted" style="font-size:12px">${l.fcCurrency ? `${money(D(l.fcDebit || 0).plus(l.fcCredit || 0))} ${l.fcCurrency} @ ${fmtNum(l.fcRate, 4)}` : ''}</td><td class="num">${D(l.egpDebit || 0).gt(0) ? money(l.egpDebit) : ''}</td><td class="num">${D(l.egpCredit || 0).gt(0) ? money(l.egpCredit) : ''}</td></tr>`; }).join('')}${(() => { const o = e.lines.filter(l => l.vehicleId && l.vehicleId !== v.id); if (!o.length) return ''; const n0 = new Set(o.map(l => l.vehicleId)).size, sm0 = o.reduce((t, l) => t.plus(l.egpDebit || '0'), D0()); return `<tr><td></td><td class="muted" style="font-size:12.5px">+ shares of ${n0} other car${n0 > 1 ? 's' : ''}</td><td></td><td class="num muted">${money(sm0)}</td><td></td></tr>`; })()}`; }).join('');
   const moves = S.vehicleMoves.filter(m => m.vehicleId === v.id).sort((a, b) => a.at < b.at ? 1 : -1);
-  const kv = (l, v0) => `<div><dt>${l}</dt><dd>${v0 || '<span class="muted">—</span>'}</dd></div>`;
-  const doc = (inv) => inv ? `<div class="rc-doc"><button type="button" class="lnk0" data-act="inv-view" data-id="${inv.id}">${esc(inv.number)}</button>${invPill(inv)}${invState(inv).open.gt(0) ? `<div class="muted">${money(invState(inv).open)} ${inv.currency} due</div>` : ''}</div>` : '';
-  const actList = [cy && !cy.invoiced && po.status === 'approved' && can('ap', 'create') ? `<button type="button" class="btn primary" data-act="po-inv" data-id="${po.id}">Supplier invoice & receive</button>` : '',
-    cy && cy.received && !cy.sold && can('ar', 'create') ? `<button type="button" class="btn primary" data-act="io-sell" data-id="${po.id}">Sell car</button>` : '',
-    can('imports', 'create') && !carClosed(v) ? `<button type="button" class="btn" data-act="cx-new" data-veh="${v.id}">${ic('plus', 15)}Car expense</button>` : '',
-    st.group === 'out' && !carClosed(v) && can('vehicles', 'edit') ? `<button type="button" class="btn" data-act="car-close" data-id="${v.id}">Close car</button>` : '',
-    carClosed(v) && can('vehicles', 'edit') ? `<button type="button" class="btn" data-act="car-reopen" data-id="${v.id}">Reopen</button>` : '',
-    can('vehicles', 'edit') ? `<button type="button" class="btn" data-act="veh-edit" data-id="${v.id}">Edit</button>` : ''].join('');
-  const stIdx = cur;
-  return `<div class="rec">
-    <div style="margin-bottom:10px"><button type="button" class="btn sm" data-act="hist-back">${ic('back', 15)}Back</button></div>
-    <div class="rec-top"><div class="rec-title"><div class="rec-ic">${ic('cars', 24)}</div><div>
-      <div class="rec-kind">${esc(v.code)} · ${po ? `<button type="button" class="lnk0" data-act="po-view" data-id="${po.id}">${esc(po.number)}</button>` : 'no order'}</div>
-      <h2>${esc(makeName(v.makeId))} ${esc(modelName(v.makeId, v.modelId))} ${v.year}</h2>
-      <div class="rec-meta">${carClosed(v) ? '<span class="pill mute">Closed</span>' : `<span class="pill ${st.group === 'out' ? 'ok' : st.group === 'stock' ? 'info' : 'mute'}">${esc(st.name)}</span>`}<span>Chassis ${esc(v.vin)}</span>${cust ? `<span>${esc(cust.legalName)}</span>` : '<span>Stock car</span>'}</div></div></div>
-      <div class="rec-actions">${actList}</div></div>
-    <ol class="rec-path">${steps.map(([t0, ok], i) => `<li class="${i < stIdx || (i === stIdx && i === steps.length - 1 && ok) ? 'done' : i === stIdx ? 'cur' : ''}"><span class="dot">${i < stIdx || (i === stIdx && ok && i === steps.length - 1) ? ic('check', 12) : ''}</span>${t0}</li>`).join('')}</ol>
-    <div class="rec-layout"><div class="rec-main">
-      <section class="rc"><header><h3>Profit &amp; loss</h3><span class="muted" style="font-size:12.5px">EGP</span></header>
-        <div class="kpis">
-          <div><span>Revenue</span><b>${money(net)}</b></div><div><span>Car cost</span><b>${money(costEgp)}</b></div>
-          <div><span>${cy && cy.sold ? 'Result' : 'Result so far'}</span><b style="color:${result.lt(0) ? 'var(--bad)' : 'var(--ok)'}">${result.lt(0) ? '− ' : ''}${money(result.abs())}</b></div>
-          <div><span>Margin</span><b>${net.gt(0) ? result.div(net).mul(100).toFixed(1) + '%' : '—'}</b></div></div>
-        ${pnl}</section>
+  return `<div class="o-bar"><div class="btns">${acts}</div><div class="o-status">${steps.map(([t0], i) => `<span class="${i === cur ? 'on' : ''}">${t0}</span>`).join('')}</div></div>
+    <div class="o-sheet" style="max-width:none">
+      <div class="o-head"><div><div class="muted" style="font-size:13px">${esc(v.code)} · ${vBadge(v.status)}</div><h2>${esc(makeName(v.makeId))} ${esc(modelName(v.makeId, v.modelId))} ${v.year}</h2></div><div class="o-stats">${stats}</div></div>
+      <div class="o-grid"><div>
+          ${f('Chassis (VIN)', `<span class="mono">${esc(v.vin)}</span>`)}${f('Colour', esc([v.exteriorColor, v.interiorColor].filter(Boolean).join(' / ')))}${f('Customer', v.customerId ? esc((partnerById('ar', v.customerId) || {}).legalName) : 'stock car')}${f('Supplier', esc((partnerById('ap', v.supplierId) || {}).legalName || ''))}
+        </div><div>
+          ${f('Purchase price', pAmt ? `<span class="mono">${money(pAmt)}</span> ${pCur}${po && po.rate ? ` <span class="muted">@ ${fmtNum(po.rate, 4)}</span>` : ''}` : '')}${f('Cost in EGP', `<b class="mono">${money(costEgp)}</b> EGP`)}${f('Location', esc(locName(v.location)))}${f('Analytic account', an ? `<span class="mono">${esc(an.code)}</span>` : '')}
+        </div></div>
+      <div class="o-tabs"><span>Profit &amp; loss of this car (EGP)</span></div>
+      <div style="max-width:620px;margin-top:6px">${pnl}</div>
       ${carExpensesTable(v.id)}
-      <section class="rc" id="car-je"><header><h3>Journal entries <span class="cnt">${ents.length}</span></h3></header>
-        <div class="tbl-wrap"><table><thead><tr><th>Date</th><th>Entry</th><th class="num">EGP</th></tr></thead><tbody>
-        ${ents.map(e => { const j = journalOf(e.journal); return `<tr data-act="je-view" data-id="${e.id}" style="cursor:pointer"><td style="white-space:nowrap">${e.accountingDate}</td><td class="wrap"><b style="font-weight:600">${esc(entryRef(e))}</b> <span class="muted">· ${esc(j ? j.name : e.journal)}</span><div class="muted" style="font-size:12.5px">${esc(e.description || '')}</div></td><td class="num">${money(e.totals ? e.totals.egpDebit : '0')}</td></tr>`; }).join('') || '<tr><td colspan="3" class="empty">No postings yet.</td></tr>'}
-        </tbody></table></div></section>
-    </div><aside class="rec-aside">
-      <section class="rc"><header><h3>Customer</h3></header>${cust ? `<a href="#/partners/statement?side=ar&id=${cust.id}" class="rc-big">${esc(cust.legalName)}</a>${cust.phone ? `<div class="muted">${esc(cust.phone)}</div>` : ''}` : '<div class="muted">Stock car — no customer yet</div>'}
-        ${doc(cy && cy.sale)}${dep.length ? `<div class="rc-doc"><span>${dep.length} deposit${dep.length > 1 ? 's' : ''}</span><span class="muted">${dep.map(x => money(x.amount) + ' ' + x.currency).join(' + ')}</span></div>` : ''}</section>
-      <section class="rc"><header><h3>${po && po.kind === 'local' ? 'Bought from' : 'Supplier'}</h3></header>${sup ? `<a href="#/partners/statement?side=ap&id=${sup.id}" class="rc-big">${esc(sup.legalName)}</a>` : '<div class="muted">—</div>'}
-        ${pAmt ? `<div class="muted" style="margin-top:4px">${money(pAmt)} ${pCur}${po && po.rate && pCur !== 'EGP' ? ` at ${fmtNum(po.rate, 4)}` : ''}</div>` : ''}${doc(cy && cy.supInv)}</section>
-      <section class="rc"><header><h3>Car details</h3></header><dl class="rc-kv">
-        ${kv('Chassis (VIN)', esc(v.vin))}${kv('Year', esc(String(v.year || '')))}${kv('Colour', esc([v.exteriorColor, v.interiorColor].filter(Boolean).join(' / ')))}${v.mileage ? kv('Mileage', esc(v.mileage) + ' km') : ''}${kv('Location', esc(locName(v.location) || ''))}${kv('Analytic account', an ? esc(an.code) : '')}
-      </dl></section>
-      ${moves.length ? `<section class="rc"><header><h3>History</h3></header><ol class="tl">${moves.slice(0, 8).map(m => `<li><span class="dot"></span><div><b>${m.type === 'status' ? esc(vStatus(m.to).name) : m.type === 'location' ? 'Moved to ' + esc(locName(m.to) || m.to) : esc(m.to)}</b><div class="muted">${m.date}${m.reason ? ' · ' + esc(m.reason) : ''}</div></div></li>`).join('')}</ol></section>` : ''}
-    </aside></div></div>`;
+      <div class="o-tabs" id="car-je"><span>All journal entries (${ents.length})</span></div>
+      <div class="tbl-wrap"><table><thead><tr><th>Date</th><th>Entry / account</th><th>Foreign amount</th><th class="num">Debit EGP</th><th class="num">Credit EGP</th></tr></thead><tbody>${je || '<tr><td colspan="5" class="empty">No postings yet.</td></tr>'}</tbody></table></div>
+      ${moves.length ? `<details style="margin-top:16px"><summary style="cursor:pointer">Status history (${moves.length})</summary><div class="tbl-wrap"><table><tbody>${moves.map(m => `<tr><td style="white-space:nowrap">${m.date}</td><td>${m.type === 'status' ? (m.from ? vBadge(m.from) + ' → ' : '') + vBadge(m.to) : esc((m.from ? locName(m.from) + ' → ' : '') + (m.type === 'location' ? locName(m.to) : m.to))}</td><td style="font-size:12.5px">${esc(m.reason)}</td><td class="mono" style="font-size:12px">${esc(m.ref)}</td></tr>`).join('')}</tbody></table></div></details>` : ''}
+    </div>`;
 }
 function pageVehicleSettings(){
   const ed = can('vehicles', 'edit'), sed = can('settings', 'edit');
@@ -7357,15 +7202,12 @@ function pageEInvoice(){
     </tbody></table></div></div>`;
 }
 function pageExpenses(){
-  const ed = can('expenses', 'approve'), list = [...S.expenses].filter(x => !x.carExp).reverse();
-  const via = x => x.method === 'bank' ? esc(bankLabel(bankById(x.bankId))) : x.method === 'employee' ? 'Employee (to reimburse)' : x.method === 'supplier' ? 'Supplier invoice' : esc(x.method || '');
-  const cats = S.expenseCats.map(c => `<span class="chip">${esc(c.name)}<span class="muted" style="font-weight:500">${esc((acc(c.accountId) || {}).code || '')}</span></span>`).join('');
-  return H(t('expense_docs'), 'Rent, salaries, marketing and other running costs. Costs of a specific car go under Purchases → Car expenses.',
+  const ed = can('expenses', 'approve');
+  return H(t('expense_docs'), 'Administrative, selling and other operating expenses with approval. Expense categories can only post to expense accounts, so they can never be capitalized into vehicle cost.',
     (ed ? '<button class="btn" data-act="ec-new">New category</button>' : '') + (can('expenses', 'create') && S.expenseCats.length ? '<button class="btn primary" data-act="ex-new">New expense</button>' : '')) + `
-    ${S.expenseCats.length ? `<div class="o-pills" style="margin-bottom:12px;align-items:center"><span class="muted" style="font-size:12.5px;margin-inline-end:4px">Categories</span>${cats}</div>` : ''}
-    <div class="card"><div class="tbl-wrap"><table><thead><tr><th>Number</th><th>Date</th><th>Payee</th><th>Paid via</th><th>Reference</th><th class="num">Total</th><th>Status</th></tr></thead><tbody>
-    ${list.map(x => { const e = S.entries.find(y => y.id === x.entryId); return `<tr${e ? ` data-act="je-view" data-id="${e.id}"` : ''}><td><b>${esc(x.number)}</b>${e ? `<div class="muted mono" style="font-size:11.5px">${esc(entryRef(e))}</div>` : ''}</td><td>${x.date}</td><td>${esc(x.payee || '—')}</td><td>${via(x)}</td><td>${esc(x.ref || '')}</td><td class="num">${money(x.total)} ${x.currency}</td><td>${e ? badge(e.status) : ''}</td></tr>`; }).join('')
-      || `<tr><td colspan="7"><div class="empty" style="padding:28px 0">${S.expenseCats.length ? 'No expenses recorded yet. Use <b>New expense</b> to record rent, salaries or other running costs.' : 'Start by adding a category (for example Rent → 6100), then record expenses against it.'}${ed && !S.expenseCats.length ? '<div style="margin-top:12px"><button class="btn primary" data-act="ec-new">New category</button></div>' : ''}</div></td></tr>`}
+    <div class="card"><div class="card-h"><h2>Categories</h2></div><div class="card-b" style="font-size:13px">${S.expenseCats.map(c => `${esc(c.name)} → <span class="mono">${esc(accLabel(acc(c.accountId)))}</span>${c.costCenter ? ' · CC ' + esc(c.costCenter) : ''}`).join('<br>') || '<span class="muted">No categories yet.</span>'}</div></div>
+    <div class="card"><div class="tbl-wrap"><table><thead><tr><th>Number</th><th>Date</th><th>Paid via</th><th>Payee</th><th>Reference</th><th class="num">Total</th><th>Status</th></tr></thead><tbody>
+    ${[...S.expenses].reverse().map(x => { const e = S.entries.find(y => y.id === x.entryId); return `<tr><td class="mono">${esc(x.number)}</td><td>${x.date}</td><td>${esc(x.method === 'bank' ? bankLabel(bankById(x.bankId)) : x.method)}</td><td>${esc(x.payee || '')}</td><td>${esc(x.ref)}</td><td class="num">${money(x.total)} ${x.currency}</td><td>${e ? entryLink(e) + ' ' + badge(e.status) : ''}</td></tr>`; }).join('') || '<tr><td colspan="7" class="empty">No expenses yet.</td></tr>'}
     </tbody></table></div></div>`;
 }
 function pageSchedules(){
@@ -7397,7 +7239,7 @@ const P9_CLICKS = {
   'ei-json'(el){ const inv = S.invoices.find(i => i.id === el.dataset.id); run(() => { requirePerm('tax', 'export'); download(`eta-${inv.number}.json`, JSON.stringify(eInvoicePayload(inv), null, 2), 'application/json'); log('export', 'tax', inv.id, null, null, 'E-invoice payload draft', inv.number); saveState(); }); },
   'ei-rec'(el){ openModal({ title: 'Record ETA portal result', wide: true, body: `<div class="row"><div class="field"><label>Status</label><select class="input" name="status"><option>submitted</option><option>valid</option><option>rejected</option><option>cancelled</option></select></div><div class="field" style="flex:2"><label>UUID</label><input class="input mono" name="uuid"></div><div class="field"><label>Date</label><input class="input" type="date" name="date" value="${todayCairo()}"></div></div><div class="field"><label>Rejection reasons / validation errors</label><input class="input" name="errors"></div><div class="field"><label>Response notes</label><input class="input" name="response"></div>`, onSubmit: f => A.recordEInvoice(el.dataset.id, f) }); },
   'ec-new'(){ openModal({ title: 'New expense category', body: `<div class="field"><label>Name *</label><input class="input" name="name"></div><div class="field"><label>Expense account *</label><select class="input" name="accountId">${accOptsOf(['expense'])}</select></div><div class="field"><label>Default cost center</label><select class="input" name="costCenter">${ccOptions('')}</select></div>`, onSubmit: f => A.saveExpenseCat(f) }); },
-  'ex-new'(){ openModal({ title: 'New expense', xwide: true, submit: 'Save & submit for approval', body: `<div class="row"><div class="field"><label>Date *</label><input class="input" type="date" name="date" value="${todayCairo()}"></div><div class="field"><label>Paid via *</label><select class="input" name="method"><option value="bank">Bank / cash (paid now)</option><option value="employee">Employee reimbursement</option><option value="supplier">Supplier invoice (pay later)</option></select></div>
+  'ex-new'(){ openModal({ title: 'New expense', xwide: true, submit: 'Save & submit for approval', body: `<div class="row"><div class="field"><label>Date *</label><input class="input" type="date" name="date" value="${todayCairo()}"></div><div class="field"><label>Paid via *</label><select class="input" name="method"><option value="bank">bank / cash (paid now)</option><option value="employee">employee reimbursement</option><option value="supplier">supplier invoice (payable)</option></select></div>
       <div class="field"><label>Bank / cash</label><select class="input" name="bankId">${bankOptions('')}</select></div><div class="field"><label>Supplier</label><select class="input" name="supplierId"><option value="">—</option>${supOpts('')}</select></div></div>
     <div class="row"><div class="field"><label>Employee (reimbursement)</label><input class="input" name="employee"></div><div class="field"><label>Payee</label><input class="input" name="payee"></div><div class="field"><label>Receipt / invoice ref *</label><input class="input" name="ref"></div></div>
     <div class="tbl-wrap" style="border:1px solid var(--border);border-radius:8px"><table><thead><tr><th>Category</th><th>Description</th><th class="num">Amount</th><th>CC</th><th>Vehicle (VIN, if vehicle-specific)</th></tr></thead><tbody>${[0, 1, 2].map(() => `<tr><td><select class="input" name="ex_cat">${S.expenseCats.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select></td><td><input class="input" name="ex_desc"></td><td><input class="input mono" name="ex_amount" style="text-align:end;width:120px"></td><td><select class="input" name="ex_cc">${ccOptions('')}</select></td><td><input class="input mono" name="ex_vehicle"></td></tr>`).join('')}</tbody></table></div>`,
@@ -7476,7 +7318,6 @@ function pageReportCenter(){
 function pageStatements(){
   const kind = ['bs','is','cf','eq'].includes(routeParam('s')) ? routeParam('s') : 'is', yr = todayCairo().slice(0, 4);
   const R0 = UI.fs = UI.fs || { from: yr + '-01-01', to: todayCairo(), asOf: todayCairo(), cFrom: '', cTo: '', cAsOf: '' };
-  if (kind === 'is') return pageIncomeStatement();
   const rows = statementRows(kind, R0);
   const cmp = kind === 'is' && R0.cFrom && R0.cTo ? statementRows('is', { from: R0.cFrom, to: R0.cTo }) : kind === 'bs' && R0.cAsOf ? statementRows('bs', { asOf: R0.cAsOf }) : null;
   const cmpMap = new Map((cmp || []).filter(r => r.length === 3).map(r => [r[0] + '|' + r[1], r[2]]));
@@ -7493,122 +7334,6 @@ function pageStatements(){
         : `<label class="muted" style="align-self:center">From</label><input class="input" type="date" name="from" value="${R0.from}"><label class="muted" style="align-self:center">To</label><input class="input" type="date" name="to" value="${R0.to}">${kind === 'is' ? `<label class="muted" style="align-self:center">Compare</label><input class="input" type="date" name="cFrom" value="${R0.cFrom}"><input class="input" type="date" name="cTo" value="${R0.cTo}">` : ''}`}<button class="btn">Run</button></div></form></div>
     ${check}<div class="card"><div class="tbl-wrap"><table>${cmp ? `<thead><tr><th></th><th></th><th class="num">${esc(rows[0][1])}</th><th class="num">${esc(cmp[0][1])}</th></tr></thead>` : ''}<tbody>${body}</tbody></table></div></div>`;
 }
-/* ---------- Income statement (Odoo-style: periods, comparison, foldable sections, drill-down) ---------- */
-const IS_PRESETS = [['this_month','This month'],['this_quarter','This quarter'],['this_year','This financial year'],['last_month','Last month'],['last_quarter','Last quarter'],['last_year','Last financial year'],['custom','Custom']];
-const IS_COMPARE = [['none','No comparison'],['prev','Previous period'],['ly','Same period last year'],['months','Month by month']];
-function isPresetRange(k){
-  const t = todayCairo(), y = +t.slice(0, 4), m = +t.slice(5, 7) - 1, q = Math.floor(m / 3) * 3, f0 = ((S.company && S.company.fyStartMonth) || 1) - 1;
-  const fy = m < f0 ? y - 1 : y;
-  switch (k){
-    case 'this_month': return [ymd(y, m, 1), t];
-    case 'this_quarter': return [ymd(y, q, 1), t];
-    case 'this_year': return [ymd(fy, f0, 1), t];
-    case 'last_month': return [ymd(y, m - 1, 1), ymd(y, m, 0)];
-    case 'last_quarter': return [ymd(y, q - 3, 1), ymd(y, q, 0)];
-    case 'last_year': return [ymd(fy - 1, f0, 1), ymd(fy, f0, 0)];
-  } return null;
-}
-function isColumns(P){
-  const cols = [{ from: P.from, to: P.to, label: isRangeLabel(P.from, P.to) }];
-  const shiftY = (d, n) => (+d.slice(0, 4) + n) + d.slice(4);
-  if (P.cmp === 'prev'){ const days = Math.round((new Date(P.to) - new Date(P.from)) / 864e5); const to = addDays(P.from, -1), from = addDays(to, -days); cols.push({ from, to, label: isRangeLabel(from, to) }); }
-  if (P.cmp === 'ly'){ const from = shiftY(P.from, -1), to = shiftY(P.to, -1).replace(/-02-29$/, '-02-28'); cols.push({ from, to, label: isRangeLabel(from, to) }); }
-  if (P.cmp === 'months'){
-    const out = []; let y = +P.from.slice(0, 4), m = +P.from.slice(5, 7) - 1;
-    while (out.length < 24){ const a = ymd(y, m, 1), b = ymd(y, m + 1, 0); if (a > P.to) break; out.push({ from: a < P.from ? P.from : a, to: b > P.to ? P.to : b, label: new Date(Date.UTC(y, m, 1)).toLocaleString('en', { month: 'short', year: 'numeric', timeZone: 'UTC' }) }); m++; if (m > 11){ m = 0; y++; } }
-    return out.length > 1 ? [...out, { ...cols[0], label: 'Total', total: true }] : cols;
-  }
-  return cols;
-}
-function isRangeLabel(a, b){
-  const mo = d => new Date(d + 'T00:00:00Z').toLocaleString('en', { month: 'short', timeZone: 'UTC' }), y = a.slice(0, 4), f0 = String(((S.company && S.company.fyStartMonth) || 1)).padStart(2, '0');
-  const end = d => ymd(+d.slice(0, 4), +d.slice(5, 7), 0);
-  if (a.slice(5) === f0 + '-01' && (b === ymd(+y + 1, +f0 - 1, 0) || (b === todayCairo() && b < ymd(+y + 1, +f0 - 1, 0)))) return f0 === '01' ? y : `FY ${y}/${String(+y + 1).slice(2)}`;
-  if (a.slice(0, 7) === b.slice(0, 7) && a.slice(8) === '01') return `${mo(a)} ${y}`;
-  const m = +a.slice(5, 7); if (a.slice(8) === '01' && (m - 1) % 3 === 0 && b.slice(0, 4) === y && +b.slice(5, 7) <= m + 2 && (b === end(b) || b === todayCairo())) return `Q${(m + 2) / 3} ${y}`;
-  return `${+a.slice(8)} ${mo(a)}${a.slice(0, 4) === b.slice(0, 4) ? '' : ' ' + y} – ${+b.slice(8)} ${mo(b)} ${b.slice(0, 4)}`;
-}
-/* One tree for every column: section → account group → account. */
-function isModel(cols){
-  const stmts = cols.map(c => incomeStatement(c.from, c.to));
-  const SECS = [['revenue','Revenue','Total revenue'],['cogs','Cost of sales','Total cost of sales'],['opex','Operating expenses','Total operating expenses'],['other','Other income / (expense)','Total other income / (expense)']];
-  const sections = SECS.map(([k, label, totLabel]) => {
-    const groups = new Map();
-    stmts.forEach((st, ci) => st.sec[k].forEach(r => {
-      const g = groupLabel(r.account), gk = r.account.parentId || ('t:' + r.account.type);
-      if (!groups.has(gk)) groups.set(gk, { key: gk, label: g, accounts: new Map() });
-      const G = groups.get(gk); if (!G.accounts.has(r.account.id)) G.accounts.set(r.account.id, { account: r.account, v: cols.map(() => D0()) });
-      G.accounts.get(r.account.id).v[ci] = r.amount; }));
-    const gl = [...groups.values()].map(G => { const accts = [...G.accounts.values()].sort((a, b) => a.account.code < b.account.code ? -1 : 1); return { ...G, accounts: accts, v: cols.map((_, ci) => accts.reduce((t, a) => t.plus(a.v[ci]), D0())) }; })
-      .sort((a, b) => (a.accounts[0].account.code < b.accounts[0].account.code ? -1 : 1));
-    return { key: k, label, totLabel, groups: gl, v: stmts.map(st => st[k === 'other' ? 'other' : k]) };
-  });
-  const pick = f => stmts.map(st => st[f]);
-  return { cols, sections, revenue: pick('revenue'), gross: pick('gross'), operating: pick('operating'), net: pick('net') };
-}
-function pageIncomeStatement(){
-  const P = UI.is = UI.is || { preset: 'this_year', cmp: 'none', from: '', to: '', pct: true, fold: {}, zero: false };
-  const pr = isPresetRange(P.preset); if (pr){ P.from = pr[0]; P.to = pr[1]; }
-  if (!P.from || !P.to){ const d = isPresetRange('this_year'); P.from = d[0]; P.to = d[1]; }
-  const cols = isColumns(P), M = isModel(cols), main = cols.findIndex(c => c.total) >= 0 ? cols.findIndex(c => c.total) : 0;
-  const rev = M.revenue[main], pctOf = v => rev.eq(0) ? '' : v.div(rev).mul(100).toFixed(1) + '%';
-  const showPct = P.pct && cols.length === 1, showVar = cols.length === 2;
-  const many = cols.length > 3;
-  const cell = (v, strong) => many && v.eq(0) ? '<td class="num zero">–</td>' : `<td class="num${v.lt(0) ? ' neg' : ''}">${strong ? '<b>' : ''}${money(v)}${strong ? '</b>' : ''}</td>`;
-  const tail = v => (showPct ? `<td class="num pct">${pctOf(v[0])}</td>` : '') + (showVar ? (v[1].eq(0) ? '<td class="num pct">—</td>' : `<td class="num pct ${v[0].gte(v[1]) ? 'up' : 'down'}">${v[0].gte(v[1]) ? '+' : ''}${v[0].minus(v[1]).div(v[1].abs()).mul(100).toFixed(1)}%</td>`) : '');
-  const vals = (v, strong) => v.map(x => cell(x, strong)).join('') + tail(v);
-  const folded = k => P.fold[k] === true, caret = k => `<span class="is-caret">${ic(folded(k) ? 'chev-right' : 'chev', 14)}</span>`;
-  const glLink = (a, c) => `data-act="is-gl" data-id="${a.id}" data-from="${c.from}" data-to="${c.to}"`;
-  let body = '';
-  const sumRow = (label, v, cls) => `<tr class="is-sum ${cls}"><td>${esc(label)}</td>${vals(v, true)}</tr>`;
-  M.sections.forEach((sec, si) => {
-    const empty = !sec.groups.length;
-    body += `<tr class="is-sec" data-act="is-fold" data-k="${sec.key}"><td>${caret(sec.key)}${esc(sec.label)}</td>${folded(sec.key) || empty ? vals(sec.v, true) : `<td colspan="${cols.length + (showPct ? 1 : 0) + (showVar ? 1 : 0)}"></td>`}</tr>`;
-    if (!folded(sec.key)){
-      if (empty) body += `<tr class="is-empty"><td colspan="${cols.length + 3}">No ${sec.label.toLowerCase()} in this period</td></tr>`;
-      sec.groups.forEach(G => {
-        const gk = sec.key + ':' + G.key, single = sec.groups.length === 1 && G.accounts.length === 1;
-        if (!single) body += `<tr class="is-grp" data-act="is-fold" data-k="${esc(gk)}"><td>${caret(gk)}${esc(G.label)}</td>${vals(G.v)}</tr>`;
-        if (single || !folded(gk)) G.accounts.forEach(a => { if (!P.zero && a.v.every(x => x.eq(0))) return;
-          body += `<tr class="is-acc${single ? ' l1' : ''}" ${glLink(a.account, cols[main])} title="Open the general ledger for this account"><td><span class="acode">${esc(a.account.code)}</span>${esc(accName(a.account))}</td>${vals(a.v)}</tr>`; });
-      });
-      if (!empty) body += sumRow(sec.totLabel, sec.v, 'sec-tot');
-    }
-    if (si === 1) body += sumRow('Gross profit', M.gross, 'hi');
-    if (si === 2) body += sumRow('Operating profit', M.operating, 'hi');
-  });
-  body += sumRow('Net profit', M.net, 'net');
-  const kp = (k, v, sub) => `<div class="is-kpi"><div class="k">${k}</div><div class="v${v.lt(0) ? ' neg' : ''}">${money(v)}</div><div class="s">${sub}</div></div>`;
-  const g = M.gross[main], n = M.net[main], ox = M.sections[2].v[main];
-  const presetBtns = IS_PRESETS.map(([k, l]) => `<button type="button" class="o-pill ${P.preset === k ? 'on' : ''}" data-act="is-set" data-f="preset" data-v="${k}">${l}</button>`).join('');
-  const cmpSel = `<select class="input" data-act-change="is-cmp" id="is-cmp">${IS_COMPARE.map(([k, l]) => `<option value="${k}" ${P.cmp === k ? 'selected' : ''}>${l}</option>`).join('')}</select>`;
-  const head = `<tr><th></th>${cols.map(c => `<th class="num">${esc(c.label)}</th>`).join('')}${showPct ? '<th class="num">% of revenue</th>' : ''}${showVar ? '<th class="num">Change</th>' : ''}</tr>`;
-  return H('Income statement', `${P.from} to ${P.to} · EGP · posted entries only`, `<a class="btn" href="#/ana/profit">Profit by car</a><button class="btn" data-act="fs-xlsx" data-k="is">Export Excel</button><button class="btn" onclick="window.print()">Print / PDF</button>`) + `
-    <div class="card is-tools"><div class="is-tabs">${['bs','is','cf','eq'].map(k2 => `<a class="btn sm ${k2 === 'is' ? 'primary' : ''}" href="#/rep/statements?s=${k2}">${{ bs: 'Balance sheet', is: 'Income statement', cf: 'Cash flow', eq: 'Changes in equity' }[k2]}</a>`).join('')}</div>
-      <div class="is-row"><span class="lbl">Period</span><div class="o-pills">${presetBtns}</div></div>
-      ${P.preset === 'custom' ? `<form class="is-row" data-form="is-range"><span class="lbl">Dates</span><input class="input" type="date" name="from" value="${P.from}"><span class="muted">to</span><input class="input" type="date" name="to" value="${P.to}"><button class="btn sm">Apply</button></form>` : ''}
-      <div class="is-row"><span class="lbl">Compare</span>${cmpSel}
-        <label class="is-chk"><input type="checkbox" data-act="is-tog" data-f="pct" ${P.pct ? 'checked' : ''} ${cols.length > 1 ? 'disabled' : ''}> % of revenue</label>
-        <label class="is-chk"><input type="checkbox" data-act="is-tog" data-f="zero" ${P.zero ? 'checked' : ''}> Show zero lines</label>
-        <span class="spacer"></span><button type="button" class="btn sm" data-act="is-foldall" data-v="0">Unfold all</button><button type="button" class="btn sm" data-act="is-foldall" data-v="1">Fold all</button></div></div>
-    <div class="is-kpis">${kp('Revenue', rev, isRangeLabel(P.from, P.to))}${kp('Gross profit', g, rev.eq(0) ? 'margin —' : 'margin ' + pctOf(g))}${kp('Operating expenses', ox, rev.eq(0) ? '—' : pctOf(ox) + ' of revenue')}${kp('Net profit', n, rev.eq(0) ? 'margin —' : 'margin ' + pctOf(n))}</div>
-    <div class="card is-card"><div class="tbl-wrap"><table class="is-tbl${cols.length > 3 ? ' many' : ''}"><thead>${head}</thead><tbody>${body}</tbody></table></div></div>`;
-}
-function isExportRows(){
-  const P = UI.is, cols = isColumns(P), M = isModel(cols), n = v => v.map(x => +x.toFixed(2));
-  const rows = [['Income statement', `${P.from} to ${P.to}`, 'EGP'], ['', ...cols.map(c => c.label)]];
-  M.sections.forEach((sec, si) => { rows.push([sec.label]); sec.groups.forEach(G => G.accounts.forEach(a => rows.push([`${a.account.code} ${accName(a.account)}`, ...n(a.v)]))); rows.push([sec.totLabel, ...n(sec.v)]);
-    if (si === 1) rows.push(['Gross profit', ...n(M.gross)]); if (si === 2) rows.push(['Operating profit', ...n(M.operating)]); });
-  rows.push(['Net profit', ...n(M.net)]); return rows;
-}
-const IS_CLICKS = {
-  'is-set'(el){ UI.is[el.dataset.f] = el.dataset.v; render(); },
-  'is-tog'(el){ UI.is[el.dataset.f] = !UI.is[el.dataset.f]; render(); },
-  'is-fold'(el){ const k = el.dataset.k; UI.is.fold[k] = !UI.is.fold[k]; render(); },
-  'is-foldall'(el){ const f = {}; if (el.dataset.v === '1'){ for (const k of ['revenue','cogs','opex','other']) f[k] = true; } UI.is.fold = f; render(); },
-  'is-gl'(el){ UI.gl = { ...(UI.gl || {}), from: el.dataset.from, to: el.dataset.to, accountId: el.dataset.id, _pre: el.dataset.id }; location.hash = '#/acc/gl?account=' + el.dataset.id; }
-};
-document.addEventListener('change', e => { if (e.target && e.target.id === 'is-cmp'){ UI.is.cmp = e.target.value; render(); } });
 function pageBudgets(){
   const yr = UI.budYear || todayCairo().slice(0, 4), toM = yr === todayCairo().slice(0, 4) ? +todayCairo().slice(5, 7) : 12;
   const rows = budgetVsActual(yr, 1, toM);
@@ -7618,9 +7343,9 @@ function pageBudgets(){
       ${rows.map(r => `<tr><td>${esc(accLabel(r.account))}</td><td class="num">${money(r.budget)}</td><td class="num">${money(r.actual)}</td><td class="num" style="color:${r.variance.lt(0) ? 'var(--bad)' : 'var(--ok)'}">${money(r.variance)}</td><td class="num">${r.pct ? r.pct.toFixed(1) + '%' : '—'}</td></tr>`).join('') || '<tr><td colspan="5" class="empty">No budgets for this year.</td></tr>'}
     </tbody></table></div></div>`;
 }
-const P10_FORMS = { dash(f){ UI.dash = { from: f.from, to: f.to }; render(); }, fs(f){ UI.fs = { ...UI.fs, ...f }; render(); }, 'is-range'(f){ if (isISODate(f.from) && isISODate(f.to) && f.from <= f.to){ UI.is.from = f.from; UI.is.to = f.to; } else toast('Pick a start date on or before the end date.', 'bad'); render(); }, bud(f){ UI.budYear = /^\d{4}$/.test(f.year) ? f.year : todayCairo().slice(0, 4); render(); } };
+const P10_FORMS = { dash(f){ UI.dash = { from: f.from, to: f.to }; render(); }, fs(f){ UI.fs = { ...UI.fs, ...f }; render(); }, bud(f){ UI.budYear = /^\d{4}$/.test(f.year) ? f.year : todayCairo().slice(0, 4); render(); } };
 const P10_CLICKS = {
-  'fs-xlsx'(el){ const k = el.dataset.k; run(async () => { requirePerm('ledger', 'export'); const rows = k === 'is' && UI.is ? isExportRows() : statementRows(k, UI.fs || {}); const how = await exportXlsx(`goldstern-${k}-${todayCairo()}`, [{ name: { bs: 'Balance sheet', is: 'Income statement', cf: 'Cash flow', eq: 'Equity' }[k], rows }]); log('export', 'ledger', null, null, { statement: k, format: how }, 'Financial statement export'); saveState(); }); },
+  'fs-xlsx'(el){ const k = el.dataset.k; run(async () => { requirePerm('ledger', 'export'); const rows = statementRows(k, UI.fs || {}); const how = await exportXlsx(`goldstern-${k}-${todayCairo()}`, [{ name: { bs: 'Balance sheet', is: 'Income statement', cf: 'Cash flow', eq: 'Equity' }[k], rows }]); log('export', 'ledger', null, null, { statement: k, format: how }, 'Financial statement export'); saveState(); }); },
   'bud-new'(){ openModal({ title: 'Set or revise budget', xwide: true, body: `<div class="row"><div class="field"><label>Year *</label><input class="input" name="year" value="${UI.budYear || todayCairo().slice(0, 4)}"></div><div class="field" style="flex:2"><label>Account *</label><select class="input" name="accountId">${accOptsOf(['revenue','cogs','expense'])}</select></div><div class="field"><label>Annual amount (spread evenly)</label><input class="input mono" name="annual"></div></div>
     <div class="field"><label>…or monthly amounts</label><div class="grid g4" style="gap:6px">${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].map(m => `<label style="font-size:12px">${m}<input class="input mono" name="m" value="0"></label>`).join('')}</div></div><div class="field"><label>Reason *</label><input class="input" name="reason" required></div>`, onSubmit: f => A.saveBudget(f) }); }
 };
@@ -8086,127 +7811,15 @@ Object.assign(CLICK, {
     openModal({ title: `Allocate advance ${src.number}`, wide: true, formAttrs: 'data-aa', submit: 'Save & submit for approval', body: advAllocForm(side, src),
       onSubmit: f => { const s = A.allocateAdvance(side, f); toast(`${s.number} submitted for approval.`, 'ok'); } }); aaRefresh(); },
   'car-report-pdf'(el){
-    const po = poById(el.dataset.id); if (!po) return;
-    const v = poVehicle(po), cust = po.customerId ? partnerById('ar', po.customerId) : null, sup = partnerById('ap', po.supplierId), sm = orderSummary(po), c = sm.c;
-    const dep = poAdvances(po, 'ar').filter(x => ACTIVE_ST.includes(entryStatus(x))), adv = poAdvances(po, 'ap').filter(x => ACTIVE_ST.includes(entryStatus(x)));
-    const cx = v ? carExpensesOf(v.id) : [];
-    const cxTot = cx.reduce((t, r) => t.plus(r.egp), D0());
-    
-    openModal({
-      title: `Car Report — ${v ? v.vin : po.number}`,
-      wide: true,
-      submit: 'Print / Save as PDF',
-      body: `
-        <div id="print-car-report" style="padding:10px;font-family:inherit;color:#0f172a">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #0f172a;padding-bottom:14px;margin-bottom:18px">
-            <div>
-              <h1 style="margin:0;font-size:22px;letter-spacing:-0.02em">GOLDSTERN LUXURY CARS</h1>
-              <div style="font-size:12px;color:#64748b;margin-top:2px">Vehicle Comprehensive Report · تقرير شامل للمركبة</div>
-            </div>
-            <div style="text-align:end;font-size:12px;color:#64748b">
-              <div><b>Report Date:</b> ${todayCairo()}</div>
-              <div><b>Order Ref:</b> ${esc(po.number)}</div>
-            </div>
-          </div>
-
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px">
-            <div style="background:#f8fafc;padding:12px 14px;border-radius:8px;border:1px solid #e2e8f0">
-              <h3 style="margin:0 0 8px;font-size:13px;text-transform:uppercase;color:#475569">Vehicle Details</h3>
-              <div style="font-size:16px;font-weight:700;color:#0f172a">${v ? `${esc(makeName(v.makeId))} ${esc(modelName(v.makeId, v.modelId))} ${v.year}` : '—'}</div>
-              <div style="font-size:12px;margin-top:4px"><b>Chassis (VIN):</b> <span class="mono">${v ? esc(v.vin) : '—'}</span></div>
-              <div style="font-size:12px;margin-top:2px"><b>Color:</b> ${v && v.exteriorColor ? esc(v.exteriorColor) : '—'} · <b>Status:</b> ${v ? esc(vStatus(v.status).name) : '—'}</div>
-              <div style="font-size:12px;margin-top:2px"><b>Location:</b> ${v ? esc(locName(v.location)) : '—'} · <b>Code:</b> ${v ? esc(v.code) : '—'}</div>
-            </div>
-            <div style="background:#f8fafc;padding:12px 14px;border-radius:8px;border:1px solid #e2e8f0">
-              <h3 style="margin:0 0 8px;font-size:13px;text-transform:uppercase;color:#475569">Commercial Parties</h3>
-              <div style="font-size:12px"><b>Customer:</b> ${cust ? `<b>${esc(cust.legalName)}</b> (${esc(cust.code)})` : '<span class="muted">Showroom Stock</span>'}</div>
-              ${cust && cust.phone ? `<div style="font-size:12px;margin-top:2px"><b>Phone:</b> ${esc(cust.phone)}</div>` : ''}
-              <div style="font-size:12px;margin-top:6px"><b>Supplier:</b> ${sup ? `<b>${esc(sup.legalName)}</b> (${esc(sup.code)})` : '—'}</div>
-              <div style="font-size:12px;margin-top:2px"><b>Order Date:</b> ${po.date} · <b>Currency:</b> ${po.currency}</div>
-            </div>
-          </div>
-
-          <div style="margin-bottom:18px">
-            <h3 style="font-size:13px;text-transform:uppercase;color:#475569;margin:0 0 8px;border-bottom:1px solid #e2e8f0;padding-bottom:4px">Financial Cost &amp; Profit Summary</h3>
-            <table style="width:100%;border-collapse:collapse;font-size:12.5px">
-              <thead>
-                <tr style="background:#f1f5f9;text-align:start">
-                  <th style="padding:6px 10px">Description</th>
-                  <th style="padding:6px 10px;text-align:end">Amount Foreign</th>
-                  <th style="padding:6px 10px;text-align:end">Exchange Rate</th>
-                  <th style="padding:6px 10px;text-align:end">Cost in EGP</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style="padding:6px 10px"><b>Vehicle Purchase Price</b></td>
-                  <td style="padding:6px 10px;text-align:end" class="mono">${money(po.lines.reduce((t, l) => t.plus(l.price), D0()))} ${po.currency}</td>
-                  <td style="padding:6px 10px;text-align:end" class="mono">${po.rate ? fmtNum(po.rate, 4) : '—'}</td>
-                  <td style="padding:6px 10px;text-align:end" class="mono"><b>${sm.priceEgp ? money(sm.priceEgp) : '—'} EGP</b></td>
-                </tr>
-                ${cx.map(x => `
-                  <tr>
-                    <td style="padding:6px 10px;color:#334155">${esc(costTypeName(x.carExp.type))}${x.carExp.description ? ` (${esc(x.carExp.description)})` : ''}</td>
-                    <td style="padding:6px 10px;text-align:end" class="mono">${money(x.total)} ${x.currency}</td>
-                    <td style="padding:6px 10px;text-align:end" class="mono">${x.currency !== 'EGP' ? fmtNum(x.rate, 4) : '1.0000'}</td>
-                    <td style="padding:6px 10px;text-align:end" class="mono">${money(x.egp)} EGP</td>
-                  </tr>
-                `).join('')}
-                <tr style="font-weight:700;background:#f8fafc;border-top:1px solid #cbd5e1">
-                  <td style="padding:8px 10px" colspan="3">TOTAL CAR COST (تكلفة السيارة الإجمالية)</td>
-                  <td style="padding:8px 10px;text-align:end;color:#0f172a;font-size:14px" class="mono">${money(c.invoiced ? sm.cost : (sm.priceEgp || D0()).plus(cxTot))} EGP</td>
-                </tr>
-                ${c.sold ? `
-                  <tr style="border-top:2px solid #0f172a">
-                    <td style="padding:6px 10px"><b>Customer Selling Price (سعر البيع)</b></td>
-                    <td style="padding:6px 10px;text-align:end" class="mono" colspan="2">${money(sm.revenue)} EGP</td>
-                    <td style="padding:6px 10px;text-align:end" class="mono"><b>${money(sm.revenue)} EGP</b></td>
-                  </tr>
-                  <tr style="font-weight:700;background:#f0fdf4">
-                    <td style="padding:8px 10px" colspan="3">GROSS PROFIT (المجمل الربحي)</td>
-                    <td style="padding:8px 10px;text-align:end;color:#16a34a;font-size:14px" class="mono">${money(sm.profit)} EGP</td>
-                  </tr>
-                ` : ''}
-              </tbody>
-            </table>
-          </div>
-
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px">
-            <div style="background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:10px 12px">
-              <h4 style="margin:0 0 6px;font-size:12px;color:#16a34a;text-transform:uppercase">Customer Deposits (${dep.length})</h4>
-              ${dep.map(d => `<div style="display:flex;justify-content:space-between;font-size:11.5px;padding:2px 0"><span>${d.number} (${d.date})</span><span class="mono"><b>${money(d.amount)} ${d.currency}</b></span></div>`).join('') || '<div class="muted" style="font-size:11px">No deposits recorded</div>'}
-              <div style="display:flex;justify-content:space-between;font-weight:700;font-size:12px;border-top:1px solid #e2e8f0;padding-top:4px;margin-top:4px">
-                <span>Total Received:</span>
-                <span class="mono">${money(dep.reduce((t, x) => t.plus(x.amount), D0()))} ${po.currency}</span>
-              </div>
-            </div>
-            <div style="background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:10px 12px">
-              <h4 style="margin:0 0 6px;font-size:12px;color:#0284c7;text-transform:uppercase">Supplier Payments (${adv.length})</h4>
-              ${adv.map(d => `<div style="display:flex;justify-content:space-between;font-size:11.5px;padding:2px 0"><span>${d.number} (${d.date})</span><span class="mono"><b>${money(d.amount)} ${d.currency}</b></span></div>`).join('') || '<div class="muted" style="font-size:11px">No supplier payments recorded</div>'}
-              <div style="display:flex;justify-content:space-between;font-weight:700;font-size:12px;border-top:1px solid #e2e8f0;padding-top:4px;margin-top:4px">
-                <span>Total Paid to Supplier:</span>
-                <span class="mono">${money(adv.reduce((t, x) => t.plus(x.amount), D0()))} ${po.currency}</span>
-              </div>
-            </div>
-          </div>
-
-          <div style="display:flex;justify-content:space-between;margin-top:30px;padding-top:20px;border-top:1px dashed #cbd5e1;font-size:12px;color:#64748b">
-            <div>Prepared by: ______________________</div>
-            <div>Chief Accountant: ______________________</div>
-            <div>Authorized Signature: ______________________</div>
-          </div>
-        </div>
-      `,
-      onSubmit: () => {
-        window.print();
-      }
-    });
+    const po = poById(el.dataset.id);
+    if (!po) return;
+    printCarReport(po);
   },
   'aging-csv'(el){ const side = el.dataset.side; run(() => { requirePerm(SIDES[side].mod, 'export'); const asOf = (UI.aging || {})[side] || todayCairo(), ag = aging(side, asOf), rows = [];
     for (const r of ag.list) for (const d of r.docs) rows.push([r.partner.code, r.partner.legalName, d.inv.number, d.inv.partnerRef, d.inv.date, d.inv.dueDate, d.days, BUCKETS[d.bucket], d.inv.currency, d.open.toFixed(2), d.egpOpen.toFixed(2)]);
     downloadCSV(`${side}-aging-${asOf}.csv`, ['code','name','document','reference','date','due','days_past_due','bucket','currency','open','open_egp'], rows); log('export', SIDES[side].mod, null, null, { asOf, rows: rows.length }, 'Aging CSV'); saveState(); }); }
 });
-Object.assign(FORM_HANDLERS, P5_FORMS); Object.assign(CLICK, P5_CLICKS); Object.assign(FORM_HANDLERS, P6_FORMS); Object.assign(CLICK, P6_CLICKS); Object.assign(FORM_HANDLERS, P7_FORMS); Object.assign(CLICK, P7_CLICKS); Object.assign(FORM_HANDLERS, P8_FORMS); Object.assign(CLICK, P8_CLICKS); Object.assign(FORM_HANDLERS, P9_FORMS); Object.assign(CLICK, P9_CLICKS); Object.assign(FORM_HANDLERS, P10_FORMS); Object.assign(CLICK, P10_CLICKS); Object.assign(CLICK, IS_CLICKS);
+Object.assign(FORM_HANDLERS, P5_FORMS); Object.assign(CLICK, P5_CLICKS); Object.assign(FORM_HANDLERS, P6_FORMS); Object.assign(CLICK, P6_CLICKS); Object.assign(FORM_HANDLERS, P7_FORMS); Object.assign(CLICK, P7_CLICKS); Object.assign(FORM_HANDLERS, P8_FORMS); Object.assign(CLICK, P8_CLICKS); Object.assign(FORM_HANDLERS, P9_FORMS); Object.assign(CLICK, P9_CLICKS); Object.assign(FORM_HANDLERS, P10_FORMS); Object.assign(CLICK, P10_CLICKS);
 
 /* =========================================================================
    DOCUMENT EDITING — edit freely until posted; correct posted documents by
@@ -9447,48 +9060,33 @@ function invoiceView(inv){
   acts.push(`<button type="button" class="btn" data-act="inv-print" data-id="${inv.id}">Print</button>`);
   const payRows = red.map(r => { const s0 = r.src, se = entryById(s0.entryId), kind = s0.type === 'credit' ? 'Credit note' : s0.type === 'advance' ? 'Advance applied' : (side === 'ar' ? 'Payment received' : 'Payment');
     return `<tr><td>${s0.date}</td><td>${kind}</td><td>${se ? entryLink(se).replace(esc(entryRef(se)), esc(s0.number)) : esc(s0.number)}</td><td class="num">${money(r.applied)} ${inv.currency}</td><td class="num">${money(r.carrying)}</td></tr>`; }).join('');
-  const pillCls = !live ? (entryStatus(inv) === 'reversed' ? 'mute' : 'gold') : isC ? 'info' : st.open.eq(0) ? 'ok' : st.open.lt(st.total) ? 'gold' : 'info';
-  const pillTxt = !live ? (entryStatus(inv) === 'reversed' ? 'Cancelled' : 'Draft') : isC ? 'Posted' : lbl;
-  const overdue = live && !isC && st.open.gt(0) && inv.dueDate && inv.dueDate < todayCairo();
-  const lineCar = l => l.vehicleId ? vehById(l.vehicleId) : null;
-  const egp = inv.currency !== 'EGP';
-  const kv = (k, v0) => v0 ? `<div><dt>${k}</dt><dd>${v0}</dd></div>` : '';
   openModal({ screen: { key: 'inv:' + inv.id, reopen: () => { const x = S.invoices.find(y => y.id === inv.id); if (x) invoiceView(x); } }, title: `${title} ${inv.number}`, xwide: true, body: `
-    <div class="rec">
-      <div class="rec-top"><div class="rec-title"><div class="rec-ic">${ic(side === 'ar' ? 'sales' : 'purchases', 22)}</div><div>
-        <div class="rec-kind">${esc(title)}${srcPo ? ` · <button type="button" class="lnk0" data-act="po-view" data-id="${srcPo.id}">${esc(srcPo.number)}</button>` : ''}${so ? ` · <button type="button" class="lnk0" data-act="so-view" data-id="${so.id}">${esc(so.number)}</button>` : ''}</div><h2>${esc(inv.number)}</h2>
-        <div class="rec-meta"><span class="pill ${pillCls}">${esc(pillTxt)}</span>${overdue ? '<span class="pill bad">Overdue</span>' : ''}<span>${inv.date}</span>${p ? `<span>${esc(p.legalName)}</span>` : ''}<span>${money(inv.total)} ${inv.currency}</span></div></div></div>
-        <div class="rec-actions">${acts.join('')}</div></div>
-      <ol class="rec-path">${steps.map(([t0, ok], i) => `<li class="${ok ? 'done' : i === cur + 1 || (i === 0 && !ok) ? 'cur' : ''}"><span class="dot">${ok ? ic('check', 12) : ''}</span>${t0}</li>`).join('')}</ol>
-      <div class="rec-layout"><div class="rec-main">
-        <section class="rc"><header><h3>Lines <span class="cnt">${lines.length}</span></h3></header>
-          ${lines.map(l => { const v = lineCar(l); return `<div class="rc-line"><div class="rc-thumb">${ic(v ? 'cars' : 'file', 20)}</div><div class="rc-name">${v ? `<a href="#/veh/view?id=${v.id}"><b>${esc(l.description || carName(v))}</b></a>` : `<b>${esc(l.description || '')}</b>`}
-            <div class="muted">${[l.accountId ? esc(accLabel(acc(l.accountId))) : '', v ? (String(l.description || '').includes(v.vin) ? esc(v.code) : 'Chassis ' + esc(v.vin)) : esc(l.vehicle || '')].filter(Boolean).join(' · ')}</div></div><div></div>
-            <div class="rc-amt" style="text-align:end">${money(l.amount)} <span class="muted">${inv.currency}</span></div></div>`; }).join('')}
-          <dl class="rc-sum">
-            ${inv.tax && D(inv.tax.tax).gt(0) ? `<div><dt>VAT ${esc(inv.tax.code)} ${esc(inv.tax.rate)}% <span class="muted">(${inv.tax.mode === 'inclusive' ? 'included' : 'added'})</span></dt><dd>${money(inv.tax.tax)}</dd></div>` : ''}
-            <div class="tot"><dt>Total</dt><dd>${money(inv.total)} <span class="muted">${inv.currency}</span></dd></div>
-            ${egp ? `<div><dt>In EGP</dt><dd class="muted">${money(invEgp(inv))} EGP</dd></div>` : ''}
-            ${red.map(r => `<div><dt class="muted">${r.src.type === 'credit' ? 'Credited' : r.src.type === 'advance' ? 'Deposit applied' : 'Paid'} on ${r.src.date}</dt><dd style="color:var(--ok)">− ${money(r.applied)}</dd></div>`).join('')}
-            ${st ? `<div class="tot"><dt>Amount due</dt><dd${st.open.gt(0) ? ' style="color:var(--bad)"' : ''}>${money(st.open)} <span class="muted">${inv.currency}</span></dd></div>` : ''}
-          </dl></section>
-        ${payRows ? `<section class="rc"><header><h3>Payments <span class="cnt">${red.length}</span></h3></header><div class="tbl-wrap"><table><thead><tr><th>Date</th><th>Type</th><th>Document</th><th class="num">Applied</th><th class="num">EGP</th></tr></thead><tbody>${payRows}</tbody></table></div></section>` : ''}
-      </div><aside class="rec-aside">
-        <section class="rc"><header><h3>${esc(SD.partner)}</h3></header>${p ? `<a href="#/partners/statement?side=${side}&id=${p.id}" class="rc-big">${esc(p.legalName)}</a>${p.phone ? `<div class="muted">${esc(p.phone)}</div>` : ''}` : '<span class="muted">—</span>'}
-          ${advs.length ? `<div class="rc-doc"><span>${advs.length} unused advance${advs.length > 1 ? 's' : ''}</span><span class="muted">${advs.map(a0 => money(advState(a0).availPosted) + ' ' + a0.currency).join(' + ')}</span></div>` : ''}</section>
-        <section class="rc"><header><h3>Details</h3></header><dl class="rc-kv">
-          ${kv('Invoice date', inv.date)}${isC ? '' : kv('Due date', `${inv.dueDate || '—'}${overdue ? ' <span class="pill bad">overdue</span>' : ''}`)}
-          ${kv(side === 'ap' ? 'Supplier ref.' : 'Reference', esc(inv.partnerRef || ''))}${kv('Currency', inv.currency)}
-          ${egp && e && e.rate ? kv('Exchange rate', `<span class="mono">${fmtNum(invRate(inv) || e.rate, 4)}</span>`) : ''}
-          ${kv('Journal', e ? esc((journalOf(e.journal) || {}).name || e.journal) : '')}
-        </dl></section>
-        <section class="rc"><header><h3>Linked documents</h3></header>
-          ${e ? `<button type="button" class="rc-doc lnk-row" data-act="je-view" data-id="${e.id}"><span>${ic('file', 14)} Journal entry</span><b>${esc(e.number || e.draftRef)}</b></button>` : ''}
-          ${srcPo ? `<button type="button" class="rc-doc lnk-row" data-act="po-view" data-id="${srcPo.id}"><span>${ic('purchases', 14)} Purchase order</span><b>${esc(srcPo.number)}</b></button>` : ''}
-          ${so ? `<button type="button" class="rc-doc lnk-row" data-act="so-view" data-id="${so.id}"><span>${ic('sales', 14)} Sales order</span><b>${esc(so.number)}</b></button>` : ''}
-          ${isC && inv.invoiceId ? `<button type="button" class="rc-doc lnk-row" data-act="inv-view" data-id="${inv.invoiceId}"><span>${ic('file', 14)} Original invoice</span><b>${esc((S.invoices.find(x => x.id === inv.invoiceId) || {}).number || '')}</b></button>` : ''}
-        </section>
-      </aside></div>
+    <div class="o-bar"><div class="btns">${acts.join('')}</div><div class="o-status">${steps.map(([t0], i) => `<span class="${i === cur ? 'on' : ''}">${t0}</span>`).join('')}</div></div>
+    <div class="o-sheet" style="position:relative">
+      ${live && !isC ? `<div class="o-ribbon ${st.open.eq(0) ? 'paid' : st.open.lt(st.total) ? 'part' : ''}">${esc(lbl)}</div>` : entryStatus(inv) === 'reversed' ? '<div class="o-ribbon cancel">Cancelled</div>' : ''}
+      <div class="o-head"><div><div class="muted" style="font-size:13px">${esc(title)}</div><h2>${esc(inv.number)}</h2></div>${stats ? `<div class="o-stats">${stats}</div>` : ''}</div>
+      <div class="o-grid"><div>
+          ${f(SD.partner, p ? `<a href="#/partners/statement?side=${side}&id=${p.id}">${esc(p.legalName)}</a>` : '')}
+          ${f(side === 'ap' ? 'Supplier ref.' : 'Reference', esc(inv.partnerRef))}
+          ${f('Currency', inv.currency)}
+          ${inv.currency !== 'EGP' ? f('Exchange rate', e && e.rate ? `<span class="mono">${fmtNum(invRate(inv) || e.rate, 4)}</span>` : '') : ''}
+        </div><div>
+          ${f('Invoice date', inv.date)}
+          ${isC ? '' : f('Due date', `${inv.dueDate || ''}${live && st.open.gt(0) && inv.dueDate && inv.dueDate < todayCairo() ? ' <span class="badge b-bad">overdue</span>' : ''}`)}
+          ${f('Journal', e ? esc((journalOf(e.journal) || {}).name || e.journal) : '')}
+        </div></div>
+      <div class="o-tabs"><span>Invoice lines</span></div>
+      <div class="tbl-wrap"><table><thead><tr><th>Description</th><th>Account</th><th>Vehicle</th><th class="num">Amount</th></tr></thead><tbody>
+        ${lines.map(l => `<tr><td>${esc(l.description || '')}</td><td style="font-size:12.5px">${l.accountId ? esc(accLabel(acc(l.accountId))) : ''}</td><td class="mono" style="font-size:12px">${esc(l.vehicle || (l.vehicleId ? (vehById(l.vehicleId) || {}).vin : '') || '')}</td><td class="num">${money(l.amount)}</td></tr>`).join('')}
+        ${inv.tax && D(inv.tax.tax).gt(0) ? `<tr><td colspan="3">Tax ${esc(inv.tax.code)} ${esc(inv.tax.rate)}%</td><td class="num">${money(inv.tax.tax)}</td></tr>` : ''}
+      </tbody></table></div>
+      <div class="o-tot"><table><tbody>
+        <tr><td>Total</td><td><b>${money(inv.total)} ${inv.currency}</b></td></tr>
+        ${inv.currency !== 'EGP' ? `<tr><td class="muted">In EGP</td><td class="muted">${money(invEgp(inv))} EGP</td></tr>` : ''}
+        ${red.map(r => `<tr><td class="muted" style="font-size:12.5px"><i>${r.src.type === 'credit' ? 'Credited' : 'Paid'} on ${r.src.date}</i></td><td class="muted">− ${money(r.applied)}</td></tr>`).join('')}
+        ${st ? `<tr style="border-top:1px solid var(--border)"><td><b>Amount due</b></td><td><b style="font-size:16px">${money(st.open)} ${inv.currency}</b></td></tr>` : ''}
+      </tbody></table></div>
+      ${payRows ? `<div class="o-tabs"><span>Payments</span></div><div class="tbl-wrap"><table><thead><tr><th>Date</th><th>Type</th><th>Document</th><th class="num">Applied</th><th class="num">EGP</th></tr></thead><tbody>${payRows}</tbody></table></div>` : ''}
     </div>` });
 }
 function printInvoice(inv){
@@ -9503,6 +9101,215 @@ function printInvoice(inv){
     <script>window.onload = () => window.print();<\/script></body></html>`;
   const w = window.open('', '_blank'); if (!w) return toast('Allow pop-ups to print.', 'bad'); w.document.write(html); w.document.close();
 }
+function printCarReport(po){
+  const sup = partnerById('ap', po.supplierId), cust = po.customerId ? partnerById('ar', po.customerId) : null, co = S.company || {};
+  const v = poVehicle(po), sm = orderSummary(po), c = sm.c;
+  const dep = poAdvances(po, 'ar').filter(x => ACTIVE_ST.includes(entryStatus(x)));
+  const adv = poAdvances(po, 'ap').filter(x => ACTIVE_ST.includes(entryStatus(x)));
+  const cx = v ? carExpensesOf(v.id) : [];
+  const cxTot = cx.reduce((t, r) => t.plus(r.egp), D0());
+  const poTotal = po.lines.reduce((t, l) => t.plus(l.price), D0());
+  const depTotal = dep.reduce((t, x) => t.plus(x.amount), D0());
+  const advTotal = adv.reduce((t, x) => t.plus(x.amount), D0());
+  const totalCostEgp = c.invoiced ? sm.cost : (sm.priceEgp || D0()).plus(cxTot);
+
+  const html = `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Vehicle Comprehensive Report — ${v ? v.vin : po.number}</title>
+  <style>
+    @page { size: A4 portrait; margin: 12mm 15mm; }
+    * { box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 32px; color: #0f172a; line-height: 1.45; background: #fff; font-size: 13px; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; margin-bottom: 16px; font-size: 12.5px; }
+    th { background: #f8fafc; border-bottom: 2px solid #cbd5e1; padding: 7px 10px; text-align: left; font-weight: 650; color: #475569; }
+    td { border-bottom: 1px solid #e2e8f0; padding: 7px 10px; }
+    td.n, th.n { text-align: right; }
+    .header-box { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #0f172a; padding-bottom: 14px; margin-bottom: 20px; }
+    .logo-img { height: 60px; background: #0f172a; padding: 8px 12px; border-radius: 6px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 18px; }
+    .card-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px; }
+    .card-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; }
+    .sig-row { display: flex; justify-content: space-between; margin-top: 40px; padding-top: 20px; border-top: 1px dashed #cbd5e1; font-size: 12px; color: #475569; }
+    @media print {
+      .no-print { display: none !important; }
+      body { margin: 0; padding: 0; }
+    }
+  </style>
+</head>
+<body onload="setTimeout(function(){ window.print(); }, 350)">
+  <div class="no-print" style="position:sticky;top:0;background:#0f172a;color:#fff;padding:12px 24px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 8px rgba(0,0,0,0.15);z-index:9999;margin:-32px -32px 24px -32px">
+    <div style="font-weight:600;font-size:14px">Vehicle Comprehensive Report — ${esc(po.number)}</div>
+    <div style="display:flex;gap:10px">
+      <button onclick="window.print()" style="background:#2563eb;color:#fff;border:none;padding:8px 18px;border-radius:6px;font-weight:600;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:6px">🖨️ Print / Save as PDF</button>
+      <button onclick="window.close()" style="background:#475569;color:#fff;border:none;padding:8px 16px;border-radius:6px;font-weight:600;cursor:pointer;font-size:13px">✕ Close</button>
+    </div>
+  </div>
+
+  <div class="header-box">
+    <div>
+      <img src="${typeof LOGO_FULL !== 'undefined' ? LOGO_FULL : ''}" alt="Goldstern" class="logo-img">
+      <h2 style="margin:8px 0 2px;font-size:18px;font-weight:700">${esc(co.legalName || 'Goldstern Luxury Cars')}</h2>
+      <div style="color:#64748b;font-size:12px">${esc(co.address || '')} · Tax Reg: ${esc(co.taxRegNo || '—')}</div>
+    </div>
+    <div style="text-align:right">
+      <h1 style="margin:0 0 4px;font-size:19px;font-weight:750;letter-spacing:-0.01em;color:#0f172a">VEHICLE REPORT</h1>
+      <div style="font-size:12px;color:#64748b;margin-bottom:6px">تقرير شامل للمركبة والحسابات</div>
+      <div style="font-size:13px"><b>Order Ref:</b> <span class="mono">${esc(po.number)}</span></div>
+      <div style="font-size:12px;color:#64748b"><b>Date:</b> ${po.date} · <b>Generated:</b> ${todayCairo()}</div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card-box">
+      <div class="card-title">Vehicle Specifications &amp; Status</div>
+      <div style="font-size:15px;font-weight:700;color:#0f172a">${v ? `${esc(makeName(v.makeId))} ${esc(modelName(v.makeId, v.modelId))} ${v.year}` : '—'}</div>
+      <div style="font-size:12.5px;margin-top:6px"><b>Chassis / VIN:</b> <span class="mono" style="font-weight:650">${v ? esc(v.vin) : '—'}</span></div>
+      <div style="font-size:12px;color:#475569;margin-top:3px"><b>Color:</b> ${v && v.exteriorColor ? esc(v.exteriorColor) : '—'}${v && v.interiorColor ? ` / ${esc(v.interiorColor)}` : ''} · <b>Status:</b> ${v ? esc(vStatus(v.status).name) : '—'}</div>
+      <div style="font-size:12px;color:#475569;margin-top:3px"><b>Location:</b> ${v ? esc(locName(v.location)) : '—'} · <b>Internal Code:</b> ${v ? esc(v.code) : '—'}</div>
+    </div>
+    <div class="card-box">
+      <div class="card-title">Commercial Parties</div>
+      <div style="font-size:12.5px"><b>Customer:</b> ${cust ? `<b>${esc(cust.legalName)}</b> (${esc(cust.code)})` : '<span style="color:#64748b">Showroom Stock</span>'}</div>
+      ${cust && cust.phone ? `<div style="font-size:12px;color:#475569;margin-top:3px"><b>Phone:</b> ${esc(cust.phone)}</div>` : ''}
+      <div style="font-size:12.5px;margin-top:6px"><b>Supplier:</b> ${sup ? `<b>${esc(sup.legalName)}</b> (${esc(sup.code)})` : '—'}</div>
+      <div style="font-size:12px;color:#475569;margin-top:3px"><b>Order Currency:</b> ${po.currency} ${po.currency !== 'EGP' && po.rate ? `· <b>Exchange Rate:</b> ${fmtNum(po.rate, 4)} EGP` : ''}</div>
+    </div>
+  </div>
+
+  <h3 style="margin:16px 0 6px;font-size:13px;text-transform:uppercase;letter-spacing:0.04em;color:#475569">1. Landed Vehicle Cost &amp; Profit (تكلفة المركبة والمجمل الربحي)</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Expense / Cost Item</th>
+        <th class="n">Original Amount</th>
+        <th class="n">Exchange Rate</th>
+        <th class="n">Cost in EGP</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>Vehicle Purchase Price (سعر الشراء)</b></td>
+        <td class="n mono">${money(poTotal)} ${po.currency}</td>
+        <td class="n mono">${po.rate ? fmtNum(po.rate, 4) : '—'}</td>
+        <td class="n mono"><b>${sm.priceEgp ? money(sm.priceEgp) : '—'} EGP</b></td>
+      </tr>
+      ${cx.map(x => `
+        <tr>
+          <td>${esc(costTypeName(x.carExp.type))}${x.carExp.description ? ` <span style="color:#64748b">(${esc(x.carExp.description)})</span>` : ''}</td>
+          <td class="n mono">${money(x.total)} ${x.currency}</td>
+          <td class="n mono">${x.currency !== 'EGP' ? fmtNum(x.rate, 4) : '1.0000'}</td>
+          <td class="n mono">${money(x.egp)} EGP</td>
+        </tr>
+      `).join('')}
+      <tr style="font-weight:700;background:#f8fafc;border-top:2px solid #cbd5e1">
+        <td colspan="3">TOTAL LANDED CAR COST (تكلفة السيارة الإجمالية)</td>
+        <td class="n mono" style="font-size:14px;color:#0f172a">${money(totalCostEgp)} EGP</td>
+      </tr>
+      ${c.sold ? `
+        <tr style="border-top:1.5px solid #0f172a">
+          <td><b>Customer Selling Price (سعر بيع العميل)</b></td>
+          <td colspan="2" class="n mono">${money(sm.revenue)} EGP</td>
+          <td class="n mono"><b>${money(sm.revenue)} EGP</b></td>
+        </tr>
+        <tr style="font-weight:700;background:#f0fdf4">
+          <td colspan="3" style="color:#16a34a">GROSS PROFIT (المجمل الربحي)</td>
+          <td class="n mono" style="font-size:14px;color:#16a34a">${money(sm.profit)} EGP</td>
+        </tr>
+      ` : ''}
+    </tbody>
+  </table>
+
+  <div class="grid-2">
+    <div>
+      <h3 style="margin:12px 0 6px;font-size:12.5px;text-transform:uppercase;color:#16a34a">2. Customer Deposits (${dep.length})</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Ref &amp; Date</th>
+            <th class="n">Amount</th>
+            <th class="n">EGP Equivalent</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${dep.length ? dep.map(d => `
+            <tr>
+              <td><b>${d.number}</b><br><small style="color:#64748b">${d.date}</small></td>
+              <td class="n mono"><b>${money(d.amount)} ${d.currency}</b></td>
+              <td class="n mono">${money(r2(D(d.amount).mul(d.rate || '1')))}</td>
+            </tr>
+          `).join('') : '<tr><td colspan="3" style="color:#64748b;text-align:center">No deposits recorded</td></tr>'}
+          <tr style="font-weight:700;background:#f8fafc">
+            <td>Total Received</td>
+            <td class="n mono" colspan="2">${money(depTotal)} ${po.currency}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div>
+      <h3 style="margin:12px 0 6px;font-size:12.5px;text-transform:uppercase;color:#2563eb">3. Supplier Payments (${adv.length})</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Ref &amp; Date</th>
+            <th class="n">Amount</th>
+            <th class="n">EGP Equivalent</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${adv.length ? adv.map(d => `
+            <tr>
+              <td><b>${d.number}</b><br><small style="color:#64748b">${d.date}</small></td>
+              <td class="n mono"><b>${money(d.amount)} ${d.currency}</b></td>
+              <td class="n mono">${money(r2(D(d.amount).mul(d.rate || '1')))}</td>
+            </tr>
+          `).join('') : '<tr><td colspan="3" style="color:#64748b;text-align:center">No supplier payments recorded</td></tr>'}
+          <tr style="font-weight:700;background:#f8fafc">
+            <td>Total Paid to Supplier</td>
+            <td class="n mono" colspan="2">${money(advTotal)} ${po.currency}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="sig-row">
+    <div><b>Prepared by:</b> _________________________</div>
+    <div><b>Chief Accountant:</b> _________________________</div>
+    <div><b>Authorized Signature:</b> _________________________</div>
+  </div>
+
+
+</body>
+</html>`;
+
+  try {
+    const w = window.open('', '_blank');
+    if (w) {
+      w.document.open();
+      w.document.write(html);
+      w.document.close();
+      return;
+    }
+  } catch (err) {}
+
+  // Fallback: print via hidden iframe if pop-ups blocked
+  const frame = document.createElement('iframe');
+  frame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;';
+  document.body.appendChild(frame);
+  frame.contentWindow.document.open();
+  frame.contentWindow.document.write(html);
+  frame.contentWindow.document.close();
+  frame.contentWindow.focus();
+  setTimeout(() => {
+    frame.contentWindow.print();
+    setTimeout(() => frame.remove(), 3000);
+  }, 400);
+}
+
 function printPO(po){
   const sup = partnerById('ap', po.supplierId), cust = po.customerId ? partnerById('ar', po.customerId) : null, co = S.company || {};
   const v = poVehicle(po), total = po.lines.reduce((t, l) => t.plus(l.price), D0());
@@ -9592,7 +9399,7 @@ function poView(po){
           <div class="rec-doc-grid">
             <div class="rec-doc-card ${c.sale ? 'linked' : ''}">
               <div class="rdc-header">
-                <div class="rdc-icon cust">${ic('invoices', 18)}</div>
+                <div class="rdc-icon cust">${ic('invoices', 20)}</div>
                 <div class="rdc-title-wrap">
                   <span class="rdc-kind">Customer Invoice (فاتورة العميل)</span>
                   <b class="rdc-num">${c.sale ? esc(c.sale.number) : 'Not invoiced yet'}</b>
@@ -9621,7 +9428,7 @@ function poView(po){
 
             <div class="rec-doc-card ${c.supInv ? 'linked' : ''}">
               <div class="rdc-header">
-                <div class="rdc-icon sup">${ic('purchases', 18)}</div>
+                <div class="rdc-icon sup">${ic('bill', 20)}</div>
                 <div class="rdc-title-wrap">
                   <span class="rdc-kind">Purchase Invoice (فاتورة المورد)</span>
                   <b class="rdc-num">${c.supInv ? esc(c.supInv.number) : 'Not billed yet'}</b>
@@ -9635,7 +9442,7 @@ function poView(po){
                   <div class="rdc-row"><span>Total Bill</span><b class="mono">${money(invState(c.supInv).total)} ${c.supInv.currency}</b></div>
                   ${invState(c.supInv).open.gt(0) ? `<div class="rdc-row highlight"><span>Balance Due</span><b class="mono" style="color:var(--bad)">${money(invState(c.supInv).open)} ${c.supInv.currency}</b></div>` : `<div class="rdc-row highlight"><span>Status</span><b style="color:var(--ok)">Fully paid</b></div>`}
                   <div class="rdc-actions">
-                    <button type="button" class="btn sm primary" data-act="inv-view" data-id="${c.supInv.id}">${ic('invoices', 14)} View bill</button>
+                    <button type="button" class="btn sm primary" data-act="inv-view" data-id="${c.supInv.id}">${ic('bill', 14)} View bill</button>
                     <button type="button" class="btn sm" data-act="inv-print" data-id="${c.supInv.id}">${ic('printer', 14)} Print</button>
                     ${invState(c.supInv).open.gt(0) && can('ap', 'create') ? `<button type="button" class="btn sm gold" data-act="io-pay" data-side="ap" data-id="${c.supInv.id}">Pay supplier</button>` : ''}
                   </div>
