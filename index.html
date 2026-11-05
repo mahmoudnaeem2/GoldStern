@@ -12885,11 +12885,11 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261105-204211';
+const APP_BUILD = 'build-20261105-204515';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
-    const m = txt.match(/const APP_BUILD = 'build-20261105-204211']+)'/); if (!m || m[1] === APP_BUILD || document.getElementById('upd-bar')) return;
+    const m = txt.match(new RegExp('^const APP_' + "BUILD = '([^']+)';", 'm')); if (!m || m[1] === APP_BUILD || document.getElementById('upd-bar')) return;
     const bar = document.createElement('div'); bar.id = 'upd-bar'; bar.setAttribute('role', 'status');
     bar.innerHTML = `<span>A newer version of Goldstern is available.</span><button type="button" class="btn sm primary" id="upd-go">Reload now</button><button type="button" class="upd-x" aria-label="Dismiss">${ic('close', 14)}</button>`;
     document.body.appendChild(bar);
