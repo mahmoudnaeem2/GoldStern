@@ -468,7 +468,7 @@ th{color:var(--g500);font-weight:500;background:var(--g50)}
 .rec-path .dot{width:22px;height:22px;border-radius:50%;border:2px solid var(--border-2);background:#fff;display:inline-flex;align-items:center;justify-content:center;flex:none;color:#fff}
 .rec-path li.done{color:var(--text)}.rec-path li.done .dot{background:#1c1d21;border-color:#1c1d21}
 .rec-path li.cur{color:var(--text);font-weight:600}.rec-path li.cur .dot{border-color:var(--gold);box-shadow:0 0 0 4px rgba(184,137,43,.18)}
-.rec-layout{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:20px;align-items:start}
+.rec{max-width:1600px!important;margin:0 auto!important;width:100%!important}.rec-layout{display:grid;grid-template-columns:minmax(0,1fr) 350px;gap:24px;align-items:start}
 .rc,.rec-main > .o-sec{background:#fff;border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:18px 20px;margin:0 0 16px}
 .rec-main > .o-sec{border-top:1px solid var(--border)}
 .rec-main > .o-sec > h3,.rc > header h3{border:0!important;padding:0!important;margin:0;font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px}
@@ -2925,14 +2925,16 @@ function buildSettlement(side, f){
     lines.push(...cl0); a.toCar = true; fx = fx.minus(af); }
   const fl = fxLine(fx, `Realized FX on ${SD.set.toLowerCase()}`); if (fl) lines.push(fl);
   let hold = null;
-  if (side === 'ap' && linkPo && linkPo.currency !== cur && !allocs.length){
-    const orT = cl(f.orderRate) || linkPo.rate || '';
-    if (!orT) throw new AppError(`Enter the rate for ${linkPo.currency}: 1 ${linkPo.currency} = ? EGP, so the advance can be held in the order currency.`);
-    const orRate = D(validateRateString(orT)), payEgp = bankEgp, held = r2(payEgp.div(orRate));
-    if (!held.gt(0)) throw new AppError('The amount is too small at this rate.');
-    const al = lines.find(l => l.accountId === getMapping(SD.adv).id);
-    if (al) Object.assign(al, { fcCurrency: linkPo.currency, fcDebit: held.toFixed(2), fcCredit: '0.00', fcRate: orRate.toFixed(), fcRateRecordIds: [], description: `Supplier advance ${money(held)} ${linkPo.currency} (paid ${money(amount)} ${cur} @ ${orRate.toFixed()})` });
-    hold = { cur: linkPo.currency, amount: held, rate: orRate, egp: payEgp };
+  if (linkPo && linkPo.currency !== cur && !allocs.length){
+    const orT = cl(f.orderRate) || (side === 'ap' ? linkPo.rate : '');
+    if (side === 'ap' && !orT) throw new AppError(`Enter the rate for ${linkPo.currency}: 1 ${linkPo.currency} = ? EGP, so the advance can be held in the order currency.`);
+    if (orT){
+      const orRate = D(validateRateString(orT)), payEgp = bankEgp, held = r2(payEgp.div(orRate));
+      if (!held.gt(0)) throw new AppError('The amount is too small at this rate.');
+      const al = lines.find(l => l.accountId === getMapping(SD.adv).id);
+      if (al) Object.assign(al, { fcCurrency: linkPo.currency, fcDebit: isAr ? '0.00' : held.toFixed(2), fcCredit: isAr ? held.toFixed(2) : '0.00', fcRate: orRate.toFixed(), fcRateRecordIds: [], description: `${isAr ? 'Customer' : 'Supplier'} advance ${money(held)} ${linkPo.currency} (paid ${money(amount)} ${cur} @ ${orRate.toFixed()})` });
+      hold = { cur: linkPo.currency, amount: held, rate: orRate, egp: payEgp };
+    }
   }
   return { partner: p, bank: b, cur, hold, amount: D(amount), fee: D(fee), sr, allocs, unapplied, unappliedEgp, feeEgp, bankEgp, fx, lines };
 }
@@ -5919,7 +5921,7 @@ function seRefresh(full){
   const b = bankById(f.bankId);
   { const el = document.getElementById('se-cur2'); if (el) el.textContent = f.currency || ''; }
   { const po0 = f.poId ? poById(f.poId) : null, box = document.getElementById('se-ordbox'), or = form.querySelector('[name=orderRate]');
-    const need = side === 'ap' && po0 && po0.currency !== f.currency;
+    const need = po0 && po0.currency !== f.currency;
     if (box){ box.style.display = need ? '' : 'none'; if (!need && or) or.value = ''; }
     if (need && or){ if (!or.value && po0.rate) or.value = po0.rate; const l = document.getElementById('se-ordlbl'); if (l) l.textContent = `1 ${po0.currency} = ? EGP`;
       const h = document.getElementById('se-held'); try { const a = D(String(f.amount || '0').replace(/,/g, '') || '0'), pr = f.currency === 'EGP' ? D(1) : D(String(f.rate || '0') || '0'), r = D(String(or.value || '0').replace(/,/g, '') || '0');
@@ -5955,22 +5957,234 @@ function pageAdvances(side){
     </tbody></table></div></div>`;
 }
 function advAllocForm(side, src){
+  const SD = SIDES[side], p = partnerById(side, src.partnerId);
   const docs = S.invoices.filter(i => i.side === side && i.partnerId === src.partnerId && invIsLive(i) && invState(i).open.gt(0));
+  const avail = advState(src).avail;
+  const initialInv = docs[0];
+  const isCross = initialInv && initialInv.currency !== src.currency;
+  
+  let defRate = '1.0000';
+  if (isCross) {
+    if (initialInv.rate) defRate = initialInv.rate;
+    else if (src.rate && src.currency !== 'EGP') defRate = src.rate;
+    else {
+      try {
+        const foreignCur = initialInv.currency !== 'EGP' ? initialInv.currency : src.currency;
+        defRate = getRate(foreignCur, 'EGP', todayCairo(), 'official').rate.toFixed();
+      } catch (e){ defRate = '52.0000'; }
+    }
+  }
+
   return `<input type="hidden" name="side" value="${side}"><input type="hidden" name="sourceId" value="${src.id}">
-    <p>Advance <b>${esc(src.number)}</b>: ${money(advState(src).avail)} ${src.currency} available (received at ${fmtNum(src.rate, 6)}).</p>
-    <div class="row"><div class="field" style="flex:2"><label>Document *</label><select class="input" name="invoiceId">${docs.map(i => `<option value="${i.id}">${esc(i.number)} — open ${money(invState(i).open)} ${i.currency}</option>`).join('')}</select></div>
-      <div class="field"><label>Date *</label><input class="input" type="date" name="date" value="${todayCairo()}"></div></div>
-    <div class="row"><div class="field"><label>Applied (document currency) *</label><input class="input mono" name="applied"></div><div class="field"><label>Advance portion (${src.currency})</label><input class="input mono" name="portion"><span class="hint">Blank when the currencies are the same</span></div></div>
-    <div id="aa-preview" class="note" style="margin:0"></div>`;
+    <div style="background:var(--surface-2,#f8fafc);border:1px solid var(--border,#e2e8f0);border-radius:8px;padding:12px 16px;margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+        <div>
+          <span class="pill ok" style="font-size:11px;font-weight:600">${side === 'ar' ? 'Customer Deposit' : 'Supplier Advance'}</span>
+          <b style="font-size:15px;margin-inline-start:8px">${esc(src.number)}</b>
+          <span class="muted" style="margin-inline-start:6px">· ${src.date}</span>
+        </div>
+        <div>
+          <span class="muted" style="font-size:12px">Available Balance:</span>
+          <b style="font-size:16px;color:var(--ok,#16a34a);margin-inline-start:4px" id="aa-avail-lbl">${money(avail)} ${src.currency}</b>
+        </div>
+      </div>
+      <div style="font-size:12.5px;color:var(--text-muted);margin-top:4px">
+        ${SD.partner}: <b>${esc(p ? p.legalName : '')}</b> <span class="mono">(${esc(p ? p.code : '')})</span>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="field" style="flex:2">
+        <label>Target Invoice / Document *</label>
+        <select class="input" name="invoiceId" id="aa-inv-sel">
+          ${docs.map(i => `<option value="${i.id}" data-cur="${i.currency}" data-open="${invState(i).open.toFixed(2)}" data-rate="${i.rate || ''}">${esc(i.number)} — Open Balance: ${money(invState(i).open)} ${i.currency}${i.partnerRef ? ' (' + esc(i.partnerRef) + ')' : ''}</option>`).join('')}
+        </select>
+      </div>
+      <div class="field" style="max-width:180px">
+        <label>Allocation Date *</label>
+        <input class="input" type="date" name="date" value="${todayCairo()}">
+      </div>
+    </div>
+
+    <div style="background:#fff;border:1px solid var(--border,#e2e8f0);border-radius:8px;padding:14px;margin-bottom:12px">
+      <div style="font-size:12px;font-weight:600;color:var(--text-muted,#64748b);text-transform:uppercase;margin-bottom:10px">
+        Allocation Amounts &amp; Currency Conversion
+      </div>
+      
+      <div class="row" style="align-items:flex-start">
+        <div class="field" style="flex:1" id="aa-field-portion">
+          <label>Advance Amount to Use (<span id="aa-src-cur">${src.currency}</span>) *</label>
+          <input class="input mono" name="portion" id="aa-inp-portion" inputmode="decimal" placeholder="0.00" autocomplete="off">
+          <button type="button" class="btn sm" id="aa-btn-max-portion" style="margin-top:4px;padding:1px 6px;font-size:11px">Use full advance (${money(avail)} ${src.currency})</button>
+        </div>
+
+        <div class="field" style="max-width:170px" id="aa-field-rate">
+          <label>Exchange Rate * <span class="muted" id="aa-rate-lbl" style="font-size:11px"></span></label>
+          <input class="input mono" id="aa-inp-rate" value="${defRate}" inputmode="decimal" autocomplete="off">
+          <span class="hint" id="aa-rate-hint" style="font-size:11px">Rate to convert</span>
+        </div>
+
+        <div class="field" style="flex:1" id="aa-field-applied">
+          <label>Amount Applied to Invoice (<span id="aa-inv-cur">${initialInv ? initialInv.currency : src.currency}</span>) *</label>
+          <input class="input mono" name="applied" id="aa-inp-applied" inputmode="decimal" placeholder="0.00" autocomplete="off">
+          <button type="button" class="btn sm" id="aa-btn-max-applied" style="margin-top:4px;padding:1px 6px;font-size:11px">Pay full invoice</button>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;padding-top:10px;margin-top:10px;border-top:1px dashed var(--border,#e2e8f0);font-size:12.5px">
+        <div>
+          <span class="muted">Advance remaining after:</span>
+          <b id="aa-rem-adv-txt" style="margin-inline-start:4px;color:var(--ok,#16a34a)">—</b>
+        </div>
+        <div>
+          <span class="muted">Invoice remaining after:</span>
+          <b id="aa-rem-inv-txt" style="margin-inline-start:4px;color:var(--bad,#dc2626)">—</b>
+        </div>
+      </div>
+    </div>
+
+    <div id="aa-preview" class="note" style="margin:0"></div>
+  `;
 }
-function aaRefresh(){
-  const form = document.getElementById('mform'), out = document.getElementById('aa-preview'); if (!form || !out) return;
+
+function aaRefresh(sourceChanged){
+  const form = document.getElementById('mform'), out = document.getElementById('aa-preview'); if (!form || !form.hasAttribute('data-aa')) return;
   const f = formData(form);
-  try { const x = buildAdvanceAlloc(f.side, f); out.className = 'note'; out.style.margin = '0'; out.innerHTML = x.lines.map(l => `${l.debit ? 'Dr' : 'Cr'} ${esc(accLabel(acc(l.accountId)))} <span class="mono">${money(l.debit || l.credit)}</span>`).join('<br>') + `<br><span class="muted">FX ${money(x.fx)} EGP</span>`; }
-  catch (e){ out.className = 'note warn'; out.style.margin = '0'; out.textContent = e.message; }
+  const src = S.settlements.find(s => s.id === f.sourceId); if (!src) return;
+  const inv = S.invoices.find(i => i.id === f.invoiceId); if (!inv) return;
+
+  const avail = advState(src).avail;
+  const openInv = invState(inv).open;
+  const isCross = src.currency !== inv.currency;
+
+  const elSrcCur = document.getElementById('aa-src-cur');
+  const elInvCur = document.getElementById('aa-inv-cur');
+  const elRateBox = document.getElementById('aa-field-rate');
+  const elRateLbl = document.getElementById('aa-rate-lbl');
+  const elInpRate = document.getElementById('aa-inp-rate');
+  const elInpPortion = document.getElementById('aa-inp-portion');
+  const elInpApplied = document.getElementById('aa-inp-applied');
+  const elRemAdv = document.getElementById('aa-rem-adv-txt');
+  const elRemInv = document.getElementById('aa-rem-inv-txt');
+
+  if (elSrcCur) elSrcCur.textContent = src.currency;
+  if (elInvCur) elInvCur.textContent = inv.currency;
+
+  if (elRateBox) {
+    elRateBox.style.display = isCross ? '' : 'none';
+    if (elRateLbl && isCross) {
+      const fc = inv.currency !== 'EGP' ? inv.currency : src.currency;
+      elRateLbl.textContent = `1 ${fc} = ? EGP`;
+    }
+  }
+
+  let rate = D(1);
+  if (isCross && elInpRate) {
+    const rawR = elInpRate.value.trim().replace(/,/g, '');
+    try { if (rawR && !isNaN(Number(rawR)) && Number(rawR) > 0) rate = D(rawR); } catch (e){}
+  }
+
+  // Cross sync between portion and applied
+  if (!isCross) {
+    if (sourceChanged === 'applied' && elInpPortion && elInpApplied) {
+      elInpPortion.value = elInpApplied.value;
+    } else if (sourceChanged === 'portion' && elInpPortion && elInpApplied) {
+      elInpApplied.value = elInpPortion.value;
+    }
+  } else {
+    if (sourceChanged === 'portion' && elInpPortion && elInpApplied && rate.gt(0)) {
+      const pVal = elInpPortion.value.trim().replace(/,/g, '');
+      if (pVal && !isNaN(Number(pVal)) && Number(pVal) > 0) {
+        // If src is EGP and inv is foreign: applied = portion / rate
+        // If src is foreign and inv is EGP: applied = portion * rate
+        const appVal = src.currency === 'EGP' ? r2(D(pVal).div(rate)) : r2(D(pVal).mul(rate));
+        elInpApplied.value = appVal.toFixed(2);
+      }
+    } else if (sourceChanged === 'applied' && elInpPortion && elInpApplied && rate.gt(0)) {
+      const aVal = elInpApplied.value.trim().replace(/,/g, '');
+      if (aVal && !isNaN(Number(aVal)) && Number(aVal) > 0) {
+        const porVal = src.currency === 'EGP' ? r2(D(aVal).mul(rate)) : r2(D(aVal).div(rate));
+        elInpPortion.value = porVal.toFixed(2);
+      }
+    } else if (sourceChanged === 'rate' && elInpPortion && elInpApplied && rate.gt(0)) {
+      const pVal = elInpPortion.value.trim().replace(/,/g, '');
+      if (pVal && !isNaN(Number(pVal)) && Number(pVal) > 0) {
+        const appVal = src.currency === 'EGP' ? r2(D(pVal).div(rate)) : r2(D(pVal).mul(rate));
+        elInpApplied.value = appVal.toFixed(2);
+      }
+    }
+  }
+
+  // Re-read current inputs for remaining balances
+  const curPortion = D((elInpPortion ? elInpPortion.value : '0').replace(/,/g, '') || '0');
+  const curApplied = D((elInpApplied ? elInpApplied.value : '0').replace(/,/g, '') || '0');
+
+  if (elRemAdv) {
+    const remA = avail.minus(curPortion);
+    elRemAdv.textContent = `${money(remA.gt(0) ? remA : D0())} ${src.currency}`;
+    elRemAdv.style.color = remA.lt(0) ? 'var(--bad,#dc2626)' : 'var(--ok,#16a34a)';
+  }
+  if (elRemInv) {
+    const remI = openInv.minus(curApplied);
+    elRemInv.textContent = `${money(remI.gt(0) ? remI : D0())} ${inv.currency}`;
+    elRemInv.style.color = remI.eq(0) ? 'var(--ok,#16a34a)' : 'var(--bad,#dc2626)';
+  }
+
+  // Live accounting preview
+  try {
+    const x = buildAdvanceAlloc(f.side, { ...f, portion: elInpPortion ? elInpPortion.value : f.portion, applied: elInpApplied ? elInpApplied.value : f.applied });
+    out.className = 'note';
+    out.style.margin = '0';
+    out.innerHTML = x.lines.map(l => `${l.debit ? 'Dr' : 'Cr'} ${esc(accLabel(acc(l.accountId)))} <span class="mono"><b>${money(l.debit || l.credit)}</b></span>`).join('<br>') + (!x.fx.eq(0) ? `<br><span class="muted">Realized FX difference: ${money(x.fx)} EGP</span>` : '');
+  } catch (e){
+    out.className = 'note warn';
+    out.style.margin = '0';
+    out.textContent = e.message;
+  }
 }
-document.addEventListener('input', e => { if (e.target.closest('#mform[data-aa]')) aaRefresh(); });
-document.addEventListener('change', e => { if (e.target.closest('#mform[data-aa]')) aaRefresh(); });
+
+document.addEventListener('input', e => {
+  if (e.target.closest('#mform[data-aa]')) {
+    if (e.target.id === 'aa-inp-portion') aaRefresh('portion');
+    else if (e.target.id === 'aa-inp-applied') aaRefresh('applied');
+    else if (e.target.id === 'aa-inp-rate') aaRefresh('rate');
+    else aaRefresh();
+  }
+});
+
+document.addEventListener('change', e => {
+  if (e.target.closest('#mform[data-aa]')) {
+    if (e.target.id === 'aa-inv-sel') {
+      const invSel = e.target;
+      const opt = invSel.options[invSel.selectedIndex];
+      if (opt && opt.dataset.rate) {
+        const rInp = document.getElementById('aa-inp-rate');
+        if (rInp) rInp.value = opt.dataset.rate;
+      }
+      aaRefresh('rate');
+    } else {
+      aaRefresh();
+    }
+  }
+});
+
+document.addEventListener('click', e => {
+  if (e.target.id === 'aa-btn-max-portion') {
+    const form = document.getElementById('mform'); if (!form) return;
+    const f = formData(form);
+    const src = S.settlements.find(s => s.id === f.sourceId); if (!src) return;
+    const avail = advState(src).avail;
+    const elP = document.getElementById('aa-inp-portion');
+    if (elP) { elP.value = avail.toFixed(2); aaRefresh('portion'); }
+  } else if (e.target.id === 'aa-btn-max-applied') {
+    const form = document.getElementById('mform'); if (!form) return;
+    const f = formData(form);
+    const inv = S.invoices.find(i => i.id === f.invoiceId); if (!inv) return;
+    const openInv = invState(inv).open;
+    const elA = document.getElementById('aa-inp-applied');
+    if (elA) { elA.value = openInv.toFixed(2); aaRefresh('applied'); }
+  }
+});
 function pageAging(side){
   const SD = SIDES[side]; UI.aging = UI.aging || {}; const asOf = UI.aging[side] || todayCairo();
   const ag = aging(side, asOf), gl = glControl(SD.ctl, asOf);
@@ -7593,6 +7807,123 @@ Object.assign(CLICK, {
   'adv-alloc'(el){ const side = el.dataset.side, src = S.settlements.find(s => s.id === el.dataset.id);
     openModal({ title: `Allocate advance ${src.number}`, wide: true, formAttrs: 'data-aa', submit: 'Save & submit for approval', body: advAllocForm(side, src),
       onSubmit: f => { const s = A.allocateAdvance(side, f); toast(`${s.number} submitted for approval.`, 'ok'); } }); aaRefresh(); },
+  'car-report-pdf'(el){
+    const po = poById(el.dataset.id); if (!po) return;
+    const v = poVehicle(po), cust = po.customerId ? partnerById('ar', po.customerId) : null, sup = partnerById('ap', po.supplierId), sm = orderSummary(po), c = sm.c;
+    const dep = poAdvances(po, 'ar').filter(x => ACTIVE_ST.includes(entryStatus(x))), adv = poAdvances(po, 'ap').filter(x => ACTIVE_ST.includes(entryStatus(x)));
+    const cx = v ? carExpensesOf(v.id) : [];
+    const cxTot = cx.reduce((t, r) => t.plus(r.egp), D0());
+    
+    openModal({
+      title: `Car Report — ${v ? v.vin : po.number}`,
+      wide: true,
+      submit: 'Print / Save as PDF',
+      body: `
+        <div id="print-car-report" style="padding:10px;font-family:inherit;color:#0f172a">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #0f172a;padding-bottom:14px;margin-bottom:18px">
+            <div>
+              <h1 style="margin:0;font-size:22px;letter-spacing:-0.02em">GOLDSTERN LUXURY CARS</h1>
+              <div style="font-size:12px;color:#64748b;margin-top:2px">Vehicle Comprehensive Report · تقرير شامل للمركبة</div>
+            </div>
+            <div style="text-align:end;font-size:12px;color:#64748b">
+              <div><b>Report Date:</b> ${todayCairo()}</div>
+              <div><b>Order Ref:</b> ${esc(po.number)}</div>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px">
+            <div style="background:#f8fafc;padding:12px 14px;border-radius:8px;border:1px solid #e2e8f0">
+              <h3 style="margin:0 0 8px;font-size:13px;text-transform:uppercase;color:#475569">Vehicle Details</h3>
+              <div style="font-size:16px;font-weight:700;color:#0f172a">${v ? `${esc(makeName(v.makeId))} ${esc(modelName(v.makeId, v.modelId))} ${v.year}` : '—'}</div>
+              <div style="font-size:12px;margin-top:4px"><b>Chassis (VIN):</b> <span class="mono">${v ? esc(v.vin) : '—'}</span></div>
+              <div style="font-size:12px;margin-top:2px"><b>Color:</b> ${v && v.exteriorColor ? esc(v.exteriorColor) : '—'} · <b>Status:</b> ${v ? esc(vStatus(v.status).name) : '—'}</div>
+              <div style="font-size:12px;margin-top:2px"><b>Location:</b> ${v ? esc(locName(v.location)) : '—'} · <b>Code:</b> ${v ? esc(v.code) : '—'}</div>
+            </div>
+            <div style="background:#f8fafc;padding:12px 14px;border-radius:8px;border:1px solid #e2e8f0">
+              <h3 style="margin:0 0 8px;font-size:13px;text-transform:uppercase;color:#475569">Commercial Parties</h3>
+              <div style="font-size:12px"><b>Customer:</b> ${cust ? `<b>${esc(cust.legalName)}</b> (${esc(cust.code)})` : '<span class="muted">Showroom Stock</span>'}</div>
+              ${cust && cust.phone ? `<div style="font-size:12px;margin-top:2px"><b>Phone:</b> ${esc(cust.phone)}</div>` : ''}
+              <div style="font-size:12px;margin-top:6px"><b>Supplier:</b> ${sup ? `<b>${esc(sup.legalName)}</b> (${esc(sup.code)})` : '—'}</div>
+              <div style="font-size:12px;margin-top:2px"><b>Order Date:</b> ${po.date} · <b>Currency:</b> ${po.currency}</div>
+            </div>
+          </div>
+
+          <div style="margin-bottom:18px">
+            <h3 style="font-size:13px;text-transform:uppercase;color:#475569;margin:0 0 8px;border-bottom:1px solid #e2e8f0;padding-bottom:4px">Financial Cost &amp; Profit Summary</h3>
+            <table style="width:100%;border-collapse:collapse;font-size:12.5px">
+              <thead>
+                <tr style="background:#f1f5f9;text-align:start">
+                  <th style="padding:6px 10px">Description</th>
+                  <th style="padding:6px 10px;text-align:end">Amount Foreign</th>
+                  <th style="padding:6px 10px;text-align:end">Exchange Rate</th>
+                  <th style="padding:6px 10px;text-align:end">Cost in EGP</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="padding:6px 10px"><b>Vehicle Purchase Price</b></td>
+                  <td style="padding:6px 10px;text-align:end" class="mono">${money(po.lines.reduce((t, l) => t.plus(l.price), D0()))} ${po.currency}</td>
+                  <td style="padding:6px 10px;text-align:end" class="mono">${po.rate ? fmtNum(po.rate, 4) : '—'}</td>
+                  <td style="padding:6px 10px;text-align:end" class="mono"><b>${sm.priceEgp ? money(sm.priceEgp) : '—'} EGP</b></td>
+                </tr>
+                ${cx.map(x => `
+                  <tr>
+                    <td style="padding:6px 10px;color:#334155">${esc(costTypeName(x.carExp.type))}${x.carExp.description ? ` (${esc(x.carExp.description)})` : ''}</td>
+                    <td style="padding:6px 10px;text-align:end" class="mono">${money(x.total)} ${x.currency}</td>
+                    <td style="padding:6px 10px;text-align:end" class="mono">${x.currency !== 'EGP' ? fmtNum(x.rate, 4) : '1.0000'}</td>
+                    <td style="padding:6px 10px;text-align:end" class="mono">${money(x.egp)} EGP</td>
+                  </tr>
+                `).join('')}
+                <tr style="font-weight:700;background:#f8fafc;border-top:1px solid #cbd5e1">
+                  <td style="padding:8px 10px" colspan="3">TOTAL CAR COST (تكلفة السيارة الإجمالية)</td>
+                  <td style="padding:8px 10px;text-align:end;color:#0f172a;font-size:14px" class="mono">${money(c.invoiced ? sm.cost : (sm.priceEgp || D0()).plus(cxTot))} EGP</td>
+                </tr>
+                ${c.sold ? `
+                  <tr style="border-top:2px solid #0f172a">
+                    <td style="padding:6px 10px"><b>Customer Selling Price (سعر البيع)</b></td>
+                    <td style="padding:6px 10px;text-align:end" class="mono" colspan="2">${money(sm.revenue)} EGP</td>
+                    <td style="padding:6px 10px;text-align:end" class="mono"><b>${money(sm.revenue)} EGP</b></td>
+                  </tr>
+                  <tr style="font-weight:700;background:#f0fdf4">
+                    <td style="padding:8px 10px" colspan="3">GROSS PROFIT (المجمل الربحي)</td>
+                    <td style="padding:8px 10px;text-align:end;color:#16a34a;font-size:14px" class="mono">${money(sm.profit)} EGP</td>
+                  </tr>
+                ` : ''}
+              </tbody>
+            </table>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px">
+            <div style="background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:10px 12px">
+              <h4 style="margin:0 0 6px;font-size:12px;color:#16a34a;text-transform:uppercase">Customer Deposits (${dep.length})</h4>
+              ${dep.map(d => `<div style="display:flex;justify-content:space-between;font-size:11.5px;padding:2px 0"><span>${d.number} (${d.date})</span><span class="mono"><b>${money(d.amount)} ${d.currency}</b></span></div>`).join('') || '<div class="muted" style="font-size:11px">No deposits recorded</div>'}
+              <div style="display:flex;justify-content:space-between;font-weight:700;font-size:12px;border-top:1px solid #e2e8f0;padding-top:4px;margin-top:4px">
+                <span>Total Received:</span>
+                <span class="mono">${money(dep.reduce((t, x) => t.plus(x.amount), D0()))} ${po.currency}</span>
+              </div>
+            </div>
+            <div style="background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:10px 12px">
+              <h4 style="margin:0 0 6px;font-size:12px;color:#0284c7;text-transform:uppercase">Supplier Payments (${adv.length})</h4>
+              ${adv.map(d => `<div style="display:flex;justify-content:space-between;font-size:11.5px;padding:2px 0"><span>${d.number} (${d.date})</span><span class="mono"><b>${money(d.amount)} ${d.currency}</b></span></div>`).join('') || '<div class="muted" style="font-size:11px">No supplier payments recorded</div>'}
+              <div style="display:flex;justify-content:space-between;font-weight:700;font-size:12px;border-top:1px solid #e2e8f0;padding-top:4px;margin-top:4px">
+                <span>Total Paid to Supplier:</span>
+                <span class="mono">${money(adv.reduce((t, x) => t.plus(x.amount), D0()))} ${po.currency}</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;justify-content:space-between;margin-top:30px;padding-top:20px;border-top:1px dashed #cbd5e1;font-size:12px;color:#64748b">
+            <div>Prepared by: ______________________</div>
+            <div>Chief Accountant: ______________________</div>
+            <div>Authorized Signature: ______________________</div>
+          </div>
+        </div>
+      `,
+      onSubmit: () => {
+        window.print();
+      }
+    });
+  },
   'aging-csv'(el){ const side = el.dataset.side; run(() => { requirePerm(SIDES[side].mod, 'export'); const asOf = (UI.aging || {})[side] || todayCairo(), ag = aging(side, asOf), rows = [];
     for (const r of ag.list) for (const d of r.docs) rows.push([r.partner.code, r.partner.legalName, d.inv.number, d.inv.partnerRef, d.inv.date, d.inv.dueDate, d.days, BUCKETS[d.bucket], d.inv.currency, d.open.toFixed(2), d.egpOpen.toFixed(2)]);
     downloadCSV(`${side}-aging-${asOf}.csv`, ['code','name','document','reference','date','due','days_past_due','bucket','currency','open','open_egp'], rows); log('export', SIDES[side].mod, null, null, { asOf, rows: rows.length }, 'Aging CSV'); saveState(); }); }
@@ -8948,10 +9279,10 @@ function poView(po){
   openModal({ screen: { key: 'po:' + po.id, reopen: () => { const x = poById(po.id); if (x) poView(x); } }, title: `Purchase order ${po.number}`, xwide: true, body: `
     <div class="rec">
       <div class="rec-top">
-        <div class="rec-title"><div class="rec-ic">${ic('purchases', 22)}</div><div>
+        <div class="rec-title"><div class="rec-ic" style="background:#e0f2fe;color:#0284c7;border-radius:10px">${ic('cars', 22)}</div><div>
           <div class="rec-kind">${po.importOrder ? (ORDER_KINDS[poKind(po)] || ORDER_KINDS.customer)[0] : 'Purchase order'}</div><h2>${esc(po.number)}</h2>
           <div class="rec-meta">${shut ? '<span class="pill mute">Closed</span>' : closed ? '<span class="pill ok">Done</span>' : `<span class="pill ${c.sold ? 'ok' : c.received ? 'info' : 'mute'}">${esc(steps[cur][0])}</span>`}<span>${po.date}</span>${cust ? `<span>${esc(cust.legalName)}</span>` : ''}${v ? `<span>${esc(carName(v))}</span>` : ''}</div></div></div>
-        <div class="rec-actions">${[].concat(acts).join('')}</div>
+        <div class="rec-actions"><button type="button" class="btn" data-act="car-report-pdf" data-id="${po.id}" style="display:inline-flex;align-items:center;gap:6px">${ic('printer', 14)} Car report (PDF)</button>${[].concat(acts).join('')}</div>
       </div>
       <ol class="rec-path">${steps.map(([t0, ok], i) => `<li class="${i < cur || (i === cur && i === steps.length - 1 && ok) ? 'done' : i === cur ? 'cur' : ''}"><span class="dot">${i < cur || (i === cur && ok && i === steps.length - 1) ? ic('check', 12) : ''}</span>${t0}</li>`).join('')}</ol>
       <div class="rec-layout"><div class="rec-main">
