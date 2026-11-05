@@ -15,7 +15,7 @@ const { chromium } = require('playwright'); const fs = require('fs');
   // UI form: 3 cars, type one amount
   await p.evaluate(() => { location.hash = '#/pur/carexp'; render(); }); await p.waitForTimeout(200);
   await p.click('button[data-act="cx-new"]'); await p.waitForTimeout(300);
-  await p.selectOption('select[name=costTypeName]', { label: 'Port charges' });
+  await p.fill('input[name=costTypeName]', 'Port charges');
   await p.fill('input[name=amount]', '10000');
   for (const k of ['va','vb','vc']) await p.check(`input[name=cx_car][value="${ids[k]}"]`);
   await p.fill(`input[name=cx_amt_${ids.vc}]`, '5000'); await p.waitForTimeout(200);

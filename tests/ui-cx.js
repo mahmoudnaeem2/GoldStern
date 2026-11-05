@@ -14,7 +14,7 @@ const { chromium } = require('playwright'); const fs = require('fs');
   // UI: open from order A, tick car B, split manual
   await p.evaluate(id => { location.hash = '#/pur/import'; render(); setTimeout(() => poView(poById(id)), 50); }, ids.a); await p.waitForTimeout(300);
   await p.click('button[data-act="cx-new"]'); await p.waitForTimeout(300);
-  await p.selectOption('select[name=costTypeName]', { label: 'International shipping' });
+  await p.fill('input[name=costTypeName]', 'International shipping');
   await p.fill('input[name=description]', 'Container Hamburg → Alexandria');
   await p.fill('input[name=amount]', '120000');
   await p.check(`input[name=cx_car][value="${ids.vb}"]`);

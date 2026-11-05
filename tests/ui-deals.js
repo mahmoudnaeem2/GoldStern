@@ -7,10 +7,10 @@ const { chromium } = require('playwright'); const fs = require('fs');
   await p.evaluate(() => { if (!S.accounts.length) A.seedChart(); location.hash = '#/pur/import'; render(); }); await p.waitForTimeout(300);
   // UI: buy from a customer
   await p.click('button[data-kind="local"]'); await p.waitForTimeout(300); await p.screenshot({ path: require('path').join(__dirname, 'out', 'deal-local-form.png') });
-  await p.selectOption('select[name=makeName]', 'BMW'); await p.waitForTimeout(100); await p.selectOption('select[name=modelName]', { index: 1 });
+  await p.fill('input[name=makeName]', 'BMW'); await p.fill('input[name=modelName]', 'X5');
   await p.fill('input[name=vin]', 'WBAUSED0000000001'); await p.fill('input[name=mileage]', '42000');
-  await p.selectOption('select[name=sellerName]', '__add'); await p.fill('input[data-pick-new=sellerName]', 'Omar Khaled'); await p.click('button[data-act=pick-add][data-name=sellerName]');
-  await p.fill('input[name=price]', '1500000'); await p.fill('input[name=commission]', '50000');
+  await p.fill('input[name=sellerName]', 'Omar Khaled');
+  await p.fill('input[name=price]', '1500000'); if (await p.$('input[name=commission]')) await p.fill('input[name=commission]', '50000');
   await p.click('.modal-f button.primary, #mform button[type=submit]'); await p.waitForTimeout(500);
   const r = await p.evaluate(() => { const out = [], cash = 'gl:' + S.accounts.find(a => a.code === '1110').id; OVERDRAFT_CONTROL = false;
     const L = S.purchaseOrders.find(x => x.kind === 'local'); out.push('local ' + L.number + ' cur ' + L.currency + ' comm ' + L.commission + ' cust ' + (L.customerId || '-'));

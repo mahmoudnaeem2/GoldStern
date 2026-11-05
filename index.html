@@ -859,6 +859,13 @@ th{color:var(--g500);font-weight:500;background:var(--g50)}
   font-size: 13px;
   color: #94a3b8;
 }
+.rc-sum.pl > div{padding:7px 0}.rc-sum.pl > div.sub{padding:3px 0 3px 16px;font-size:12.5px}.rc-sum.pl > div.sub dt,.rc-sum.pl > div.sub dd{color:var(--muted)}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.kpis > div{background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:2px}
+.kpis span{font-size:12.5px;color:var(--muted)}.kpis b{font-size:18px;font-weight:650;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.tl{list-style:none;margin:0;padding:0}.tl li{display:flex;gap:10px;padding:0 0 12px;position:relative}.tl li:not(:last-child)::before{content:'';position:absolute;left:4px;top:14px;bottom:0;width:2px;background:var(--border)}
+.tl .dot{width:10px;height:10px;border-radius:50%;background:var(--gold);margin-top:5px;flex:none}.tl b{font-size:13.5px;font-weight:600}.tl .muted{font-size:12.5px}
+@media (max-width:700px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 </head>
 <body>
@@ -6679,41 +6686,61 @@ function pageVehicle(){
 ].join('');
   const cxT = carExpensesOf(v.id).reduce((t, r) => t.plus(r.egp), D0());
   const fxL = vehicleLines(v.id).filter(({ e, l }) => l.fxToCar && e.status === 'posted'), fxCost = fxL.filter(({ l }) => l.costType === 'fx_diff').reduce((t, { l }) => t.plus(l.egpDebit || '0').minus(l.egpCredit || '0'), D0()), fxRev = fxL.filter(({ l }) => l.costType !== 'fx_diff').reduce((t, { l }) => t.plus(l.egpCredit || '0').minus(l.egpDebit || '0'), D0());
-  const sub = (label, amt) => `<tr><td class="muted" style="padding-inline-start:22px;font-size:12.5px">${label}</td><td class="num muted" style="font-size:12.5px">${amt.lt(0) ? '− ' : '+ '}${money(amt.abs())}</td></tr>`;
-  const row = (label, val, strong, color) => `<tr${strong ? ' style="font-weight:700;border-top:1px solid var(--border)"' : ''}><td>${label}</td><td class="num"${color ? ` style="color:${color}"` : ''}>${val}</td></tr>`;
-  const pnl = `<table><tbody>
-      ${row('Sales revenue', money(net))}
-      ${!fxRev.eq(0) ? sub('of which exchange difference on the customer\'s payments', fxRev) : ''}
-      ${row(`Cost of the car${expected ? ' <span class="muted">(expected — supplier invoice not recorded yet)</span>' : ''}${perCur ? ` <span class="muted">(${money(pAmt)} ${pCur} → ${fmtNum(perCur, 4)} EGP per ${pCur}, all costs included)</span>` : ''}`, '− ' + money(costEgp))}
-      ${expected ? `<tr><td class="muted" style="padding-inline-start:22px;font-size:12.5px">of which purchase price ${money(pAmt)} ${pCur} × ${fmtNum(po.rate, 4)}</td><td class="num muted" style="font-size:12.5px">${money(r2(pAmt.mul(po.rate)))}</td></tr>` : ''}
-      ${!fxCost.eq(0) ? sub('of which exchange difference on supplier payments', fxCost) : ''}
-      ${cxT.gt(0) ? `<tr><td class="muted" style="padding-inline-start:22px;font-size:12.5px">of which car expenses (freight, customs…) — <a href="#" onclick="document.getElementById('car-exp').scrollIntoView({behavior:'smooth'});return false">see list</a></td><td class="num muted" style="font-size:12.5px">${money(cxT)}</td></tr>` : ''}
-      ${vp.importExp.gt(0) ? row('Import costs expensed', '− ' + money(vp.importExp)) : ''}
-      ${vp.direct.gt(0) ? row('Other expenses on this car', '− ' + money(vp.direct)) : ''}
-      ${vp.losses.gt(0) ? row('Write-downs', '− ' + money(vp.losses)) : ''}
-      ${vp.otherInc.gt(0) ? row('Other income', money(vp.otherInc)) : ''}
-      ${!vp.fx.eq(0) ? row('Exchange differences', (vp.fx.lt(0) ? '− ' : '') + money(vp.fx.abs()), false, vp.fx.lt(0) ? 'var(--bad)' : 'var(--ok)') : ''}
-      ${row(cy && cy.sold || vp.net.gt(0) ? 'Result on this car' : 'Result so far', money(result) + ' EGP', true, result.lt(0) ? 'var(--bad)' : 'var(--ok)')}
-    </tbody></table>`;
-  const je = ents.map(e => { const j = journalOf(e.journal);
-    return `<tr style="background:var(--surface-2)"><td style="white-space:nowrap"><b>${e.accountingDate}</b></td><td colspan="2">${entryLink(e)} <span class="muted">· ${esc(j ? j.name : e.journal)}</span><div style="font-size:12.5px">${esc(e.description || '')}</div></td><td class="num"><b>${money(e.totals ? e.totals.egpDebit : '0')}</b></td><td></td></tr>
-      ${e.lines.filter(l => !l.vehicleId || l.vehicleId === v.id).map(l => { const a = acc(l.accountId); return `<tr><td></td><td style="padding-inline-start:${D(l.egpCredit || '0').gt(0) ? 36 : 12}px">${esc(a ? a.code + ' ' + accName(a) : '?')}</td><td class="muted" style="font-size:12px">${l.fcCurrency ? `${money(D(l.fcDebit || 0).plus(l.fcCredit || 0))} ${l.fcCurrency} @ ${fmtNum(l.fcRate, 4)}` : ''}</td><td class="num">${D(l.egpDebit || 0).gt(0) ? money(l.egpDebit) : ''}</td><td class="num">${D(l.egpCredit || 0).gt(0) ? money(l.egpCredit) : ''}</td></tr>`; }).join('')}${(() => { const o = e.lines.filter(l => l.vehicleId && l.vehicleId !== v.id); if (!o.length) return ''; const n0 = new Set(o.map(l => l.vehicleId)).size, sm0 = o.reduce((t, l) => t.plus(l.egpDebit || '0'), D0()); return `<tr><td></td><td class="muted" style="font-size:12.5px">+ shares of ${n0} other car${n0 > 1 ? 's' : ''}</td><td></td><td class="num muted">${money(sm0)}</td><td></td></tr>`; })()}`; }).join('');
+  const cust = v.customerId ? partnerById('ar', v.customerId) : null, sup = partnerById('ap', v.supplierId), bd = carCostBreakdown(v);
+  const line = (label, amt, o = {}) => `<div class="${o.cls || ''}"><dt>${label}</dt><dd${o.color ? ` style="color:${o.color}"` : ''}>${o.neg ? '− ' : o.plus ? '+ ' : ''}${money(D(amt).abs())}${o.unit ? ' <span class="muted">EGP</span>' : ''}</dd></div>`;
+  const subl = (label, amt, sign = true) => `<div class="sub"><dt>${label}</dt><dd>${sign ? (D(amt).lt(0) ? '− ' : '+ ') : ''}${money(D(amt).abs())}</dd></div>`;
+  const costRows = (expected ? [{ label: `Purchase price ${money(pAmt)} ${pCur} × ${fmtNum(po.rate, 4)} (expected)`, egp: r2(pAmt.mul(po.rate)) }] : []).concat(bd.map(r => ({ label: r.kind === 'purchase' && pCur !== 'EGP' ? `Purchase price ${money(pAmt)} ${pCur}` : r.label, egp: r.egp })));
+  const pnl = `<dl class="rc-sum pl">
+      ${line('Sales revenue', net)}${!fxRev.eq(0) ? subl('of which exchange difference on the customer’s payments', fxRev) : ''}
+      ${line(`Cost of the car${perCur ? ` <span class="muted">· ${fmtNum(perCur, 4)} EGP per ${pCur}</span>` : ''}`, costEgp, { neg: true })}
+      ${costRows.map(r => subl(esc(r.label), r.egp, false)).join('')}
+      ${vp.otherInc.gt(0) ? line('Commission & other income', vp.otherInc, { plus: true }) : ''}
+      ${vp.importExp.gt(0) ? line('Import costs expensed', vp.importExp, { neg: true }) : ''}
+      ${vp.direct.gt(0) ? line('Other expenses on this car', vp.direct, { neg: true }) : ''}
+      ${vp.losses.gt(0) ? line('Write-downs', vp.losses, { neg: true }) : ''}
+      ${!vp.fx.eq(0) ? line('Exchange differences', vp.fx, { neg: vp.fx.lt(0), plus: vp.fx.gt(0) }) : ''}
+      ${line(cy && cy.sold || vp.net.gt(0) ? 'Result on this car' : 'Result so far', result, { cls: 'tot', unit: true, color: result.lt(0) ? 'var(--bad)' : 'var(--ok)', neg: result.lt(0) })}
+    </dl>`;
   const moves = S.vehicleMoves.filter(m => m.vehicleId === v.id).sort((a, b) => a.at < b.at ? 1 : -1);
-  return `<div class="o-bar"><div class="btns">${acts}</div><div class="o-status">${steps.map(([t0], i) => `<span class="${i === cur ? 'on' : ''}">${t0}</span>`).join('')}</div></div>
-    <div class="o-sheet" style="max-width:none">
-      <div class="o-head"><div><div class="muted" style="font-size:13px">${esc(v.code)} · ${vBadge(v.status)}</div><h2>${esc(makeName(v.makeId))} ${esc(modelName(v.makeId, v.modelId))} ${v.year}</h2></div><div class="o-stats">${stats}</div></div>
-      <div class="o-grid"><div>
-          ${f('Chassis (VIN)', `<span class="mono">${esc(v.vin)}</span>`)}${f('Colour', esc([v.exteriorColor, v.interiorColor].filter(Boolean).join(' / ')))}${f('Customer', v.customerId ? esc((partnerById('ar', v.customerId) || {}).legalName) : 'stock car')}${f('Supplier', esc((partnerById('ap', v.supplierId) || {}).legalName || ''))}
-        </div><div>
-          ${f('Purchase price', pAmt ? `<span class="mono">${money(pAmt)}</span> ${pCur}${po && po.rate ? ` <span class="muted">@ ${fmtNum(po.rate, 4)}</span>` : ''}` : '')}${f('Cost in EGP', `<b class="mono">${money(costEgp)}</b> EGP`)}${f('Location', esc(locName(v.location)))}${f('Analytic account', an ? `<span class="mono">${esc(an.code)}</span>` : '')}
-        </div></div>
-      <div class="o-tabs"><span>Profit &amp; loss of this car (EGP)</span></div>
-      <div style="max-width:620px;margin-top:6px">${pnl}</div>
+  const kv = (l, v0) => `<div><dt>${l}</dt><dd>${v0 || '<span class="muted">—</span>'}</dd></div>`;
+  const doc = (inv) => inv ? `<div class="rc-doc"><button type="button" class="lnk0" data-act="inv-view" data-id="${inv.id}">${esc(inv.number)}</button>${invPill(inv)}${invState(inv).open.gt(0) ? `<div class="muted">${money(invState(inv).open)} ${inv.currency} due</div>` : ''}</div>` : '';
+  const actList = [cy && !cy.invoiced && po.status === 'approved' && can('ap', 'create') ? `<button type="button" class="btn primary" data-act="po-inv" data-id="${po.id}">Supplier invoice & receive</button>` : '',
+    cy && cy.received && !cy.sold && can('ar', 'create') ? `<button type="button" class="btn primary" data-act="io-sell" data-id="${po.id}">Sell car</button>` : '',
+    can('imports', 'create') && !carClosed(v) ? `<button type="button" class="btn" data-act="cx-new" data-veh="${v.id}">${ic('plus', 15)}Car expense</button>` : '',
+    st.group === 'out' && !carClosed(v) && can('vehicles', 'edit') ? `<button type="button" class="btn" data-act="car-close" data-id="${v.id}">Close car</button>` : '',
+    carClosed(v) && can('vehicles', 'edit') ? `<button type="button" class="btn" data-act="car-reopen" data-id="${v.id}">Reopen</button>` : '',
+    can('vehicles', 'edit') ? `<button type="button" class="btn" data-act="veh-edit" data-id="${v.id}">Edit</button>` : ''].join('');
+  const stIdx = cur;
+  return `<div class="rec">
+    <div style="margin-bottom:10px"><button type="button" class="btn sm" data-act="hist-back">${ic('back', 15)}Back</button></div>
+    <div class="rec-top"><div class="rec-title"><div class="rec-ic">${ic('cars', 24)}</div><div>
+      <div class="rec-kind">${esc(v.code)} · ${po ? `<button type="button" class="lnk0" data-act="po-view" data-id="${po.id}">${esc(po.number)}</button>` : 'no order'}</div>
+      <h2>${esc(makeName(v.makeId))} ${esc(modelName(v.makeId, v.modelId))} ${v.year}</h2>
+      <div class="rec-meta">${carClosed(v) ? '<span class="pill mute">Closed</span>' : `<span class="pill ${st.group === 'out' ? 'ok' : st.group === 'stock' ? 'info' : 'mute'}">${esc(st.name)}</span>`}<span>Chassis ${esc(v.vin)}</span>${cust ? `<span>${esc(cust.legalName)}</span>` : '<span>Stock car</span>'}</div></div></div>
+      <div class="rec-actions">${actList}</div></div>
+    <ol class="rec-path">${steps.map(([t0, ok], i) => `<li class="${i < stIdx || (i === stIdx && i === steps.length - 1 && ok) ? 'done' : i === stIdx ? 'cur' : ''}"><span class="dot">${i < stIdx || (i === stIdx && ok && i === steps.length - 1) ? ic('check', 12) : ''}</span>${t0}</li>`).join('')}</ol>
+    <div class="rec-layout"><div class="rec-main">
+      <section class="rc"><header><h3>Profit &amp; loss</h3><span class="muted" style="font-size:12.5px">EGP</span></header>
+        <div class="kpis">
+          <div><span>Revenue</span><b>${money(net)}</b></div><div><span>Car cost</span><b>${money(costEgp)}</b></div>
+          <div><span>${cy && cy.sold ? 'Result' : 'Result so far'}</span><b style="color:${result.lt(0) ? 'var(--bad)' : 'var(--ok)'}">${result.lt(0) ? '− ' : ''}${money(result.abs())}</b></div>
+          <div><span>Margin</span><b>${net.gt(0) ? result.div(net).mul(100).toFixed(1) + '%' : '—'}</b></div></div>
+        ${pnl}</section>
       ${carExpensesTable(v.id)}
-      <div class="o-tabs" id="car-je"><span>All journal entries (${ents.length})</span></div>
-      <div class="tbl-wrap"><table><thead><tr><th>Date</th><th>Entry / account</th><th>Foreign amount</th><th class="num">Debit EGP</th><th class="num">Credit EGP</th></tr></thead><tbody>${je || '<tr><td colspan="5" class="empty">No postings yet.</td></tr>'}</tbody></table></div>
-      ${moves.length ? `<details style="margin-top:16px"><summary style="cursor:pointer">Status history (${moves.length})</summary><div class="tbl-wrap"><table><tbody>${moves.map(m => `<tr><td style="white-space:nowrap">${m.date}</td><td>${m.type === 'status' ? (m.from ? vBadge(m.from) + ' → ' : '') + vBadge(m.to) : esc((m.from ? locName(m.from) + ' → ' : '') + (m.type === 'location' ? locName(m.to) : m.to))}</td><td style="font-size:12.5px">${esc(m.reason)}</td><td class="mono" style="font-size:12px">${esc(m.ref)}</td></tr>`).join('')}</tbody></table></div></details>` : ''}
-    </div>`;
+      <section class="rc" id="car-je"><header><h3>Journal entries <span class="cnt">${ents.length}</span></h3></header>
+        <div class="tbl-wrap"><table><thead><tr><th>Date</th><th>Entry</th><th class="num">EGP</th></tr></thead><tbody>
+        ${ents.map(e => { const j = journalOf(e.journal); return `<tr data-act="je-view" data-id="${e.id}" style="cursor:pointer"><td style="white-space:nowrap">${e.accountingDate}</td><td class="wrap"><b style="font-weight:600">${esc(entryRef(e))}</b> <span class="muted">· ${esc(j ? j.name : e.journal)}</span><div class="muted" style="font-size:12.5px">${esc(e.description || '')}</div></td><td class="num">${money(e.totals ? e.totals.egpDebit : '0')}</td></tr>`; }).join('') || '<tr><td colspan="3" class="empty">No postings yet.</td></tr>'}
+        </tbody></table></div></section>
+    </div><aside class="rec-aside">
+      <section class="rc"><header><h3>Customer</h3></header>${cust ? `<a href="#/partners/statement?side=ar&id=${cust.id}" class="rc-big">${esc(cust.legalName)}</a>${cust.phone ? `<div class="muted">${esc(cust.phone)}</div>` : ''}` : '<div class="muted">Stock car — no customer yet</div>'}
+        ${doc(cy && cy.sale)}${dep.length ? `<div class="rc-doc"><span>${dep.length} deposit${dep.length > 1 ? 's' : ''}</span><span class="muted">${dep.map(x => money(x.amount) + ' ' + x.currency).join(' + ')}</span></div>` : ''}</section>
+      <section class="rc"><header><h3>${po && po.kind === 'local' ? 'Bought from' : 'Supplier'}</h3></header>${sup ? `<a href="#/partners/statement?side=ap&id=${sup.id}" class="rc-big">${esc(sup.legalName)}</a>` : '<div class="muted">—</div>'}
+        ${pAmt ? `<div class="muted" style="margin-top:4px">${money(pAmt)} ${pCur}${po && po.rate && pCur !== 'EGP' ? ` at ${fmtNum(po.rate, 4)}` : ''}</div>` : ''}${doc(cy && cy.supInv)}</section>
+      <section class="rc"><header><h3>Car details</h3></header><dl class="rc-kv">
+        ${kv('Chassis (VIN)', esc(v.vin))}${kv('Year', esc(String(v.year || '')))}${kv('Colour', esc([v.exteriorColor, v.interiorColor].filter(Boolean).join(' / ')))}${v.mileage ? kv('Mileage', esc(v.mileage) + ' km') : ''}${kv('Location', esc(locName(v.location) || ''))}${kv('Analytic account', an ? esc(an.code) : '')}
+      </dl></section>
+      ${moves.length ? `<section class="rc"><header><h3>History</h3></header><ol class="tl">${moves.slice(0, 8).map(m => `<li><span class="dot"></span><div><b>${m.type === 'status' ? esc(vStatus(m.to).name) : m.type === 'location' ? 'Moved to ' + esc(locName(m.to) || m.to) : esc(m.to)}</b><div class="muted">${m.date}${m.reason ? ' · ' + esc(m.reason) : ''}</div></div></li>`).join('')}</ol></section>` : ''}
+    </aside></div></div>`;
 }
 function pageVehicleSettings(){
   const ed = can('vehicles', 'edit'), sed = can('settings', 'edit');
