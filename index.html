@@ -4927,6 +4927,8 @@ function markClickableRows(){ document.querySelectorAll('main.content td:not(.nw
 if (typeof MutationObserver !== 'undefined') new MutationObserver(() => { clearTimeout(window.__mcr); window.__mcr = setTimeout(markClickableRows, 30); }).observe(document.documentElement, { childList: true, subtree: true });
 /* Line icons (24 × 24, stroke = currentColor) — Modern Feather/Lucide vector set. */
 const ICONS = {
+  invoices: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/>',
+  bill: '<path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1-2-1Z"/><path d="M16 8h-8"/><path d="M16 12h-8"/><path d="M10 16h-2"/>',
   printer: '<path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>',
   close: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
   dashboard: '<rect width="7" height="9" x="3" y="3" rx="1.5"/><rect width="7" height="5" x="14" y="3" rx="1.5"/><rect width="7" height="9" x="14" y="12" rx="1.5"/><rect width="7" height="5" x="3" y="16" rx="1.5"/>',
@@ -8186,132 +8188,7 @@ Object.assign(CLICK, {
   'adv-alloc'(el){ const side = el.dataset.side, src = S.settlements.find(s => s.id === el.dataset.id);
     openModal({ title: `Allocate advance ${src.number}`, wide: true, formAttrs: 'data-aa', submit: 'Save & submit for approval', body: advAllocForm(side, src),
       onSubmit: f => { const s = A.allocateAdvance(side, f); toast(`${s.number} submitted for approval.`, 'ok'); } }); aaRefresh(); },
-  'car-report-pdf'(el){
-    const po = poById(el.dataset.id); if (!po) return;
-    const v = poVehicle(po), cust = po.customerId ? partnerById('ar', po.customerId) : null, sup = partnerById('ap', po.supplierId), sm = orderSummary(po), c = sm.c;
-    const dep = poAdvances(po, 'ar').filter(x => ACTIVE_ST.includes(entryStatus(x))), adv = poAdvances(po, 'ap').filter(x => ACTIVE_ST.includes(entryStatus(x)));
-    const cx = v ? carExpensesOf(v.id) : [];
-    const cxTot = cx.reduce((t, r) => t.plus(r.egp), D0());
-    const carInvs = side => S.invoices.filter(i => i.side === side && i.type !== 'credit' && entryStatus(i) === 'posted' && (side === 'ap' ? i.poId === po.id : (v && (i.lines || []).some(l => l.vehicleId === v.id))));
-    const paidOn = side => carInvs(side).flatMap(i => invState(i).reductions.filter(r => ACTIVE_ST.includes(r.status) && r.src.type !== 'advance').map(r => ({ number: r.src.number, date: r.src.date, amount: r.applied, currency: i.currency })));
-    const depAll = [...dep, ...paidOn('ar')], advAll = [...adv, ...paidOn('ap')];
-    const byCur = list => { const m = new Map(); for (const x of list) m.set(x.currency, (m.get(x.currency) || D0()).plus(x.amount)); return [...m].map(([c0, t]) => `${money(t)} ${c0}`).join(' + ') || '0.00'; };
-    const costTot = c.invoiced ? sm.cost : (sm.priceEgp || D0()).plus(cxTot), adj = D(costTot).minus(sm.priceEgp || D0()).minus(cxTot);
-    
-    openModal({
-      title: `Car Report — ${v ? v.vin : po.number}`,
-      wide: true,
-      body: `
-        <div id="print-car-report" style="padding:10px;font-family:inherit;color:#0f172a">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #0f172a;padding-bottom:14px;margin-bottom:18px">
-            <div>
-              <h1 style="margin:0;font-size:22px;letter-spacing:-0.02em">GOLDSTERN LUXURY CARS</h1>
-              <div style="font-size:12px;color:#64748b;margin-top:2px">Vehicle Comprehensive Report · تقرير شامل للمركبة</div>
-            </div>
-            <div style="text-align:end;font-size:12px;color:#64748b">
-              <div><b>Report Date:</b> ${todayCairo()}</div>
-              <div><b>Order Ref:</b> ${esc(po.number)}</div>
-            </div>
-          </div>
-
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px">
-            <div style="background:#f8fafc;padding:12px 14px;border-radius:8px;border:1px solid #e2e8f0">
-              <h3 style="margin:0 0 8px;font-size:13px;text-transform:uppercase;color:#475569">Vehicle Details</h3>
-              <div style="font-size:16px;font-weight:700;color:#0f172a">${v ? `${esc(makeName(v.makeId))} ${esc(modelName(v.makeId, v.modelId))} ${v.year}` : '—'}</div>
-              <div style="font-size:12px;margin-top:4px"><b>Chassis (VIN):</b> <span class="mono">${v ? esc(v.vin) : '—'}</span></div>
-              <div style="font-size:12px;margin-top:2px"><b>Color:</b> ${v && v.exteriorColor ? esc(v.exteriorColor) : '—'} · <b>Status:</b> ${v ? esc(vStatus(v.status).name) : '—'}</div>
-              <div style="font-size:12px;margin-top:2px"><b>Location:</b> ${v ? esc(locName(v.location)) : '—'} · <b>Code:</b> ${v ? esc(v.code) : '—'}</div>
-            </div>
-            <div style="background:#f8fafc;padding:12px 14px;border-radius:8px;border:1px solid #e2e8f0">
-              <h3 style="margin:0 0 8px;font-size:13px;text-transform:uppercase;color:#475569">Commercial Parties</h3>
-              <div style="font-size:12px"><b>Customer:</b> ${cust ? `<b>${esc(cust.legalName)}</b> (${esc(cust.code)})` : '<span class="muted">Showroom Stock</span>'}</div>
-              ${cust && cust.phone ? `<div style="font-size:12px;margin-top:2px"><b>Phone:</b> ${esc(cust.phone)}</div>` : ''}
-              <div style="font-size:12px;margin-top:6px"><b>Supplier:</b> ${sup ? `<b>${esc(sup.legalName)}</b> (${esc(sup.code)})` : '—'}</div>
-              <div style="font-size:12px;margin-top:2px"><b>Order Date:</b> ${po.date} · <b>Currency:</b> ${po.currency}</div>
-            </div>
-          </div>
-
-          <div style="margin-bottom:18px">
-            <h3 style="font-size:13px;text-transform:uppercase;color:#475569;margin:0 0 8px;border-bottom:1px solid #e2e8f0;padding-bottom:4px">Financial Cost &amp; Profit Summary</h3>
-            <table style="width:100%;border-collapse:collapse;font-size:12.5px">
-              <thead>
-                <tr style="background:#f1f5f9;text-align:start">
-                  <th style="padding:6px 10px">Description</th>
-                  <th style="padding:6px 10px;text-align:end">Amount Foreign</th>
-                  <th style="padding:6px 10px;text-align:end">Exchange Rate</th>
-                  <th style="padding:6px 10px;text-align:end">Cost in EGP</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style="padding:6px 10px"><b>Vehicle Purchase Price</b></td>
-                  <td style="padding:6px 10px;text-align:end" class="mono">${money(po.lines.reduce((t, l) => t.plus(l.price), D0()))} ${po.currency}</td>
-                  <td style="padding:6px 10px;text-align:end" class="mono">${po.rate ? fmtNum(po.rate, 4) : '—'}</td>
-                  <td style="padding:6px 10px;text-align:end" class="mono"><b>${sm.priceEgp ? money(sm.priceEgp) : '—'} EGP</b></td>
-                </tr>
-                ${cx.map(({ x, share, egp }) => `
-                  <tr>
-                    <td style="padding:6px 10px;color:#334155">${esc(costTypeName(x.carExp.type))}${x.carExp.description ? ` (${esc(x.carExp.description)})` : ''}<div style="font-size:11px;color:#94a3b8">${esc(x.number)} · ${x.date}${x.carExp.cars.length > 1 ? ` · share of ${x.carExp.cars.length} cars` : ''}</div></td>
-                    <td style="padding:6px 10px;text-align:end" class="mono">${money(share)} ${x.currency}</td>
-                    <td style="padding:6px 10px;text-align:end" class="mono">${x.currency !== 'EGP' ? (x.rate ? fmtNum(x.rate, 4) : '—') : '1.0000'}</td>
-                    <td style="padding:6px 10px;text-align:end" class="mono">${money(egp)} EGP</td>
-                  </tr>
-                `).join('')}
-                ${adj.abs().gte(D('0.01')) ? `<tr><td style="padding:6px 10px;color:#334155">Exchange differences &amp; other adjustments<div style="font-size:11px;color:#94a3b8">from the car's journal entries</div></td><td></td><td></td><td style="padding:6px 10px;text-align:end" class="mono">${money(adj)} EGP</td></tr>` : ''}
-                <tr style="font-weight:700;background:#f8fafc;border-top:1px solid #cbd5e1">
-                  <td style="padding:8px 10px" colspan="3">TOTAL CAR COST (تكلفة السيارة الإجمالية)</td>
-                  <td style="padding:8px 10px;text-align:end;color:#0f172a;font-size:14px" class="mono">${money(costTot)} EGP</td>
-                </tr>
-                ${c.sold ? `
-                  <tr style="border-top:2px solid #0f172a">
-                    <td style="padding:6px 10px"><b>Customer Selling Price (سعر البيع)</b></td>
-                    <td style="padding:6px 10px;text-align:end" class="mono" colspan="2">${money(sm.revenue)} EGP</td>
-                    <td style="padding:6px 10px;text-align:end" class="mono"><b>${money(sm.revenue)} EGP</b></td>
-                  </tr>
-                  <tr style="font-weight:700;background:#f0fdf4">
-                    <td style="padding:8px 10px" colspan="3">GROSS PROFIT (المجمل الربحي)</td>
-                    <td style="padding:8px 10px;text-align:end;color:#16a34a;font-size:14px" class="mono">${money(sm.profit)} EGP</td>
-                  </tr>
-                ` : ''}
-              </tbody>
-            </table>
-          </div>
-
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px">
-            <div style="background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:10px 12px">
-              <h4 style="margin:0 0 6px;font-size:12px;color:#16a34a;text-transform:uppercase">Received from customer (${depAll.length})</h4>
-              ${depAll.map(d => `<div style="display:flex;justify-content:space-between;font-size:11.5px;padding:2px 0"><span>${esc(d.number)} (${d.date})</span><span class="mono"><b>${money(d.amount)} ${d.currency}</b></span></div>`).join('') || '<div class="muted" style="font-size:11px">Nothing received yet</div>'}
-              <div style="display:flex;justify-content:space-between;font-weight:700;font-size:12px;border-top:1px solid #e2e8f0;padding-top:4px;margin-top:4px">
-                <span>Total received</span>
-                <span class="mono">${byCur(depAll)}</span>
-              </div>
-            </div>
-            <div style="background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:10px 12px">
-              <h4 style="margin:0 0 6px;font-size:12px;color:#0284c7;text-transform:uppercase">Paid to supplier (${advAll.length})</h4>
-              ${advAll.map(d => `<div style="display:flex;justify-content:space-between;font-size:11.5px;padding:2px 0"><span>${d.number} (${d.date})</span><span class="mono"><b>${money(d.amount)} ${d.currency}</b></span></div>`).join('') || '<div class="muted" style="font-size:11px">Nothing paid yet</div>'}
-              <div style="display:flex;justify-content:space-between;font-weight:700;font-size:12px;border-top:1px solid #e2e8f0;padding-top:4px;margin-top:4px">
-                <span>Total paid</span>
-                <span class="mono">${byCur(advAll)}</span>
-              </div>
-            </div>
-          </div>
-
-          <div style="display:flex;justify-content:space-between;margin-top:30px;padding-top:20px;border-top:1px dashed #cbd5e1;font-size:12px;color:#64748b">
-            <div>Prepared by: ______________________</div>
-            <div>Chief Accountant: ______________________</div>
-            <div>Authorized Signature: ______________________</div>
-          </div>
-        </div>
-      `,
-      footer: `<button type="button" class="btn" data-act="modal-close">Close</button><button type="button" class="btn primary" data-act="car-report-print">${ic('printer', 14)} Print / Save as PDF</button>`
-    });
-  },
-  'car-report-print'(){
-    const el = document.getElementById('print-car-report'); if (!el) return;
-    const w = window.open('', '_blank'); if (!w){ toast('Allow pop-ups for this page to print the report.', 'bad'); return; }
-    w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(document.querySelector('.modal-h h3') ? document.querySelector('.modal-h h3').textContent : 'Car report')}</title><style>body{font-family:Inter,Arial,sans-serif;margin:24px;color:#0f172a}.mono{font-variant-numeric:tabular-nums}.muted{color:#64748b}table td,table th{text-align:start}@page{size:A4;margin:14mm}</style></head><body>${el.outerHTML}<script>window.onload=()=>{window.print();}<\/script></body></html>`);
-    w.document.close();
-  },
+  'car-report-pdf'(el){ const po = poById(el.dataset.id); if (po) printCarReport(po); },
   'aging-csv'(el){ const side = el.dataset.side; run(() => { requirePerm(SIDES[side].mod, 'export'); const asOf = (UI.aging || {})[side] || todayCairo(), ag = aging(side, asOf), rows = [];
     for (const r of ag.list) for (const d of r.docs) rows.push([r.partner.code, r.partner.legalName, d.inv.number, d.inv.partnerRef, d.inv.date, d.inv.dueDate, d.days, BUCKETS[d.bucket], d.inv.currency, d.open.toFixed(2), d.egpOpen.toFixed(2)]);
     downloadCSV(`${side}-aging-${asOf}.csv`, ['code','name','document','reference','date','due','days_past_due','bucket','currency','open','open_egp'], rows); log('export', SIDES[side].mod, null, null, { asOf, rows: rows.length }, 'Aging CSV'); saveState(); }); }
@@ -9601,6 +9478,222 @@ function invoiceView(inv){
       </aside></div>
     </div>` });
 }
+function printCarReport(po){
+  const sup = partnerById('ap', po.supplierId), cust = po.customerId ? partnerById('ar', po.customerId) : null, co = S.company || {};
+  const v = poVehicle(po), sm = orderSummary(po), c = sm.c;
+  const dep = poAdvances(po, 'ar').filter(x => ACTIVE_ST.includes(entryStatus(x)));
+  const adv = poAdvances(po, 'ap').filter(x => ACTIVE_ST.includes(entryStatus(x)));
+  const cx = v ? carExpensesOf(v.id) : [];
+  const cxTot = cx.reduce((t, r) => t.plus(r.egp), D0());
+  const poTotal = po.lines.reduce((t, l) => t.plus(l.price), D0());
+  const depTotal = dep.reduce((t, x) => t.plus(x.amount), D0());
+  const advTotal = adv.reduce((t, x) => t.plus(x.amount), D0());
+  const totalCostEgp = c.invoiced ? sm.cost : (sm.priceEgp || D0()).plus(cxTot), adj = D(totalCostEgp).minus(sm.priceEgp || D0()).minus(cxTot);
+  const carInvs = side => S.invoices.filter(i => i.side === side && i.type !== 'credit' && entryStatus(i) === 'posted' && (side === 'ap' ? i.poId === po.id : (v && (i.lines || []).some(l => l.vehicleId === v.id))));
+  const paidOn = side => carInvs(side).flatMap(i => invState(i).reductions.filter(r => ACTIVE_ST.includes(r.status) && r.src.type !== 'advance').map(r => ({ number: r.src.number, date: r.src.date, amount: r.applied, currency: i.currency, egp: r.carrying })));
+  const depAll = [...dep, ...paidOn('ar')], advAll = [...adv, ...paidOn('ap')];
+  const egpVal = d => d.egp ? D(d.egp) : d.currency === 'EGP' ? D(d.amount) : r2(D(d.amount).mul(d.rate || '1'));
+  const byCur = list => { const m = new Map(); let egp = D0(); for (const x of list){ m.set(x.currency, (m.get(x.currency) || D0()).plus(x.amount)); egp = egp.plus(egpVal(x)); }
+    const fc = [...m].filter(([c0]) => c0 !== 'EGP').map(([c0, t0]) => `${money(t0)} ${c0}`); return list.length ? (fc.length ? `${fc.join(' + ')} = ${money(egp)} EGP` : `${money(egp)} EGP`) : '0.00'; };
+  const egpOf = d => d.egp ? money(d.egp) : d.currency === 'EGP' ? money(d.amount) : (d.rate ? money(r2(D(d.amount).mul(d.rate))) : '—');
+
+  const html = `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Vehicle Comprehensive Report — ${v ? v.vin : po.number}</title>
+  <style>
+    @page { size: A4 portrait; margin: 12mm 15mm; }
+    * { box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 32px; color: #0f172a; line-height: 1.45; background: #fff; font-size: 13px; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; margin-bottom: 16px; font-size: 12.5px; }
+    th { background: #f8fafc; border-bottom: 2px solid #cbd5e1; padding: 7px 10px; text-align: left; font-weight: 650; color: #475569; }
+    td { border-bottom: 1px solid #e2e8f0; padding: 7px 10px; }
+    td.n, th.n { text-align: right; }
+    .header-box { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #0f172a; padding-bottom: 14px; margin-bottom: 20px; }
+    .logo-img { height: 60px; background: #0f172a; padding: 8px 12px; border-radius: 6px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 18px; }
+    .card-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px; }
+    .card-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; }
+    .sig-row { display: flex; justify-content: space-between; margin-top: 40px; padding-top: 20px; border-top: 1px dashed #cbd5e1; font-size: 12px; color: #475569; }
+    @media print {
+      .no-print { display: none !important; }
+      body { margin: 0; padding: 0; }
+    }
+  </style>
+</head>
+<body onload="setTimeout(function(){ window.print(); }, 350)">
+  <div class="no-print" style="position:sticky;top:0;background:#0f172a;color:#fff;padding:12px 24px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 8px rgba(0,0,0,0.15);z-index:9999;margin:-32px -32px 24px -32px">
+    <div style="font-weight:600;font-size:14px">Vehicle Comprehensive Report — ${esc(po.number)}</div>
+    <div style="display:flex;gap:10px">
+      <button onclick="window.print()" style="background:#2563eb;color:#fff;border:none;padding:8px 18px;border-radius:6px;font-weight:600;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:6px">🖨️ Print / Save as PDF</button>
+      <button onclick="window.close()" style="background:#475569;color:#fff;border:none;padding:8px 16px;border-radius:6px;font-weight:600;cursor:pointer;font-size:13px">✕ Close</button>
+    </div>
+  </div>
+
+  <div class="header-box">
+    <div>
+      <img src="${typeof LOGO_FULL !== 'undefined' ? LOGO_FULL : ''}" alt="Goldstern" class="logo-img">
+      <h2 style="margin:8px 0 2px;font-size:18px;font-weight:700">${esc(co.legalName || 'Goldstern Luxury Cars')}</h2>
+      <div style="color:#64748b;font-size:12px">${esc(co.address || '')} · Tax Reg: ${esc(co.taxRegNo || '—')}</div>
+    </div>
+    <div style="text-align:right">
+      <h1 style="margin:0 0 4px;font-size:19px;font-weight:750;letter-spacing:-0.01em;color:#0f172a">VEHICLE REPORT</h1>
+      <div style="font-size:12px;color:#64748b;margin-bottom:6px">تقرير شامل للمركبة والحسابات</div>
+      <div style="font-size:13px"><b>Order Ref:</b> <span class="mono">${esc(po.number)}</span></div>
+      <div style="font-size:12px;color:#64748b"><b>Date:</b> ${po.date} · <b>Generated:</b> ${todayCairo()}</div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card-box">
+      <div class="card-title">Vehicle Specifications &amp; Status</div>
+      <div style="font-size:15px;font-weight:700;color:#0f172a">${v ? `${esc(makeName(v.makeId))} ${esc(modelName(v.makeId, v.modelId))} ${v.year}` : '—'}</div>
+      <div style="font-size:12.5px;margin-top:6px"><b>Chassis / VIN:</b> <span class="mono" style="font-weight:650">${v ? esc(v.vin) : '—'}</span></div>
+      <div style="font-size:12px;color:#475569;margin-top:3px"><b>Color:</b> ${v && v.exteriorColor ? esc(v.exteriorColor) : '—'}${v && v.interiorColor ? ` / ${esc(v.interiorColor)}` : ''} · <b>Status:</b> ${v ? esc(vStatus(v.status).name) : '—'}</div>
+      <div style="font-size:12px;color:#475569;margin-top:3px"><b>Location:</b> ${v ? esc(locName(v.location)) : '—'} · <b>Internal Code:</b> ${v ? esc(v.code) : '—'}</div>
+    </div>
+    <div class="card-box">
+      <div class="card-title">Commercial Parties</div>
+      <div style="font-size:12.5px"><b>Customer:</b> ${cust ? `<b>${esc(cust.legalName)}</b> (${esc(cust.code)})` : '<span style="color:#64748b">Showroom Stock</span>'}</div>
+      ${cust && cust.phone ? `<div style="font-size:12px;color:#475569;margin-top:3px"><b>Phone:</b> ${esc(cust.phone)}</div>` : ''}
+      <div style="font-size:12.5px;margin-top:6px"><b>Supplier:</b> ${sup ? `<b>${esc(sup.legalName)}</b> (${esc(sup.code)})` : '—'}</div>
+      <div style="font-size:12px;color:#475569;margin-top:3px"><b>Order Currency:</b> ${po.currency} ${po.currency !== 'EGP' && po.rate ? `· <b>Exchange Rate:</b> ${fmtNum(po.rate, 4)} EGP` : ''}</div>
+    </div>
+  </div>
+
+  <h3 style="margin:16px 0 6px;font-size:13px;text-transform:uppercase;letter-spacing:0.04em;color:#475569">1. Landed Vehicle Cost &amp; Profit (تكلفة المركبة والمجمل الربحي)</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Expense / Cost Item</th>
+        <th class="n">Original Amount</th>
+        <th class="n">Exchange Rate</th>
+        <th class="n">Cost in EGP</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>Vehicle Purchase Price (سعر الشراء)</b></td>
+        <td class="n mono">${money(poTotal)} ${po.currency}</td>
+        <td class="n mono">${po.rate ? fmtNum(po.rate, 4) : '—'}</td>
+        <td class="n mono"><b>${sm.priceEgp ? money(sm.priceEgp) : '—'} EGP</b></td>
+      </tr>
+      ${cx.map(({ x, share, egp }) => `
+        <tr>
+          <td>${esc(costTypeName(x.carExp.type))}${x.carExp.description ? ` <span style="color:#64748b">(${esc(x.carExp.description)})</span>` : ''}<br><small style="color:#94a3b8">${esc(x.number)} · ${x.date}${x.carExp.cars.length > 1 ? ` · share of ${x.carExp.cars.length} cars` : ''}</small></td>
+          <td class="n mono">${money(share)} ${x.currency}</td>
+          <td class="n mono">${x.currency !== 'EGP' ? (x.rate ? fmtNum(x.rate, 4) : '—') : '1.0000'}</td>
+          <td class="n mono">${money(egp)} EGP</td>
+        </tr>
+      `).join('')}
+      ${adj.abs().gte(D('0.01')) ? `<tr><td>Exchange differences &amp; other adjustments<br><small style="color:#94a3b8">from the car's journal entries</small></td><td></td><td></td><td class="n mono">${money(adj)} EGP</td></tr>` : ''}
+      <tr style="font-weight:700;background:#f8fafc;border-top:2px solid #cbd5e1">
+        <td colspan="3">TOTAL LANDED CAR COST (تكلفة السيارة الإجمالية)</td>
+        <td class="n mono" style="font-size:14px;color:#0f172a">${money(totalCostEgp)} EGP</td>
+      </tr>
+      ${c.sold ? `
+        <tr style="border-top:1.5px solid #0f172a">
+          <td><b>Customer Selling Price (سعر بيع العميل)</b></td>
+          <td colspan="2" class="n mono">${money(sm.revenue)} EGP</td>
+          <td class="n mono"><b>${money(sm.revenue)} EGP</b></td>
+        </tr>
+        <tr style="font-weight:700;background:#f0fdf4">
+          <td colspan="3" style="color:#16a34a">GROSS PROFIT (المجمل الربحي)</td>
+          <td class="n mono" style="font-size:14px;color:#16a34a">${money(sm.profit)} EGP</td>
+        </tr>
+      ` : ''}
+    </tbody>
+  </table>
+
+  <div class="grid-2">
+    <div>
+      <h3 style="margin:12px 0 6px;font-size:12.5px;text-transform:uppercase;color:#16a34a">2. Received from customer (${depAll.length})</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Ref &amp; Date</th>
+            <th class="n">Amount</th>
+            <th class="n">EGP Equivalent</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${depAll.length ? depAll.map(d => `
+            <tr>
+              <td><b>${d.number}</b><br><small style="color:#64748b">${d.date}</small></td>
+              <td class="n mono"><b>${money(d.amount)} ${d.currency}</b></td>
+              <td class="n mono">${egpOf(d)}</td>
+            </tr>
+          `).join('') : '<tr><td colspan="3" style="color:#64748b;text-align:center">Nothing received yet</td></tr>'}
+          <tr style="font-weight:700;background:#f8fafc">
+            <td>Total Received</td>
+            <td class="n mono" colspan="2">${byCur(depAll)}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div>
+      <h3 style="margin:12px 0 6px;font-size:12.5px;text-transform:uppercase;color:#2563eb">3. Paid to supplier (${advAll.length})</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Ref &amp; Date</th>
+            <th class="n">Amount</th>
+            <th class="n">EGP Equivalent</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${advAll.length ? advAll.map(d => `
+            <tr>
+              <td><b>${d.number}</b><br><small style="color:#64748b">${d.date}</small></td>
+              <td class="n mono"><b>${money(d.amount)} ${d.currency}</b></td>
+              <td class="n mono">${egpOf(d)}</td>
+            </tr>
+          `).join('') : '<tr><td colspan="3" style="color:#64748b;text-align:center">Nothing paid yet</td></tr>'}
+          <tr style="font-weight:700;background:#f8fafc">
+            <td>Total Paid to Supplier</td>
+            <td class="n mono" colspan="2">${byCur(advAll)}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="sig-row">
+    <div><b>Prepared by:</b> _________________________</div>
+    <div><b>Chief Accountant:</b> _________________________</div>
+    <div><b>Authorized Signature:</b> _________________________</div>
+  </div>
+
+
+</body>
+</html>`;
+
+  try {
+    const w = window.open('', '_blank');
+    if (w) {
+      w.document.open();
+      w.document.write(html);
+      w.document.close();
+      return;
+    }
+  } catch (err) {}
+
+  // Fallback: print via hidden iframe if pop-ups blocked
+  const frame = document.createElement('iframe');
+  frame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;';
+  document.body.appendChild(frame);
+  frame.contentWindow.document.open();
+  frame.contentWindow.document.write(html);
+  frame.contentWindow.document.close();
+  frame.contentWindow.focus();
+  setTimeout(() => {
+    frame.contentWindow.print();
+    setTimeout(() => frame.remove(), 3000);
+  }, 400);
+}
 function printInvoice(inv){
   const SD = SIDES[inv.side], p = partnerById(inv.side, inv.partnerId), st = inv.type === 'credit' ? null : invState(inv), co = S.company || {};
   const html = `<!doctype html><html><head><meta charset="utf-8"><title>${esc(inv.number)}</title><style>body{font-family:Arial,sans-serif;margin:32px;color:#111}table{width:100%;border-collapse:collapse;margin-top:16px}th,td{border-bottom:1px solid #ddd;padding:8px;text-align:left}td.n,th.n{text-align:right}.h{display:flex;justify-content:space-between;align-items:flex-start}img{height:70px;background:#141518;padding:8px;border-radius:6px}</style></head><body>
@@ -9679,6 +9772,8 @@ function poView(po){
   const advRows = adv.sort((a, b) => a.date < b.date ? -1 : 1).map(renderPayRow).join('');
   const depTotal = dep.reduce((t, x) => t.plus(x.amount), D0());
   const advTotal = adv.reduce((t, x) => t.plus(x.amount), D0());
+  const payTot = list => { const m = new Map(); let egp = D0(); for (const x of list){ m.set(x.currency, (m.get(x.currency) || D0()).plus(x.amount)); egp = egp.plus(x.currency === 'EGP' ? D(x.amount) : r2(D(x.amount).mul(x.rate || '1'))); }
+    const fc = [...m].filter(([c0]) => c0 !== 'EGP').map(([c0, t0]) => `${money(t0)} ${c0}`); return fc.length ? `${fc.join(' + ')} = <b>${money(egp)} EGP</b>` : `<b>${money(egp)} EGP</b>`; };
   openModal({ screen: { key: 'po:' + po.id, reopen: () => { const x = poById(po.id); if (x) poView(x); } }, title: `Purchase order ${po.number}`, xwide: true, body: `
     <div class="rec">
       <div class="rec-top">
@@ -9765,7 +9860,7 @@ function poView(po){
           <header style="display:flex;justify-content:space-between;align-items:center">
             <div style="display:flex;align-items:center;gap:8px">
               <h3>${ic('invoices', 16)} Customer Deposits &amp; Payments <span class="cnt">${dep.length}</span></h3>
-              ${dep.length ? `<span class="pill ok" style="font-size:12px">Total received: ${money(depTotal)} ${po.currency}</span>` : ''}
+              ${dep.length ? `<span class="pill ok" style="font-size:12px">Total received: ${payTot(dep)}</span>` : ''}
             </div>
             ${po.customerId && can('ar', 'create') && po.status !== 'cancelled' && !c.sold && !shut ? `
               <button type="button" class="btn sm primary" data-act="po-adv" data-side="ar" data-id="${po.id}">${ic('plus', 14)} Customer deposit</button>
@@ -9786,7 +9881,7 @@ function poView(po){
           <header style="display:flex;justify-content:space-between;align-items:center">
             <div style="display:flex;align-items:center;gap:8px">
               <h3>${ic('purchases', 16)} Vendor Payments &amp; Advances <span class="cnt">${adv.length}</span></h3>
-              ${adv.length ? `<span class="pill info" style="font-size:12px">Total paid: ${money(advTotal)} ${po.currency}</span>` : ''}
+              ${adv.length ? `<span class="pill info" style="font-size:12px">Total paid: ${payTot(adv)}</span>` : ''}
             </div>
             ${po.status === 'approved' && can('ap', 'create') && !c.invoiced && !shut ? `
               <button type="button" class="btn sm" data-act="po-adv" data-side="ap" data-id="${po.id}">${ic('plus', 14)} Supplier advance</button>
