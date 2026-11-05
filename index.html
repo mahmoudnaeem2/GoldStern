@@ -6,19 +6,6 @@
 <title>Goldstern ERP</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<script>
-/* Show a readable message instead of a blank page if anything stops the system from starting. */
-window.__bootErrors = [];
-window.addEventListener('error', function (e) { var t = e.target, u = t && (t.src || t.href); window.__bootErrors.push(e.message ? e.message + (e.lineno ? ' (line ' + e.lineno + ')' : '') : u ? 'Could not load ' + u : 'Unknown error'); }, true);
-window.addEventListener('load', function () { setTimeout(function () {
-  var app = document.getElementById('app'); if (app && app.children.length) return;
-  var box = document.createElement('div'); box.id = 'boot-err';
-  box.style.cssText = 'max-width:640px;margin:80px auto;padding:24px 28px;font:15px/1.6 system-ui,sans-serif;border:1px solid #e3bdb8;background:#fdf3f2;color:#5b1d18;border-radius:12px';
-  box.innerHTML = '<b style="font-size:17px">Goldstern ERP could not start.</b><p>Reload the page (Ctrl+Shift+R). If it stays like this, send this message to support:</p><pre style="white-space:pre-wrap;background:#fff;border:1px solid #eed;padding:10px;border-radius:8px;font-size:12.5px"></pre>';
-  box.querySelector('pre').textContent = (window.__bootErrors.join('\n') || 'No error was reported, but the screen did not load.') + '\n' + navigator.userAgent;
-  document.body.appendChild(box);
-}, 1500); });
-</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/decimal.js/10.4.3/decimal.min.js"></script>
 <style>
 :root{
@@ -1383,6 +1370,97 @@ const COA_TEMPLATE = [
   ['6290','Other Operating Expenses','مصروفات تشغيل أخرى','expense','6','']
 ];
 const DEFAULT_COST_CENTERS = [['ADM','Administration'], ['SAL','Sales & Showroom'], ['IMP','Imports & Logistics'], ['FIN','Finance']];
+const ODOO_COA_TEMPLATE = [
+  ['100000','Assets','الأصول','asset',null,'g'],
+  ['101000','Current Assets','الأصول المتداولة','asset','100000','g'],
+  ['101100','Cash on Hand — EGP','النقدية بالخزينة — جنيه','asset','101000','cur=EGP'],
+  ['101110','Cash on Hand — USD','النقدية بالخزينة — دولار','asset','101000','cur=USD'],
+  ['101120','Cash on Hand — EUR','النقدية بالخزينة — يورو','asset','101000','cur=EUR'],
+  ['101200','Banks','البنوك','asset','101000','g'],
+  ['101210','Bank — EGP Current Account','البنك — حساب جاري بالجنيه','asset','101200','rec cur=EGP'],
+  ['101220','Bank — EUR Account','البنك — حساب باليورو','asset','101200','rec rv cur=EUR'],
+  ['101230','Bank — USD Account','البنك — حساب بالدولار','asset','101200','rec rv cur=USD'],
+  ['101300','Accounts Receivable (Debtors)','العملاء (المدينون)','asset','101000','s m0 rec rv'],
+  ['101400','Supplier Advances (Prepayments)','دفعات مقدمة للموردين','asset','101000','s m0'],
+  ['101500','Inventory','المخزون','asset','101000','g'],
+  ['101510','Inventory — Vehicles','مخزون السيارات','asset','101500','s m0'],
+  ['101520','Inventory — Import Costs','مخزون — تكاليف الاستيراد','asset','101500','s m0'],
+  ['101530','Inventory — Goods in Transit','بضاعة بالطريق','asset','101500','s m0'],
+  ['101600','Customs Deposits & Recoverable Guarantees','تأمينات ومبالغ جمركية مستردة','asset','101000',''],
+  ['101700','Input Tax Recoverable (VAT 14%)','ضريبة مدخلات قابلة للاسترداد','asset','101000','s'],
+  ['101800','Prepaid Expenses','مصروفات مدفوعة مقدماً','asset','101000',''],
+  ['101900','Other Current Assets','أصول متداولة أخرى','asset','101000',''],
+  ['102000','Non-Current Assets (Fixed Assets)','الأصول غير المتداولة (أصول ثابتة)','asset','100000','g'],
+  ['102100','Furniture & Office Equipment','أثاث ومعدات مكتبية','asset','102000',''],
+  ['102200','Company Vehicles (Fixed Assets)','سيارات الشركة (أصول ثابتة)','asset','102000',''],
+  ['102300','Accumulated Depreciation','مجمع الإهلاك','asset','102000','n=credit'],
+  ['102900','Other Non-Current Assets','أصول غير متداولة أخرى','asset','102000',''],
+  ['200000','Liabilities','الخصوم والالتزامات','liability',null,'g'],
+  ['201000','Current Liabilities','الخصوم المتداولة','liability','200000','g'],
+  ['201100','Accounts Payable (Creditors)','الموردون (الدائنون)','liability','201000','s m0 rec rv'],
+  ['201200','Customer Advances (Deposits)','دفعات مقدمة من العملاء','liability','201000','s m0'],
+  ['201300','Accrued Expenses','مصروفات مستحقة','liability','201000',''],
+  ['201400','Customs & Import Payables','مستحقات جمركية واستيراد','liability','201000',''],
+  ['201500','VAT Payable (Output Tax 14%)','ضريبة القيمة المضافة المستحقة','liability','201000','s'],
+  ['201600','Other Taxes & Withholding Payable','ضرائب أخرى وخصم تحت الحساب','liability','201000',''],
+  ['201700','Payroll & Social Insurance Payables','مستحقات الرواتب والتأمينات','liability','201000',''],
+  ['201800','Employee Reimbursements Payable','مستحقات عهد وسلف الموظفين','liability','201000',''],
+  ['201900','Other Current Liabilities','خصوم متداولة أخرى','liability','201000',''],
+  ['202000','Non-Current Liabilities','الخصوم غير المتداولة','liability','200000','g'],
+  ['202100','Bank Loans & Facilities','قروض وتسهيلات بنكية','liability','202000',''],
+  ['202900','Other Non-Current Liabilities','خصوم غير متداولة أخرى','liability','202000',''],
+  ['300000','Equity','حقوق الملكية','equity',null,'g'],
+  ['301000','Share Capital','رأس المال','equity','300000',''],
+  ['302000','Additional Paid-in Capital','علاوة إصدار','equity','300000',''],
+  ['303000','Retained Earnings','الأرباح المحتجزة / المرحلة','equity','300000','s'],
+  ['304000','Current Year Profit / Loss','أرباح (خسائر) العام الحالي','equity','300000','s m0'],
+  ['305000','Owner Drawings / Distributions','مسحوبات وتوزيعات الشركاء','equity','300000','n=debit'],
+  ['309000','Opening Balance Equity (Undistributed)','حساب الأرصدة الافتتاحية','equity','300000','s'],
+  ['400000','Income / Revenue','الإيرادات','revenue',null,'g'],
+  ['401000','Vehicle Sales Revenue','إيرادات مبيعات السيارات','revenue','400000','s'],
+  ['402000','Other Sales Revenue','إيرادات مبيعات أخرى','revenue','400000',''],
+  ['403000','Service & Commission Revenue','إيرادات خدمات وعمولات استيراد','revenue','400000',''],
+  ['404000','Sales Discounts Allowed','خصومات المبيعات المسموح بها','revenue','400000','n=debit'],
+  ['405000','Sales Returns & Allowances','مردودات ومسموحات المبيعات','revenue','400000','n=debit s'],
+  ['406000','Other Operating Revenue','إيرادات تشغيل أخرى','revenue','400000',''],
+  ['407000','Gain on Asset Disposal','أرباح التخلص من الأصول','revenue','400000',''],
+  ['408000','FX Gains — Realized','أرباح فروق عملة محققة','revenue','400000','s'],
+  ['408100','FX Gains — Unrealized','أرباح فروق عملة غير محققة','revenue','400000','s'],
+  ['500000','Cost of Sales (COGS)','تكلفة المبيعات','cogs',null,'g'],
+  ['501000','Cost of Vehicles Sold','تكلفة السيارات المباعة','cogs','500000','s m0'],
+  ['502000','Direct Vehicle Selling Costs','تكاليف بيع مباشرة للسيارات','cogs','500000','cc'],
+  ['503000','Inventory Write-downs','تخفيض قيمة المخزون','cogs','500000',''],
+  ['504000','Inventory Losses & Adjustments','خسائر وتسويات المخزون','cogs','500000','s'],
+  ['600000','Operating Expenses','المصروفات التشغيلية','expense',null,'g'],
+  ['601000','Salaries and Wages','الرواتب والأجور','expense','600000','cc'],
+  ['601100','Rent Expense','الإيجار','expense','600000','cc'],
+  ['601200','Utilities (Electricity & Water)','المرافق (كهرباء ومياه)','expense','600000','cc'],
+  ['601300','Marketing & Advertising','التسويق والدعاية والإعلان','expense','600000','cc'],
+  ['601400','Transportation & Travel','النقل والانتقالات والسفر','expense','600000','cc'],
+  ['601500','Insurance Expense','التأمين','expense','600000',''],
+  ['601600','Professional & Legal Fees','أتعاب مهنية وقانونية','expense','600000',''],
+  ['601700','Bank Charges & Fees','مصروفات وعمولات بنكية','expense','600000','s'],
+  ['601800','Import Expenses — Not Capitalized','مصروفات استيراد غير مرسملة','expense','600000',''],
+  ['602000','Administrative Expenses','مصروفات إدارية وعمومية','expense','600000','cc'],
+  ['602100','Selling & Showroom Expenses','مصروفات بيعية ومعارض','expense','600000','cc'],
+  ['602200','Depreciation Expense','مصروف الإهلاك','expense','600000',''],
+  ['602300','Bad Debt Expense','مصروف الديون المعدومة','expense','600000',''],
+  ['602400','Loss on Asset Disposal / Impairment','خسائر التخلص من الأصول واضمحلالها','expense','600000',''],
+  ['602500','FX Losses — Realized','خسائر فروق عملة محققة','expense','600000','s'],
+  ['602510','FX Losses — Unrealized','خسائر فروق عملة غير محققة','expense','600000','s'],
+  ['602900','Other Operating Expenses','مصروفات تشغيل أخرى','expense','600000','']
+];
+const ODOO_MAPPING = {
+  ar: '101300', ap: '201100', cust_adv: '201200', supp_adv: '101400',
+  inv_vehicles: '101510', inv_transit: '101530', inv_import: '101520', cogs: '501000',
+  sales_revenue: '401000', sales_returns: '405000', sales_discounts: '404000', output_tax: '201500',
+  input_tax: '101700', customs_payable: '201400', cash: '101100',
+  fx_gain_realized: '408000', fx_loss_realized: '602500', fx_gain_unrealized: '408100', fx_loss_unrealized: '602510',
+  bank_charges: '601700', import_expense: '601800', inventory_adjustment: '504000', employee_payable: '201800',
+  asset_gain: '407000', asset_loss: '602400', inv_writedown: '503000', prepaid: '101800', accrued: '201300',
+  retained_earnings: '303000', current_year_pl: '304000', opening_equity: '309000'
+};
+
 /* [key, label, allowed account types, template default code] */
 const MAPPING_KEYS = [
   ['ar','Customer Receivables',['asset'],'1130'], ['ap','Supplier Payables',['liability'],'2110'],
@@ -1947,20 +2025,58 @@ const A = {
 };
 /* ---------------- Phase 2 actions ---------------- */
 Object.assign(A, {
-  seedChart(){
+  seedChart(chartType = 'goldstern'){
     requirePerm('coa', 'create');
     if (S.accounts.length) throw new AppError('The chart of accounts already has accounts. The template can only be loaded into an empty chart.');
+    const isOdoo = chartType === 'odoo';
+    const tmpl = isOdoo ? ODOO_COA_TEMPLATE : COA_TEMPLATE;
     const byCode = {};
-    for (const [code, en, ar, type, parent, flags] of COA_TEMPLATE){
+    for (const [code, en, ar, type, parent, flags] of tmpl){
       const fl = flags.split(' ').filter(Boolean), get = p => (fl.find(x => x.startsWith(p + '=')) || '').split('=')[1];
       const a = { id: uid('ac'), code, nameEn: en, nameAr: ar, parentId: parent ? byCode[parent].id : null, type, isGroup: fl.includes('g'),
         normal: get('n') || ACC_TYPES[type].normal, allowManual: !fl.includes('m0'), reconcile: fl.includes('rec'), currency: get('cur') || '',
         requireCostCenter: fl.includes('cc'), revalue: fl.includes('rv'), system: fl.includes('s') || !parent, active: true, description: '', createdAt: nowISO() };
       byCode[code] = a; S.accounts.push(a);
     }
-    for (const [key, , , code] of MAPPING_KEYS) if (byCode[code]) S.mappings[key] = byCode[code].id;
+    if (isOdoo){
+      for (const [key, code] of Object.entries(ODOO_MAPPING)) if (byCode[code]) S.mappings[key] = byCode[code].id;
+    } else {
+      for (const [key, , , code] of MAPPING_KEYS) if (byCode[code]) S.mappings[key] = byCode[code].id;
+    }
     for (const [code, name] of DEFAULT_COST_CENTERS) if (!S.costCenters.some(c => c.code === code)) S.costCenters.push({ code, name, active: true });
-    log('coa_seed', 'coa', null, null, { accounts: S.accounts.length, mappings: Object.keys(S.mappings).length, costCenters: S.costCenters.length }, 'Loaded Goldstern standard chart template');
+    log('coa_seed', 'coa', null, null, { accounts: S.accounts.length, mappings: Object.keys(S.mappings).length, costCenters: S.costCenters.length, template: chartType }, isOdoo ? 'Loaded Odoo standard chart of accounts' : 'Loaded Goldstern standard chart template');
+    saveState();
+  },
+  applyOdooChart(force = false){
+    requirePerm('coa', 'edit');
+    const hasEntries = S.entries && S.entries.length > 0;
+    if (!hasEntries || force || S.accounts.length === 0){
+      S.accounts = [];
+      S.mappings = {};
+      this.seedChart('odoo');
+      return;
+    }
+    // Merges Odoo chart accounts and updates mappings
+    const byCode = {};
+    for (const a of S.accounts) byCode[a.code] = a;
+    for (const [code, en, ar, type, parent, flags] of ODOO_COA_TEMPLATE){
+      if (!byCode[code]){
+        const fl = flags.split(' ').filter(Boolean), get = p => (fl.find(x => x.startsWith(p + '=')) || '').split('=')[1];
+        const a = { id: uid('ac'), code, nameEn: en, nameAr: ar, parentId: parent && byCode[parent] ? byCode[parent].id : null, type, isGroup: fl.includes('g'),
+          normal: get('n') || ACC_TYPES[type].normal, allowManual: !fl.includes('m0'), reconcile: fl.includes('rec'), currency: get('cur') || '',
+          requireCostCenter: fl.includes('cc'), revalue: fl.includes('rv'), system: fl.includes('s') || !parent, active: true, description: '', createdAt: nowISO() };
+        byCode[code] = a; S.accounts.push(a);
+      }
+    }
+    for (const [code, , , , parent] of ODOO_COA_TEMPLATE){
+      if (byCode[code] && parent && byCode[parent] && !byCode[code].parentId){
+        byCode[code].parentId = byCode[parent].id;
+      }
+    }
+    for (const [key, code] of Object.entries(ODOO_MAPPING)){
+      if (byCode[code]) S.mappings[key] = byCode[code].id;
+    }
+    log('coa_odoo_apply', 'coa', null, null, { accounts: S.accounts.length }, 'Applied Odoo Chart of Accounts');
     saveState();
   },
   saveAccount(id, f){
@@ -3318,7 +3434,7 @@ function landedChecks(){
 }
 function landedRows(){
   const c = lcache(); if (c.landed) return c.landed;
-  const idx = vehicleIndex(), m = new Map(); let exp = null; try { exp = getMapping('import_expense').id; } catch (e){}
+  const idx = vehicleIndex(), m = new Map(); let exp = getMapping('import_expense').id;
   for (const { e, l } of ledgerLines()){
     const vid = lineVehicleId(l, idx); if (!vid || !l.costType) continue;
     const r = m.get(vid) || { cap: {}, capTotal: D0(), expTotal: D0() }; const amt = D(l.egpDebit).minus(l.egpCredit);
@@ -4787,21 +4903,11 @@ function viewShell(){
         ${!OPEN_ACCESS ? `<button type="button" class="btn sm" data-act="logout">${t('signout')}</button>` : ''}
       </header>
       ${subnavHTML()}
-      <main class="content">${safePage(r)}</main>
+      <main class="content">${pageFor(r)}</main>
     </div></div>`;
 }
 function denied(module){
   return `<div class="card"><div class="card-b"><div class="note bad" style="margin:0"><b>Access denied.</b> Your role(s) do not have read access to ${esc(MODULES.find(m => m.code === module)?.name || module)}.</div></div></div>`;
-}
-/* A page that fails to build shows its error in place; the rest of the system keeps working. */
-function safePage(r){
-  try { return pageFor(r); }
-  catch (e){
-    if (typeof console !== 'undefined') console.error(e);
-    const mapping = /Account mapping/.test(e && e.message);
-    return `<div class="card"><div class="card-b"><div class="note ${mapping ? 'warn' : 'bad'}" style="margin:0"><b>This page could not be shown.</b><div style="margin-top:4px">${esc(e && e.message || String(e))}</div></div>
-      <div style="display:flex;gap:8px;margin-top:14px">${mapping ? '<a class="btn primary" href="#/acc/mappings">Open account mappings</a>' : ''}<a class="btn" href="#/dashboard">Go to the dashboard</a></div></div></div>`;
-  }
 }
 function pageFor(r){
   if (r.startsWith('m/')) return pagePlanned(r.slice(2));
@@ -5151,9 +5257,12 @@ function pageCOA(){
   if (!S.accounts.length){
     return H(t('coa'), 'Hierarchical, bilingual chart of accounts.', can('coa', 'create') ? '<button class="btn" data-act="acc-new">New account</button>' : '') + `
       <div class="card"><div class="card-b">
-        <p>The chart is empty. You can load the <b>Goldstern standard chart</b> (${COA_TEMPLATE.length} accounts covering vehicles inventory, goods in transit, advances, EGP/EUR/USD banks, FX gains/losses, customs and taxes), then edit it freely. Loading it also sets the ${MAPPING_KEYS.length} default account mappings and ${DEFAULT_COST_CENTERS.length} cost centers.</p>
-        <p class="muted">Or build your own chart from scratch with “New account”. Have your chief accountant review it before posting.</p>
-        ${can('coa', 'create') ? '<button class="btn primary" data-act="coa-seed">Load Goldstern standard chart</button>' : '<span class="muted">You do not have permission to create accounts.</span>'}
+        <p>The chart is empty. Choose which chart of accounts you want to apply. Both templates include vehicle inventory, goods in transit, advances, multi-currency banks, FX revaluations, customs and VAT mappings.</p>
+        ${can('coa', 'create') ? `
+        <div style="display:flex;gap:12px;margin-top:14px;flex-wrap:wrap">
+          <button class="btn primary" data-act="coa-seed-odoo" style="padding:10px 18px"><b>Apply Odoo Chart of Accounts</b> <span style="opacity:.8;font-size:12px">(78 accounts · 6-digit Odoo standard)</span></button>
+          <button class="btn" data-act="coa-seed" style="padding:10px 18px">Load Goldstern standard chart <span class="muted" style="font-size:12px">(74 accounts · 4-digit)</span></button>
+        </div>` : '<span class="muted">You do not have permission to create accounts.</span>'}
       </div></div>`;
   }
   const CATS = [['', 'All'], ['asset', 'Assets'], ['liability', 'Liabilities'], ['equity', 'Equity'], ['revenue', 'Income'], ['cogs', 'Cost of sales'], ['expense', 'Expenses']];
@@ -5178,7 +5287,7 @@ function pageCOA(){
     return `<tr class="grp" data-act="coa-fold" data-id="${g.id}" style="cursor:pointer"><td colspan="5"><span class="fold">${shut ? '▸' : '▾'}</span> <b>${esc(g.code)} ${esc(g.nameEn)}</b> <span class="muted">(${rows.length})</span></td><td class="num"><b>${signed(tot)}</b></td></tr>` + (shut ? '' : rows.map(row).join(''));
   }).join('');
   const cnt = k => S.accounts.filter(a => !a.isGroup && a.active && (!k || a.type === k)).length;
-  return H(t('coa'), '', `${can('coa', 'export') ? '<button class="btn" data-act="coa-csv">Export</button>' : ''}${can('coa', 'create') ? '<button class="btn primary" data-act="acc-new">New account</button>' : ''}`) + `
+  return H(t('coa'), '', `${can('coa', 'edit') ? '<button class="btn gold" data-act="coa-apply-odoo" title="Switch or update to Odoo standard 6-digit Chart of Accounts">Apply Odoo Chart</button>' : ''}${can('coa', 'export') ? '<button class="btn" data-act="coa-csv">Export</button>' : ''}${can('coa', 'create') ? '<button class="btn primary" data-act="acc-new">New account</button>' : ''}`) + `
     <div class="card"><div class="o-pills">${CATS.map(([k, l]) => `<button type="button" class="o-pill ${(F.c_type || '') === k ? 'on' : ''}" data-act="set-filter" data-k="c_type" data-v="${k}">${l} <span>${cnt(k)}</span></button>`).join('')}</div>
       <div class="filters"><input class="input" data-filter="c_q" placeholder="Search code or account name…" value="${esc(F.c_q || '')}" style="min-width:300px">
         <select class="input" data-filter="c_group"><option value="">Group by account group</option><option value="none" ${F.c_group === 'none' ? 'selected' : ''}>No grouping</option></select>
@@ -6666,7 +6775,7 @@ function pageTests(){
 const FORM_HANDLERS = {
   async setup(f){
     const err = document.getElementById('setup-err');
-    try { await A.setupCompany(f); seedCatalogue(); ensureStandardChart(); location.hash = '#/dashboard'; render(); toast('Company created. You can start with a customer import order.', 'ok'); }
+    try { await A.setupCompany(f); seedCatalogue(); location.hash = '#/dashboard'; render(); toast('Company created. You can start with a customer import order.', 'ok'); }
     catch (e){ err.textContent = e.message; err.style.display = 'block'; }
   },
   async login(f){
@@ -6931,7 +7040,9 @@ Object.assign(FORM_HANDLERS, {
   mappings(f){ const m = {}; for (const [k] of MAPPING_KEYS) m[k] = f[k] || ''; run(() => A.saveMappings(m, f.reason), 'Mappings saved.'); }
 });
 Object.assign(CLICK, {
-  'coa-seed'(){ openModal({ title: 'Load Goldstern standard chart', submit: 'Load chart', body: `<p>Creates ${COA_TEMPLATE.length} accounts, ${MAPPING_KEYS.length} account mappings and ${DEFAULT_COST_CENTERS.length} cost centers. Everything stays editable. This is recorded in the audit trail.</p>`, onSubmit: () => { A.seedChart(); toast('Chart of accounts loaded.', 'ok'); } }); },
+  'coa-seed'(){ openModal({ title: 'Load Goldstern standard chart', submit: 'Load chart', body: `<p>Creates ${COA_TEMPLATE.length} accounts, ${MAPPING_KEYS.length} account mappings and ${DEFAULT_COST_CENTERS.length} cost centers. Everything stays editable. This is recorded in the audit trail.</p>`, onSubmit: () => { A.seedChart('goldstern'); toast('Chart of accounts loaded.', 'ok'); } }); },
+  'coa-seed-odoo'(){ openModal({ title: 'Apply Odoo Chart of Accounts', submit: 'Apply Odoo Chart', body: `<p>Creates ${ODOO_COA_TEMPLATE.length} accounts following the <b>Odoo 6-digit standard Chart of Accounts</b> (Assets 100000, Liabilities 200000, Equity 300000, Revenue 400000, COGS 500000, Expenses 600000), with bilingual Arabic/English naming, reconciliation flags, and sets all ${Object.keys(ODOO_MAPPING).length} accounting mappings.</p>`, onSubmit: () => { A.seedChart('odoo'); toast('Odoo Chart of Accounts applied successfully.', 'ok'); } }); },
+  'coa-apply-odoo'(){ openModal({ title: 'Apply Odoo Chart of Accounts', submit: 'Confirm & Apply', body: `<p>This will configure the <b>Odoo 6-digit Standard Chart of Accounts</b> (${ODOO_COA_TEMPLATE.length} accounts) and automatically link all 31 system accounting mappings to the standard Odoo accounts.</p><p class="muted">If you already have existing transactions, your existing accounts and ledger history will be preserved, and the Odoo accounts and mappings will be applied.</p>`, onSubmit: () => { A.applyOdooChart(false); toast('Odoo Chart of Accounts applied successfully.', 'ok'); } }); },
   'acc-new'(){ openModal({ title: 'New account', wide: true, body: accountForm({ type: 'expense', normal: 'debit', allowManual: true }), onSubmit: f => A.saveAccount(null, f) }); },
   'acc-open'(el){ const a = acc(el.dataset.id); if (a) accountView(a); },
   'coa-fold'(el){ UI.coaShut = UI.coaShut || {}; UI.coaShut[el.dataset.id] = !UI.coaShut[el.dataset.id]; render(); },
@@ -7624,6 +7735,96 @@ function refreshModels(form){
 function refreshCombos(form){ refreshModels(form); }
 
 if (typeof document !== 'undefined' && document.addEventListener){
+  function applyComboSelection(item, input, wrap){
+    if (!input || !item) return;
+    const val = item.dataset.val;
+    if (val === undefined) return;
+    const isAdd = item.classList.contains('combo-item-add');
+    const kind = wrap ? wrap.dataset.pick : input.dataset.pick;
+    const form = input.closest('form') || document.getElementById('mform') || document;
+
+    input.value = val;
+    delete input.dataset.auto;
+    closeAllCombos();
+
+    if (isAdd){
+      if (kind === 'customer'){
+        try {
+          const ph = form.querySelector('[name=customerPhone]') || form.querySelector('[name=phone]');
+          const p = pickPartner('ar', val, { phone: ph ? ph.value : '' });
+          if (p) toast(`Customer "${p.legalName}" added.`, 'ok');
+        } catch(err){
+          toast(err.message, 'bad');
+        }
+      } else if (kind === 'supplier'){
+        try {
+          const ph = form.querySelector('[name=sellerPhone]') || form.querySelector('[name=supplierPhone]') || form.querySelector('[name=phone]');
+          const p = pickPartner('ap', val, { phone: ph ? ph.value : '' });
+          if (p) toast(`Supplier "${p.legalName}" added.`, 'ok');
+        } catch(err){
+          toast(err.message, 'bad');
+        }
+      } else if (kind === 'make'){
+        try {
+          if (!S.makes.some(m => sameTxt(m.name, val))){
+            requirePerm('vehicles', 'create');
+            const mk = { id: uid('mk'), name: val, models: [], active: true };
+            S.makes.push(mk);
+            log('make_create', 'vehicles', mk.id, null, mk, 'Added via dropdown', val);
+            saveState();
+          }
+          toast(`Brand "${val}" added.`, 'ok');
+        } catch(err){
+          toast(err.message, 'bad');
+        }
+      } else if (kind === 'model'){
+        try {
+          const mkInput = form.querySelector('input[data-pick=make]');
+          const mkName = mkInput ? mkInput.value : '';
+          if (mkName){
+            let mk = S.makes.find(m => sameTxt(m.name, mkName));
+            if (mk && !mk.models.some(m => sameTxt(m.name, val))){
+              requirePerm('vehicles', 'create');
+              const md = { id: uid('md'), name: val, active: true };
+              mk.models.push(md);
+              log('model_create', 'vehicles', md.id, null, { make: mk.name, model: val }, 'Added via dropdown', val);
+              saveState();
+            }
+          }
+          toast(`Model "${val}" added.`, 'ok');
+        } catch(err){
+          toast(err.message, 'bad');
+        }
+      }
+    }
+
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+
+    if (item.dataset.make && form){
+      const mkInput = form.querySelector('input[data-pick=make]');
+      if (mkInput && !mkInput.value){
+        mkInput.value = item.dataset.make;
+        mkInput.dispatchEvent(new Event('input', { bubbles: true }));
+        mkInput.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    }
+
+    if (input.dataset.pick === 'make' && form){
+      refreshModels(form);
+      const md = form.querySelector('input[data-pick=model]');
+      if (md){
+        setTimeout(() => {
+          try {
+            md.focus();
+            const mdWrap = md.closest('.combo-wrap');
+            if (mdWrap) renderComboDropdown(mdWrap, '', true);
+          } catch(x){}
+        }, 60);
+      }
+    }
+  }
+
   // Handle mousedown on dropdown items first to prevent blur/focusout from canceling the selection
   document.addEventListener('mousedown', e => {
     const item = e.target.closest ? e.target.closest('.combo-item') : null;
@@ -7631,36 +7832,7 @@ if (typeof document !== 'undefined' && document.addEventListener){
       e.preventDefault();
       const wrap = item.closest('.combo-wrap');
       const input = wrap ? wrap.querySelector('.combo-input') : null;
-      const val = item.dataset.val;
-      if (input && val !== undefined){
-        input.value = val;
-        delete input.dataset.auto;
-        closeAllCombos();
-        input.dispatchEvent(new Event('input', { bubbles: true }));
-        input.dispatchEvent(new Event('change', { bubbles: true }));
-        const form = input.closest('form') || document.getElementById('mform') || document;
-        if (item.dataset.make && form){
-          const mkInput = form.querySelector('input[data-pick=make]');
-          if (mkInput && !mkInput.value){
-            mkInput.value = item.dataset.make;
-            mkInput.dispatchEvent(new Event('input', { bubbles: true }));
-            mkInput.dispatchEvent(new Event('change', { bubbles: true }));
-          }
-        }
-        if (input.dataset.pick === 'make' && form){
-          refreshModels(form);
-          const md = form.querySelector('input[data-pick=model]');
-          if (md){
-            setTimeout(() => {
-              try {
-                md.focus();
-                const mdWrap = md.closest('.combo-wrap');
-                if (mdWrap) renderComboDropdown(mdWrap, '', true);
-              } catch(x){}
-            }, 60);
-          }
-        }
-      }
+      applyComboSelection(item, input, wrap);
     }
   });
 
@@ -7720,39 +7892,8 @@ if (typeof document !== 'undefined' && document.addEventListener){
       e.preventDefault();
       e.stopPropagation();
       const wrap = item.closest('.combo-wrap');
-      const input = wrap.querySelector('.combo-input');
-      const val = item.dataset.val;
-      if (input && val !== undefined){
-        input.value = val;
-        delete input.dataset.auto;
-        closeAllCombos();
-        input.dispatchEvent(new Event('input', { bubbles: true }));
-        input.dispatchEvent(new Event('change', { bubbles: true }));
-        const form = input.closest('form') || document.getElementById('mform') || document;
-        
-        if (item.dataset.make && form){
-          const mkInput = form.querySelector('input[data-pick=make]');
-          if (mkInput && !mkInput.value){
-            mkInput.value = item.dataset.make;
-            mkInput.dispatchEvent(new Event('input', { bubbles: true }));
-            mkInput.dispatchEvent(new Event('change', { bubbles: true }));
-          }
-        }
-
-        if (input.dataset.pick === 'make' && form){
-          refreshModels(form);
-          const md = form.querySelector('input[data-pick=model]');
-          if (md){
-            setTimeout(() => {
-              try {
-                md.focus();
-                const mdWrap = md.closest('.combo-wrap');
-                if (mdWrap) renderComboDropdown(mdWrap, '', true);
-              } catch(x){}
-            }, 60);
-          }
-        }
-      }
+      const input = wrap ? wrap.querySelector('.combo-input') : null;
+      applyComboSelection(item, input, wrap);
       return;
     }
     if (!e.target.closest || !e.target.closest('.combo-wrap')){
@@ -8514,8 +8655,62 @@ function openPoAdvance(po, side){
     const cs = form.querySelector('[name=currency]');
     if (cs && po.currency && po.currency !== 'EGP'){ cs.value = po.currency; cs.dispatchEvent(new Event('change', { bubbles: true }));
       const rt = form.querySelector('[name=rate]'); if (rt && po.rate){ rt.value = po.rate; delete rt.dataset.auto; rt.dispatchEvent(new Event('input', { bubbles: true })); } }
-    decorateModal(side === 'ar' ? `Customer deposit — ${po.number}` : `Advance to supplier — ${po.number}`, 'Save & submit for approval',
-      `${side === 'ar' ? 'Deposit from' : 'Advance paid to'} <b>${esc(p.legalName)}</b> for ${esc(po.number)}${v ? ` · ${esc(vehLabel(v))}` : ''}. Order value ${money(po.lines.reduce((t, l) => t.plus(l.price), D0()))} ${po.currency}${po.rate ? ` at the order rate ${fmtNum(po.rate, 4)}` : ''}.`);
+
+    const orderVal = po.lines.reduce((t, l) => t.plus(l.price), D0());
+    const prior = poAdvances(po, side).filter(x => ACTIVE_ST.includes(entryStatus(x)));
+    const paidTotal = prior.reduce((t, x) => t.plus(x.amount), D0());
+    const rem = orderVal.minus(paidTotal);
+    const remVal = rem.gt(0) ? rem : D0();
+
+    const amtInput = form.querySelector('[name=amount]');
+    if (amtInput && !amtInput.value && remVal.gt(0)){
+      amtInput.value = remVal.toFixed(2);
+      amtInput.dispatchEvent(new Event('input', { bubbles: true }));
+      amtInput.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    const noteHtml = `
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px 14px;margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #e2e8f0">
+          <div>
+            <b style="color:#0f172a;font-size:14px">${side === 'ar' ? 'Customer Deposit' : 'Supplier Advance'}</b>
+            <span class="muted" style="margin-inline-start:8px">${esc(po.number)}${v ? ` · ${esc(vehLabel(v))}` : ''}</span>
+          </div>
+          <div style="font-size:13px"><b>${esc(p.legalName)}</b> <span class="muted">(${esc(p.code)})</span></div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:12px;text-align:center">
+          <div style="background:#fff;padding:8px;border-radius:6px;border:1px solid #e2e8f0">
+            <div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase">Order Total</div>
+            <div style="font-size:16px;font-weight:700;color:#0f172a;margin-top:2px">${money(orderVal)} <small style="font-weight:500;font-size:11px">${po.currency}</small></div>
+            ${po.rate && po.currency !== 'EGP' ? `<div style="font-size:11px;color:#64748b;margin-top:2px">@ ${fmtNum(po.rate, 4)} EGP</div>` : ''}
+          </div>
+          <div style="background:#f0fdf4;padding:8px;border-radius:6px;border:1px solid #bbf7d0">
+            <div style="font-size:11px;font-weight:600;color:#16a34a;text-transform:uppercase">${side === 'ar' ? 'Paid by Customer So Far' : 'Paid to Supplier So Far'}</div>
+            <div style="font-size:16px;font-weight:700;color:#16a34a;margin-top:2px">${money(paidTotal)} <small style="font-weight:500;font-size:11px">${po.currency}</small></div>
+            <div style="font-size:11px;color:#15803d;margin-top:2px">${prior.length ? `${prior.length} payment(s) made` : 'No prior payments'}</div>
+          </div>
+          <div style="background:#fff1f2;padding:8px;border-radius:6px;border:1px solid #fecdd3">
+            <div style="font-size:11px;font-weight:600;color:#e11d48;text-transform:uppercase">Remaining Balance</div>
+            <div style="font-size:16px;font-weight:700;color:#e11d48;margin-top:2px">${money(remVal)} <small style="font-weight:500;font-size:11px">${po.currency}</small></div>
+            ${remVal.gt(0) ? `<button type="button" class="btn sm" style="margin-top:3px;padding:1px 6px;font-size:11px;height:auto;line-height:1.3" onclick="const a=document.querySelector('#mform [name=amount]');if(a){a.value='${remVal.toFixed(2)}';a.dispatchEvent(new Event('input',{bubbles:true}));a.dispatchEvent(new Event('change',{bubbles:true}));}">Pay remaining</button>` : '<div style="font-size:11px;color:#9f1239;margin-top:2px">Settled</div>'}
+          </div>
+        </div>
+        ${prior.length ? `
+        <div style="margin-top:10px;padding-top:8px;border-top:1px dashed #cbd5e1;font-size:12px">
+          <div style="font-weight:600;color:#475569;margin-bottom:4px">Prior recorded payments for this order:</div>
+          <div style="display:flex;flex-direction:column;gap:3px">
+            ${prior.map(pr => {
+              const b = bankById(pr.bankId);
+              return `<div style="display:flex;justify-content:space-between;color:#334155;background:#fff;padding:3px 8px;border-radius:4px;border:1px solid #f1f5f9">
+                <span><b>${esc(pr.number)}</b> · ${pr.date} · via ${esc(b ? b.name : '')}</span>
+                <span class="mono" style="font-weight:600">${money(pr.amount)} ${pr.currency}</span>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>` : ''}
+      </div>`;
+
+    decorateModal(side === 'ar' ? `Customer deposit — ${po.number}` : `Advance to supplier — ${po.number}`, 'Save & submit for approval', noteHtml);
 }
 Object.assign(CLICK, {
   'make-ren'(el){ const m = S.makes.find(x => x.id === el.dataset.id); openModal({ title: `Rename brand ${m.name}`, body: `<div class="field"><label>Brand name *</label><input class="input" name="name" value="${esc(m.name)}" required></div><div class="field"><label>Reason</label><input class="input" name="reason"></div>`, onSubmit: f => A.renameMake(m.id, f.name, f.reason) }); },
@@ -9113,30 +9308,8 @@ function runTestSuite(){
   return { at: nowISO(), by, ms: Math.round(performance.now() - t0), passed, failed, skipped, results };
 }
 
-/* Keep the standard Goldstern chart in place: load it into an empty chart, and repair any missing account mapping. */
-function ensureStandardChart(){
-  if (!S.company) return;
-  try {
-    if (!S.accounts.length){ A.seedChart(); return; }
-    const byCode = c => S.accounts.find(a => a.code === c), fixed = [];
-    for (const [key, label, , code] of MAPPING_KEYS){
-      const cur = S.mappings[key] && acc(S.mappings[key]); if (cur && cur.active && !cur.isGroup) continue;
-      let a = byCode(code);
-      if (!a){ const row = COA_TEMPLATE.find(r => r[0] === code); if (!row) continue; const [c, en, ar, type, parent, flags] = row, fl = flags.split(' ').filter(Boolean), get = k => (fl.find(x => x.startsWith(k + '=')) || '').split('=')[1];
-        a = { id: uid('ac'), code: c, nameEn: en, nameAr: ar, parentId: parent && byCode(parent) ? byCode(parent).id : null, type, isGroup: fl.includes('g'), normal: get('n') || ACC_TYPES[type].normal, allowManual: !fl.includes('m0'), reconcile: fl.includes('rec'), currency: get('cur') || '',
-          requireCostCenter: fl.includes('cc'), revalue: fl.includes('rv'), system: fl.includes('s') || !parent, active: true, description: '', createdAt: nowISO() };
-        S.accounts.push(a); }
-      if (a.isGroup) continue;
-      if (!a.active){ a.active = true; fixed.push(`${a.code} reactivated`); }
-      S.mappings[key] = a.id; fixed.push(`${label} → ${a.code}`);
-    }
-    if (fixed.length){ log('mapping_repair', 'mappings', null, null, { fixed }, 'Missing account mappings set to the standard Goldstern accounts'); saveState(); }
-  } catch (e){ if (typeof console !== 'undefined') console.warn('Standard chart check skipped:', e && e.message); }
-}
-
 /* ---------------- Boot ---------------- */
 S = loadState(); loadUI(); loadSession();
-ensureStandardChart();
 if (S.meta.migratedAt && !S.meta.migrationLogged){ S.meta.migrationLogged = true; log('schema_migration', 'settings', null, null, { schema: S.schema, version: APP_VERSION }, `Data upgraded to schema ${SCHEMA} (existing records unchanged)`); saveState(); }
 if (!OPEN_ACCESS && SESSION && SESSION.userId && Date.now() - (SESSION.lastActive || 0) > IDLE_MINUTES * 60000){ SESSION = null; saveSession(); }
 if (S.company && !(S.makes || []).length) seedCatalogue();
