@@ -31,7 +31,7 @@ td > a:first-child,td.num{white-space:nowrap}
 /* shell */
 .shell{display:grid;grid-template-columns:260px 1fr;min-height:100vh;background:var(--bg);transition:grid-template-columns .22s cubic-bezier(0.16,1,0.3,1)}
 .shell.collapsed{grid-template-columns:72px 1fr}
-.side{background:#ffffff;color:#334155;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow:hidden;border-inline-end:1px solid #e2e8f0;box-shadow:2px 0 12px rgba(15,23,42,0.03);z-index:50;transition:width .22s cubic-bezier(0.16,1,0.3,1)}
+.side{background:#f1f5f9;color:#334155;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow:hidden;border-inline-end:1px solid #e2e8f0;box-shadow:2px 0 8px rgba(15,23,42,0.03);z-index:50;transition:width .22s cubic-bezier(0.16,1,0.3,1)}
 .shell.collapsed .side{width:72px}
 .brand{display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid #1e293b;background:#090d16;position:relative}
 .shell.collapsed .brand{padding:16px 8px;justify-content:center}
@@ -50,35 +50,35 @@ td > a:first-child,td.num{white-space:nowrap}
 .shell.collapsed .brand-info{display:none}
 .shell.collapsed .side-collapse-btn{display:flex!important;align-items:center;justify-content:center;width:40px;height:26px;border-radius:6px;background:rgba(255,255,255,0.15)!important;border:1px solid rgba(255,255,255,0.25)!important;color:#ffffff!important;margin:0 auto;cursor:pointer;transition:all .15s ease;box-shadow:0 2px 5px rgba(0,0,0,0.3)}
 .shell.collapsed .side-collapse-btn:hover{background:rgba(212,175,55,0.35)!important;border-color:rgba(212,175,55,0.6)!important;color:#ffd700!important;transform:scale(1.06)}
-.side-footer-toggle{padding:4px 10px;margin-bottom:6px}
+.side-footer-toggle{padding:6px 14px;margin-bottom:6px}
 .shell.collapsed .side-footer-toggle{padding:4px 6px;display:flex;justify-content:center}
-.side-toggle-pill{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:7px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;color:#475569;cursor:pointer;font-size:12px;font-weight:550;transition:all .15s ease}
-.side-toggle-pill:hover{background:#f1f5f9;color:#0f172a;border-color:#cbd5e1}
-.shell.collapsed .side-toggle-pill{width:38px;height:32px;padding:0;border-radius:8px;background:#f8fafc;border-color:#e2e8f0;color:#475569}
-.shell.collapsed .side-toggle-pill:hover{background:#f1f5f9;color:#0f172a;border-color:#cbd5e1}
+.side-toggle-pill{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:7px;background:#ffffff;border:1px solid #cbd5e1;border-radius:8px;color:#475569;cursor:pointer;font-size:12px;font-weight:550;transition:all .15s ease;box-shadow:0 1px 2px rgba(0,0,0,0.03)}
+.side-toggle-pill:hover{background:#ffffff;color:#0f172a;border-color:#94a3b8}
+.shell.collapsed .side-toggle-pill{width:38px;height:32px;padding:0;border-radius:8px;background:#ffffff;border-color:#cbd5e1;color:#475569}
+.shell.collapsed .side-toggle-pill:hover{background:#ffffff;color:#0f172a;border-color:#94a3b8}
 .shell.collapsed .side-toggle-lbl{display:none}
-.nav-scroll{flex:1;overflow-y:auto;padding:12px 10px;background:#ffffff}
-.nav{display:flex;flex-direction:column;gap:3px;padding:0}
-.nav-sep{height:1px;background:#e2e8f0;margin:8px 10px}
+.nav-scroll{flex:1;overflow-y:auto;padding:12px 10px;background:transparent}
+.nav{display:flex;flex-direction:column;gap:4px;padding:0}
+.nav-sep{height:1px;background:#e2e8f0;margin:8px 12px}
 .shell.collapsed .nav-sep{margin:8px 6px}
-.nav-item{display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:8px;color:#475569;text-decoration:none!important;font-size:13.5px;font-weight:550;transition:all .15s ease;position:relative;background:transparent;border:1px solid transparent;width:100%;text-align:start}
-.nav-ic{width:22px;height:22px;display:grid;place-items:center;color:#64748b;flex-shrink:0;transition:all .15s ease}
+.nav-item{display:flex;align-items:center;gap:12px;padding:9px 14px;border-radius:8px;color:#475569;text-decoration:none!important;font-size:13.5px;font-weight:550;transition:all .15s ease;position:relative;background:transparent;border:1px solid transparent;width:100%;text-align:start}
+.nav-ic{width:20px;height:20px;display:grid;place-items:center;color:#64748b;flex-shrink:0;transition:all .15s ease}
 .nav-lbl{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.nav-item:hover{background:#f1f5f9;color:#0f172a}
+.nav-item:hover{background:#e2e8f0;color:#0f172a}
 html[dir=rtl] .nav-item:hover{transform:none}
 .nav-item:hover .nav-ic{color:#0f172a}
-.nav-item.active{background:#f8fafc!important;color:#0f172a!important;font-weight:650;border-color:#e2e8f0!important;box-shadow:0 1px 2px rgba(0,0,0,.03)!important}
-.nav-item.active::before{content:'';position:absolute;inset-inline-start:0;top:6px;bottom:6px;width:3.5px;border-radius:99px;background:#d4af37}
+.nav-item.active{background:#ffffff!important;color:#0f172a!important;font-weight:650;border-color:#cbd5e1!important;box-shadow:0 1px 3px rgba(15,23,42,0.06)!important}
+.nav-item.active::before{display:none!important}
 .nav-item.active .nav-ic{color:#b45309!important}
 .shell.collapsed .nav-lbl{display:none}
 .shell.collapsed .nav-item{padding:10px 0;justify-content:center}
-.side-user-card{margin:10px 10px 14px;padding:9px 11px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.side-user-card{margin:8px 10px 12px;padding:8px 10px;background:#ffffff;border:1px solid #cbd5e1;border-radius:10px;display:flex;align-items:center;gap:10px;flex-shrink:0;box-shadow:0 1px 2px rgba(0,0,0,0.03)}
 .shell.collapsed .side-user-card{padding:8px 0;justify-content:center;margin:8px 6px 12px}
-.side-avatar{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#1e293b 0%,#0f172a 100%);border:1px solid rgba(212,175,55,.4);color:#f59e0b;display:grid;place-items:center;font-size:11.5px;font-weight:700;letter-spacing:.04em;flex-shrink:0}
+.side-avatar{width:30px;height:30px;border-radius:7px;background:#0f172a;border:1px solid rgba(212,175,55,.4);color:#f59e0b;display:grid;place-items:center;font-size:11px;font-weight:700;letter-spacing:.04em;flex-shrink:0}
 .side-user-meta{flex:1;min-width:0}
-.side-user-name{font-size:12.5px;font-weight:650;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.side-user-role{font-size:11px;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.side-logout-btn{background:none;border:none;color:#64748b;cursor:pointer;padding:6px;border-radius:6px;display:grid;place-items:center;transition:all .15s ease}
+.side-user-name{font-size:12px;font-weight:650;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.side-user-role{font-size:10.5px;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.side-logout-btn{background:none;border:none;color:#64748b;cursor:pointer;padding:5px;border-radius:6px;display:grid;place-items:center;transition:all .15s ease}
 .side-logout-btn:hover{color:#ef4444;background:#fee2e2}
 .shell.collapsed .side-user-meta, .shell.collapsed .side-logout-btn{display:none}
 .subnav{display:flex;align-items:center;flex-wrap:wrap;gap:6px;padding:9px 28px;background:#ffffff;border-bottom:1px solid #e2e8f0;position:sticky;top:58px;z-index:15;box-shadow:0 1px 2px rgba(0,0,0,.02)}
@@ -7544,7 +7544,7 @@ const P6_CLICKS = {
   'po-new'(el, pre = {}){ openModal({ title: 'New purchase order', xwide: true, submit: 'Submit for approval', body: `<input type="hidden" name="requestId" value="${pre.requestId || ''}"><input type="hidden" name="quotationId" value="${pre.quotationId || ''}">
     <div class="row"><div class="field" style="flex:2"><label>Supplier *</label><select class="input" name="supplierId">${supOpts(pre.supplierId)}</select></div><div class="field"><label>Date *</label><input class="input" type="date" name="date" value="${todayCairo()}"></div>
       <div class="field" style="max-width:110px"><label>Currency</label><select class="input" name="currency">${S.companyCurrencies.filter(c => c.active).map(c => `<option ${c.code === (pre.currency || 'EUR') ? 'selected' : ''}>${c.code}</option>`).join('')}</select></div>
-      <div class="field" style="max-width:190px"><label>Exchange rate (1 = ? EGP)</label><input class="input mono" name="rate" value="${esc(pre.rate || '')}" data-rate-for="currency" autocomplete="off"></div></div>
+      <div class="field" style="max-width:190px"><label data-rate-lbl>Exchange rate (1 = ? EGP)</label><input class="input mono" name="rate" value="${esc(pre.rate || '')}" data-rate-for="currency" autocomplete="off" placeholder="e.g. 52.50"></div></div>
     <div class="row"><div class="field"><label>Delivery terms (Incoterm)</label><input class="input" name="deliveryTerms" value="${esc(pre.terms || '')}"></div><div class="field"><label>Payment terms</label><input class="input" name="paymentTerms"></div><div class="field"><label>Expected delivery</label><input class="input" type="date" name="expectedDelivery"></div></div>
     <div class="field"><label>Shipping details</label><input class="input" name="shipping"></div>
     <div class="tbl-wrap" style="border:1px solid var(--border);border-radius:8px"><table><thead><tr><th>Vehicle description</th><th class="num">Price</th><th>Registered vehicle</th><th></th></tr></thead><tbody id="pl-lines">${(pre.lines || [{}]).map(poLineRow).join('')}</tbody></table></div>
@@ -8344,11 +8344,12 @@ const DOC_KINDS = {
     block: d => ['submitted','approved','rejected'].includes(d.status) ? '' : `${d.number} is ${d.status} and can no longer be edited.`,
     carry: (o, n) => { n.quotations = o.quotations || []; } },
   po: { label: 'purchase order', coll: () => S.purchaseOrders, fn: 'createPO', mod: () => 'purchases', call: f => A.createPO(f), noEntry: true,
-    open: d => CLICK['po-new']({ dataset: {} }, { requestId: d.requestId, quotationId: d.quotationId, supplierId: d.supplierId }),
+    open: d => CLICK['po-new']({ dataset: {} }, { requestId: d.requestId, quotationId: d.quotationId, supplierId: d.supplierId, currency: d.currency, rate: d.rate }),
     toForm: d => ({ ...pickStr(d, ['supplierId','date','currency','rateType','rate','deliveryTerms','paymentTerms','expectedDelivery','shipping','requestId','quotationId']),
       pl_desc: d.lines.map(l => l.description), pl_price: d.lines.map(l => l.price), pl_vehicle: d.lines.map(l => l.vehicleId || '') }),
     block: d => !['submitted','approved'].includes(d.status) ? `${d.number} is ${d.status}.` : d.lines.some(lineInvoiceActive) ? `${d.number} is already invoiced. Correct the supplier invoice instead.` : '',
     prep: d => { const r = d.requestId && S.purchaseRequests.find(x => x.id === d.requestId); if (r){ r.status = 'approved'; for (const q of r.quotations || []) q.selected = false; } },
+    carry: (o, n) => { n.importOrder = o.importOrder; n.customerId = o.customerId; n.kind = o.kind; n.commission = o.commission; },
     after: (o, n) => { const keep = new Set(n.lines.map(l => l.vehicleId).filter(Boolean));
       for (const l of o.lines){ const v = l.vehicleId && !keep.has(l.vehicleId) && vehById(l.vehicleId); if (!v || v.status !== 'ordered' || S.purchaseOrders.some(p => p.status !== 'cancelled' && p.lines.some(x => x.vehicleId === v.id))) continue;
         const m = [...S.vehicleMoves].reverse().find(x => x.vehicleId === v.id && x.to === 'ordered'); const back = m ? m.from : 'requested'; v.status = back; recordMove(v, 'status', 'ordered', back, `Removed from purchase order ${n.number}`, todayCairo(), n.number); } } },
@@ -9798,6 +9799,10 @@ function poView(po){
   const total = po.lines.reduce((t, l) => t.plus(l.price), D0());
   const f = (l, v0) => `<div class="o-f"><div class="l">${l}</div><div class="v">${v0 || '<span class="muted">—</span>'}</div></div>`;
   const dep = poAdvances(po, 'ar').filter(x => ACTIVE_ST.includes(entryStatus(x))), adv = poAdvances(po, 'ap').filter(x => ACTIVE_ST.includes(entryStatus(x)));
+  const custReductions = c.sale ? reductionsFor(c.sale.id) : [];
+  const suppReductions = c.supInv ? reductionsFor(c.supInv.id) : [];
+  const allCustPays = dep.concat(custReductions.map(r => r.src).filter(s => !dep.some(d => d.id === s.id)));
+  const allSuppPays = adv.concat(suppReductions.map(r => r.src).filter(s => !adv.some(a => a.id === s.id)));
   const stat = (attrs, big, small) => `<button type="button" class="o-stat" ${attrs}><b>${big}</b><small>${small}</small></button>`;
   const stats = [
     v ? `<a class="o-stat" href="#/veh/view?id=${v.id}"><b>${esc(v.vin)}</b><small>${esc(vStatus(v.status).name)}</small></a>` : '',
@@ -9818,10 +9823,10 @@ function poView(po){
       <td class="num"><b>${money(x.amount)} ${x.currency}</b><div class="muted" style="font-size:12px">${x.paidCurrency ? `paid ${money(x.paidAmount)} ${x.paidCurrency}` : ''}${x.currency === 'EGP' ? '' : `${x.paidCurrency ? ' · ' : ''}at ${fmtNum(x.rate, 4)}`}</div></td><td class="num">${money(r2(D(x.amount).mul(x.rate || '1')))}</td><td class="num">${av ? (av.gt(0) ? `<span class="pill gold">${money(av)} ${x.currency} open</span>` : '<span class="pill mute">Applied</span>') : badge(entryStatus(x))}</td>
       <td style="white-space:nowrap;text-align:end">${closed ? '' : `${av && av.gt(0) && S.invoices.some(i => i.side === x.side && i.partnerId === x.partnerId && invIsLive(i) && invState(i).open.gt(0)) && can(SIDES[x.side].mod, 'create') ? `<button type="button" class="btn sm" data-act="adv-alloc" data-side="${x.side}" data-id="${x.id}">Apply</button>` : ''}${docButtons(setRef(x).kind, x)}`}</td></tr>`;
   };
-  const depRows = dep.sort((a, b) => a.date < b.date ? -1 : 1).map(renderPayRow).join('');
-  const advRows = adv.sort((a, b) => a.date < b.date ? -1 : 1).map(renderPayRow).join('');
-  const depTotal = dep.reduce((t, x) => t.plus(x.amount), D0());
-  const advTotal = adv.reduce((t, x) => t.plus(x.amount), D0());
+  const depRows = allCustPays.sort((a, b) => a.date < b.date ? -1 : 1).map(renderPayRow).join('');
+  const advRows = allSuppPays.sort((a, b) => a.date < b.date ? -1 : 1).map(renderPayRow).join('');
+  const depTotal = allCustPays.reduce((t, x) => t.plus(x.amount), D0());
+  const advTotal = allSuppPays.reduce((t, x) => t.plus(x.amount), D0());
   openModal({ screen: { key: 'po:' + po.id, reopen: () => { const x = poById(po.id); if (x) poView(x); } }, title: `Purchase order ${po.number}`, xwide: true, body: `
     <div class="rec">
       <div class="rec-top">
@@ -9858,6 +9863,7 @@ function poView(po){
                   <div class="rdc-row"><span>Invoice Date</span><span>${c.sale.date}</span></div>
                   <div class="rdc-row"><span>Total Amount</span><b class="mono">${money(invState(c.sale).total)} ${c.sale.currency}</b></div>
                   ${invState(c.sale).open.gt(0) ? `<div class="rdc-row highlight"><span>Balance Due</span><b class="mono" style="color:var(--warn)">${money(invState(c.sale).open)} ${c.sale.currency}</b></div>` : `<div class="rdc-row highlight"><span>Status</span><b style="color:var(--ok)">Fully paid</b></div>`}
+                  ${custReductions.length ? `<div class="rdc-row highlight" style="flex-direction:column;align-items:flex-start;gap:3px;border-top:1px dashed #e2e8f0;padding-top:6px"><span style="font-size:11.5px;color:var(--ok);font-weight:600">Payments:</span>${custReductions.map(r => `<div style="display:flex;justify-content:space-between;width:100%;font-size:12px"><span><a href="#" data-act="je-view" data-id="${r.src.entryId}">${esc(r.src.number)}</a> (${r.src.date})</span><b>${money(r.applied)} ${c.sale.currency}</b></div>`).join('')}</div>` : ''}
                   <div class="rdc-actions">
                     <button type="button" class="btn sm primary" data-act="inv-view" data-id="${c.sale.id}">${ic('invoices', 14)} View invoice</button>
                     <button type="button" class="btn sm" data-act="inv-print" data-id="${c.sale.id}">${ic('printer', 14)} Print</button>
@@ -9887,6 +9893,7 @@ function poView(po){
                   <div class="rdc-row"><span>Bill Date</span><span>${c.supInv.date}</span></div>
                   <div class="rdc-row"><span>Total Bill</span><b class="mono">${money(invState(c.supInv).total)} ${c.supInv.currency}</b></div>
                   ${invState(c.supInv).open.gt(0) ? `<div class="rdc-row highlight"><span>Balance Due</span><b class="mono" style="color:var(--bad)">${money(invState(c.supInv).open)} ${c.supInv.currency}</b></div>` : `<div class="rdc-row highlight"><span>Status</span><b style="color:var(--ok)">Fully paid</b></div>`}
+                  ${suppReductions.length ? `<div class="rdc-row highlight" style="flex-direction:column;align-items:flex-start;gap:3px;border-top:1px dashed #e2e8f0;padding-top:6px"><span style="font-size:11.5px;color:var(--info);font-weight:600">Payments:</span>${suppReductions.map(r => `<div style="display:flex;justify-content:space-between;width:100%;font-size:12px"><span><a href="#" data-act="je-view" data-id="${r.src.entryId}">${esc(r.src.number)}</a> (${r.src.date})</span><b>${money(r.applied)} ${c.supInv.currency}</b></div>`).join('')}</div>` : ''}
                   <div class="rdc-actions">
                     <button type="button" class="btn sm primary" data-act="inv-view" data-id="${c.supInv.id}">${ic('bill', 14)} View bill</button>
                     <button type="button" class="btn sm" data-act="inv-print" data-id="${c.supInv.id}">${ic('printer', 14)} Print</button>
@@ -9903,7 +9910,7 @@ function poView(po){
           </div>
         </section>
         ${v ? carExpensesTable(v.id) : ''}
-        ${(dep.length || (cust && can('ar', 'create') && !shut && !c.sold)) ? `
+        ${(allCustPays.length || (cust && can('ar', 'create') && !shut && !c.sold)) ? `
         <section class="rc" id="po-cust-pay">
           <header style="display:flex;justify-content:space-between;align-items:center">
             <div style="display:flex;align-items:center;gap:8px">
@@ -9924,7 +9931,7 @@ function poView(po){
           ` : '<div class="muted" style="padding:14px 16px;font-size:13px">No customer deposits recorded yet.</div>'}
         </section>` : ''}
 
-        ${(adv.length || (sup && can('ap', 'create') && !shut && !c.invoiced)) ? `
+        ${(allSuppPays.length || (sup && can('ap', 'create') && !shut && !c.invoiced)) ? `
         <section class="rc" id="po-supp-pay" style="margin-top:16px">
           <header style="display:flex;justify-content:space-between;align-items:center">
             <div style="display:flex;align-items:center;gap:8px">
@@ -9947,10 +9954,10 @@ function poView(po){
       </div><aside class="rec-aside">
         <section class="rc"><header><h3>Customer</h3></header>${cust ? `<a href="#/partners/statement?side=ar&id=${cust.id}" class="rc-big">${esc(cust.legalName)}</a>${cust.phone ? `<div class="muted">${esc(cust.phone)}</div>` : ''}` : `<div class="muted">${po.kind === 'local' ? 'Not sold yet — choose the buyer when you sell' : 'Stock car — choose the buyer when you sell'}</div>`}
           ${c.sale ? `<div class="rc-doc"><button type="button" class="lnk0" data-act="inv-view" data-id="${c.sale.id}">${esc(c.sale.number)}</button>${invPill(c.sale)}${invState(c.sale).open.gt(0) ? `<div class="muted">${money(invState(c.sale).open)} ${c.sale.currency} due</div>` : ''}</div>` : ''}
-          ${dep.length ? `<div class="rc-doc"><span>${dep.length} deposit${dep.length > 1 ? 's' : ''}</span><span class="muted">${dep.map(x => money(x.amount) + ' ' + x.currency).join(' + ')}</span></div>` : ''}</section>
+          ${allCustPays.length ? `<div class="rc-doc"><span style="color:var(--ok);font-weight:600">${allCustPays.length} payment${allCustPays.length > 1 ? 's' : ''} received</span><span class="muted">${allCustPays.map(x => money(x.amount) + ' ' + x.currency).join(' + ')}</span></div>` : ''}</section>
         <section class="rc"><header><h3>${po.kind === 'local' ? 'Bought from' : 'Supplier'}</h3></header>${sup ? `<a href="#/partners/statement?side=ap&id=${sup.id}" class="rc-big">${esc(sup.legalName)}</a>` : ''}
           ${c.supInv ? `<div class="rc-doc"><button type="button" class="lnk0" data-act="inv-view" data-id="${c.supInv.id}">${esc(c.supInv.number)}</button>${invPill(c.supInv)}${invState(c.supInv).open.gt(0) ? `<div class="muted">${money(invState(c.supInv).open)} ${c.supInv.currency} due</div>` : ''}</div>` : '<div class="muted" style="margin-top:6px">No supplier invoice yet</div>'}
-          ${adv.length ? `<div class="rc-doc"><span>${adv.length} advance${adv.length > 1 ? 's' : ''}</span><span class="muted">${adv.map(x => money(x.amount) + ' ' + x.currency).join(' + ')}</span></div>` : ''}</section>
+          ${allSuppPays.length ? `<div class="rc-doc"><span style="color:var(--info);font-weight:600">${allSuppPays.length} payment${allSuppPays.length > 1 ? 's' : ''} made</span><span class="muted">${allSuppPays.map(x => money(x.amount) + ' ' + x.currency).join(' + ')}</span></div>` : ''}</section>
         <section class="rc"><header><h3>Details</h3></header><dl class="rc-kv">
           <div><dt>Order date</dt><dd>${po.date}</dd></div>
           ${v ? `<div><dt>Chassis</dt><dd><a href="#/veh/view?id=${v.id}">${esc(v.vin)}</a></dd></div><div><dt>Car status</dt><dd>${esc(vStatus(v.status).name)}</dd></div>` : ''}
