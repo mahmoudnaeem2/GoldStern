@@ -973,7 +973,7 @@ const EN = {
   dashboard:'Dashboard', cars:'Cars', month_close:'Month-end Close', vehicles:'Vehicles', inventory:'Inventory', purchases:'Purchases', imports:'Imports & Shipments',
   sales:'Sales', customers:'Customers', suppliers:'Suppliers', accounting:'Accounting', banking:'Banking', expenses:'Expenses',
   costing:'Car Costing', reports:'Reports', settings:'Settings',
-  acc_dashboard:'Dashboard', coa:'Chart of Accounts', journals:'Journal Entries', gl:'General Ledger', tb:'Trial Balance',
+  acc_dashboard:'Dashboard', coa:'Chart of Accounts', journals:'Journal Entries', gl:'General Ledger', partner_ledger:'Partner Ledger', tb:'Trial Balance',
   fs:'Financial Statements', cust_inv:'Customer Invoices', supp_bills:'Supplier Invoices', ar:'Customer Aging', ap:'Supplier Aging',
   cust_adv:'Customer Deposits', supp_adv:'Supplier Advances', bank_rec:'Bank Reconciliation', fx:'Foreign Currency',
   reval:'Exchange Rate Revaluation', tax_rep:'Tax Report', fiscal:'Fiscal Periods',
@@ -996,7 +996,7 @@ const AR = {
   dashboard:'لوحة التحكم', cars:'العربيات', month_close:'إقفال الشهر', vehicles:'السيارات', inventory:'المخزون', purchases:'المشتريات', imports:'الاستيراد والشحنات',
   sales:'المبيعات', customers:'العملاء', suppliers:'الموردون', accounting:'المحاسبة', banking:'البنوك', expenses:'المصروفات',
   costing:'تكلفة السيارات', reports:'التقارير', settings:'الإعدادات',
-  acc_dashboard:'لوحة المحاسبة', coa:'دليل الحسابات', journals:'قيود اليومية', gl:'دفتر الأستاذ العام', tb:'ميزان المراجعة',
+  acc_dashboard:'لوحة المحاسبة', coa:'دليل الحسابات', journals:'قيود اليومية', gl:'دفتر الأستاذ العام', partner_ledger:'دفتر أستاذ الشركاء', tb:'ميزان المراجعة',
   fs:'القوائم المالية', cust_inv:'فواتير العملاء', supp_bills:'فواتير الموردين', ar:'حسابات العملاء', ap:'حسابات الموردين',
   cust_adv:'دفعات العملاء المقدمة', supp_adv:'دفعات الموردين المقدمة', bank_rec:'التسوية البنكية', fx:'العملات الأجنبية',
   reval:'إعادة تقييم العملات', tax_rep:'التقارير الضريبية', fiscal:'الفترات المالية',
@@ -4805,9 +4805,9 @@ const NAV_MENUS = {
   sales: [['Orders', ['sal/orders', 'sal/quotes', 'sal/inquiries']], ['Invoicing', ['ar/invoices', 'ar/receipts', 'ar/advances', 'sal/deliveries']], ['partners/customers']],
   banking: [['bank/accounts'], ['Operations', ['bank/txns', 'bank/transfers']], ['bank/statements'], ['Currency', ['settings/rates', 'bank/reval']]],
   accounting: [['acc/dashboard'], ['Customers', ['ar/invoices', 'ar/receipts', 'ar/advances', 'partners/customers']], ['Vendors', ['ap/invoices', 'ap/receipts', 'ap/advances', 'partners/suppliers']],
-    ['Accounting', ['acc/journals', 'exp/list', 'exp/schedules', 'fa/register', 'acc/opening', 'acc/close']], ['Reporting', ['rep/statements', 'acc/gl', 'acc/tb', 'ar/aging', 'ap/aging', 'tax/report', 'ana/profit']],
+    ['Accounting', ['acc/journals', 'exp/list', 'exp/schedules', 'fa/register', 'acc/opening', 'acc/close']], ['Reporting', ['rep/statements', 'acc/gl', 'acc/tb', 'acc/partner-ledger', 'ar/aging', 'ap/aging', 'tax/report', 'ana/profit']],
     ['Configuration', ['acc/coa', 'tax/codes', 'acc/mappings', 'settings/fiscal', 'settings/rates', 'ana/accounts']]],
-  reports: [['Financial', ['rep/statements', 'rep/budgets', 'tax/report']], ['Cars', ['ana/profit', 'imp/landed', 'inv/valuation']], ['Partners', ['ar/aging', 'ap/aging']], ['rep/center']],
+  reports: [['Financial', ['rep/statements', 'rep/budgets', 'tax/report']], ['Cars', ['ana/profit', 'imp/landed', 'inv/valuation']], ['Partners', ['acc/partner-ledger', 'ar/aging', 'ap/aging']], ['rep/center']],
   settings: [['General', ['settings/company', 'settings/users', 'settings/roles', 'settings/currencies', 'settings/fiscal']], ['Cars & tax', ['veh/settings', 'tax/codes', 'tax/einvoice']],
     ['Accounting', ['acc/mappings', 'ana/accounts', 'settings/sequences']], ['System', ['acc/integrity', 'settings/audit', 'settings/tests', 'settings/data']]]
 };
@@ -4916,7 +4916,7 @@ function pageFor(r){
     'settings/fiscal':['fiscal', pageFiscal], 'settings/sequences':['sequences', pageSequences], 'settings/audit':['audit', pageAudit],
     'settings/tests':['system_tests', pageTests], 'settings/data':['settings', pageData],
     'acc/dashboard':['ledger', pageAccDash], 'acc/close':['ledger', pageMonthClose], 'acc/coa':['coa', pageCOA], 'acc/journals':['journals', pageJournals], 'acc/opening':['journals', pageOpening],
-    'acc/gl':['ledger', pageGL], 'acc/tb':['ledger', pageTB], 'acc/mappings':['mappings', pageMappings], 'acc/integrity':['integrity', pageIntegrity],
+    'acc/gl':['ledger', pageGL], 'acc/tb':['ledger', pageTB], 'acc/partner-ledger':['ledger', pagePartnerLedger], 'acc/mappings':['mappings', pageMappings], 'acc/integrity':['integrity', pageIntegrity],
     'bank/accounts':['banking', pageBanks], 'bank/book':['banking', pageBankBook], 'bank/transfers':['banking', pageTransfers], 'bank/txns':['banking', pageBankTxns],
     'bank/statements':['banking', pageStatements], 'bank/reconcile':['banking', pageReconcile], 'bank/reval':['fx_reval', pageReval], 'bank/fx':['banking', pageFxReport],
     'partners/customers':['customers', () => pagePartners('ar')], 'partners/suppliers':['suppliers', () => pagePartners('ap')], 'partners/statement':[routeParam('side') === 'ap' ? 'ap' : 'ar', pagePartnerStatement],
@@ -5976,6 +5976,220 @@ function pageAging(side){
       <tr style="font-weight:700;background:var(--surface-2)"><td>Total</td>${ag.tot.map(v => `<td class="num">${money(v)}</td>`).join('')}<td class="num">${money(ag.total)}</td></tr>
     </tbody></table></div></div>`;
 }
+
+/* ---------- Partner Ledger (Odoo-style Payables & Receivables) ---------- */
+function pagePartnerLedger(){
+  const F = UI.filters;
+  UI.plFold = UI.plFold || {};
+  const today = todayCairo();
+  const startOfYear = today.slice(0, 4) + '-01-01';
+  const fromDate = F.pl_from || startOfYear;
+  const toDate = F.pl_to || today;
+  const filterType = F.pl_type || 'all';
+  const filterStatus = F.pl_status || 'open';
+  const searchQ = (F.pl_q || '').trim().toLowerCase();
+
+  const sides = filterType === 'ar' ? ['ar'] : filterType === 'ap' ? ['ap'] : ['ar', 'ap'];
+  const partners = [];
+
+  for (const s of sides){
+    for (const p of partnersOf(s)){
+      if (searchQ && !(p.legalName + ' ' + p.code + ' ' + (p.commercialName || '')).toLowerCase().includes(searchQ)) continue;
+      
+      const ev = [];
+      for (const i of S.invoices.filter(x => x.side === s && x.partnerId === p.id && entryStatus(x) === 'posted')){
+        const isC = i.type === 'credit';
+        const debit = (s === 'ar' && !isC) || (s === 'ap' && isC) ? D(i.total) : D0();
+        const credit = (s === 'ar' && isC) || (s === 'ap' && !isC) ? D(i.total) : D0();
+        const netEgp = r2(D(i.total).mul(i.rate || '1'));
+        ev.push({
+          date: i.date,
+          ref: i.number,
+          invId: i.id,
+          type: isC ? 'Credit Note' : (s === 'ar' ? 'Customer Invoice' : 'Supplier Bill'),
+          desc: i.partnerRef ? `${i.partnerRef} ` : (i.reason || ''),
+          currency: i.currency,
+          rate: i.rate || '1',
+          debit: debit,
+          credit: credit,
+          debitEgp: (s === 'ar' && !isC) || (s === 'ap' && isC) ? netEgp : D0(),
+          creditEgp: (s === 'ar' && isC) || (s === 'ap' && !isC) ? netEgp : D0(),
+          status: invState(i).open.eq(0) ? 'paid' : 'open',
+          open: invState(i).open
+        });
+      }
+
+      for (const st of S.settlements.filter(x => x.side === s && x.partnerId === p.id && entryStatus(x) === 'posted')){
+        const isAdv = st.type === 'cash';
+        const netEgp = r2(D(st.amount).mul(st.rate || '1'));
+        const debit = s === 'ap' ? D(st.amount) : D0();
+        const credit = s === 'ar' ? D(st.amount) : D0();
+        ev.push({
+          date: st.date,
+          ref: st.number,
+          settlementId: st.id,
+          entryId: st.entryId,
+          type: isAdv ? (s === 'ar' ? 'Customer Deposit' : 'Supplier Advance') : (s === 'ar' ? 'Customer Receipt' : 'Supplier Payment'),
+          desc: st.reference || '',
+          currency: st.currency,
+          rate: st.rate || '1',
+          debit: debit,
+          credit: credit,
+          debitEgp: s === 'ap' ? netEgp : D0(),
+          creditEgp: s === 'ar' ? netEgp : D0(),
+          status: isAdv && advState(st).availPosted.gt(0) ? 'open' : 'applied',
+          open: isAdv ? advState(st).availPosted : D0()
+        });
+      }
+
+      let initDebEgp = D0(), initCredEgp = D0();
+      for (const item of ev.filter(x => x.date < fromDate)){
+        initDebEgp = initDebEgp.plus(item.debitEgp);
+        initCredEgp = initCredEgp.plus(item.creditEgp);
+      }
+      const initBalEgp = s === 'ar' ? initDebEgp.minus(initCredEgp) : initCredEgp.minus(initDebEgp);
+
+      const periodEv = ev.filter(x => x.date >= fromDate && x.date <= toDate).sort((a, b) => a.date < b.date ? -1 : 1);
+      let periodDebEgp = D0(), periodCredEgp = D0();
+      for (const item of periodEv){
+        periodDebEgp = periodDebEgp.plus(item.debitEgp);
+        periodCredEgp = periodCredEgp.plus(item.creditEgp);
+      }
+      const endBalEgp = s === 'ar' 
+        ? initBalEgp.plus(periodDebEgp).minus(periodCredEgp) 
+        : initBalEgp.plus(periodCredEgp).minus(periodDebEgp);
+
+      if (filterStatus === 'open' && endBalEgp.eq(0) && periodEv.length === 0) continue;
+
+      partners.push({
+        partner: p,
+        side: s,
+        sideLabel: s === 'ar' ? 'Customer' : 'Vendor',
+        initBalEgp,
+        periodDebEgp,
+        periodCredEgp,
+        endBalEgp,
+        events: periodEv
+      });
+    }
+  }
+
+  let totArEgp = D0(), totApEgp = D0();
+  for (const item of partners){
+    if (item.side === 'ar') totArEgp = totArEgp.plus(item.endBalEgp);
+    else totApEgp = totApEgp.plus(item.endBalEgp);
+  }
+  const netPositionEgp = totArEgp.minus(totApEgp);
+
+  const rowsHtml = partners.map(item => {
+    const p = item.partner;
+    const s = item.side;
+    const isFolded = UI.plFold[p.id] === undefined ? false : !!UI.plFold[p.id];
+    let running = item.initBalEgp;
+
+    const eventRows = item.events.map(ev => {
+      const net = s === 'ar' ? ev.debitEgp.minus(ev.creditEgp) : ev.creditEgp.minus(ev.debitEgp);
+      running = running.plus(net);
+      const linkHtml = ev.invId ? `<button type="button" class="lnk0 mono" data-act="inv-view" data-id="${ev.invId}">${esc(ev.ref)}</button>`
+        : ev.entryId ? `<button type="button" class="lnk0 mono" data-act="je-view" data-id="${ev.entryId}">${esc(ev.ref)}</button>`
+        : `<span class="mono">${esc(ev.ref)}</span>`;
+
+      return `<tr style="background:#fff;font-size:12.5px">
+        <td style="padding-inline-start:34px">${ev.date}</td>
+        <td>${linkHtml} <span class="pill ${s === 'ar' ? 'ok' : 'info'}" style="font-size:10.5px">${ev.type}</span></td>
+        <td class="wrap">${esc(ev.desc || '—')}</td>
+        <td class="num">${ev.debitEgp.gt(0) ? money(ev.debitEgp) : ''} ${ev.currency !== 'EGP' ? `<div class="muted" style="font-size:11px">${money(ev.debit)} ${ev.currency}</div>` : ''}</td>
+        <td class="num">${ev.creditEgp.gt(0) ? money(ev.creditEgp) : ''} ${ev.currency !== 'EGP' ? `<div class="muted" style="font-size:11px">${money(ev.credit)} ${ev.currency}</div>` : ''}</td>
+        <td class="num" style="font-weight:600">${money(running)}</td>
+        <td>${ev.status === 'open' ? `<span class="pill gold">${money(ev.open)} due</span>` : '<span class="pill mute">Settled</span>'}</td>
+      </tr>`;
+    }).join('');
+
+    return `
+      <tr class="grp" data-act="pl-fold" data-id="${p.id}" style="cursor:pointer;background:#f8fafc">
+        <td colspan="3">
+          <span class="fold">${isFolded ? '▸' : '▾'}</span>
+          <b style="font-size:14px">${esc(p.legalName)}</b>
+          <span class="muted" style="margin-inline-start:6px">(${esc(p.code)})</span>
+          <span class="pill ${s === 'ar' ? 'ok' : 'info'}" style="margin-inline-start:8px">${item.sideLabel}</span>
+          <span class="muted" style="font-size:12px;margin-inline-start:6px">${item.events.length} movement(s)</span>
+        </td>
+        <td class="num"><b style="color:var(--text)">${money(item.periodDebEgp)}</b></td>
+        <td class="num"><b style="color:var(--text)">${money(item.periodCredEgp)}</b></td>
+        <td class="num"><b style="color:${item.endBalEgp.gt(0) ? (s === 'ar' ? 'var(--ok)' : 'var(--warn)') : 'var(--muted)'};font-size:14px">${money(item.endBalEgp)}</b></td>
+        <td style="white-space:nowrap;text-align:end">
+          <a class="btn sm" href="#/partners/statement?side=${s}&id=${p.id}" onclick="event.stopPropagation()">Statement</a>
+        </td>
+      </tr>
+      ${isFolded ? '' : (eventRows || `<tr><td colspan="7" class="muted" style="padding-inline-start:34px;font-size:12.5px">No movements in this date range. Initial balance: ${money(item.initBalEgp)} EGP</td></tr>`)}
+    `;
+  }).join('');
+
+  return H('Partner Ledger', 'Consolidated ledger of receivables and payables by customer and vendor (Odoo-style).', `
+    <button type="button" class="btn" data-act="pl-unfold-all">Expand all</button>
+    <button type="button" class="btn" data-act="pl-fold-all">Collapse all</button>
+    <button type="button" class="btn" data-act="pl-csv">Export CSV</button>
+    <button type="button" class="btn" onclick="window.print()">Print</button>
+  `) + `
+    <div class="grid g4" style="margin-bottom:16px">
+      <div class="card stat" style="border-top:3px solid #16a34a">
+        <div class="k">Total Customer Receivables (AR)</div>
+        <div class="v" style="color:#16a34a">${money(totArEgp)} <small style="font-size:12px;font-weight:400;color:#64748b">EGP</small></div>
+      </div>
+      <div class="card stat" style="border-top:3px solid #f59e0b">
+        <div class="k">Total Vendor Payables (AP)</div>
+        <div class="v" style="color:#f59e0b">${money(totApEgp)} <small style="font-size:12px;font-weight:400;color:#64748b">EGP</small></div>
+      </div>
+      <div class="card stat" style="border-top:3px solid #3b82f6">
+        <div class="k">Net Balance (AR − AP)</div>
+        <div class="v" style="color:${netPositionEgp.lt(0) ? 'var(--bad)' : 'var(--ok)'}">${money(netPositionEgp)} <small style="font-size:12px;font-weight:400;color:#64748b">EGP</small></div>
+      </div>
+      <div class="card stat" style="border-top:3px solid #6366f1">
+        <div class="k">Active Partners</div>
+        <div class="v">${partners.length} <small style="font-size:12px;font-weight:400;color:#64748b">listed</small></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="filters">
+        <input class="input" data-filter="pl_q" placeholder="Search partner name or code…" value="${esc(F.pl_q || '')}" style="min-width:240px">
+        <select class="input" data-filter="pl_type">
+          <option value="all" ${filterType === 'all' ? 'selected' : ''}>All Partners (Receivables &amp; Payables)</option>
+          <option value="ar" ${filterType === 'ar' ? 'selected' : ''}>Customers Only (Receivables)</option>
+          <option value="ap" ${filterType === 'ap' ? 'selected' : ''}>Vendors Only (Payables)</option>
+        </select>
+        <select class="input" data-filter="pl_status">
+          <option value="open" ${filterStatus === 'open' ? 'selected' : ''}>With Balance / Activity Only</option>
+          <option value="all" ${filterStatus === 'all' ? 'selected' : ''}>All Partners</option>
+        </select>
+        <label class="muted" style="align-self:center;font-size:12.5px">From</label>
+        <input class="input" type="date" data-filter="pl_from" value="${fromDate}">
+        <label class="muted" style="align-self:center;font-size:12.5px">To</label>
+        <input class="input" type="date" data-filter="pl_to" value="${toDate}">
+      </div>
+
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="min-width:110px">Date</th>
+              <th style="min-width:220px">JRNL / Reference</th>
+              <th>Description</th>
+              <th class="num" style="min-width:120px">Debit (EGP)</th>
+              <th class="num" style="min-width:120px">Credit (EGP)</th>
+              <th class="num" style="min-width:120px">Balance (EGP)</th>
+              <th style="min-width:100px">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHtml || '<tr><td colspan="7" class="empty" style="padding:28px">No partner ledger records found for the selected criteria.</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
 function pagePartnerStatement(){
   const side = routeParam('side') === 'ap' ? 'ap' : 'ar', SD = SIDES[side], p = partnerById(side, routeParam('id'));
   if (!p) return H('Statement', '') + '<div class="card"><div class="empty">Not found.</div></div>';
@@ -7040,7 +7254,29 @@ Object.assign(FORM_HANDLERS, {
   mappings(f){ const m = {}; for (const [k] of MAPPING_KEYS) m[k] = f[k] || ''; run(() => A.saveMappings(m, f.reason), 'Mappings saved.'); }
 });
 Object.assign(CLICK, {
-  'coa-seed'(){ openModal({ title: 'Load Goldstern standard chart', submit: 'Load chart', body: `<p>Creates ${COA_TEMPLATE.length} accounts, ${MAPPING_KEYS.length} account mappings and ${DEFAULT_COST_CENTERS.length} cost centers. Everything stays editable. This is recorded in the audit trail.</p>`, onSubmit: () => { A.seedChart('goldstern'); toast('Chart of accounts loaded.', 'ok'); } }); },
+    'pl-fold'(el){ UI.plFold = UI.plFold || {}; UI.plFold[el.dataset.id] = !UI.plFold[el.dataset.id]; render(); },
+  'pl-unfold-all'(){ UI.plFold = {}; for (const p of [...S.customers, ...S.suppliers]) UI.plFold[p.id] = false; render(); },
+  'pl-fold-all'(){ UI.plFold = {}; for (const p of [...S.customers, ...S.suppliers]) UI.plFold[p.id] = true; render(); },
+  'pl-csv'(){
+    const rows = [];
+    for (const s of ['ar', 'ap']){
+      for (const p of partnersOf(s)){
+        for (const i of S.invoices.filter(x => x.side === s && x.partnerId === p.id && entryStatus(x) === 'posted')){
+          const isC = i.type === 'credit';
+          const d = (s === 'ar' && !isC) || (s === 'ap' && isC) ? i.total : '';
+          const c = (s === 'ar' && isC) || (s === 'ap' && !isC) ? i.total : '';
+          rows.push([p.code, p.legalName, s === 'ar' ? 'Customer' : 'Vendor', i.date, i.number, isC ? 'Credit' : 'Invoice', i.currency, d, c]);
+        }
+        for (const st of S.settlements.filter(x => x.side === s && x.partnerId === p.id && entryStatus(x) === 'posted')){
+          const d = s === 'ap' ? st.amount : '';
+          const c = s === 'ar' ? st.amount : '';
+          rows.push([p.code, p.legalName, s === 'ar' ? 'Customer' : 'Vendor', st.date, st.number, st.type === 'cash' ? 'Advance/Deposit' : 'Payment', st.currency, d, c]);
+        }
+      }
+    }
+    downloadCSV('partner-ledger.csv', ['Partner Code', 'Partner Name', 'Type', 'Date', 'Reference', 'Doc Type', 'Currency', 'Debit', 'Credit'], rows);
+  },
+'coa-seed'(){ openModal({ title: 'Load Goldstern standard chart', submit: 'Load chart', body: `<p>Creates ${COA_TEMPLATE.length} accounts, ${MAPPING_KEYS.length} account mappings and ${DEFAULT_COST_CENTERS.length} cost centers. Everything stays editable. This is recorded in the audit trail.</p>`, onSubmit: () => { A.seedChart('goldstern'); toast('Chart of accounts loaded.', 'ok'); } }); },
   'coa-seed-odoo'(){ openModal({ title: 'Apply Odoo Chart of Accounts', submit: 'Apply Odoo Chart', body: `<p>Creates ${ODOO_COA_TEMPLATE.length} accounts following the <b>Odoo 6-digit standard Chart of Accounts</b> (Assets 100000, Liabilities 200000, Equity 300000, Revenue 400000, COGS 500000, Expenses 600000), with bilingual Arabic/English naming, reconciliation flags, and sets all ${Object.keys(ODOO_MAPPING).length} accounting mappings.</p>`, onSubmit: () => { A.seedChart('odoo'); toast('Odoo Chart of Accounts applied successfully.', 'ok'); } }); },
   'coa-apply-odoo'(){ openModal({ title: 'Apply Odoo Chart of Accounts', submit: 'Confirm & Apply', body: `<p>This will configure the <b>Odoo 6-digit Standard Chart of Accounts</b> (${ODOO_COA_TEMPLATE.length} accounts) and automatically link all 31 system accounting mappings to the standard Odoo accounts.</p><p class="muted">If you already have existing transactions, your existing accounts and ledger history will be preserved, and the Odoo accounts and mappings will be applied.</p>`, onSubmit: () => { A.applyOdooChart(false); toast('Odoo Chart of Accounts applied successfully.', 'ok'); } }); },
   'acc-new'(){ openModal({ title: 'New account', wide: true, body: accountForm({ type: 'expense', normal: 'debit', allowManual: true }), onSubmit: f => A.saveAccount(null, f) }); },
