@@ -9733,9 +9733,11 @@ function printCarReport(po){
 </body>
 </html>`;
 
+  window.CURRENT_REPORT_HTML = html;
+
   try {
     const w = window.open('', '_blank');
-    if (w) {
+    if (w && !w.closed) {
       w.document.open();
       w.document.write(html);
       w.document.close();
@@ -9743,18 +9745,54 @@ function printCarReport(po){
     }
   } catch (err) {}
 
-  // Fallback: print via hidden iframe if pop-ups blocked
-  const frame = document.createElement('iframe');
-  frame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;';
-  document.body.appendChild(frame);
-  frame.contentWindow.document.open();
-  frame.contentWindow.document.write(html);
-  frame.contentWindow.document.close();
-  frame.contentWindow.focus();
-  setTimeout(() => {
-    frame.contentWindow.print();
-    setTimeout(() => frame.remove(), 3000);
-  }, 400);
+  // If pop-up is blocked or fails, open instant Report Preview Modal right on screen
+  openModal({
+    screen: { key: 'report:' + po.id, reopen: () => printCarReport(po) },
+    title: `Car Report (PDF Preview) — ${v ? v.vin : po.number}`,
+    xwide: true,
+    submit: '',
+    footer: `<div style="display:flex;justify-content:space-between;align-items:center;width:100%">
+      <span class="muted" style="font-size:12.5px">💡 Tip: In print dialog, choose "Save as PDF" to save.</span>
+      <div style="display:flex;gap:8px">
+        <button type="button" class="btn primary" onclick="printReportDirect()">🖨️ Print / Save as PDF</button>
+        <button type="button" class="btn" onclick="openReportNewWindow()">↗️ Open in new tab</button>
+        <button type="button" class="btn" onclick="closeModal()">Close</button>
+      </div>
+    </div>`,
+    body: `<div class="car-report-preview" style="background:#f8fafc;padding:16px;border-radius:10px;border:1px solid #e2e8f0;max-height:75vh;overflow-y:auto">
+      <div style="background:#ffffff;padding:28px 32px;border:1px solid #cbd5e1;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.06);max-width:900px;margin:0 auto">
+        ${html.replace(/<\!doctype html>[\s\S]*?<body[^>]*>/i, '').replace(/<div class="no-print"[\s\S]*?<\/div>\s*<\/div>/i, '').replace(/<\/body>[\s\S]*?<\/html>/i, '')}
+      </div>
+    </div>`
+  });
+  toast('Report preview opened! Click Print / Save as PDF.', 'ok');
+}
+
+
+function printReportDirect(){
+  if (!window.CURRENT_REPORT_HTML) return;
+  const w = window.open('', '_blank');
+  if (w){
+    w.document.open();
+    w.document.write(window.CURRENT_REPORT_HTML);
+    w.document.close();
+  } else {
+    // If pop-ups strictly blocked, use blob URL
+    try {
+      const blob = new Blob([window.CURRENT_REPORT_HTML], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.target = '_blank';
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch (e){
+      window.print();
+    }
+  }
+}
+function openReportNewWindow(){
+  printReportDirect();
 }
 
 function printPO(po){
