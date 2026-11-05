@@ -6227,7 +6227,7 @@ function denied(module){
 }
 function pageFor(r){
   if (r.startsWith('m/')) return pagePlanned(r.slice(2));
-  const map = { 'dashboard':['dashboard', pageExecutive], 'setup-status':['dashboard', pageDashboard], 'settings/company':['company', pageCompany], 'settings/users':['users', pageUsers],
+  const map = { 'dashboard':['dashboard', pageAccDash], 'setup-status':['dashboard', pageDashboard], 'settings/company':['company', pageCompany], 'settings/users':['users', pageUsers],
     'settings/roles':['roles', pageRoles], 'settings/currencies':['currencies', pageCurrencies], 'settings/rates':['exchange_rates', pageRates],
     'settings/fiscal':['fiscal', pageFiscal], 'settings/sequences':['sequences', pageSequences], 'settings/audit':['audit', pageAudit],
     'settings/tests':['system_tests', pageTests], 'settings/data':['settings', pageData],
