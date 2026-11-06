@@ -287,6 +287,39 @@ tr.row-link{cursor:pointer}tr.row-link:hover td{background:#f8f6ef}
 .pill.ok{background:var(--ok-soft);color:var(--ok)}.pill.info{background:var(--info-soft);color:var(--info)}.pill.gold{background:var(--gold-soft);color:var(--gold)}.pill.mute{background:var(--surface-2);color:var(--muted);border:1px solid var(--border)}
 .o-f .v .sub{color:var(--muted);font-size:12px;margin-inline-start:6px}
 .o-f .v .lnk{font-size:12px;margin-inline-start:8px;padding:1px 8px;border:1px solid var(--border);border-radius:999px;text-decoration:none}
+
+.o-tabs .tab-btn {
+  padding: 9px 18px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #64748b;
+  border: 1px solid transparent;
+  border-bottom: 0;
+  border-radius: 8px 8px 0 0;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  margin-bottom: -1px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.o-tabs .tab-btn:hover {
+  color: #0f172a;
+  background: #f1f5f9;
+}
+.o-tabs .tab-btn.active {
+  color: #005bd3;
+  background: #ffffff;
+  border-color: #cbd5e1;
+  border-bottom: 2px solid #005bd3;
+}
+.po-tab-pane {
+  display: none;
+}
+.po-tab-pane.active {
+  display: block;
+}
 .o-tabs{margin-top:18px;border-bottom:1px solid var(--border);display:flex;gap:2px}
 .o-tabs span{padding:7px 14px;font-size:13px;border:1px solid var(--border);border-bottom:0;border-radius:6px 6px 0 0;background:var(--surface);margin-bottom:-1px}
 .o-list tbody tr:hover td{background:var(--surface-2)}
@@ -10265,6 +10298,29 @@ Object.assign(FORM_HANDLERS, {
   tb(f){ UI.tb = { ...f }; render(); },
   mappings(f){ const m = {}; for (const [k] of MAPPING_KEYS) m[k] = f[k] || ''; run(() => A.saveMappings(m, f.reason), 'Mappings saved.'); }
 });
+
+document.addEventListener('click', e => {
+  const btn = e.target.closest('[data-po-tab]');
+  if (btn) {
+    const parent = btn.closest('.sheet');
+    if (parent) {
+      parent.querySelectorAll('[data-po-tab]').forEach(b => b.classList.remove('active'));
+      parent.querySelectorAll('.po-tab-pane').forEach(p => { p.classList.remove('active'); p.style.display = 'none'; });
+      btn.classList.add('active');
+      const pane = parent.querySelector('.po-tab-pane[data-pane="' + btn.dataset.poTab + '"]');
+      if (pane) { pane.classList.add('active'); pane.style.display = 'block'; }
+    }
+  }
+  const statTab = e.target.closest('[data-goto-tab]');
+  if (statTab) {
+    const parent = statTab.closest('.sheet');
+    if (parent) {
+      const targetBtn = parent.querySelector('[data-po-tab="' + statTab.dataset.gotoTab + '"]');
+      if (targetBtn) targetBtn.click();
+    }
+  }
+});
+
 Object.assign(CLICK, {
     'pl-fold'(el){ UI.plFold = UI.plFold || {}; UI.plFold[el.dataset.id] = !UI.plFold[el.dataset.id]; render(); },
   'pl-unfold-all'(){ UI.plFold = {}; for (const p of [...S.customers, ...S.suppliers]) UI.plFold[p.id] = false; render(); },
@@ -11911,18 +11967,22 @@ function poView(po){
   let cur = steps.findIndex(x => !x[1]); cur = shut || cur < 0 ? steps.length - 1 : cur - 1;
   const total = po.lines.reduce((t, l) => t.plus(l.price), D0());
   const carJEs = v ? carEntries(v) : [];
-  const dep = poAdvances(po, 'ar').filter(x => ACTIVE_ST.includes(entryStatus(x))), adv = poAdvances(po, 'ap').filter(x => ACTIVE_ST.includes(entryStatus(x)));
+
+  const ownDep = poAdvances(po, 'ar').filter(x => ACTIVE_ST.includes(entryStatus(x)));
+  const custUnappliedAdvs = (cust ? S.settlements.filter(s => s.side === 'ar' && s.type === 'cash' && s.partnerId === cust.id && (!s.poId || s.poId === po.id) && (!s.vehicleId || (v && s.vehicleId === v.id)) && ACTIVE_ST.includes(entryStatus(s)) && !ownDep.some(d => d.id === s.id)) : []);
+  const dep = [...ownDep, ...custUnappliedAdvs];
+  const adv = poAdvances(po, 'ap').filter(x => ACTIVE_ST.includes(entryStatus(x)));
+
   const custReductions = c.sale ? reductionsFor(c.sale.id) : [];
   const suppReductions = c.supInv ? reductionsFor(c.supInv.id) : [];
-  const allCustPays = dep.concat(custReductions.map(r => r.src).filter(s => !dep.some(d => d.id === s.id || d.id === s.sourceId)));
-  const allSuppPays = adv.concat(suppReductions.map(r => r.src).filter(s => !adv.some(a => a.id === s.id || a.id === s.sourceId)));
+
   const stat = (attrs, big, small) => `<button type="button" class="o-stat" ${attrs}><b>${big}</b><small>${small}</small></button>`;
 
-  const acts = !shut && closed ? [v && can('vehicles', 'edit') ? `<button type="button" class="btn primary" data-act="car-close" data-id="${v.id}" data-po="${po.id}">Close car</button>` : ''] : shut ? [(nextStepButtons(po, false).match(/<button[^>]*data-act="io-pay"[\s\S]*?<\/button>/g) || []).join(''), can('vehicles', 'edit') ? `<button type="button" class="btn" data-act="car-reopen" data-id="${v.id}" data-po="${po.id}">Reopen</button>` : ''] : [nextStepButtons(po, false).replace(/btn gold/g, 'btn primary'),
-    po.customerId && can('ar', 'create') && po.status !== 'cancelled' && !c.sold ? `<button type="button" class="btn" data-act="po-adv" data-side="ar" data-id="${po.id}">${ic('plus', 14)} Customer deposit</button>` : '',
-    po.status === 'approved' && can('ap', 'create') && !c.invoiced ? `<button type="button" class="btn" data-act="po-adv" data-side="ap" data-id="${po.id}">${ic('plus', 14)} Supplier advance</button>` : '',
-    v && c.sold && !shut && can('vehicles', 'edit') ? `<button type="button" class="btn" data-act="car-close" data-id="${v.id}" data-po="${po.id}">Close car</button>` : '',
-    docButtons('po', po, false)].join('');
+  const acts = !shut && closed ? [v && can('vehicles', 'edit') ? `<button type="button" class="btn primary sm" data-act="car-close" data-id="${v.id}" data-po="${po.id}">Close car</button>` : ''] : shut ? [(nextStepButtons(po, false).match(/<button[^>]*data-act="io-pay"[\s\S]*?<\/button>/g) || []).map(b => b.replace('class="btn', 'class="btn sm')).join(''), can('vehicles', 'edit') ? `<button type="button" class="btn sm" data-act="car-reopen" data-id="${v.id}" data-po="${po.id}">Reopen</button>` : ''] : [nextStepButtons(po, false).replace(/btn gold/g, 'btn primary sm').replace(/class="btn"/g, 'class="btn sm"'),
+    po.customerId && can('ar', 'create') && po.status !== 'cancelled' && !c.sold ? `<button type="button" class="btn sm" data-act="po-adv" data-side="ar" data-id="${po.id}">${ic('plus', 13)} Customer deposit</button>` : '',
+    po.status === 'approved' && can('ap', 'create') && !c.invoiced ? `<button type="button" class="btn sm" data-act="po-adv" data-side="ap" data-id="${po.id}">${ic('plus', 13)} Supplier advance</button>` : '',
+    v && c.sold && !shut && can('vehicles', 'edit') ? `<button type="button" class="btn sm" data-act="car-close" data-id="${v.id}" data-po="${po.id}">Close car</button>` : '',
+    docButtons('po', po, false).replace(/class="btn"/g, 'class="btn sm"')].join('');
 
   const renderPayRow = x => {
     const e = entryById(x.entryId), av = entryStatus(x) === 'posted' ? advState(x).avail : null;
@@ -11957,254 +12017,244 @@ function poView(po){
 
   const stats = [
     v ? `<a class="o-stat" href="#/veh/view?id=${v.id}"><b>${esc(v.vin)}</b><small>${esc(vStatus(v.status).name)}</small></a>` : '',
-    c.supInv ? stat(`data-act="inv-view" data-id="${c.supInv.id}"`, 'Supplier Bill', invPill(c.supInv)) : (can('ap', 'create') && po.status === 'approved' && !c.invoiced ? stat(`data-act="po-inv" data-id="${po.id}"`, 'Supplier Bill', '<span class="pill mute">+ Bill</span>') : ''),
-    c.sale ? stat(`data-act="inv-view" data-id="${c.sale.id}"`, 'Customer Invoice', invPill(c.sale)) : (can('ar', 'create') && (c.received || c.invoiced) ? stat(`data-act="io-sell" data-id="${po.id}"`, 'Customer Invoice', '<span class="pill mute">+ Sell</span>') : ''),
-    depAll.length ? stat(`onclick="const el=document.getElementById('po-cust-pay');if(el)el.scrollIntoView({behavior:'smooth'})"`, `${depAll.length} Deposit${depAll.length > 1 ? 's' : ''}`, `${money(depAll.reduce((t, x) => t.plus(x.egp || (x.currency === 'EGP' ? D(x.amount) : r2(D(x.amount).mul(x.rate || 1)))), D0()))} EGP`) : (po.customerId && can('ar', 'create') ? stat(`data-act="po-adv" data-side="ar" data-id="${po.id}"`, 'Customer Deposits', '<span class="pill mute">+ Deposit</span>') : ''),
-    stat(`onclick="const el=document.getElementById('po-je');if(el)el.scrollIntoView({behavior:'smooth'})"`, `${carJEs.length} Entries`, 'Journal entries')
+    c.supInv ? stat(`data-goto-tab="invoices"`, 'Supplier Bill', invPill(c.supInv)) : (can('ap', 'create') && po.status === 'approved' && !c.invoiced ? stat(`data-act="po-inv" data-id="${po.id}"`, 'Supplier Bill', '<span class="pill mute">+ Bill</span>') : ''),
+    c.sale ? stat(`data-goto-tab="invoices"`, 'Customer Invoice', invPill(c.sale)) : (can('ar', 'create') && (c.received || c.invoiced) ? stat(`data-act="io-sell" data-id="${po.id}"`, 'Customer Invoice', '<span class="pill mute">+ Sell</span>') : ''),
+    depAll.length ? stat(`data-goto-tab="deposits"`, `${depAll.length} Deposit${depAll.length > 1 ? 's' : ''}`, `${money(depAll.reduce((t, x) => t.plus(x.egp || (x.currency === 'EGP' ? D(x.amount) : r2(D(x.amount).mul(x.rate || 1)))), D0()))} EGP`) : (po.customerId && can('ar', 'create') ? stat(`data-act="po-adv" data-side="ar" data-id="${po.id}"`, '0 Deposits', '<span class="pill mute">+ Add</span>') : ''),
+    stat(`data-goto-tab="je"`, `${carJEs.length} Entries`, 'Journal entries')
   ].filter(Boolean).join('');
 
   openModal({ screen: { key: 'po:' + po.id, reopen: () => { const x = poById(po.id); if (x) poView(x); } }, title: `Purchase order ${po.number}`, xwide: true, body: `
-    <div class="rec">
-      <div class="po-exec-head">
-        <div class="po-exec-title">
-          <div class="po-exec-avatar">${ic('cars', 26)}</div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <!-- 1. Odoo Top Bar: Actions on Left, Statusbar on Right -->
+      <div class="doc-top" style="margin:0;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+        <div class="doc-actions" style="display:flex;flex-wrap:wrap;gap:8px">
+          ${acts}
+          <button type="button" class="btn sm" data-act="car-report-pdf" data-id="${po.id}" style="display:inline-flex;align-items:center;gap:5px">${ic('printer', 14)} Car report (PDF)</button>
+          <button type="button" class="btn sm" data-act="po-print" data-id="${po.id}" style="display:inline-flex;align-items:center;gap:5px">${ic('printer', 14)} Print PO</button>
+        </div>
+        <div class="statusbar">
+          ${steps.map(([t0, ok], i) => `<span class="${i < cur || (i === cur && i === steps.length - 1 && ok) ? 'done' : i === cur ? 'cur' : ''}">${i < cur || (i === cur && ok && i === steps.length - 1) ? '✓ ' : ''}${t0}</span>`).join('')}
+        </div>
+      </div>
+
+      <!-- 2. Odoo Form Sheet -->
+      <div class="sheet" style="margin:0;padding:24px 28px;background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.05)">
+        <div class="sheet-head" style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;border-bottom:1px solid #f1f5f9;padding-bottom:18px">
           <div>
-            <div class="rec-kind">${po.importOrder ? (ORDER_KINDS[poKind(po)] || ORDER_KINDS.customer)[0] : 'Purchase Order'}</div>
-            <h2 style="margin:2px 0;font-size:24px;font-weight:750;letter-spacing:-0.02em;color:#0f172a">${esc(po.number)}</h2>
-            <div class="rec-meta" style="margin-top:4px">
-              ${shut ? '<span class="pill mute">Closed</span>' : closed ? '<span class="pill ok">Done</span>' : `<span class="pill ${c.sold ? 'ok' : c.received ? 'info' : 'mute'}">${esc(steps[cur][0])}</span>`}
-              <span>${po.date}</span>
-              ${cust ? `<a href="#/partners/statement?side=ar&id=${cust.id}" style="color:#0284c7;font-weight:600">${esc(cust.legalName)}</a>` : ''}
-              ${v ? `<span>${esc(carName(v))} · Chassis ${esc(v.vin)}</span>` : ''}
+            <div class="eyebrow" style="font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em">${po.importOrder ? (ORDER_KINDS[poKind(po)] || ORDER_KINDS.customer)[0] : 'Purchase order'}</div>
+            <h2 style="margin:4px 0 6px;font-size:26px;font-weight:800;color:#0f172a;letter-spacing:-0.02em">${esc(po.number)}</h2>
+            <div style="font-size:13.5px;color:#475569">
+              ${v ? `<b style="color:#0f172a">${esc(carName(v))}</b> · Chassis: <a href="#/veh/view?id=${v.id}" class="mono" style="color:#0284c7;font-weight:600">${esc(v.vin)}</a>` : ''}
+              <span class="muted" style="margin-inline-start:8px">· Order Date: ${po.date}</span>
             </div>
           </div>
-        </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:10px">
-          ${stats ? `<div class="o-stats">${stats}</div>` : ''}
-          <div class="rec-actions">
-            <button type="button" class="btn" data-act="car-report-pdf" data-id="${po.id}" style="display:inline-flex;align-items:center;gap:6px">${ic('printer', 14)} Car report (PDF)</button>
-            <button type="button" class="btn" data-act="po-print" data-id="${po.id}" style="display:inline-flex;align-items:center;gap:6px">${ic('printer', 14)} Print PO</button>
-            ${[].concat(acts).join('')}
-          </div>
-        </div>
-      </div>
-
-      <ol class="rec-path" style="margin:16px 0">${steps.map(([t0, ok], i) => `<li class="${i < cur || (i === cur && i === steps.length - 1 && ok) ? 'done' : i === cur ? 'cur' : ''}"><span class="dot">${i < cur || (i === cur && ok && i === steps.length - 1) ? ic('check', 12) : ''}</span>${t0}</li>`).join('')}</ol>
-
-      <div class="po-kpi-ribbon">
-        <div class="po-kpi-box price">
-          <div class="po-kpi-lbl">${ic('cars', 13)} Car Purchase Price</div>
-          <div class="po-kpi-val">${money(total)} <small style="font-size:13px;font-weight:600;color:#64748b">${po.currency}</small></div>
-          <div class="po-kpi-sub">${po.currency !== 'EGP' ? (po.rate ? `≈ ${money(sm.priceEgp || total.mul(po.rate))} EGP (@ ${fmtNum(po.rate, 4)})` : '<span style="color:var(--bad)">Rate not set</span>') : 'Base currency'}</div>
-        </div>
-        <div class="po-kpi-box expenses">
-          <div class="po-kpi-lbl">${ic('purchases', 13)} Landed Expenses</div>
-          <div class="po-kpi-val">${money(cxTot)} <small style="font-size:13px;font-weight:600;color:#64748b">EGP</small></div>
-          <div class="po-kpi-sub">${v ? `<a href="#" onclick="const el=document.getElementById('car-exp');if(el)el.scrollIntoView({behavior:'smooth'});return false" style="color:#d97706;font-weight:600">${carExpensesOf(v.id).length} expense item(s)</a>` : 'Customs, freight & prep'}</div>
-        </div>
-        <div class="po-kpi-box deposit">
-          <div class="po-kpi-lbl">${ic('invoices', 13)} Customer Deposits</div>
-          <div class="po-kpi-val" style="color:#16a34a">${depAll.length ? payTot(depAll) : '0.00 EGP'}</div>
-          <div class="po-kpi-sub">${depAll.length ? `<span style="color:#15803d;font-weight:600">${depAll.length} deposit(s) recorded</span>` : (po.customerId ? `<a href="#" data-act="po-adv" data-side="ar" data-id="${po.id}" style="color:#16a34a;font-weight:600">+ Add customer deposit</a>` : 'No customer')}</div>
-        </div>
-        <div class="po-kpi-box profit">
-          <div class="po-kpi-lbl">${c.sold ? ic('check', 13) + ' Gross Margin / Profit' : ic('chart', 13) + ' Total Landed Cost'}</div>
-          ${c.sold ? `
-            <div class="po-kpi-val" style="color:${sm.profit.lt(0) ? 'var(--bad)' : '#16a34a'}">${money(sm.profit)} <small style="font-size:13px;font-weight:600">EGP</small></div>
-            <div class="po-kpi-sub">Sold for ${money(sm.revenue)} EGP</div>
-          ` : `
-            <div class="po-kpi-val">${money(c.invoiced ? sm.cost : (sm.priceEgp || D0()).plus(cxTot))} <small style="font-size:13px;font-weight:600;color:#64748b">EGP</small></div>
-            <div class="po-kpi-sub">Purchase + Landed costs</div>
-          `}
-        </div>
-      </div>
-
-      <div class="po-two-col">
-        <div class="po-card">
-          <div class="po-card-head">
-            <h4>${ic('cars', 16)} Vehicle &amp; Specifications</h4>
-            ${v && !shut && can('imports', 'create') ? `<button type="button" class="btn sm" data-act="cx-new" data-veh="${v.id}" data-po="${po.id}">${ic('plus', 13)} Car expense</button>` : ''}
-          </div>
-          <div class="po-card-body">
-            ${v ? `
-              <div class="po-row"><span class="lbl">Vehicle</span><span class="val"><a href="#/veh/view?id=${v.id}" style="color:#0284c7;font-weight:700">${esc(carName(v))}</a></span></div>
-              <div class="po-row"><span class="lbl">Chassis (VIN)</span><span class="val mono"><a href="#/veh/view?id=${v.id}">${esc(v.vin)}</a></span></div>
-              <div class="po-row"><span class="lbl">Internal Code</span><span class="val mono">${esc(v.code)}</span></div>
-              <div class="po-row"><span class="lbl">Vehicle Status</span><span class="val">${badge(v.status)}</span></div>
-              <div class="po-row"><span class="lbl">Colors</span><span class="val">${esc([v.exteriorColor, v.interiorColor].filter(Boolean).join(' / ') || '—')}</span></div>
-              <div class="po-row"><span class="lbl">Year / Mileage</span><span class="val">${v.year || '—'}${v.mileage ? ` · ${esc(v.mileage)} km` : ''}</span></div>
-              <div class="po-row"><span class="lbl">Current Location</span><span class="val">${esc(locName(v.location) || 'In transit')}</span></div>
-            ` : `
-              ${po.lines.map(l => `<div class="po-row"><span class="lbl">Description</span><span class="val">${esc(l.description)}</span></div><div class="po-row"><span class="lbl">Price</span><span class="val mono">${money(l.price)} ${po.currency}</span></div>`).join('')}
-            `}
+          <!-- Odoo Button Box Top Right -->
+          <div class="o-stats" style="border-radius:8px">
+            ${stats}
           </div>
         </div>
 
-        <div class="po-card">
-          <div class="po-card-head">
-            <h4>${ic('users', 16)} Commercial &amp; Parties</h4>
-            ${can('purchases', 'edit') && po.status !== 'cancelled' && !closed && !shut ? `<button type="button" class="btn sm" data-act="po-rate" data-id="${po.id}">${ic('settings', 13)} Change rate</button>` : ''}
-          </div>
-          <div class="po-card-body">
-            <div class="po-row"><span class="lbl">Customer</span><span class="val">${cust ? `<a href="#/partners/statement?side=ar&id=${cust.id}" style="color:#0284c7;font-weight:700">${esc(cust.legalName)}</a>${cust.phone ? ` <span class="muted">(${esc(cust.phone)})</span>` : ''}` : '<span class="muted">Stock order (Not sold yet)</span>'}</span></div>
-            <div class="po-row"><span class="lbl">Supplier / Vendor</span><span class="val">${sup ? `<a href="#/partners/statement?side=ap&id=${sup.id}" style="color:#0284c7;font-weight:700">${esc(sup.legalName)}</a>` : '<span class="muted">—</span>'}</span></div>
-            <div class="po-row"><span class="lbl">Order Date</span><span class="val">${po.date}</span></div>
-            <div class="po-row"><span class="lbl">Currency &amp; Rate</span><span class="val mono">${po.currency} ${po.currency !== 'EGP' ? `@ ${po.rate ? fmtNum(po.rate, 4) : '—'} EGP` : ''}</span></div>
-            <div class="po-row"><span class="lbl">Delivery Terms</span><span class="val">${esc(po.deliveryTerms || 'CIF Alexandria')}</span></div>
-            ${po.customerRef ? `<div class="po-row"><span class="lbl">Customer Ref</span><span class="val">${esc(po.customerRef)}</span></div>` : ''}
-            ${D(po.commission || 0).gt(0) ? `<div class="po-row"><span class="lbl">Seller Commission</span><span class="val" style="color:var(--ok)">${money(po.commission)} EGP</span></div>` : ''}
-          </div>
+        <!-- Odoo 2-Column Fields Grid -->
+        <div class="fields" style="display:grid;grid-template-columns:1fr 1fr;gap:4px 48px;padding-bottom:20px;border-bottom:1px solid #f1f5f9">
+          <div class="f"><div class="l">Customer</div><div class="v">${cust ? `<a href="#/partners/statement?side=ar&id=${cust.id}" style="font-weight:600;color:#005bd3">${esc(cust.legalName)}</a>${cust.phone ? ` <span class="muted" style="font-size:12px">(${esc(cust.phone)})</span>` : ''}` : '<span class="muted">Stock Order</span>'}</div></div>
+          <div class="f"><div class="l">Supplier</div><div class="v">${sup ? `<a href="#/partners/statement?side=ap&id=${sup.id}" style="font-weight:600;color:#005bd3">${esc(sup.legalName)}</a>` : '<span class="muted">—</span>'}</div></div>
+          <div class="f"><div class="l">Car Price</div><div class="v"><b class="mono" style="font-size:15px;color:#0f172a">${money(total)} ${po.currency}</b>${po.currency !== 'EGP' && po.rate ? ` <span class="muted" style="font-size:12.5px">(≈ ${money(sm.priceEgp || total.mul(po.rate))} EGP)</span>` : ''}</div></div>
+          <div class="f"><div class="l">Currency &amp; Rate</div><div class="v mono">${po.currency}${po.currency !== 'EGP' ? ` · 1 ${po.currency} = ${po.rate ? fmtNum(po.rate, 4) : '—'} EGP` : ''} ${can('purchases', 'edit') && po.status !== 'cancelled' && !closed && !shut ? `<button type="button" class="lnk0" data-act="po-rate" data-id="${po.id}" style="font-size:12px;margin-inline-start:6px">Change</button>` : ''}</div></div>
+          <div class="f"><div class="l">Landed Expenses</div><div class="v">${cxTot.gt(0) ? `<b class="mono" style="color:#d97706">+ ${money(cxTot)} EGP</b>` : '<span class="muted">0.00 EGP</span>'}</div></div>
+          <div class="f"><div class="l">Delivery Terms</div><div class="v">${esc(po.deliveryTerms || 'CIF Alexandria')}</div></div>
+          <div class="f"><div class="l">Customer Deposits</div><div class="v">${depAll.length ? `<b class="mono" style="color:var(--ok)">${payTot(depAll)}</b>` : '<span class="muted">0.00 EGP</span>'}</div></div>
+          <div class="f"><div class="l">Total Car Cost</div><div class="v"><b class="mono" style="font-size:15px;color:#0f172a">${money(c.invoiced ? sm.cost : (sm.priceEgp || D0()).plus(cxTot))} EGP</b></div></div>
+          ${c.sold ? `<div class="f"><div class="l">Gross Profit</div><div class="v"><b class="mono" style="font-size:15px;color:${sm.profit.lt(0) ? 'var(--bad)' : 'var(--ok)'}">${money(sm.profit)} EGP</b> <span class="muted">(Sold: ${money(sm.revenue)} EGP)</span></div></div>` : ''}
+          ${D(po.commission || 0).gt(0) ? `<div class="f"><div class="l">Seller Commission</div><div class="v" style="color:var(--ok);font-weight:600">${money(po.commission)} EGP</div></div>` : ''}
         </div>
-      </div>
 
-      <section class="rc" style="margin-top:16px">
-        <header><h3>${ic('invoices', 16)} Linked Invoices &amp; Billing Documents</h3></header>
-        <div class="rec-doc-grid">
-          <div class="rec-doc-card ${c.sale ? 'linked' : ''}">
-            <div class="rdc-header">
-              <div class="rdc-icon cust">${ic('invoices', 18)}</div>
-              <div class="rdc-title-wrap">
-                <span class="rdc-kind">Customer Invoice (فاتورة العميل)</span>
-                <b class="rdc-num">${c.sale ? esc(c.sale.number) : 'Not invoiced yet'}</b>
+        <!-- Odoo Notebook Tabs -->
+        <div class="o-tabs" style="margin-top:20px;border-bottom:1px solid #cbd5e1;display:flex;gap:4px">
+          <button type="button" class="tab-btn active" data-po-tab="invoices">${ic('invoices', 14)} Invoices &amp; Billing</button>
+          <button type="button" class="tab-btn" data-po-tab="deposits">${ic('invoices', 14)} Customer Deposits (${depAll.length})</button>
+          <button type="button" class="tab-btn" data-po-tab="advances">${ic('purchases', 14)} Vendor Advances (${advAll.length})</button>
+          ${v ? `<button type="button" class="tab-btn" data-po-tab="expenses">${ic('purchases', 14)} Landed &amp; Car Expenses (${carExpensesOf(v.id).length})</button>` : ''}
+          <button type="button" class="tab-btn" data-po-tab="je">${ic('file', 14)} Journal Entries (${carJEs.length})</button>
+          ${v ? `<button type="button" class="tab-btn" data-po-tab="specs">${ic('cars', 14)} Vehicle Details</button>` : ''}
+        </div>
+
+        <div class="tab-contents" style="padding-top:18px">
+          <!-- Tab 1: Invoices & Billing -->
+          <div class="po-tab-pane active" data-pane="invoices" style="display:block">
+            <div class="rec-doc-grid">
+              <div class="rec-doc-card ${c.sale ? 'linked' : ''}">
+                <div class="rdc-header">
+                  <div class="rdc-icon cust">${ic('invoices', 18)}</div>
+                  <div class="rdc-title-wrap">
+                    <span class="rdc-kind">Customer Invoice (فاتورة العميل)</span>
+                    <b class="rdc-num">${c.sale ? esc(c.sale.number) : 'Not invoiced yet'}</b>
+                  </div>
+                  ${c.sale ? invPill(c.sale) : '<span class="badge b-mute">Pending</span>'}
+                </div>
+                <div class="rdc-body">
+                  ${c.sale ? `
+                    <div class="rdc-row"><span>Customer</span><b>${esc(cust ? cust.legalName : '—')}</b></div>
+                    <div class="rdc-row"><span>Invoice Date</span><span>${c.sale.date}</span></div>
+                    <div class="rdc-row"><span>Total Amount</span><b class="mono">${money(invState(c.sale).total)} ${c.sale.currency}</b></div>
+                    ${invState(c.sale).open.gt(0) ? `<div class="rdc-row highlight"><span>Balance Due</span><b class="mono" style="color:var(--warn)">${money(invState(c.sale).open)} ${c.sale.currency}</b></div>` : `<div class="rdc-row highlight"><span>Status</span><b style="color:var(--ok)">Fully paid</b></div>`}
+                    ${custReductions.length ? `<div class="rdc-row highlight" style="flex-direction:column;align-items:flex-start;gap:3px;border-top:1px dashed #e2e8f0;padding-top:6px"><span style="font-size:11.5px;color:var(--ok);font-weight:600">Payments Applied:</span>${custReductions.map(r => `<div style="display:flex;justify-content:space-between;width:100%;font-size:12px"><span><a href="#" data-act="je-view" data-id="${r.src.entryId}">${esc(r.src.number)}</a> (${r.src.date})</span><b>${money(r.applied)} ${c.sale.currency}</b></div>`).join('')}</div>` : ''}
+                    <div class="rdc-actions">
+                      <button type="button" class="btn sm primary" data-act="inv-view" data-id="${c.sale.id}">${ic('invoices', 14)} View invoice</button>
+                      <button type="button" class="btn sm" data-act="inv-print" data-id="${c.sale.id}">${ic('printer', 14)} Print</button>
+                      ${invState(c.sale).open.gt(0) && can('ar', 'create') ? `<button type="button" class="btn sm gold" data-act="io-pay" data-side="ar" data-id="${c.sale.id}">Receive payment</button>` : ''}
+                    </div>
+                  ` : `
+                    <p class="rdc-desc">${cust ? `Car is imported for <b>${esc(cust.legalName)}</b>.` : 'Stock vehicle.'} Issue the customer invoice once the car is ready or sold.</p>
+                    <div class="rdc-actions">
+                      ${can('ar', 'create') && (c.received || c.invoiced) ? `<button type="button" class="btn sm primary" data-act="io-sell" data-id="${po.id}">${ic('plus', 14)} Sell car / Customer invoice</button>` : `<span class="muted" style="font-size:12px">Available once car is received</span>`}
+                    </div>
+                  `}
+                </div>
               </div>
-              ${c.sale ? invPill(c.sale) : '<span class="badge b-mute">Pending</span>'}
-            </div>
-            <div class="rdc-body">
-              ${c.sale ? `
-                <div class="rdc-row"><span>Customer</span><b>${esc(cust ? cust.legalName : '—')}</b></div>
-                <div class="rdc-row"><span>Invoice Date</span><span>${c.sale.date}</span></div>
-                <div class="rdc-row"><span>Total Amount</span><b class="mono">${money(invState(c.sale).total)} ${c.sale.currency}</b></div>
-                ${invState(c.sale).open.gt(0) ? `<div class="rdc-row highlight"><span>Balance Due</span><b class="mono" style="color:var(--warn)">${money(invState(c.sale).open)} ${c.sale.currency}</b></div>` : `<div class="rdc-row highlight"><span>Status</span><b style="color:var(--ok)">Fully paid</b></div>`}
-                ${custReductions.length ? `<div class="rdc-row highlight" style="flex-direction:column;align-items:flex-start;gap:3px;border-top:1px dashed #e2e8f0;padding-top:6px"><span style="font-size:11.5px;color:var(--ok);font-weight:600">Payments Applied:</span>${custReductions.map(r => `<div style="display:flex;justify-content:space-between;width:100%;font-size:12px"><span><a href="#" data-act="je-view" data-id="${r.src.entryId}">${esc(r.src.number)}</a> (${r.src.date})</span><b>${money(r.applied)} ${c.sale.currency}</b></div>`).join('')}</div>` : ''}
-                <div class="rdc-actions">
-                  <button type="button" class="btn sm primary" data-act="inv-view" data-id="${c.sale.id}">${ic('invoices', 14)} View invoice</button>
-                  <button type="button" class="btn sm" data-act="inv-print" data-id="${c.sale.id}">${ic('printer', 14)} Print</button>
-                  ${invState(c.sale).open.gt(0) && can('ar', 'create') ? `<button type="button" class="btn sm gold" data-act="io-pay" data-side="ar" data-id="${c.sale.id}">Receive payment</button>` : ''}
-                </div>
-              ` : `
-                <p class="rdc-desc">${cust ? `Car is imported for <b>${esc(cust.legalName)}</b>.` : 'Stock vehicle.'} Issue the customer invoice once the car is ready or sold.</p>
-                <div class="rdc-actions">
-                  ${can('ar', 'create') && (c.received || c.invoiced) ? `<button type="button" class="btn sm gold" data-act="io-sell" data-id="${po.id}">${ic('plus', 14)} Sell car / Customer invoice</button>` : `<span class="muted" style="font-size:12px">Available once car is received</span>`}
-                </div>
-              `}
-            </div>
-          </div>
 
-          <div class="rec-doc-card ${c.supInv ? 'linked' : ''}">
-            <div class="rdc-header">
-              <div class="rdc-icon sup">${ic('purchases', 18)}</div>
-              <div class="rdc-title-wrap">
-                <span class="rdc-kind">Purchase Bill (فاتورة المورد)</span>
-                <b class="rdc-num">${c.supInv ? esc(c.supInv.number) : 'Not billed yet'}</b>
+              <div class="rec-doc-card ${c.supInv ? 'linked' : ''}">
+                <div class="rdc-header">
+                  <div class="rdc-icon sup">${ic('purchases', 18)}</div>
+                  <div class="rdc-title-wrap">
+                    <span class="rdc-kind">Purchase Bill (فاتورة المورد)</span>
+                    <b class="rdc-num">${c.supInv ? esc(c.supInv.number) : 'Not billed yet'}</b>
+                  </div>
+                  ${c.supInv ? invPill(c.supInv) : '<span class="badge b-mute">Pending</span>'}
+                </div>
+                <div class="rdc-body">
+                  ${c.supInv ? `
+                    <div class="rdc-row"><span>Supplier</span><b>${esc(sup ? sup.legalName : '—')}</b></div>
+                    <div class="rdc-row"><span>Bill Date</span><span>${c.supInv.date}</span></div>
+                    <div class="rdc-row"><span>Total Bill</span><b class="mono">${money(invState(c.supInv).total)} ${c.supInv.currency}</b></div>
+                    ${invState(c.supInv).open.gt(0) ? `<div class="rdc-row highlight"><span>Balance Due</span><b class="mono" style="color:var(--bad)">${money(invState(c.supInv).open)} ${c.supInv.currency}</b></div>` : `<div class="rdc-row highlight"><span>Status</span><b style="color:var(--ok)">Fully paid</b></div>`}
+                    ${suppReductions.length ? `<div class="rdc-row highlight" style="flex-direction:column;align-items:flex-start;gap:3px;border-top:1px dashed #e2e8f0;padding-top:6px"><span style="font-size:11.5px;color:var(--info);font-weight:600">Payments Applied:</span>${suppReductions.map(r => `<div style="display:flex;justify-content:space-between;width:100%;font-size:12px"><span><a href="#" data-act="je-view" data-id="${r.src.entryId}">${esc(r.src.number)}</a> (${r.src.date})</span><b>${money(r.applied)} ${c.supInv.currency}</b></div>`).join('')}</div>` : ''}
+                    <div class="rdc-actions">
+                      <button type="button" class="btn sm primary" data-act="inv-view" data-id="${c.supInv.id}">${ic('invoices', 14)} View bill</button>
+                      <button type="button" class="btn sm" data-act="inv-print" data-id="${c.supInv.id}">${ic('printer', 14)} Print</button>
+                      ${invState(c.supInv).open.gt(0) && can('ap', 'create') ? `<button type="button" class="btn sm gold" data-act="io-pay" data-side="ap" data-id="${c.supInv.id}">Pay supplier bill</button>` : ''}
+                    </div>
+                  ` : `
+                    <p class="rdc-desc">Supplier: <b>${esc(sup ? sup.legalName : '—')}</b>. Record the supplier bill to book accounts payable and capitalize the purchase cost.</p>
+                    <div class="rdc-actions">
+                      ${po.status === 'approved' && can('ap', 'create') ? `<button type="button" class="btn sm primary" data-act="po-inv" data-id="${po.id}">${ic('plus', 14)} Record supplier bill</button>` : `<span class="muted" style="font-size:12px">Order must be approved</span>`}
+                    </div>
+                  `}
+                </div>
               </div>
-              ${c.supInv ? invPill(c.supInv) : '<span class="badge b-mute">Pending</span>'}
-            </div>
-            <div class="rdc-body">
-              ${c.supInv ? `
-                <div class="rdc-row"><span>Supplier</span><b>${esc(sup ? sup.legalName : '—')}</b></div>
-                <div class="rdc-row"><span>Bill Date</span><span>${c.supInv.date}</span></div>
-                <div class="rdc-row"><span>Total Bill</span><b class="mono">${money(invState(c.supInv).total)} ${c.supInv.currency}</b></div>
-                ${invState(c.supInv).open.gt(0) ? `<div class="rdc-row highlight"><span>Balance Due</span><b class="mono" style="color:var(--bad)">${money(invState(c.supInv).open)} ${c.supInv.currency}</b></div>` : `<div class="rdc-row highlight"><span>Status</span><b style="color:var(--ok)">Fully paid</b></div>`}
-                ${suppReductions.length ? `<div class="rdc-row highlight" style="flex-direction:column;align-items:flex-start;gap:3px;border-top:1px dashed #e2e8f0;padding-top:6px"><span style="font-size:11.5px;color:var(--info);font-weight:600">Payments Applied:</span>${suppReductions.map(r => `<div style="display:flex;justify-content:space-between;width:100%;font-size:12px"><span><a href="#" data-act="je-view" data-id="${r.src.entryId}">${esc(r.src.number)}</a> (${r.src.date})</span><b>${money(r.applied)} ${c.supInv.currency}</b></div>`).join('')}</div>` : ''}
-                <div class="rdc-actions">
-                  <button type="button" class="btn sm primary" data-act="inv-view" data-id="${c.supInv.id}">${ic('invoices', 14)} View bill</button>
-                  <button type="button" class="btn sm" data-act="inv-print" data-id="${c.supInv.id}">${ic('printer', 14)} Print</button>
-                  ${invState(c.supInv).open.gt(0) && can('ap', 'create') ? `<button type="button" class="btn sm gold" data-act="io-pay" data-side="ap" data-id="${c.supInv.id}">Pay supplier bill</button>` : ''}
-                </div>
-              ` : `
-                <p class="rdc-desc">Supplier: <b>${esc(sup ? sup.legalName : '—')}</b>. Record the supplier bill to book accounts payable and capitalize the purchase cost.</p>
-                <div class="rdc-actions">
-                  ${po.status === 'approved' && can('ap', 'create') ? `<button type="button" class="btn sm primary" data-act="po-inv" data-id="${po.id}">${ic('plus', 14)} Record supplier bill</button>` : `<span class="muted" style="font-size:12px">Order must be approved</span>`}
-                </div>
-              `}
             </div>
           </div>
+
+          <!-- Tab 2: Customer Deposits -->
+          <div class="po-tab-pane" data-pane="deposits">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+              <div style="font-size:13.5px;color:#475569">
+                ${depAll.length ? `<span class="pill ok" style="font-size:12px">Total received: ${payTot(depAll)}</span>` : 'No customer deposits recorded yet.'}
+              </div>
+              ${po.customerId && can('ar', 'create') && po.status !== 'cancelled' && !c.sold && !shut ? `
+                <button type="button" class="btn sm primary" data-act="po-adv" data-side="ar" data-id="${po.id}">${ic('plus', 13)} Customer deposit</button>
+              ` : ''}
+            </div>
+            ${depRows ? `
+              <div class="tbl-wrap">
+                <table>
+                  <thead><tr><th>Payment / Receipt</th><th class="num">Amount</th><th class="num">EGP</th><th class="num">Status</th><th></th></tr></thead>
+                  <tbody>${depRows}</tbody>
+                </table>
+              </div>
+            ` : '<div class="muted" style="padding:16px;text-align:center;background:#f8fafc;border-radius:8px">No customer deposits recorded.</div>'}
+          </div>
+
+          <!-- Tab 3: Supplier Advances -->
+          <div class="po-tab-pane" data-pane="advances">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+              <div style="font-size:13.5px;color:#475569">
+                ${advAll.length ? `<span class="pill info" style="font-size:12px">Total paid: ${payTot(advAll)}</span>` : 'No vendor advances paid yet.'}
+              </div>
+              ${po.status === 'approved' && can('ap', 'create') && !c.invoiced && !shut ? `
+                <button type="button" class="btn sm primary" data-act="po-adv" data-side="ap" data-id="${po.id}">${ic('plus', 13)} Supplier advance</button>
+              ` : ''}
+            </div>
+            ${advRows ? `
+              <div class="tbl-wrap">
+                <table>
+                  <thead><tr><th>Payment / Transfer</th><th class="num">Amount</th><th class="num">EGP</th><th class="num">Status</th><th></th></tr></thead>
+                  <tbody>${advRows}</tbody>
+                </table>
+              </div>
+            ` : '<div class="muted" style="padding:16px;text-align:center;background:#f8fafc;border-radius:8px">No vendor advances paid.</div>'}
+          </div>
+
+          <!-- Tab 4: Car Expenses -->
+          ${v ? `
+          <div class="po-tab-pane" data-pane="expenses">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+              <div style="font-size:13.5px;color:#475569">
+                Total Landed Costs: <b class="mono" style="color:#d97706">${money(cxTot)} EGP</b>
+              </div>
+              ${!shut && can('imports', 'create') ? `<button type="button" class="btn sm primary" data-act="cx-new" data-veh="${v.id}" data-po="${po.id}">${ic('plus', 13)} Car expense</button>` : ''}
+            </div>
+            ${carExpensesTable(v.id)}
+          </div>
+          ` : ''}
+
+          <!-- Tab 5: Journal Entries -->
+          <div class="po-tab-pane" data-pane="je">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+              <div style="font-size:13px;color:#64748b">
+                Complete accounting audit ledger of all postings touching this car
+              </div>
+              <span class="cnt" style="font-weight:700">${carJEs.length} entries</span>
+            </div>
+            ${carJEs.length ? `
+              <div class="tbl-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th style="white-space:nowrap">Date</th>
+                      <th>Journal</th>
+                      <th>Entry Ref</th>
+                      <th>Description / Partner</th>
+                      <th class="num">Amount (EGP)</th>
+                      <th style="width:70px">Status</th>
+                      <th style="width:50px"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${carJEs.map(e => {
+                      const j = journalOf(e.journal);
+                      const tot = e.totals ? e.totals.egpDebit : '0';
+                      return `<tr data-act="je-view" data-id="${e.id}" style="cursor:pointer">
+                        <td style="white-space:nowrap;font-weight:600">${e.accountingDate}</td>
+                        <td><span class="badge b-mute" style="font-weight:600">${esc(j ? j.name : e.journal)}</span></td>
+                        <td><b style="color:#0284c7">${esc(entryRef(e))}</b></td>
+                        <td class="wrap"><div style="font-size:13px">${esc(e.description || '')}</div>${e.partner ? `<div class="muted" style="font-size:11.5px">${esc(e.partner)}</div>` : ''}</td>
+                        <td class="num mono"><b>${money(tot)}</b></td>
+                        <td>${badge(e.status)}</td>
+                        <td style="text-align:end"><button type="button" class="btn sm" data-act="je-view" data-id="${e.id}">View</button></td>
+                      </tr>`;
+                    }).join('')}
+                  </tbody>
+                </table>
+              </div>
+            ` : '<div class="muted" style="padding:16px;text-align:center;background:#f8fafc;border-radius:8px">No journal entries posted for this car yet.</div>'}
+          </div>
+
+          <!-- Tab 6: Vehicle Details -->
+          ${v ? `
+          <div class="po-tab-pane" data-pane="specs">
+            <div class="fields" style="display:grid;grid-template-columns:1fr 1fr;gap:4px 48px">
+              <div class="f"><div class="l">Vehicle Model</div><div class="v"><a href="#/veh/view?id=${v.id}" style="font-weight:700;color:#0284c7">${esc(carName(v))}</a></div></div>
+              <div class="f"><div class="l">Chassis (VIN)</div><div class="v mono">${esc(v.vin)}</div></div>
+              <div class="f"><div class="l">Internal Code</div><div class="v mono">${esc(v.code)}</div></div>
+              <div class="f"><div class="l">Vehicle Status</div><div class="v">${badge(v.status)}</div></div>
+              <div class="f"><div class="l">Exterior / Interior</div><div class="v">${esc([v.exteriorColor, v.interiorColor].filter(Boolean).join(' / ') || '—')}</div></div>
+              <div class="f"><div class="l">Year &amp; Mileage</div><div class="v">${v.year || '—'}${v.mileage ? ` · ${esc(v.mileage)} km` : ''}</div></div>
+              <div class="f"><div class="l">Current Location</div><div class="v">${esc(locName(v.location) || 'In transit')}</div></div>
+            </div>
+          </div>
+          ` : ''}
         </div>
-      </section>
-
-      <section class="rc" id="po-cust-pay" style="margin-top:20px">
-        <header style="display:flex;justify-content:space-between;align-items:center">
-          <div style="display:flex;align-items:center;gap:8px">
-            <h3>${ic('invoices', 16)} Customer Deposits &amp; Payments <span class="cnt">${depAll.length}</span></h3>
-            ${depAll.length ? `<span class="pill ok" style="font-size:12px">Total received: ${payTot(depAll)}</span>` : ''}
-          </div>
-          ${po.customerId && can('ar', 'create') && po.status !== 'cancelled' && !c.sold && !shut ? `
-            <button type="button" class="btn sm primary" data-act="po-adv" data-side="ar" data-id="${po.id}">${ic('plus', 14)} Customer deposit</button>
-          ` : ''}
-        </header>
-        ${depRows ? `
-          <div class="tbl-wrap">
-            <table>
-              <thead><tr><th>Payment / Receipt</th><th class="num">Amount</th><th class="num">EGP</th><th class="num">Status</th><th></th></tr></thead>
-              <tbody>${depRows}</tbody>
-            </table>
-          </div>
-        ` : '<div class="muted" style="padding:14px 16px;font-size:13px">No money received from the customer yet.</div>'}
-      </section>
-
-      ${(advAll.length || (sup && can('ap', 'create') && !shut && !c.invoiced)) ? `
-      <section class="rc" id="po-supp-pay" style="margin-top:20px">
-        <header style="display:flex;justify-content:space-between;align-items:center">
-          <div style="display:flex;align-items:center;gap:8px">
-            <h3>${ic('purchases', 16)} Vendor Payments &amp; Advances <span class="cnt">${advAll.length}</span></h3>
-            ${advAll.length ? `<span class="pill info" style="font-size:12px">Total paid: ${payTot(advAll)}</span>` : ''}
-          </div>
-          ${po.status === 'approved' && can('ap', 'create') && !c.invoiced && !shut ? `
-            <button type="button" class="btn sm" data-act="po-adv" data-side="ap" data-id="${po.id}">${ic('plus', 14)} Supplier advance</button>
-          ` : ''}
-        </header>
-        ${advRows ? `
-          <div class="tbl-wrap">
-            <table>
-              <thead><tr><th>Payment / Transfer</th><th class="num">Amount</th><th class="num">EGP</th><th class="num">Status</th><th></th></tr></thead>
-              <tbody>${advRows}</tbody>
-            </table>
-          </div>
-        ` : '<div class="muted" style="padding:14px 16px;font-size:13px">Nothing paid to the supplier yet.</div>'}
-      </section>` : ''}
-
-      ${v ? carExpensesTable(v.id) : ''}
-
-      <section class="rc" id="po-je" style="margin-top:20px">
-        <header style="display:flex;justify-content:space-between;align-items:center">
-          <div style="display:flex;align-items:center;gap:8px">
-            <h3>${ic('file', 16)} Journal Entries &amp; Accounting Trace <span class="cnt">${carJEs.length}</span></h3>
-            <span class="muted" style="font-size:12.5px">Complete accounting ledger of every journal entry affecting this car</span>
-          </div>
-        </header>
-        ${carJEs.length ? `
-          <div class="tbl-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th style="white-space:nowrap">Date</th>
-                  <th>Journal</th>
-                  <th>Entry Ref</th>
-                  <th>Description / Partner</th>
-                  <th class="num">Amount (EGP)</th>
-                  <th style="width:70px">Status</th>
-                  <th style="width:50px"></th>
-                </tr>
-              </thead>
-              <tbody>
-                ${carJEs.map(e => {
-                  const j = journalOf(e.journal);
-                  const tot = e.totals ? e.totals.egpDebit : '0';
-                  return `<tr data-act="je-view" data-id="${e.id}" style="cursor:pointer">
-                    <td style="white-space:nowrap;font-weight:600">${e.accountingDate}</td>
-                    <td><span class="badge b-mute" style="font-weight:600">${esc(j ? j.name : e.journal)}</span></td>
-                    <td><b style="color:#0284c7">${esc(entryRef(e))}</b></td>
-                    <td class="wrap"><div style="font-size:13px">${esc(e.description || '')}</div>${e.partner ? `<div class="muted" style="font-size:11.5px">${esc(e.partner)}</div>` : ''}</td>
-                    <td class="num mono"><b>${money(tot)}</b></td>
-                    <td>${badge(e.status)}</td>
-                    <td style="text-align:end"><button type="button" class="btn sm" data-act="je-view" data-id="${e.id}">View</button></td>
-                  </tr>`;
-                }).join('')}
-              </tbody>
-            </table>
-          </div>
-        ` : '<div class="muted" style="padding:14px 16px;font-size:13px">No journal entries posted for this car yet.</div>'}
-      </section>
+      </div>
     </div>` });
 }
 Object.assign(CLICK, {
