@@ -322,6 +322,60 @@ tr.row-link{cursor:pointer}tr.row-link:hover td{background:#f8f6ef}
 }
 
 /* Luxury Executive Table & Panel Styling */
+
+/* ---- Luxury Segmented Tabs Control ---- */
+.po-tabs-wrapper {
+  margin-top: 24px;
+  background: #f1f5f9;
+  padding: 4px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.po-tabs-wrapper .po-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  font-family: inherit;
+  line-height: 1.4;
+}
+.po-tabs-wrapper .po-tab-btn:hover {
+  color: #0f172a;
+  background: rgba(255, 255, 255, 0.6);
+}
+.po-tabs-wrapper .po-tab-btn.active {
+  color: #0f172a;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04);
+  font-weight: 700;
+}
+.po-tabs-wrapper .po-tab-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 99px;
+  background: #e2e8f0;
+  color: #475569;
+  transition: all 0.15s ease;
+  display: inline-block;
+  line-height: 1.3;
+}
+.po-tabs-wrapper .po-tab-btn.active .po-tab-badge {
+  background: #0284c7;
+  color: #ffffff;
+}
 .po-sheet-header {
   display: flex;
   justify-content: space-between;
@@ -12237,14 +12291,34 @@ function poView(po){
           </div>
         </div>
 
-        <!-- Notebook Tabs -->
-        <div class="o-tabs" style="margin-top:24px;border-bottom:1px solid #cbd5e1;display:flex;gap:4px">
-          <button type="button" class="tab-btn active" data-po-tab="invoices">${ic('invoices', 14)} Invoices &amp; Billing</button>
-          <button type="button" class="tab-btn" data-po-tab="deposits">${ic('invoices', 14)} Customer Deposits (${depAll.length})</button>
-          <button type="button" class="tab-btn" data-po-tab="advances">${ic('purchases', 14)} Vendor Advances (${advAll.length})</button>
-          ${v ? `<button type="button" class="tab-btn" data-po-tab="expenses">${ic('purchases', 14)} Landed &amp; Car Expenses (${carExpensesOf(v.id).length})</button>` : ''}
-          <button type="button" class="tab-btn" data-po-tab="je">${ic('file', 14)} Journal Entries (${carJEs.length})</button>
-          ${v ? `<button type="button" class="tab-btn" data-po-tab="specs">${ic('cars', 14)} Vehicle Details</button>` : ''}
+        <!-- Segmented Luxury Tabs -->
+        <div class="po-tabs-wrapper">
+          <button type="button" class="po-tab-btn active" data-po-tab="invoices">
+            ${ic('invoices', 15)} <span>Invoices &amp; Billing</span>
+          </button>
+          <button type="button" class="po-tab-btn" data-po-tab="deposits">
+            ${ic('invoices', 15)} <span>Customer Deposits</span>
+            <span class="po-tab-badge">${depAll.length}</span>
+          </button>
+          <button type="button" class="po-tab-btn" data-po-tab="advances">
+            ${ic('purchases', 15)} <span>Vendor Advances</span>
+            <span class="po-tab-badge">${advAll.length}</span>
+          </button>
+          ${v ? `
+          <button type="button" class="po-tab-btn" data-po-tab="expenses">
+            ${ic('purchases', 15)} <span>Landed Expenses</span>
+            <span class="po-tab-badge">${carExpensesOf(v.id).length}</span>
+          </button>
+          ` : ''}
+          <button type="button" class="po-tab-btn" data-po-tab="je">
+            ${ic('file', 15)} <span>Journal Entries</span>
+            <span class="po-tab-badge">${carJEs.length}</span>
+          </button>
+          ${v ? `
+          <button type="button" class="po-tab-btn" data-po-tab="specs">
+            ${ic('cars', 15)} <span>Vehicle Specs</span>
+          </button>
+          ` : ''}
         </div>
 
         <div class="tab-contents" style="padding-top:18px">
