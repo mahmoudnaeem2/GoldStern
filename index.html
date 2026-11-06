@@ -12150,7 +12150,7 @@ function invoiceView(inv){
 
       <!-- 2. Clean Document Sheet -->
       <div class="sheet" style="margin:0;padding:24px 28px;background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.05)">
-        <div class="po-sheet-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px">
+        <div class="po-sheet-header">
           <div class="po-title-section">
             <span class="po-badge-kind">${esc(title)}</span>
             <h2 class="po-title-text">${esc(inv.number)}</h2>
@@ -12161,49 +12161,15 @@ function invoiceView(inv){
               ${overdue ? '<span class="pill bad">Overdue</span>' : ''}
             </div>
           </div>
-          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-            ${v ? `
-              <div class="po-car-banner">
-                <div class="po-car-banner-icon">${ic('cars', 22)}</div>
-                <div class="po-car-banner-info">
-                  <a href="#/veh/view?id=${v.id}" class="po-car-banner-name" style="text-decoration:none">${esc(carName(v))}</a>
-                  <span class="po-car-banner-sub">Chassis: <b class="mono" style="color:#0284c7">${esc(v.vin)}</b> · Code: <span class="mono">${esc(v.code)}</span></span>
-                </div>
+          ${v ? `
+            <div class="po-car-banner">
+              <div class="po-car-banner-icon">${ic('cars', 22)}</div>
+              <div class="po-car-banner-info">
+                <a href="#/veh/view?id=${v.id}" class="po-car-banner-name" style="text-decoration:none">${esc(carName(v))}</a>
+                <span class="po-car-banner-sub">Chassis: <b class="mono" style="color:#0284c7">${esc(v.vin)}</b> · Code: <span class="mono">${esc(v.code)}</span></span>
               </div>
-            ` : ''}
-            <div class="o-stats">
-              ${e ? `
-              <button type="button" class="o-stat" data-act="je-drawer-view" data-id="${e.id}" title="Open Journal Entry ${esc(entryRef(e))}">
-                <div style="display:flex;align-items:center;gap:6px">
-                  ${ic('accounting', 15)}
-                  <b>${esc(entryRef(e))}</b>
-                </div>
-                <small>${esc((journalOf(e.journal) || {}).name || e.journal)} · ${e.status}</small>
-              </button>` : ''}
-              <button type="button" class="o-stat" data-goto-tab="inv-payments" title="View Payments & Allocations">
-                <div style="display:flex;align-items:center;gap:6px">
-                  ${ic('coins', 15)}
-                  <b>${red.length} Payment${red.length !== 1 ? 's' : ''}</b>
-                </div>
-                <small>${paidAmt.gt(0) ? `${money(paidAmt)} ${inv.currency}` : '0.00 ' + inv.currency} paid</small>
-              </button>
-              ${srcPo ? `
-              <button type="button" class="o-stat" data-act="po-view" data-id="${srcPo.id}" title="View Purchase Order ${esc(srcPo.number)}">
-                <div style="display:flex;align-items:center;gap:6px">
-                  ${ic('purchases', 15)}
-                  <b>${esc(srcPo.number)}</b>
-                </div>
-                <small>Purchase Order</small>
-              </button>` : so ? `
-              <button type="button" class="o-stat" data-act="so-view" data-id="${so.id}" title="View Sales Order ${esc(so.number)}">
-                <div style="display:flex;align-items:center;gap:6px">
-                  ${ic('sales', 15)}
-                  <b>${esc(so.number)}</b>
-                </div>
-                <small>Sales Order</small>
-              </button>` : ''}
             </div>
-          </div>
+          ` : ''}
         </div>
 
         <!-- 2 Clean Panels Grid -->
