@@ -97,7 +97,8 @@ html[dir=rtl] .nav-item:hover{transform:none}
 .sm-pop a.on{font-weight:600;background:#fef9ee;color:#b45309}
 .main{min-width:0;display:flex;flex-direction:column}
 .top{display:flex;align-items:center;gap:12px;padding:9px 24px;min-height:58px;background:#ffffff;border-bottom:1px solid #e2e8f0;position:sticky;top:0;z-index:25;box-shadow:0 1px 2px rgba(15,23,42,0.03)}
-.top-toggle-btn{background:transparent;border:1px solid #e2e8f0;border-radius:8px;color:#64748b;width:34px;height:34px;display:grid;place-items:center;cursor:pointer;transition:all .15s ease;flex-shrink:0}
+.top-toggle-btn{background:#fff;border:1px solid #e2e8f0;border-radius:8px;color:#334155;width:34px;height:34px;display:grid;place-items:center;cursor:pointer;transition:all .15s ease;flex-shrink:0;box-shadow:0 1px 2px rgba(15,23,42,0.04)}
+.top-toggle-btn:hover{background:#f8fafc;color:#0f172a;border-color:#cbd5e1}
 .top-toggle-btn:hover{background:#f1f5f9;color:#0f172a;border-color:#cbd5e1}
 .top-brand{display:flex;align-items:center;gap:10px;text-decoration:none!important;color:inherit;margin-inline-end:4px}
 .top-logo{width:28px;height:28px;object-fit:contain;display:block}
@@ -662,7 +663,8 @@ a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline}
 /* header of a record screen: small breadcrumb line instead of a second big title */
 .modal-h{padding:12px 32px!important;background:#fff;border-bottom:1px solid var(--g200)}
 .modal-h h3{font-size:14px!important;font-weight:500!important;color:var(--g500);letter-spacing:0!important}
-.modal-h .back{min-height:32px;padding:5px 12px!important;font-size:13px!important;border-color:var(--g300)!important;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.modal-h .back{min-height:34px;padding:6px 14px!important;font-size:13px!important;font-weight:600!important;border:1px solid #cbd5e1!important;border-radius:8px!important;background:#ffffff!important;color:#1e293b!important;box-shadow:0 1px 2px rgba(15,23,42,0.05)!important;display:inline-flex;align-items:center;gap:6px;cursor:pointer;transition:all .15s ease}
+.modal-h .back:hover{background:#f8fafc!important;border-color:#94a3b8!important;color:#0f172a!important}
 .modal-b{padding-top:20px}
 /* ---- Authentic Odoo Form View with Contrast Background, Dividers & Colors ---- */
 .modal-b {
@@ -1979,6 +1981,90 @@ td.nw,th{white-space:nowrap}
 .shell.collapsed .side-me{justify-content:center;padding:6px 0}
 @media (prefers-reduced-motion:reduce){.side .nav-item{transition:none}}
 </style>
+
+<!-- Journal Entry Right Side Drawer CSS & JS -->
+<style>
+.je-side-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.3);
+  backdrop-filter: blur(2px);
+  z-index: 100000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s ease;
+}
+.je-side-drawer-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+.je-side-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 580px;
+  max-width: 92vw;
+  background: #ffffff;
+  z-index: 100001;
+  box-shadow: -8px 0 32px rgba(15, 23, 42, 0.2);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform .25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+html[dir=rtl] .je-side-drawer {
+  right: auto;
+  left: 0;
+  box-shadow: 8px 0 32px rgba(15, 23, 42, 0.2);
+  transform: translateX(-100%);
+}
+.je-side-drawer.active {
+  transform: translateX(0);
+}
+.po-je-tr.active-je-row {
+  background: #eff6ff !important;
+  box-shadow: inset 3px 0 0 #2563eb;
+}
+html[dir=rtl] .po-je-tr.active-je-row {
+  box-shadow: inset -3px 0 0 #2563eb;
+}
+.je-drawer-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  background: #f8fafc;
+}
+.je-drawer-body {
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.je-drawer-close-btn {
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  color: #64748b;
+  transition: all .15s ease;
+}
+.je-drawer-close-btn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+</style>
+
 </head>
 <body>
 <div id="app"></div>
@@ -6577,7 +6663,7 @@ function viewShell(){
     </aside>
     <div class="main">
       <header class="top">
-        <button type="button" class="top-toggle-btn" data-act="side-collapse" title="Expand / collapse sidebar">${ic('grid', 18)}</button>
+        <button type="button" class="top-toggle-btn" data-act="side-collapse" title="Toggle navigation sidebar" aria-label="Toggle navigation sidebar">${ic('menu', 18)}</button>
         <div class="top-brand">
           <img class="top-logo" src="${LOGO_MARK}" alt="Goldstern Logo">
           <div class="top-brand-text">
@@ -7117,7 +7203,7 @@ function pageJournals(){
   const rows = list.map(e => {
     const tot = entryTotalEgp(e);
     const jnl = journalOf(e.journal);
-    return `<tr data-act="je-view" data-id="${e.id}" style="cursor:pointer">
+    return `<tr data-act="je-drawer-view" data-id="${e.id}" class="po-je-tr" id="po-je-row-${e.id}" style="cursor:pointer">
       <td style="white-space:nowrap"><b>${esc(entryRef(e))}</b>${e.number && e.draftRef !== e.number ? `<div class="muted mono" style="font-size:11px">${esc(e.draftRef)}</div>` : ''}</td>
       <td style="white-space:nowrap;font-variant-numeric:tabular-nums;font-weight:500">${e.accountingDate}</td>
       <td style="white-space:nowrap"><span class="pill sm mute">${esc(jnl ? jnl.code : e.journal)}</span></td>
@@ -12065,7 +12151,7 @@ function printCarReport(po){
   .kpi .k{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#64748b;font-weight:600}
   .kpi .v{font-size:18px;font-weight:700;margin-top:4px;white-space:nowrap}.kpi .u{font-size:11.5px;color:#94a3b8;font-weight:500}
   .kpi.hi{background:#0f172a;border-color:#0f172a;color:#fff}.kpi.hi .k,.kpi.hi .u{color:#cbd5e1}
-  .pos{color:#047857}.neg{color:#b91c1c}.kpi.hi .pos{color:#6ee7b7}.kpi.hi .neg{color:#fca5a5}
+  .pos{color:#0f172a;font-weight:700}.neg{color:#b91c1c;font-weight:700}.kpi.hi .pos{color:#ffffff;font-weight:700}.kpi.hi .neg{color:#fca5a5}
   .parties{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:22px}
   .pc{border:1px solid #e2e8f0;border-radius:10px;padding:12px 16px}
   .pc .k{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#64748b;font-weight:600;margin-bottom:6px}
@@ -12274,6 +12360,42 @@ function poView(po){
 
         <!-- 2 Clean Panels Grid -->
         <div class="po-grid-cards">
+          
+          <!-- Right Panel: Financials & Pricing -->
+          <div class="po-panel">
+            <div class="po-panel-title">${ic('chart', 14)} Financials &amp; Cost Breakdown</div>
+            <table class="po-table-kv">
+              <tbody>
+                <tr>
+                  <td class="lbl">Purchase Price</td>
+                  <td class="val"><b class="mono" style="font-size:14.5px;color:#0f172a">${money(total)} ${po.currency}</b>${po.currency !== 'EGP' && po.rate ? ` <span class="muted" style="font-size:12px;font-weight:normal">(≈ ${money(sm.priceEgp || total.mul(po.rate))} EGP)</span>` : ''}</td>
+                </tr>
+                <tr>
+                  <td class="lbl">Currency &amp; Rate</td>
+                  <td class="val"><span class="mono">${po.currency}${po.currency !== 'EGP' ? ` · 1 ${po.currency} = ${po.rate ? fmtNum(po.rate, 4) : '—'} EGP` : ''}</span> ${can('purchases', 'edit') && po.status !== 'cancelled' && !closed && !shut ? `<button type="button" class="lnk0" data-act="po-rate" data-id="${po.id}" style="font-size:12px;margin-inline-start:6px">Change</button>` : ''}</td>
+                </tr>
+                <tr>
+                  <td class="lbl">Landed Costs</td>
+                  <td class="val">${cxTot.gt(0) ? `<b class="mono" style="color:#d97706">+ ${money(cxTot)} EGP</b>` : '<span class="muted">0.00 EGP</span>'}</td>
+                </tr>
+                <tr>
+                  <td class="lbl">Customer Deposits</td>
+                  <td class="val">${depAll.length ? `<span style="background:#ecfdf5;color:#047857;padding:3px 10px;border-radius:6px;border:1px solid #a7f3d0;font-weight:700;font-size:13px">${payTot(depAll)}</span>` : '<span class="muted">0.00 EGP</span>'}</td>
+                </tr>
+                <tr style="background:#f8fafc">
+                  <td class="lbl" style="font-weight:700;color:#0f172a">Total Car Cost</td>
+                  <td class="val"><b class="mono" style="font-size:15px;color:#0f172a">${money(c.invoiced ? sm.cost : (sm.priceEgp || D0()).plus(cxTot))} EGP</b></td>
+                </tr>
+                ${c.sold ? `
+                <tr>
+                  <td class="lbl">Gross Profit</td>
+                  <td class="val"><b class="mono" style="font-size:14.5px;color:${sm.profit.lt(0) ? '#b91c1c' : '#0f172a'}">${money(sm.profit)} EGP</b> <span class="muted" style="font-size:12px">(Sold for ${money(sm.revenue)} EGP)</span></td>
+                </tr>` : ''}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
           <!-- Left Panel: Customer & Supplier -->
           <div class="po-panel">
             <div class="po-panel-title">${ic('users', 14)} Customer &amp; Supplier Information</div>
@@ -12303,42 +12425,6 @@ function poView(po){
               </tbody>
             </table>
           </div>
-
-          <!-- Right Panel: Financials & Pricing -->
-          <div class="po-panel">
-            <div class="po-panel-title">${ic('chart', 14)} Financials &amp; Cost Breakdown</div>
-            <table class="po-table-kv">
-              <tbody>
-                <tr>
-                  <td class="lbl">Purchase Price</td>
-                  <td class="val"><b class="mono" style="font-size:14.5px;color:#0f172a">${money(total)} ${po.currency}</b>${po.currency !== 'EGP' && po.rate ? ` <span class="muted" style="font-size:12px;font-weight:normal">(≈ ${money(sm.priceEgp || total.mul(po.rate))} EGP)</span>` : ''}</td>
-                </tr>
-                <tr>
-                  <td class="lbl">Currency &amp; Rate</td>
-                  <td class="val"><span class="mono">${po.currency}${po.currency !== 'EGP' ? ` · 1 ${po.currency} = ${po.rate ? fmtNum(po.rate, 4) : '—'} EGP` : ''}</span> ${can('purchases', 'edit') && po.status !== 'cancelled' && !closed && !shut ? `<button type="button" class="lnk0" data-act="po-rate" data-id="${po.id}" style="font-size:12px;margin-inline-start:6px">Change</button>` : ''}</td>
-                </tr>
-                <tr>
-                  <td class="lbl">Landed Costs</td>
-                  <td class="val">${cxTot.gt(0) ? `<b class="mono" style="color:#d97706">+ ${money(cxTot)} EGP</b>` : '<span class="muted">0.00 EGP</span>'}</td>
-                </tr>
-                <tr>
-                  <td class="lbl">Customer Deposits</td>
-                  <td class="val">${depAll.length ? `<span style="background:#ecfdf5;color:#047857;padding:3px 10px;border-radius:6px;border:1px solid #a7f3d0;font-weight:700;font-size:13px">${payTot(depAll)}</span>` : '<span class="muted">0.00 EGP</span>'}</td>
-                </tr>
-                <tr style="background:#f8fafc">
-                  <td class="lbl" style="font-weight:700;color:#0f172a">Total Car Cost</td>
-                  <td class="val"><b class="mono" style="font-size:15px;color:#0f172a">${money(c.invoiced ? sm.cost : (sm.priceEgp || D0()).plus(cxTot))} EGP</b></td>
-                </tr>
-                ${c.sold ? `
-                <tr>
-                  <td class="lbl">Gross Profit</td>
-                  <td class="val"><b class="mono" style="font-size:14.5px;color:${sm.profit.lt(0) ? 'var(--bad)' : 'var(--ok)'}">${money(sm.profit)} EGP</b> <span class="muted" style="font-size:12px">(Sold for ${money(sm.revenue)} EGP)</span></td>
-                </tr>` : ''}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
         <!-- Segmented Luxury Tabs -->
         <div class="po-tabs-wrapper">
           <button type="button" class="po-tab-btn active" data-po-tab="invoices">
@@ -12517,7 +12603,7 @@ function poView(po){
                         <td class="wrap"><div style="font-size:13px">${esc(e.description || '')}</div>${e.partner ? `<div class="muted" style="font-size:11.5px">${esc(e.partner)}</div>` : ''}</td>
                         <td class="num mono"><b>${money(tot)}</b></td>
                         <td>${badge(e.status)}</td>
-                        <td style="text-align:end"><button type="button" class="btn sm" data-act="je-view" data-id="${e.id}">View</button></td>
+                        <td style="text-align:end"><button type="button" class="btn sm" data-act="je-drawer-view" data-id="${e.id}">View</button></td>
                       </tr>`;
                     }).join('')}
                   </tbody>
@@ -13472,6 +13558,173 @@ if (S.meta.migratedAt && !S.meta.migrationLogged){ S.meta.migrationLogged = true
 if (!OPEN_ACCESS && SESSION && SESSION.userId && Date.now() - (SESSION.lastActive || 0) > IDLE_MINUTES * 60000){ SESSION = null; saveSession(); }
 if (S.company && !(S.makes || []).length) seedCatalogue();
 try { const ch = updateData(); if (ch.length) setTimeout(() => toast(`Data updated to the latest version (${ch.length} change${ch.length === 1 ? '' : 's'}). Details in Settings → Data & Backup.`, 'ok'), 600); } catch (e){ console.warn('data update failed', e); }
+
+/* Right-Side Journal Entry Drawer Controller */
+function openJeDrawer(entryId){
+  const e = S.entries.find(x => x.id === entryId);
+  if (!e) return;
+  const posted = isPostedStatus(e.status);
+  let calc = null, calcErr = '';
+  if (!posted){ try { calc = computeEntry(e); } catch (err){ calcErr = err.message; } }
+  const lines = posted ? e.lines : (calc ? calc.lines : e.lines);
+  const j = journalOf(e.journal);
+  const sum = k => lines.reduce((t, l) => t.plus(l[k] || '0'), D0());
+  const td = sum('egpDebit'), tc = sum('egpCredit'), bal = td.eq(tc);
+  const partners = [...new Set(lines.map(l => l.partner).filter(Boolean))];
+
+  // Highlight active row in PO table
+  document.querySelectorAll('.po-je-tr').forEach(r => r.classList.remove('active-je-row'));
+  const row = document.getElementById('po-je-row-' + entryId);
+  if (row) row.classList.add('active-je-row');
+
+  let container = document.getElementById('je-drawer-container');
+  if (!container){
+    container = document.createElement('div');
+    container.id = 'je-drawer-container';
+    document.body.appendChild(container);
+  }
+
+  container.innerHTML = `
+    <div class="je-side-drawer-overlay" data-act="je-drawer-close"></div>
+    <div class="je-side-drawer" role="dialog" aria-label="Journal Entry ${esc(entryRef(e))}">
+      <!-- Header -->
+      <div class="je-drawer-header">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="badge b-mute" style="font-weight:600">${esc(j ? j.name : e.journal)}</span>
+            <span class="badge ${e.status === 'posted' ? 'b-ok' : 'b-mute'}">${badge(e.status)}</span>
+          </div>
+          <div style="font-size:18px;font-weight:700;color:#0f172a;margin-top:4px">${esc(entryRef(e))}</div>
+          <div style="font-size:12px;color:#64748b">${e.accountingDate} ${e.description ? '· ' + esc(e.description) : ''}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <button type="button" class="btn sm" data-act="je-view" data-id="${e.id}" title="Open full screen entry view">Full view</button>
+          <button type="button" class="je-drawer-close-btn" data-act="je-drawer-close" aria-label="Close drawer">${ic('close', 16)}</button>
+        </div>
+      </div>
+
+      <!-- Body -->
+      <div class="je-drawer-body">
+        <!-- KPI Strip -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px 14px">
+            <div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase">Total Debit</div>
+            <div style="font-size:16px;font-weight:700;color:#0f172a;margin-top:2px">${money(td)} EGP</div>
+          </div>
+          <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px 14px">
+            <div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase">Total Credit</div>
+            <div style="font-size:16px;font-weight:700;color:#0f172a;margin-top:2px">${money(tc)} EGP</div>
+          </div>
+        </div>
+
+        ${!bal ? '<div class="note bad" style="margin:0">Warning: Entry is not balanced!</div>' : ''}
+        ${calcErr ? `<div class="note bad" style="margin:0">${esc(calcErr)}</div>` : ''}
+
+        <!-- Details Box -->
+        <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;font-size:12.5px">
+          <div style="display:flex;justify-content:space-between">
+            <span style="color:#64748b">Journal:</span>
+            <b style="color:#0f172a">${esc(j ? j.name : e.journal)}</b>
+          </div>
+          <div style="display:flex;justify-content:space-between">
+            <span style="color:#64748b">Date:</span>
+            <b style="color:#0f172a">${e.accountingDate}</b>
+          </div>
+          ${partners.length ? `
+          <div style="display:flex;justify-content:space-between">
+            <span style="color:#64748b">Partner:</span>
+            <b style="color:#0f172a">${esc(partners.join(', '))}</b>
+          </div>` : ''}
+          ${e.currency && e.currency !== 'EGP' ? `
+          <div style="display:flex;justify-content:space-between">
+            <span style="color:#64748b">Currency & Rate:</span>
+            <b style="color:#0f172a">${e.currency} · 1 ${e.currency} = ${fmtNum(e.rate, 4)} EGP</b>
+          </div>` : ''}
+        </div>
+
+        <!-- Journal Lines Table -->
+        <div style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden">
+          <div style="background:#f8fafc;padding:8px 12px;border-bottom:1px solid #e2e8f0;font-size:12px;font-weight:700;color:#334155;display:flex;justify-content:space-between">
+            <span>Journal items (${lines.length})</span>
+            <span style="color:${bal ? '#16a34a' : '#dc2626'}">${bal ? '✓ Balanced' : 'Unbalanced'}</span>
+          </div>
+          <table style="width:100%;border-collapse:collapse;font-size:12px">
+            <thead>
+              <tr style="background:#fafafa;border-bottom:1px solid #e2e8f0;color:#64748b;font-size:11px;text-transform:uppercase">
+                <th style="padding:7px 10px;text-align:start">Account</th>
+                <th style="padding:7px 10px;text-align:start">Label</th>
+                <th style="padding:7px 10px;text-align:end">Debit</th>
+                <th style="padding:7px 10px;text-align:end">Credit</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${lines.map(l => {
+                const a0 = acc(l.accountId);
+                const dr = l.egpDebit && D(l.egpDebit).gt(0);
+                const cr = l.egpCredit && D(l.egpCredit).gt(0);
+                return `<tr style="border-bottom:1px solid #f1f5f9">
+                  <td style="padding:8px 10px;vertical-align:top">
+                    <b style="color:#0f172a">${esc(a0 ? a0.code : '')}</b>
+                    <div style="color:#64748b;font-size:11px">${esc(a0 ? a0.name : l.accountId)}</div>
+                  </td>
+                  <td style="padding:8px 10px;vertical-align:top;color:#334155">${esc(l.label || l.name || '—')}</td>
+                  <td style="padding:8px 10px;text-align:end;vertical-align:top;font-family:monospace;font-weight:${dr ? '700' : 'normal'};color:${dr ? '#0f172a' : '#94a3b8'}">${dr ? money(l.egpDebit) : '—'}</td>
+                  <td style="padding:8px 10px;text-align:end;vertical-align:top;font-family:monospace;font-weight:${cr ? '700' : 'normal'};color:${cr ? '#0f172a' : '#94a3b8'}">${cr ? money(l.egpCredit) : '—'}</td>
+                </tr>`;
+              }).join('')}
+            </tbody>
+            <tfoot>
+              <tr style="background:#f8fafc;font-weight:700;border-top:1.5px solid #cbd5e1">
+                <td colspan="2" style="padding:8px 10px">Total</td>
+                <td style="padding:8px 10px;text-align:end;font-family:monospace">${money(td)}</td>
+                <td style="padding:8px 10px;text-align:end;font-family:monospace">${money(tc)}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Trigger smooth slide in
+  requestAnimationFrame(() => {
+    const ov = container.querySelector('.je-side-drawer-overlay');
+    const dr = container.querySelector('.je-side-drawer');
+    if (ov) ov.classList.add('active');
+    if (dr) dr.classList.add('active');
+  });
+}
+
+function closeJeDrawer(){
+  const container = document.getElementById('je-drawer-container');
+  if (!container) return;
+  const ov = container.querySelector('.je-side-drawer-overlay');
+  const dr = container.querySelector('.je-side-drawer');
+  if (ov) ov.classList.remove('active');
+  if (dr) dr.classList.remove('active');
+  document.querySelectorAll('.po-je-tr').forEach(r => r.classList.remove('active-je-row'));
+  setTimeout(() => { if (container) container.innerHTML = ''; }, 260);
+}
+
+// Click handlers for drawer
+Object.assign(CLICK, {
+  'je-drawer-view'(el){
+    const id = el.dataset.id || (el.closest('[data-id]') && el.closest('[data-id]').dataset.id);
+    if (id) openJeDrawer(id);
+  },
+  'je-drawer-close'(){
+    closeJeDrawer();
+  }
+});
+
+// Close drawer on Escape key
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape'){
+    const dr = document.querySelector('.je-side-drawer.active');
+    if (dr) { e.stopPropagation(); closeJeDrawer(); }
+  }
+});
+
 render();
 </script>
 </body>
