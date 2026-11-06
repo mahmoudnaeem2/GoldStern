@@ -323,58 +323,66 @@ tr.row-link{cursor:pointer}tr.row-link:hover td{background:#f8f6ef}
 
 /* Luxury Executive Table & Panel Styling */
 
-/* ---- Luxury Segmented Tabs Control ---- */
+/* ---- Classic Modern Underline Tabs ---- */
 .po-tabs-wrapper {
-  margin-top: 24px;
-  background: #f1f5f9;
-  padding: 4px;
-  border-radius: 10px;
-  border: 1px solid #e2e8f0;
-  display: inline-flex;
-  flex-wrap: wrap;
-  gap: 4px;
+  margin-top: 24px !important;
+  background: transparent !important;
+  padding: 0 !important;
+  border: none !important;
+  border-bottom: 2px solid #e2e8f0 !important;
+  border-radius: 0 !important;
+  display: flex !important;
+  gap: 12px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
 }
 .po-tabs-wrapper .po-tab-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 8px 16px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #64748b;
-  background: transparent;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.15s ease;
-  font-family: inherit;
-  line-height: 1.4;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 12px 18px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  color: #64748b !important;
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 2px solid transparent !important;
+  border-radius: 0 !important;
+  margin-bottom: -2px !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+  transition: all 0.15s ease !important;
+  font-family: inherit !important;
+  line-height: 1.4 !important;
 }
 .po-tabs-wrapper .po-tab-btn:hover {
-  color: #0f172a;
-  background: rgba(255, 255, 255, 0.6);
+  color: #0f172a !important;
+  border-bottom-color: #cbd5e1 !important;
+  background: transparent !important;
 }
 .po-tabs-wrapper .po-tab-btn.active {
-  color: #0f172a;
-  background: #ffffff;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04);
-  font-weight: 700;
+  color: #0f172a !important;
+  font-weight: 700 !important;
+  border-bottom: 2px solid #0f172a !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 .po-tabs-wrapper .po-tab-badge {
-  font-size: 11px;
-  font-weight: 700;
-  padding: 1px 7px;
-  border-radius: 99px;
-  background: #e2e8f0;
-  color: #475569;
-  transition: all 0.15s ease;
-  display: inline-block;
-  line-height: 1.3;
+  font-size: 11.5px !important;
+  font-weight: 600 !important;
+  padding: 2px 8px !important;
+  border-radius: 99px !important;
+  background: #f1f5f9 !important;
+  color: #475569 !important;
+  border: 1px solid #e2e8f0 !important;
+  transition: all 0.15s ease !important;
+  display: inline-block !important;
+  line-height: 1.2 !important;
 }
 .po-tabs-wrapper .po-tab-btn.active .po-tab-badge {
-  background: #0284c7;
-  color: #ffffff;
+  background: #0f172a !important;
+  color: #ffffff !important;
+  border-color: #0f172a !important;
 }
 
 /* Action Buttons & Statusbar Size Enhancement */
@@ -12354,11 +12362,7 @@ function poView(po){
             ${ic('file', 15)} <span>Journal Entries</span>
             <span class="po-tab-badge">${carJEs.length}</span>
           </button>
-          ${v ? `
-          <button type="button" class="po-tab-btn" data-po-tab="specs">
-            ${ic('cars', 15)} <span>Vehicle Specs</span>
-          </button>
-          ` : ''}
+
         </div>
 
         <div class="tab-contents" style="padding-top:18px">
@@ -12522,25 +12526,7 @@ function poView(po){
             ` : '<div class="muted" style="padding:16px;text-align:center;background:#f8fafc;border-radius:8px">No journal entries posted for this car yet.</div>'}
           </div>
 
-          <!-- Tab 6: Vehicle Details -->
-          ${v ? `
-          <div class="po-tab-pane" data-pane="specs">
-            <div class="po-panel">
-              <div class="po-panel-title">${ic('cars', 14)} Full Vehicle Specifications</div>
-              <table class="po-table-kv">
-                <tbody>
-                  <tr><td class="lbl">Vehicle Model</td><td class="val"><a href="#/veh/view?id=${v.id}" style="font-weight:700;color:#0284c7">${esc(carName(v))}</a></td></tr>
-                  <tr><td class="lbl">Chassis (VIN)</td><td class="val mono">${esc(v.vin)}</td></tr>
-                  <tr><td class="lbl">Internal Code</td><td class="val mono">${esc(v.code)}</td></tr>
-                  <tr><td class="lbl">Vehicle Status</td><td class="val">${badge(v.status)}</td></tr>
-                  <tr><td class="lbl">Exterior / Interior</td><td class="val">${esc([v.exteriorColor, v.interiorColor].filter(Boolean).join(' / ') || '—')}</td></tr>
-                  <tr><td class="lbl">Year &amp; Mileage</td><td class="val">${v.year || '—'}${v.mileage ? ` · ${esc(v.mileage)} km` : ''}</td></tr>
-                  <tr><td class="lbl">Current Location</td><td class="val">${esc(locName(v.location) || 'In transit')}</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-          ` : ''}
+
         </div>
       </div>
     </div>` });
