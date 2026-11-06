@@ -6022,7 +6022,7 @@ window.addEventListener('hashchange', () => { if (SCREEN && !GOING_BACK) PAGE_RE
 /* ---------------- Navigation model ---------------- */
 const NAV = [
   { key:'dashboard', route:'dashboard', phase:1 },
-  { key:'purchases', group:true, children:[ { key:'import_orders', route:'pur/import', phase:6, mod:'purchases' }, { key:'pur_orders', route:'pur/orders', phase:6, mod:'purchases' }, { key:'car_expenses', route:'pur/carexp', phase:6, mod:'imports' },
+  { key:'purchases', group:true, children:[ { key:'import_orders', route:'pur/import', phase:6, mod:'purchases' }, { key:'car_expenses', route:'pur/carexp', phase:6, mod:'imports' },
     { key:'supp_bills', route:'ap/invoices', phase:4, mod:'ap' }, { key:'payments', route:'ap/receipts', phase:4, mod:'ap' }, { key:'supp_adv', route:'ap/advances', phase:4, mod:'ap' }, { key:'suppliers', route:'partners/suppliers', phase:4, mod:'suppliers' } ] },
   { key:'sales', group:true, children:[ { key:'sorders', route:'sal/orders', phase:7, mod:'sales' }, { key:'proforma', route:'sal/proforma', phase:7, mod:'sales' }, { key:'quotes', route:'sal/quotes', phase:7, mod:'sales' }, { key:'inquiries', route:'sal/inquiries', phase:7, mod:'sales' },
     { key:'cust_inv', route:'ar/invoices', phase:4, mod:'ar' }, { key:'receipts', route:'ar/receipts', phase:4, mod:'ar' }, { key:'cust_adv', route:'ar/advances', phase:4, mod:'ar' }, { key:'deliveries', route:'sal/deliveries', phase:7, mod:'sales' }, { key:'customers', route:'partners/customers', phase:4, mod:'customers' } ] },
@@ -6207,7 +6207,7 @@ function navHTML(){
 }
 /* Each app's top menu, grouped like Odoo: single links and dropdowns. Unlisted pages are appended as links. */
 const NAV_MENUS = {
-  purchases: [['pur/import'], ['pur/orders'], ['pur/carexp'], ['Billing', ['ap/invoices', 'ap/receipts', 'ap/advances']], ['partners/suppliers']],
+  purchases: [['pur/import'], ['pur/carexp'], ['Billing', ['ap/invoices', 'ap/receipts', 'ap/advances']], ['partners/suppliers']],
   sales: [['Orders', ['sal/orders', 'sal/quotes', 'sal/inquiries']], ['sal/proforma'], ['Invoicing', ['ar/invoices', 'ar/receipts', 'ar/advances', 'sal/deliveries']], ['partners/customers']],
   cars: [['inv/overview'], ['Cars', ['veh/list', 'inv/stock']], ['Operations', ['inv/receipts', 'inv/deliveries', 'inv/moves', 'inv/counts']]],
   banking: [['bank/accounts'], ['Operations', ['bank/txns', 'bank/transfers']], ['bank/statements'], ['Currency', ['settings/rates', 'bank/reval']]],
