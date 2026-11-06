@@ -12333,13 +12333,18 @@ function poView(po){
   const custReductions = c.sale ? reductionsFor(c.sale.id) : [];
   const suppReductions = c.supInv ? reductionsFor(c.supInv.id) : [];
 
+  const invPays = (inv, own) => inv ? invState(inv).reductions.filter(r => ACTIVE_ST.includes(r.status) && !own.some(x => x.id === r.src.id || x.id === r.src.sourceId)).map(r => ({ r, inv, date: r.src.date, currency: inv.currency, amount: r.applied, egp: D(r.carrying || 0) })) : [];
+  const custPays = invPays(c.sale, dep), supPays = invPays(c.supInv, adv);
+  const depAll = [...dep, ...custPays], advAll = [...adv, ...supPays];
+  const canDel = !c.invoiced && !c.sold && !depAll.length && !advAll.length && !cxTot.gt(0) && !carJEs.length && can('purchases', 'edit');
+
   const acts = !shut && closed ? [v && can('vehicles', 'edit') ? `<button type="button" class="btn primary" data-act="car-close" data-id="${v.id}" data-po="${po.id}">Close car</button>` : ''] : shut ? [(nextStepButtons(po, false).match(/<button[^>]*data-act="io-pay"[\s\S]*?<\/button>/g) || []).join(''), can('vehicles', 'edit') ? `<button type="button" class="btn" data-act="car-reopen" data-id="${v.id}" data-po="${po.id}">Reopen</button>` : ''] : [nextStepButtons(po, false).replace(/btn gold/g, 'btn primary'),
     po.customerId && can('ar', 'create') && po.status !== 'cancelled' && !c.sold ? `<button type="button" class="btn" data-act="po-adv" data-side="ar" data-id="${po.id}">${ic('plus', 14)} Customer deposit</button>` : '',
     v && !shut && can('imports', 'create') ? `<button type="button" class="btn" data-act="cx-new" data-veh="${v.id}" data-po="${po.id}">${ic('plus', 14)} Car expense</button>` : '',
     po.status === 'approved' && can('ap', 'create') && !c.invoiced ? `<button type="button" class="btn" data-act="po-adv" data-side="ap" data-id="${po.id}">${ic('plus', 14)} Supplier advance</button>` : '',
     v && c.sold && !shut && can('vehicles', 'edit') ? `<button type="button" class="btn" data-act="car-close" data-id="${v.id}" data-po="${po.id}">Close car</button>` : '',
     docButtons('po', po, false),
-    (!c.invoiced && !c.sold && !depAll.length && !advAll.length && cxTot.eq(0) && !carJEs.length && can('purchases', 'edit') ? `<button type="button" class="btn danger" data-act="po-del" data-id="${po.id}" title="Delete order (only allowed because it has no transactions)" style="background:#fee2e2;color:#dc2626;border-color:#fca5a5">${ic('close', 14)} Delete order</button>` : '')].join('');
+    (canDel ? `<button type="button" class="btn danger" data-act="po-del" data-id="${po.id}" title="Delete order (only allowed because it has no transactions)" style="background:#fee2e2;color:#dc2626;border-color:#fca5a5">${ic('close', 14)} Delete order</button>` : '')].join('');
 
   const renderPayRow = x => {
     const e = entryById(x.entryId), av = entryStatus(x) === 'posted' ? advState(x).avail : null;
@@ -12349,8 +12354,7 @@ function poView(po){
       <td style="white-space:nowrap;text-align:end">${closed ? '' : `${av && av.gt(0) && S.invoices.some(i => i.side === x.side && i.partnerId === x.partnerId && invIsLive(i) && invState(i).open.gt(0)) && can(SIDES[x.side].mod, 'create') ? `<button type="button" class="btn sm" data-act="adv-alloc" data-side="${x.side}" data-id="${x.id}">Apply</button>` : ''}${docButtons(setRef(x).kind, x)}`}</td></tr>`;
   };
 
-  const invPays = (inv, own) => inv ? invState(inv).reductions.filter(r => ACTIVE_ST.includes(r.status) && !own.some(x => x.id === r.src.id || x.id === r.src.sourceId)).map(r => ({ r, inv, date: r.src.date, currency: inv.currency, amount: r.applied, egp: D(r.carrying || 0) })) : [];
-  const custPays = invPays(c.sale, dep), supPays = invPays(c.supInv, adv);
+  
   const renderInvPay = ({ r, inv }) => { const x = r.src, e = entryById(x.entryId), isC = x.type === 'credit', isA = x.type === 'advance';
     const via = x.bankId ? esc(((bankById(x.bankId) || {}).name || '').replace(' — ', ' ')) : '';
     const lbl = isC ? 'Credit note' : isA ? (inv.side === 'ar' ? 'Deposit applied' : 'Advance applied') : (inv.side === 'ar' ? 'Payment received' : 'Payment');
@@ -12360,7 +12364,7 @@ function poView(po){
   const byDate = (a, b) => a.date < b.date ? -1 : 1;
   const depRows = [...dep.map(x => ({ date: x.date, h: renderPayRow(x) })), ...custPays.map(z => ({ date: z.date, h: renderInvPay(z) }))].sort(byDate).map(z => z.h).join('');
   const advRows = [...adv.map(x => ({ date: x.date, h: renderPayRow(x) })), ...supPays.map(z => ({ date: z.date, h: renderInvPay(z) }))].sort(byDate).map(z => z.h).join('');
-  const depAll = [...dep, ...custPays], advAll = [...adv, ...supPays];
+  
 
   const payTot = list => {
     const m = new Map(); let egp = D0();
