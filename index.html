@@ -3484,6 +3484,14 @@ Object.assign(A, {
     const e = entryById(inv.entryId); if (!e) throw new AppError('Journal entry not found.');
     if (e.status === 'draft') throw new AppError(`${inv.number} is already in draft status.`);
     const pc = checkPostingAllowed(e.accountingDate); if (!pc.ok) throw new AppError('Cannot reset to draft: ' + pc.reason);
+    
+    // 1. Remove advance allocations created for this invoice so the source advance gets its available balance back
+    const advAllocs = (S.settlements || []).filter(x => x.type === 'advance' && (x.allocations || []).some(a => a.invoiceId === inv.id));
+    const advEntryIds = advAllocs.map(x => x.entryId).filter(Boolean);
+    S.settlements = (S.settlements || []).filter(x => !(x.type === 'advance' && (x.allocations || []).some(a => a.invoiceId === inv.id)));
+    if (advEntryIds.length) S.entries = (S.entries || []).filter(en => !advEntryIds.includes(en.id));
+
+    // 2. Unlink any direct allocations on cash settlements and restore unapplied amount
     for (const s of S.settlements){
       const match = (s.allocations || []).filter(a => a.invoiceId === inv.id);
       if (match.length){
@@ -4027,14 +4035,52 @@ function invState(inv){
 }
 const invIsLive = inv => inv.type !== 'credit' && entryStatus(inv) === 'posted';
 function advState(s){
-  const unapplied = D(s.unapplied || '0'), egp = D(s.unappliedEgp || '0');
+  let unapplied = D(s.unapplied || '0'), egp = D(s.unappliedEgp || '0');
+  if (unapplied.eq(0) && (!s.allocations || !s.allocations.length) && D(s.amount || '0').gt(0)){
+    unapplied = D(s.amount || '0');
+    egp = D(s.bankEgp || s.amount || '0');
+  }
   const uses = S.settlements.filter(x => x.type === 'advance' && x.sourceId === s.id).map(x => ({ x, st: entryStatus(x) }));
   const act = uses.filter(u => ACTIVE_ST.includes(u.st)), pst = uses.filter(u => u.st === 'posted');
   const sum = (a, k) => a.reduce((t, u) => t.plus(u.x[k]), D0());
   return { unapplied, egp, avail: unapplied.minus(sum(act, 'amount')), egpAvail: egp.minus(sum(act, 'sourceCarrying')),
     availPosted: unapplied.minus(sum(pst, 'amount')), egpAvailPosted: egp.minus(sum(pst, 'sourceCarrying')) };
 }
-const advSources = (side, partnerId) => S.settlements.filter(s => s.side === side && s.type === 'cash' && D(s.unapplied || '0').gt(0) && entryStatus(s) === 'posted' && (!partnerId || s.partnerId === partnerId));
+const advSources = (side, partnerId) => S.settlements.filter(s => s.side === side && s.type === 'cash' && (D(s.unapplied || '0').gt(0) || (!s.allocations?.length && D(s.amount || '0').gt(0))) && entryStatus(s) === 'posted' && (!partnerId || s.partnerId === partnerId));
+function partnerCreditsFor(inv){
+  if (!inv || !inv.partnerId) return [];
+  const side = inv.side;
+  return advSources(side, inv.partnerId).map(s => {
+    const as = advState(s);
+    const po = s.poId ? poById(s.poId) : null;
+    const v = s.vehicleId ? vehById(s.vehicleId) : (po ? poVehicle(po) : null);
+    const b = s.bankId ? bankById(s.bankId) : null;
+    return {
+      src: s,
+      id: s.id,
+      number: s.number,
+      date: s.date,
+      currency: s.currency,
+      avail: as.avail,
+      availPosted: as.availPosted,
+      egpAvail: as.egpAvail,
+      rate: s.rate,
+      kind: s.poId ? (side === 'ar' ? 'Customer deposit' : 'Supplier advance') : (side === 'ar' ? 'Payment received' : 'Payment'),
+      bank: b ? b.name : '',
+      po: po ? po.number : '',
+      vehicle: v ? carName(v) : '',
+      vin: v ? v.vin : '',
+      ref: s.reference || s.transferRef || '',
+      sub: [
+        s.date,
+        b ? b.name : '',
+        po ? po.number : '',
+        v ? `Chassis ${v.vin}` : '',
+        s.reference ? `Ref: ${s.reference}` : ''
+      ].filter(Boolean).join(' · ')
+    };
+  }).filter(x => x.avail.gt(0));
+}
 function carryingFor(inv, applied, st){
   if (D(applied).eq(st.open)) return st.egpOpen;
   return r2(D(applied).mul(invRate(inv)));
@@ -6472,7 +6518,7 @@ const NAV = [
   { key:'banking', group:true, children:[ { key:'bank_accounts', route:'bank/accounts', phase:3, mod:'banking' }, { key:'transfers', route:'bank/transfers', phase:3, mod:'banking' },
     { key:'bank_txns', route:'bank/txns', phase:3, mod:'banking' }, { key:'statements', route:'bank/statements', phase:3, mod:'banking' }, { key:'rates', route:'settings/rates', phase:1, mod:'exchange_rates' }, { key:'reval', route:'bank/reval', phase:3, mod:'fx_reval' } ] },
   { key:'accounting', group:true, children:[
-    { key:'cust_inv', route:'ar/invoices', phase:4, mod:'ar' }, { key:'receipts', route:'ar/receipts', phase:4, mod:'ar' }, { key:'cust_adv', route:'ar/advances', phase:4, mod:'ar' }, { key:'customers', route:'partners/customers', phase:4, mod:'customers' },
+    { key:'cust_inv', route:'ar/invoices', phase:4, mod:'ar' }, { key:'proforma', route:'sal/proforma', phase:7, mod:'sales' }, { key:'receipts', route:'ar/receipts', phase:4, mod:'ar' }, { key:'cust_adv', route:'ar/advances', phase:4, mod:'ar' }, { key:'customers', route:'partners/customers', phase:4, mod:'customers' },
     { key:'supp_bills', route:'ap/invoices', phase:4, mod:'ap' }, { key:'payments', route:'ap/receipts', phase:4, mod:'ap' }, { key:'supp_adv', route:'ap/advances', phase:4, mod:'ap' }, { key:'suppliers', route:'partners/suppliers', phase:4, mod:'suppliers' },
     { key:'fs', route:'rep/statements', phase:10, mod:'ledger' }, { key:'ar', route:'ar/aging', phase:4, mod:'ar' }, { key:'ap', route:'ap/aging', phase:4, mod:'ap' }, { key:'tax_rep', route:'tax/report', phase:9, mod:'tax' }, { key:'profitability', route:'ana/profit', phase:8, mod:'analytics' },
     { key:'tax_codes', route:'tax/codes', phase:9, mod:'tax' }, { key:'mappings', route:'acc/mappings', phase:2, mod:'mappings' }, { key:'fiscal', route:'settings/fiscal', phase:1, mod:'fiscal' }, { key:'rates', route:'settings/rates', phase:1, mod:'exchange_rates' }, { key:'analytic_accounts', route:'ana/accounts', phase:8, mod:'analytics' }, { key:'month_close', route:'acc/close', phase:2, mod:'ledger' }, { key:'journals', route:'acc/journals', phase:2, mod:'journals' },
@@ -6651,11 +6697,11 @@ function navHTML(){
 /* Each app's top menu, grouped like Odoo: single links and dropdowns. Unlisted pages are appended as links. */
 const NAV_MENUS = {
   purchases: [['pur/import'], ['pur/carexp'], ['Billing', ['ap/invoices', 'ap/receipts', 'ap/advances']], ['partners/suppliers']],
-  sales: [['Orders', ['sal/orders', 'sal/quotes', 'sal/inquiries']], ['sal/proforma'], ['Invoicing', ['ar/invoices', 'ar/receipts', 'ar/advances', 'sal/deliveries']], ['partners/customers']],
+  sales: [['Orders', ['sal/orders', 'sal/quotes', 'sal/inquiries']], ['Invoicing', ['ar/invoices', 'sal/proforma', 'ar/receipts', 'ar/advances', 'sal/deliveries']], ['partners/customers']],
   cars: [['inv/overview'], ['Cars', ['veh/list', 'inv/stock']], ['Operations', ['inv/receipts', 'inv/deliveries', 'inv/moves', 'inv/counts']]],
   banking: [['bank/accounts'], ['Operations', ['bank/txns', 'bank/transfers']], ['bank/statements'], ['Currency', ['settings/rates', 'bank/reval']]],
   accounting: [
-    ['Customers', ['ar/invoices', 'ar/receipts', 'ar/advances', '§', 'partners/customers']],
+    ['Customers', ['ar/invoices', 'sal/proforma', 'ar/receipts', 'ar/advances', '§', 'partners/customers']],
     ['Vendors', ['ap/invoices', 'ap/receipts', 'ap/advances', '§', 'partners/suppliers']],
     ['Accounting', ['§Transactions', 'acc/journals', 'acc/opening', '§Management', 'fa/register', 'bank/reval', '§Actions', 'acc/close']],
     ['Reporting', ['§Statement reports', ['Balance sheet', 'rep/statements?s=bs'], ['Profit and loss', 'rep/statements?s=is'], ['Cash flow statement', 'rep/statements?s=cf'], ['Changes in equity', 'rep/statements?s=eq'],
@@ -12114,6 +12160,7 @@ function invoiceView(inv){
   const lines = inv.lines && inv.lines.length ? inv.lines : [{ description: inv.reason || title, amount: inv.total }];
   const red = st ? st.reductions.filter(r => ACTIVE_ST.includes(r.status)) : [];
   const advs = live && !isC && st.open.gt(0) ? advSources(side, inv.partnerId).filter(s0 => advState(s0).availPosted.gt(0)) : [];
+  const credits = live && !isC && st && st.open.gt(0) ? partnerCreditsFor(inv) : [];
   const steps = isC ? [['Posted', live]] : [['Posted', live], ['Paid', live && st.open.eq(0)]];
   let cur = steps.findIndex(x => !x[1]); cur = cur < 0 ? steps.length - 1 : Math.max(0, cur - 1);
   const acts = [];
@@ -12204,6 +12251,36 @@ function invoiceView(inv){
                 </tr>
               </tbody>
             </table>
+            ${credits.length > 0 ? `
+            <div style="margin-top:14px;padding:12px 14px;background:#f0fdf4;border:1px solid #86efac;border-radius:8px">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                <span style="font-size:12px;font-weight:700;color:#166534;display:flex;align-items:center;gap:6px">
+                  ${ic('wallet', 14)} Outstanding Credits (${credits.length})
+                </span>
+                <span style="font-size:11px;color:#15803d;font-weight:600">Available to allocate</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:6px">
+                ${credits.map(c => `
+                  <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:#ffffff;border:1px solid #bbf7d0;border-radius:6px;gap:8px">
+                    <div style="min-width:0;flex:1">
+                      <div style="font-size:12.5px;font-weight:700;color:#0f172a;display:flex;align-items:center;gap:6px">
+                        <span>${esc(c.number)}</span>
+                        <span class="pill ok" style="font-size:10px;padding:1px 5px">${esc(c.kind)}</span>
+                      </div>
+                      <div class="muted" style="font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+                        ${esc(c.sub)}
+                      </div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+                      <b class="mono" style="font-size:13px;color:#15803d">${money(c.avail)} ${c.currency}</b>
+                      <button type="button" class="btn sm ok" data-act="inv-alloc-quick" data-id="${inv.id}" data-src="${c.id}" style="padding:4px 10px;font-size:11.5px;font-weight:700;white-space:nowrap">
+                        + Add
+                      </button>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>` : ''}
           </div>
 
           <!-- Right Panel: Partner & Details -->
@@ -12245,7 +12322,7 @@ function invoiceView(inv){
           </button>
           <button type="button" class="po-tab-btn" data-po-tab="inv-payments">
             <span>Payments &amp; Allocations</span>
-            <span class="po-tab-badge">${red.length}</span>
+            <span class="po-tab-badge">${red.length}${credits.length ? ` (+${credits.length})` : ''}</span>
           </button>
           ${e && e.lines ? `
           <button type="button" class="po-tab-btn" data-po-tab="inv-journal">
@@ -12292,7 +12369,10 @@ function invoiceView(inv){
           <!-- Pane 2: Payments -->
           <div class="po-tab-pane" data-pane="inv-payments">
             ${payRows ? `
-            <div class="tbl-wrap">
+            <div class="tbl-wrap" style="margin-bottom:18px">
+              <div style="font-size:12.5px;font-weight:700;color:#334155;margin-bottom:8px;display:flex;align-items:center;gap:6px">
+                ${ic('check', 14)} Allocated Payments &amp; Deductions (${red.length})
+              </div>
               <table>
                 <thead>
                   <tr>
@@ -12307,7 +12387,52 @@ function invoiceView(inv){
                   ${payRows}
                 </tbody>
               </table>
-            </div>` : '<div class="muted" style="padding:20px;text-align:center;background:#f8fafc;border-radius:8px">No payments or advances registered for this invoice yet.</div>'}
+            </div>` : '<div class="muted" style="padding:16px;text-align:center;background:#f8fafc;border-radius:8px;margin-bottom:16px">No payments or deductions applied to this invoice yet.</div>'}
+
+            ${credits.length > 0 ? `
+            <div style="padding:16px;background:#f0fdf4;border:1px solid #86efac;border-radius:10px">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+                <div>
+                  <div style="font-size:13.5px;font-weight:700;color:#166534;display:flex;align-items:center;gap:6px">
+                    ${ic('wallet', 16)} Outstanding Credits / Unallocated Payments (${credits.length})
+                  </div>
+                  <div style="font-size:12px;color:#15803d;margin-top:2px">
+                    Payments and deposits received from ${esc(p ? p.legalName : 'this partner')} with available unallocated balance.
+                  </div>
+                </div>
+                <span class="pill ok" style="font-weight:700;font-size:12px">Amount Due: ${money(st.open)} ${inv.currency}</span>
+              </div>
+              <div class="tbl-wrap" style="background:#ffffff;border-radius:8px;border:1px solid #bbf7d0">
+                <table>
+                  <thead>
+                    <tr style="background:#f8fafc">
+                      <th>Date</th>
+                      <th>Payment / Advance #</th>
+                      <th>Type</th>
+                      <th>Reference / Bank / Vehicle</th>
+                      <th class="num">Available Balance</th>
+                      <th class="num" style="text-align:center">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${credits.map(c => `
+                      <tr>
+                        <td>${c.date}</td>
+                        <td><b class="mono" style="color:#0f172a">${esc(c.number)}</b></td>
+                        <td><span class="pill ok">${esc(c.kind)}</span></td>
+                        <td class="wrap" style="font-size:12px">${esc(c.sub)}</td>
+                        <td class="num mono"><b style="color:#15803d;font-size:13.5px">${money(c.avail)} ${c.currency}</b></td>
+                        <td style="text-align:center">
+                          <button type="button" class="btn sm ok" data-act="inv-alloc-quick" data-id="${inv.id}" data-src="${c.id}" style="padding:4px 12px;font-weight:700;font-size:12px">
+                            + Add / Allocate
+                          </button>
+                        </td>
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+              </div>
+            </div>` : ''}
           </div>
 
           <!-- Pane 3: Journal Items (Odoo Notebook Tab) -->
@@ -12581,10 +12706,59 @@ Object.assign(CLICK, {
     CLICK['adv-alloc']({ dataset: { side: inv.side, id: src.id } }); const form = document.getElementById('mform'); if (!form) return;
     const sel = form.querySelector('[name=invoiceId]'); if (sel) sel.value = inv.id;
     const st = invState(inv), as = advState(src);
-    if (inv.currency === src.currency){ const v = (as.avail.lt(st.open) ? as.avail : st.open).toFixed(2); form.querySelector('[name=applied]').value = v; }
-    else if (inv.currency === 'EGP'){ let por = as.avail, ap = r2(por.mul(src.rate)); if (ap.gt(st.open)){ ap = st.open; por = r2(ap.div(src.rate)); } form.querySelector('[name=applied]').value = ap.toFixed(2); form.querySelector('[name=portion]').value = por.toFixed(2); }
-    form.querySelector('[name=applied]').dispatchEvent(new Event('input', { bubbles: true }));
+    if (inv.currency === src.currency){
+      const v = (as.avail.lt(st.open) ? as.avail : st.open).toFixed(2);
+      if (form.querySelector('[name=applied]')) form.querySelector('[name=applied]').value = v;
+      if (form.querySelector('[name=portion]')) form.querySelector('[name=portion]').value = v;
+    } else if (inv.currency === 'EGP'){
+      let por = as.avail, ap = r2(por.mul(src.rate));
+      if (ap.gt(st.open)){ ap = st.open; por = r2(ap.div(src.rate)); }
+      if (form.querySelector('[name=applied]')) form.querySelector('[name=applied]').value = ap.toFixed(2);
+      if (form.querySelector('[name=portion]')) form.querySelector('[name=portion]').value = por.toFixed(2);
+    } else if (src.currency === 'EGP'){
+      const rate = invRate(inv) || src.rate || 1;
+      let ap = st.open, por = r2(ap.mul(rate));
+      if (por.gt(as.avail)){ por = as.avail; ap = r2(por.div(rate)); }
+      if (form.querySelector('[name=applied]')) form.querySelector('[name=applied]').value = ap.toFixed(2);
+      if (form.querySelector('[name=portion]')) form.querySelector('[name=portion]').value = por.toFixed(2);
+    }
+    const appEl = form.querySelector('[name=applied]');
+    if (appEl) appEl.dispatchEvent(new Event('input', { bubbles: true }));
     if (MODAL){ const orig = MODAL.onSubmit; MODAL.onSubmit = f => { orig(f); return () => invoiceView(S.invoices.find(x => x.id === inv.id)); }; } },
+  'inv-alloc-quick'(el){
+    const inv = S.invoices.find(i => i.id === el.dataset.id);
+    const src = S.settlements.find(s => s.id === el.dataset.src);
+    if (!inv || !src) return;
+    const st = invState(inv), as = advState(src);
+    if (!st || !st.open.gt(0)) return toast('This invoice has no outstanding balance.', 'info');
+    if (!as.avail.gt(0)) return toast('This payment has no available balance to allocate.', 'bad');
+
+    if (inv.currency === src.currency){
+      const take = as.avail.lt(st.open) ? as.avail : st.open;
+      const today = todayCairo();
+      let allocDate = today >= src.date && today >= inv.date ? today : (src.date > inv.date ? src.date : inv.date);
+      if (!checkPostingAllowed(allocDate).ok && checkPostingAllowed(inv.date).ok && inv.date >= src.date) {
+        allocDate = inv.date;
+      }
+      try {
+        A.allocateAdvance(inv.side, {
+          sourceId: src.id,
+          invoiceId: inv.id,
+          date: allocDate,
+          applied: take.toFixed(2),
+          portion: take.toFixed(2)
+        });
+        toast(`Successfully allocated ${money(take)} ${inv.currency} from ${src.number} to ${inv.number}`, 'ok');
+        invoiceView(S.invoices.find(x => x.id === inv.id));
+        return;
+      } catch (err){
+        toast(err.message, 'bad');
+      }
+    }
+
+    closeModal();
+    CLICK['inv-adv']({ dataset: { id: inv.id, src: src.id } });
+  },
   'inv-reset-draft'(el){
     const inv = S.invoices.find(i => i.id === el.dataset.id); if (!inv) return;
     const st = inv.type === 'credit' ? null : invState(inv);
