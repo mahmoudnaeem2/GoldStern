@@ -376,6 +376,45 @@ tr.row-link{cursor:pointer}tr.row-link:hover td{background:#f8f6ef}
   background: #0284c7;
   color: #ffffff;
 }
+
+/* Action Buttons & Statusbar Size Enhancement */
+.doc-actions .btn {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  padding: 8px 18px !important;
+  min-height: 38px !important;
+  border-radius: 8px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  letter-spacing: normal !important;
+  line-height: 1.4 !important;
+}
+.doc-actions .btn.primary {
+  background: #0f172a !important;
+  color: #ffffff !important;
+  border: 1px solid #0f172a !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12) !important;
+}
+.doc-actions .btn.primary:hover {
+  background: #1e293b !important;
+  border-color: #1e293b !important;
+}
+.statusbar span {
+  padding: 8px 18px 8px 20px !important;
+  font-size: 13.5px !important;
+  line-height: 1.4 !important;
+}
+.statusbar span.cur {
+  font-weight: 700 !important;
+  background: #0f172a !important;
+}
+.po-tabs-wrapper .po-tab-btn {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  padding: 9px 20px !important;
+}
+
 .po-sheet-header {
   display: flex;
   justify-content: space-between;
@@ -12154,11 +12193,11 @@ function poView(po){
   const custReductions = c.sale ? reductionsFor(c.sale.id) : [];
   const suppReductions = c.supInv ? reductionsFor(c.supInv.id) : [];
 
-  const acts = !shut && closed ? [v && can('vehicles', 'edit') ? `<button type="button" class="btn primary sm" data-act="car-close" data-id="${v.id}" data-po="${po.id}">Close car</button>` : ''] : shut ? [(nextStepButtons(po, false).match(/<button[^>]*data-act="io-pay"[\s\S]*?<\/button>/g) || []).map(b => b.replace('class="btn', 'class="btn sm')).join(''), can('vehicles', 'edit') ? `<button type="button" class="btn sm" data-act="car-reopen" data-id="${v.id}" data-po="${po.id}">Reopen</button>` : ''] : [nextStepButtons(po, false).replace(/btn gold/g, 'btn primary sm').replace(/class="btn"/g, 'class="btn sm"'),
-    po.customerId && can('ar', 'create') && po.status !== 'cancelled' && !c.sold ? `<button type="button" class="btn sm" data-act="po-adv" data-side="ar" data-id="${po.id}">${ic('plus', 13)} Customer deposit</button>` : '',
-    po.status === 'approved' && can('ap', 'create') && !c.invoiced ? `<button type="button" class="btn sm" data-act="po-adv" data-side="ap" data-id="${po.id}">${ic('plus', 13)} Supplier advance</button>` : '',
-    v && c.sold && !shut && can('vehicles', 'edit') ? `<button type="button" class="btn sm" data-act="car-close" data-id="${v.id}" data-po="${po.id}">Close car</button>` : '',
-    docButtons('po', po, false).replace(/class="btn"/g, 'class="btn sm"')].join('');
+  const acts = !shut && closed ? [v && can('vehicles', 'edit') ? `<button type="button" class="btn primary" data-act="car-close" data-id="${v.id}" data-po="${po.id}">Close car</button>` : ''] : shut ? [(nextStepButtons(po, false).match(/<button[^>]*data-act="io-pay"[\s\S]*?<\/button>/g) || []).join(''), can('vehicles', 'edit') ? `<button type="button" class="btn" data-act="car-reopen" data-id="${v.id}" data-po="${po.id}">Reopen</button>` : ''] : [nextStepButtons(po, false).replace(/btn gold/g, 'btn primary'),
+    po.customerId && can('ar', 'create') && po.status !== 'cancelled' && !c.sold ? `<button type="button" class="btn" data-act="po-adv" data-side="ar" data-id="${po.id}">${ic('plus', 14)} Customer deposit</button>` : '',
+    po.status === 'approved' && can('ap', 'create') && !c.invoiced ? `<button type="button" class="btn" data-act="po-adv" data-side="ap" data-id="${po.id}">${ic('plus', 14)} Supplier advance</button>` : '',
+    v && c.sold && !shut && can('vehicles', 'edit') ? `<button type="button" class="btn" data-act="car-close" data-id="${v.id}" data-po="${po.id}">Close car</button>` : '',
+    docButtons('po', po, false)].join('');
 
   const renderPayRow = x => {
     const e = entryById(x.entryId), av = entryStatus(x) === 'posted' ? advState(x).avail : null;
@@ -12197,8 +12236,8 @@ function poView(po){
       <div class="doc-top" style="margin:0;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
         <div class="doc-actions" style="display:flex;flex-wrap:wrap;gap:8px">
           ${acts}
-          <button type="button" class="btn sm" data-act="car-report-pdf" data-id="${po.id}" style="display:inline-flex;align-items:center;gap:5px">${ic('printer', 14)} Car report (PDF)</button>
-          <button type="button" class="btn sm" data-act="po-print" data-id="${po.id}" style="display:inline-flex;align-items:center;gap:5px">${ic('printer', 14)} Print PO</button>
+          <button type="button" class="btn" data-act="car-report-pdf" data-id="${po.id}" style="display:inline-flex;align-items:center;gap:6px">${ic('printer', 15)} Car report (PDF)</button>
+          <button type="button" class="btn" data-act="po-print" data-id="${po.id}" style="display:inline-flex;align-items:center;gap:6px">${ic('printer', 15)} Print PO</button>
         </div>
         <div class="statusbar">
           ${steps.map(([t0, ok], i) => `<span class="${i < cur || (i === cur && i === steps.length - 1 && ok) ? 'done' : i === cur ? 'cur' : ''}">${i < cur || (i === cur && ok && i === steps.length - 1) ? '✓ ' : ''}${t0}</span>`).join('')}
