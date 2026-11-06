@@ -327,55 +327,53 @@ tr.row-link{cursor:pointer}tr.row-link:hover td{background:#f8f6ef}
 /* ---- Classic Modern Underline Tabs ---- */
 .po-tabs-wrapper {
   margin-top: 24px !important;
-  background: transparent !important;
-  padding: 0 !important;
-  border: none !important;
-  border-bottom: 2px solid #e2e8f0 !important;
-  border-radius: 0 !important;
-  display: flex !important;
-  gap: 12px !important;
-  width: 100% !important;
+  background: #f1f5f9 !important;
+  padding: 5px !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  width: auto !important;
+  max-width: 100% !important;
   box-sizing: border-box !important;
+  overflow-x: auto !important;
 }
 .po-tabs-wrapper .po-tab-btn {
   display: inline-flex !important;
   align-items: center !important;
   gap: 8px !important;
-  padding: 12px 18px !important;
-  font-size: 14px !important;
+  padding: 8px 16px !important;
+  font-size: 13.5px !important;
   font-weight: 500 !important;
   color: #64748b !important;
   background: transparent !important;
   border: none !important;
-  border-bottom: 2px solid transparent !important;
-  border-radius: 0 !important;
-  margin-bottom: -2px !important;
+  border-radius: 8px !important;
   cursor: pointer !important;
   white-space: nowrap !important;
   transition: all 0.15s ease !important;
   font-family: inherit !important;
-  line-height: 1.4 !important;
+  line-height: 1.3 !important;
 }
 .po-tabs-wrapper .po-tab-btn:hover {
   color: #0f172a !important;
-  border-bottom-color: #cbd5e1 !important;
-  background: transparent !important;
+  background: rgba(255, 255, 255, 0.7) !important;
 }
 .po-tabs-wrapper .po-tab-btn.active {
   color: #0f172a !important;
-  font-weight: 700 !important;
-  border-bottom: 2px solid #0f172a !important;
-  background: transparent !important;
-  box-shadow: none !important;
+  font-weight: 650 !important;
+  background: #ffffff !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04) !important;
 }
 .po-tabs-wrapper .po-tab-badge {
-  font-size: 11.5px !important;
+  font-size: 11px !important;
   font-weight: 600 !important;
-  padding: 2px 8px !important;
-  border-radius: 99px !important;
-  background: #f1f5f9 !important;
+  padding: 2px 7px !important;
+  border-radius: 999px !important;
+  background: #e2e8f0 !important;
   color: #475569 !important;
-  border: 1px solid #e2e8f0 !important;
+  border: none !important;
   transition: all 0.15s ease !important;
   display: inline-block !important;
   line-height: 1.2 !important;
@@ -383,7 +381,6 @@ tr.row-link{cursor:pointer}tr.row-link:hover td{background:#f8f6ef}
 .po-tabs-wrapper .po-tab-btn.active .po-tab-badge {
   background: #0f172a !important;
   color: #ffffff !important;
-  border-color: #0f172a !important;
 }
 
 /* Action Buttons & Statusbar Size Enhancement */
@@ -12479,27 +12476,26 @@ function poView(po){
         <!-- Segmented Luxury Tabs -->
         <div class="po-tabs-wrapper">
           <button type="button" class="po-tab-btn active" data-po-tab="invoices">
-            ${ic('invoices', 15)} <span>Invoices &amp; Billing</span>
+            <span>Invoices &amp; Billing</span>
           </button>
           <button type="button" class="po-tab-btn" data-po-tab="deposits">
-            ${ic('invoices', 15)} <span>Customer Deposits</span>
+            <span>Customer Deposits</span>
             <span class="po-tab-badge">${depAll.length}</span>
           </button>
           <button type="button" class="po-tab-btn" data-po-tab="advances">
-            ${ic('purchases', 15)} <span>Vendor Advances</span>
+            <span>Vendor Advances</span>
             <span class="po-tab-badge">${advAll.length}</span>
           </button>
           ${v ? `
           <button type="button" class="po-tab-btn" data-po-tab="expenses">
-            ${ic('purchases', 15)} <span>Landed Expenses</span>
+            <span>Landed Expenses</span>
             <span class="po-tab-badge">${carExpensesOf(v.id).length}</span>
           </button>
           ` : ''}
           <button type="button" class="po-tab-btn" data-po-tab="je">
-            ${ic('file', 15)} <span>Journal Entries</span>
+            <span>Journal Entries</span>
             <span class="po-tab-badge">${carJEs.length}</span>
           </button>
-
         </div>
 
         <div class="tab-contents" style="padding-top:18px">
@@ -13710,17 +13706,18 @@ function openJeDrawer(entryId){
             </thead>
             <tbody>
               ${lines.map(l => {
-                const a0 = acc(l.accountId);
+                const a0 = acc(l.accountId) || accByCode(l.accountId) || (S.accounts || []).find(a => a.code === String(l.accountId) || a.id === String(l.accountId));
+                const aName = accName(a0);
                 const dr = l.egpDebit && D(l.egpDebit).gt(0);
                 const cr = l.egpCredit && D(l.egpCredit).gt(0);
                 return `<tr style="border-bottom:1px solid #f1f5f9">
-                  <td style="padding:8px 10px;vertical-align:top">
-                    <b style="color:#0f172a">${esc(a0 ? a0.code : '')}</b>
-                    <div style="color:#64748b;font-size:11px">${esc(a0 ? a0.name : l.accountId)}</div>
+                  <td style="padding:10px 12px;vertical-align:top">
+                    <div style="font-weight:700;color:#0f172a;font-family:monospace;font-size:13px">${esc(a0 ? a0.code : (l.accountId || '—'))}</div>
+                    <div style="color:#475569;font-size:12px;margin-top:2px;font-weight:500">${esc(aName !== '?' ? aName : (a0 ? (a0.nameEn || a0.nameAr || '') : ''))}</div>
                   </td>
-                  <td style="padding:8px 10px;vertical-align:top;color:#334155">${esc(l.label || l.name || '—')}</td>
-                  <td style="padding:8px 10px;text-align:end;vertical-align:top;font-family:monospace;font-weight:${dr ? '700' : 'normal'};color:${dr ? '#0f172a' : '#94a3b8'}">${dr ? money(l.egpDebit) : '—'}</td>
-                  <td style="padding:8px 10px;text-align:end;vertical-align:top;font-family:monospace;font-weight:${cr ? '700' : 'normal'};color:${cr ? '#0f172a' : '#94a3b8'}">${cr ? money(l.egpCredit) : '—'}</td>
+                  <td style="padding:10px 12px;vertical-align:top;color:#334155;font-size:12.5px">${esc(l.description || l.label || e.description || '—')}${l.partner ? `<div style="font-size:11px;color:#64748b;margin-top:2px">${esc(l.partner)}</div>` : ''}</td>
+                  <td style="padding:10px 12px;text-align:end;vertical-align:top;font-family:monospace;font-size:13px;font-weight:${dr ? '700' : 'normal'};color:${dr ? '#0f172a' : '#94a3b8'}">${dr ? money(l.egpDebit) : '—'}</td>
+                  <td style="padding:10px 12px;text-align:end;vertical-align:top;font-family:monospace;font-size:13px;font-weight:${cr ? '700' : 'normal'};color:${cr ? '#0f172a' : '#94a3b8'}">${cr ? money(l.egpCredit) : '—'}</td>
                 </tr>`;
               }).join('')}
             </tbody>
