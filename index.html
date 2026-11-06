@@ -162,9 +162,12 @@ html[dir=rtl] .shell.collapsed + #modal-root .modal-bg, html[dir=rtl] .shell.col
 .btn.sm{min-height:28px;padding:3px 11px;font-size:12px;border-radius:7px}
 .btn:disabled{opacity:.45;cursor:not-allowed}
 table{width:100%;border-collapse:separate;border-spacing:0}
-.tbl-wrap{overflow-x:auto}
+.tbl-wrap{overflow-x:auto;overflow-y:auto;position:relative}
+.card > .tbl-wrap, .card .tbl-wrap{max-height:calc(100vh - 230px);overflow-y:auto;overflow-x:auto}
+.modal-b .tbl-wrap{max-height:480px;overflow-y:auto;overflow-x:auto}
 th,td{padding:12px 16px;border-bottom:1px solid #f1f5f9;text-align:start;vertical-align:middle}
 th{font-size:11.5px;font-weight:650;text-transform:uppercase;letter-spacing:.05em;color:#64748b;background:#f8fafc;border-bottom:1px solid #e2e8f0;white-space:nowrap}
+table thead th,.tbl-wrap thead th,.o-list thead th{position:sticky!important;top:0!important;z-index:10!important;background:#f8fafc!important;box-shadow:0 1px 0 #e2e8f0,0 2px 4px rgba(15,23,42,.03)!important}
 tbody tr{transition:background-color .12s ease}
 tbody tr:hover td{background:#f8fafc}
 tbody tr:last-child td{border-bottom:none}
@@ -3475,6 +3478,40 @@ function reverseCore(e, date, reason, me){
     return r;
 }
 Object.assign(A, {
+  resetInvoiceToDraft(invId, reason){
+    const me = requirePerm('journals', 'reverse');
+    const inv = S.invoices.find(x => x.id === invId); if (!inv) throw new AppError('Invoice not found.');
+    const e = entryById(inv.entryId); if (!e) throw new AppError('Journal entry not found.');
+    if (e.status === 'draft') throw new AppError(`${inv.number} is already in draft status.`);
+    const pc = checkPostingAllowed(e.accountingDate); if (!pc.ok) throw new AppError('Cannot reset to draft: ' + pc.reason);
+    for (const s of S.settlements){
+      const match = (s.allocations || []).filter(a => a.invoiceId === inv.id);
+      if (match.length){
+        const unlinked = match.reduce((tot, a) => tot.plus(a.applied || '0'), D0());
+        s.unapplied = D(s.unapplied || '0').plus(unlinked).toFixed(2);
+        s.allocations = s.allocations.filter(a => a.invoiceId !== inv.id);
+      }
+    }
+    const prevStatus = e.status;
+    e.status = 'draft';
+    e.history.push({ at: nowISO(), by: me.id, action: 'reset to draft', note: reason || 'Reset to draft' });
+    inv.status = 'draft';
+    log('document_reset_draft', inv.side === 'ap' ? 'ap' : 'ar', inv.id, { status: prevStatus }, { status: 'draft' }, reason || 'Reset to draft', inv.number);
+    saveState();
+    return inv;
+  },
+  postDraftInvoice(invId){
+    const me = requirePerm('journals', APPROVALS ? 'post' : 'create');
+    const inv = S.invoices.find(x => x.id === invId); if (!inv) throw new AppError('Invoice not found.');
+    const e = entryById(inv.entryId); if (!e) throw new AppError('Journal entry not found.');
+    if (e.status === 'posted') throw new AppError(`${inv.number} is already posted.`);
+    const pc = checkPostingAllowed(e.accountingDate); if (!pc.ok) throw new AppError('Cannot post invoice: ' + pc.reason);
+    doPost(e, me);
+    inv.status = 'posted';
+    log('entry_post', inv.side === 'ap' ? 'ap' : 'ar', inv.id, { status: 'draft' }, { status: 'posted' }, 'Invoice posted from draft', inv.number);
+    saveState();
+    return inv;
+  },
   closeFiscalYear(fyId, confirm){
     const me = requirePerm('fiscal', 'approve'); requirePerm('journals', 'post');
     const fy = S.fiscalYears.find(f => f.id === fyId); if (!fy) throw new AppError('Fiscal year not found.');
@@ -12078,11 +12115,14 @@ function invoiceView(inv){
   const steps = isC ? [['Posted', live]] : [['Posted', live], ['Paid', live && st.open.eq(0)]];
   let cur = steps.findIndex(x => !x[1]); cur = cur < 0 ? steps.length - 1 : Math.max(0, cur - 1);
   const acts = [];
-  if (live && !isC && st.open.gt(0) && can(SD.mod, 'create')) acts.push(`<button type="button" class="btn primary" data-act="inv-pay" data-id="${inv.id}">Register payment</button>`);
+  if (live && !isC && st.open.gt(0) && can(SD.mod, 'create')) acts.push(`<button type="button" class="btn primary" data-act="inv-pay" data-id="${inv.id}">${ic('coins', 14)} Register payment</button>`);
   for (const a of advs.slice(0, 2)) acts.push(`<button type="button" class="btn" data-act="inv-adv" data-id="${inv.id}" data-src="${a.id}">Apply advance ${money(advState(a).availPosted)} ${a.currency}</button>`);
-  if (live && !isC && st.open.gt(0) && can(SD.mod, 'create') && inv.type !== 'opening') acts.push(`<button type="button" class="btn" data-act="inv-credit" data-side="${side}" data-id="${inv.id}">Credit note</button>`);
+  if (live && !isC && can(SD.mod, 'create') && inv.type !== 'opening') acts.push(`<button type="button" class="btn" data-act="inv-credit" data-side="${side}" data-id="${inv.id}">Credit note</button>`);
+  if (live && can('journals', 'reverse') && inv.type !== 'opening') acts.push(`<button type="button" class="btn" data-act="inv-reset-draft" data-id="${inv.id}">${ic('undo', 14) || '↺'} Reset to draft</button>`);
+  if (!live && e && e.status === 'draft' && can('journals', APPROVALS ? 'post' : 'create')) acts.push(`<button type="button" class="btn primary" data-act="inv-post" data-id="${inv.id}">${ic('check', 14)} Post</button>`);
   if (!(live && !isC && st.open.eq(0))) acts.push(docButtons(ref.kind, ref.doc, false));
   acts.push(`<button type="button" class="btn" data-act="inv-print" data-id="${inv.id}">${ic('printer', 14)} Print</button>`);
+  if (e) acts.push(`<button type="button" class="btn" data-act="je-drawer-view" data-id="${e.id}">${ic('accounting', 14)} Journal entry</button>`);
 
   const payRows = red.map(r => { const s0 = r.src, se = entryById(s0.entryId), kind = s0.type === 'credit' ? 'Credit note' : s0.type === 'advance' ? 'Advance applied' : (side === 'ar' ? 'Payment received' : 'Payment');
     return `<tr><td>${s0.date}</td><td><span class="pill ${side === 'ar' ? 'ok' : 'info'}">${kind}</span></td><td>${se ? entryLink(se).replace(esc(entryRef(se)), esc(s0.number)) : esc(s0.number)}</td><td class="num mono"><b>${money(r.applied)} ${inv.currency}</b></td><td class="num mono">${money(r.carrying)}</td></tr>`; }).join('');
@@ -12096,19 +12136,21 @@ function invoiceView(inv){
 
   openModal({ screen: { key: 'inv:' + inv.id, reopen: () => { const x = S.invoices.find(y => y.id === inv.id); if (x) invoiceView(x); } }, title: `${title} ${inv.number}`, xwide: true, body: `
     <div style="display:flex;flex-direction:column;gap:14px">
-      <!-- 1. Top Control Bar: Actions on Left, Statusbar on Right -->
-      <div class="doc-top" style="margin:0;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
-        <div class="doc-actions" style="display:flex;flex-wrap:wrap;gap:8px">
+      <!-- 1. Top Control Bar: Actions on Left, Odoo Chevron Statusbar on Right -->
+      <div class="o-bar" style="margin:0;width:100%;max-width:none">
+        <div class="btns">
           ${acts.join('')}
         </div>
-        <div class="statusbar">
-          ${steps.map(([t0, ok], i) => `<span class="${ok ? 'done' : i === cur ? 'cur' : ''}">${ok ? '✓ ' : ''}${t0}</span>`).join('')}
+        <div class="o-status">
+          <span class="${!live ? 'on' : ''}">Draft</span>
+          <span class="${live ? 'on' : ''}">Posted</span>
+          ${!isC ? `<span class="${live && st.open.eq(0) ? 'on' : ''}">Paid</span>` : ''}
         </div>
       </div>
 
       <!-- 2. Clean Document Sheet -->
       <div class="sheet" style="margin:0;padding:24px 28px;background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.05)">
-        <div class="po-sheet-header">
+        <div class="po-sheet-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px">
           <div class="po-title-section">
             <span class="po-badge-kind">${esc(title)}</span>
             <h2 class="po-title-text">${esc(inv.number)}</h2>
@@ -12119,15 +12161,49 @@ function invoiceView(inv){
               ${overdue ? '<span class="pill bad">Overdue</span>' : ''}
             </div>
           </div>
-          ${v ? `
-            <div class="po-car-banner">
-              <div class="po-car-banner-icon">${ic('cars', 22)}</div>
-              <div class="po-car-banner-info">
-                <a href="#/veh/view?id=${v.id}" class="po-car-banner-name" style="text-decoration:none">${esc(carName(v))}</a>
-                <span class="po-car-banner-sub">Chassis: <b class="mono" style="color:#0284c7">${esc(v.vin)}</b> · Code: <span class="mono">${esc(v.code)}</span></span>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            ${v ? `
+              <div class="po-car-banner">
+                <div class="po-car-banner-icon">${ic('cars', 22)}</div>
+                <div class="po-car-banner-info">
+                  <a href="#/veh/view?id=${v.id}" class="po-car-banner-name" style="text-decoration:none">${esc(carName(v))}</a>
+                  <span class="po-car-banner-sub">Chassis: <b class="mono" style="color:#0284c7">${esc(v.vin)}</b> · Code: <span class="mono">${esc(v.code)}</span></span>
+                </div>
               </div>
+            ` : ''}
+            <div class="o-stats">
+              ${e ? `
+              <button type="button" class="o-stat" data-act="je-drawer-view" data-id="${e.id}" title="Open Journal Entry ${esc(entryRef(e))}">
+                <div style="display:flex;align-items:center;gap:6px">
+                  ${ic('accounting', 15)}
+                  <b>${esc(entryRef(e))}</b>
+                </div>
+                <small>${esc((journalOf(e.journal) || {}).name || e.journal)} · ${e.status}</small>
+              </button>` : ''}
+              <button type="button" class="o-stat" data-goto-tab="inv-payments" title="View Payments & Allocations">
+                <div style="display:flex;align-items:center;gap:6px">
+                  ${ic('coins', 15)}
+                  <b>${red.length} Payment${red.length !== 1 ? 's' : ''}</b>
+                </div>
+                <small>${paidAmt.gt(0) ? `${money(paidAmt)} ${inv.currency}` : '0.00 ' + inv.currency} paid</small>
+              </button>
+              ${srcPo ? `
+              <button type="button" class="o-stat" data-act="po-view" data-id="${srcPo.id}" title="View Purchase Order ${esc(srcPo.number)}">
+                <div style="display:flex;align-items:center;gap:6px">
+                  ${ic('purchases', 15)}
+                  <b>${esc(srcPo.number)}</b>
+                </div>
+                <small>Purchase Order</small>
+              </button>` : so ? `
+              <button type="button" class="o-stat" data-act="so-view" data-id="${so.id}" title="View Sales Order ${esc(so.number)}">
+                <div style="display:flex;align-items:center;gap:6px">
+                  ${ic('sales', 15)}
+                  <b>${esc(so.number)}</b>
+                </div>
+                <small>Sales Order</small>
+              </button>` : ''}
             </div>
-          ` : ''}
+          </div>
         </div>
 
         <!-- 2 Clean Panels Grid -->
@@ -12187,7 +12263,7 @@ function invoiceView(inv){
                 ${e ? `
                 <tr>
                   <td class="lbl">Journal Entry</td>
-                  <td class="val"><button type="button" class="lnk0 mono" data-act="je-view" data-id="${e.id}" style="color:#0284c7;font-weight:700">${esc(e.number || e.draftRef)}</button></td>
+                  <td class="val"><button type="button" class="lnk0 mono" data-act="je-drawer-view" data-id="${e.id}" style="color:#0284c7;font-weight:700">${esc(e.number || e.draftRef)}</button></td>
                 </tr>` : ''}
               </tbody>
             </table>
@@ -12204,6 +12280,11 @@ function invoiceView(inv){
             <span>Payments &amp; Allocations</span>
             <span class="po-tab-badge">${red.length}</span>
           </button>
+          ${e && e.lines ? `
+          <button type="button" class="po-tab-btn" data-po-tab="inv-journal">
+            <span>Journal Items</span>
+            <span class="po-tab-badge">${e.lines.length}</span>
+          </button>` : ''}
           ${(srcPo || so || (isC && inv.invoiceId)) ? `
           <button type="button" class="po-tab-btn" data-po-tab="inv-linked">
             <span>Linked Documents</span>
@@ -12262,7 +12343,64 @@ function invoiceView(inv){
             </div>` : '<div class="muted" style="padding:20px;text-align:center;background:#f8fafc;border-radius:8px">No payments or advances registered for this invoice yet.</div>'}
           </div>
 
-          <!-- Pane 3: Linked Documents -->
+          <!-- Pane 3: Journal Items (Odoo Notebook Tab) -->
+          ${e && e.lines && e.lines.length ? `
+          <div class="po-tab-pane" data-pane="inv-journal">
+            <div style="margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+              <div style="font-size:13px;color:#64748b">
+                Journal: <b style="color:#0f172a">${esc((journalOf(e.journal) || {}).name || e.journal)}</b> · 
+                Entry: <b class="mono" style="color:#0284c7">${esc(entryRef(e))}</b> · 
+                Date: <b style="color:#0f172a">${e.accountingDate}</b> · 
+                Status: ${badge(e.status)}
+              </div>
+              <button type="button" class="btn sm" data-act="je-drawer-view" data-id="${e.id}" style="font-weight:600">
+                ${ic('accounting', 14)} Open full entry drawer
+              </button>
+            </div>
+            <div class="tbl-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Account</th>
+                    <th>Label</th>
+                    <th>Partner</th>
+                    <th>Vehicle / Asset</th>
+                    <th class="num">Debit (${e.currency || 'EGP'})</th>
+                    <th class="num">Credit (${e.currency || 'EGP'})</th>
+                    ${e.currency !== 'EGP' ? '<th class="num">EGP</th>' : ''}
+                  </tr>
+                </thead>
+                <tbody>
+                  ${e.lines.map(l => {
+                    const ac = l.accountId ? acc(l.accountId) : null;
+                    const lVeh = l.vehicleId ? vehById(l.vehicleId) : (l.vehicle ? S.vehicles.find(v0 => v0.vin === l.vehicle) : null);
+                    return `<tr>
+                      <td><b>${ac ? esc(ac.code) : '—'}</b> <span style="color:#475569">${ac ? esc(accName(ac)) : ''}</span></td>
+                      <td class="wrap">${esc(l.description || e.description || '')}</td>
+                      <td>${l.partner ? esc(l.partner) : (p ? esc(p.legalName) : '<span class="muted">—</span>')}</td>
+                      <td>${lVeh ? `<span class="mono" style="color:#0284c7;font-weight:600">${esc(lVeh.vin)}</span>` : '<span class="muted">—</span>'}</td>
+                      <td class="num mono">${l.debit && D(l.debit).gt(0) ? `<b>${money(l.debit)}</b>` : '<span class="muted">0.00</span>'}</td>
+                      <td class="num mono">${l.credit && D(l.credit).gt(0) ? `<b>${money(l.credit)}</b>` : '<span class="muted">0.00</span>'}</td>
+                      ${e.currency !== 'EGP' ? `<td class="num mono muted">${money(D(l.egpDebit || 0).plus(l.egpCredit || 0))}</td>` : ''}
+                    </tr>`;
+                  }).join('')}
+                </tbody>
+                <tfoot>
+                  <tr style="background:#f8fafc;font-weight:700">
+                    <td colspan="4" style="text-align:end">Total (${e.currency || 'EGP'}):</td>
+                    <td class="num mono" style="color:#0f172a">${money(e.totals ? e.totals.fcDebit || e.totals.egpDebit : '0')}</td>
+                    <td class="num mono" style="color:#0f172a">${money(e.totals ? e.totals.fcCredit || e.totals.egpCredit : '0')}</td>
+                    ${e.currency !== 'EGP' ? `<td class="num mono" style="color:#047857">${money(e.totals ? e.totals.egpDebit : '0')} EGP</td>` : ''}
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+            <div style="margin-top:10px;font-size:12px;color:#16a34a;font-weight:600;display:flex;align-items:center;gap:6px">
+              <span>✓ Double-entry balanced: Debits equal Credits. Posted to general ledger.</span>
+            </div>
+          </div>` : ''}
+
+          <!-- Pane 4: Linked Documents -->
           ${(srcPo || so || (isC && inv.invoiceId)) ? `
           <div class="po-tab-pane" data-pane="inv-linked">
             <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));gap:12px">
@@ -12479,7 +12617,33 @@ Object.assign(CLICK, {
     if (inv.currency === src.currency){ const v = (as.avail.lt(st.open) ? as.avail : st.open).toFixed(2); form.querySelector('[name=applied]').value = v; }
     else if (inv.currency === 'EGP'){ let por = as.avail, ap = r2(por.mul(src.rate)); if (ap.gt(st.open)){ ap = st.open; por = r2(ap.div(src.rate)); } form.querySelector('[name=applied]').value = ap.toFixed(2); form.querySelector('[name=portion]').value = por.toFixed(2); }
     form.querySelector('[name=applied]').dispatchEvent(new Event('input', { bubbles: true }));
-    if (MODAL){ const orig = MODAL.onSubmit; MODAL.onSubmit = f => { orig(f); return () => invoiceView(S.invoices.find(x => x.id === inv.id)); }; } }
+    if (MODAL){ const orig = MODAL.onSubmit; MODAL.onSubmit = f => { orig(f); return () => invoiceView(S.invoices.find(x => x.id === inv.id)); }; } },
+  'inv-reset-draft'(el){
+    const inv = S.invoices.find(i => i.id === el.dataset.id); if (!inv) return;
+    const st = inv.type === 'credit' ? null : invState(inv);
+    const red = st ? st.reductions.filter(r => ACTIVE_ST.includes(r.status)) : [];
+    const paidAmt = st ? st.total.minus(st.open) : D0();
+    const warnMsg = red.length > 0 
+      ? `<div class="note warn" style="margin-top:10px"><b>Notice:</b> This invoice has <b>${red.length} payment(s)</b> totaling <b>${money(paidAmt)} ${inv.currency}</b>. Resetting to draft will un-link these payments and return them to the partner's unallocated balance.</div>`
+      : '';
+    openModal({
+      title: `Reset ${inv.number} to Draft`,
+      submit: 'Reset to Draft',
+      body: `<p>Are you sure you want to reset <b>${esc(inv.number)}</b> back to draft status? Its journal entry will be unposted and removed from the general ledger until posted again.</p>${warnMsg}
+      <div class="field" style="margin-top:12px"><label>Reason for resetting to draft *</label><input class="input" name="reason" value="Correction needed" required></div>`,
+      onSubmit: f => {
+        A.resetInvoiceToDraft(inv.id, f.reason);
+        toast(`${inv.number} reset to draft.`, 'ok');
+        return () => invoiceView(S.invoices.find(x => x.id === inv.id));
+      }
+    });
+  },
+  'inv-post'(el){
+    const inv = S.invoices.find(i => i.id === el.dataset.id); if (!inv) return;
+    A.postDraftInvoice(inv.id);
+    toast(`${inv.number} posted successfully.`, 'ok');
+    invoiceView(S.invoices.find(x => x.id === inv.id));
+  }
 });
 /* Stat button for deposits/advances: one → open it; several → jump to the list on the order. */
 const payAttrs = list => list.length === 1 ? `data-act="je-view" data-id="${list[0].entryId}"` : `onclick="const t = document.getElementById('po-pay'); if (t) t.scrollIntoView({ behavior: 'smooth' }); else CLICK['po-view']({ dataset: { id: '${list[0].poId}' } });"`;
