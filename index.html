@@ -12039,18 +12039,12 @@ function poView(po){
 
       <!-- 2. Odoo Form Sheet -->
       <div class="sheet" style="margin:0;padding:24px 28px;background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.05)">
-        <div class="sheet-head" style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;border-bottom:1px solid #f1f5f9;padding-bottom:18px">
-          <div>
-            <div class="eyebrow" style="font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em">${po.importOrder ? (ORDER_KINDS[poKind(po)] || ORDER_KINDS.customer)[0] : 'Purchase order'}</div>
-            <h2 style="margin:4px 0 6px;font-size:26px;font-weight:800;color:#0f172a;letter-spacing:-0.02em">${esc(po.number)}</h2>
-            <div style="font-size:13.5px;color:#475569">
-              ${v ? `<b style="color:#0f172a">${esc(carName(v))}</b> · Chassis: <a href="#/veh/view?id=${v.id}" class="mono" style="color:#0284c7;font-weight:600">${esc(v.vin)}</a>` : ''}
-              <span class="muted" style="margin-inline-start:8px">· Order Date: ${po.date}</span>
-            </div>
-          </div>
-          <!-- Odoo Button Box Top Right -->
-          <div class="o-stats" style="border-radius:8px">
-            ${stats}
+        <div class="sheet-head" style="margin-bottom:16px;border-bottom:1px solid #f1f5f9;padding-bottom:16px">
+          <div class="eyebrow" style="font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em">${po.importOrder ? (ORDER_KINDS[poKind(po)] || ORDER_KINDS.customer)[0] : 'Purchase order'}</div>
+          <h2 style="margin:4px 0 6px;font-size:26px;font-weight:800;color:#0f172a;letter-spacing:-0.02em">${esc(po.number)}</h2>
+          <div style="font-size:13.5px;color:#475569">
+            ${v ? `<b style="color:#0f172a">${esc(carName(v))}</b> · Chassis: <a href="#/veh/view?id=${v.id}" class="mono" style="color:#0284c7;font-weight:600">${esc(v.vin)}</a>` : ''}
+            <span class="muted" style="margin-inline-start:8px">· Order Date: ${po.date}</span>
           </div>
         </div>
 
