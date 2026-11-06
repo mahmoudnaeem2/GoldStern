@@ -4724,6 +4724,34 @@ Object.assign(A, {
     po.status = approve ? 'approved' : 'cancelled'; po.decidedBy = me.id; po.decidedAt = nowISO(); po.reason = reason || '';
     log(approve ? 'po_approve' : 'po_reject', 'purchases', po.id, { status: 'submitted' }, { status: po.status }, reason || '', po.number); saveState();
   },
+  deletePO(id){
+    requirePerm('purchases', 'edit');
+    const po = poById(id);
+    if (!po) throw new AppError('Order not found.');
+    const v = poVehicle(po), sm = orderSummary(po), c = sm.c;
+    const cxTot = v ? carExpensesOf(v.id).reduce((t, r) => t.plus(r.egp), D0()) : D0();
+    const ownDep = poAdvances(po, 'ar').filter(x => ACTIVE_ST.includes(entryStatus(x)));
+    const custUnappliedAdvs = (po.customerId ? S.settlements.filter(s => s.side === 'ar' && s.type === 'cash' && s.partnerId === po.customerId && (!s.poId || s.poId === po.id) && (!s.vehicleId || (v && s.vehicleId === v.id)) && ACTIVE_ST.includes(entryStatus(s)) && !ownDep.some(d => d.id === s.id)) : []);
+    const depAll = [...ownDep, ...custUnappliedAdvs];
+    const advAll = poAdvances(po, 'ap').filter(x => ACTIVE_ST.includes(entryStatus(x)));
+    const carJEs = v ? carEntries(v) : [];
+
+    if (c.invoiced || c.sold || depAll.length > 0 || advAll.length > 0 || cxTot.gt(0) || carJEs.length > 0){
+      throw new AppError('Cannot delete order: This order already has recorded transactions (bills, deposits, advances, expenses, or journal entries).');
+    }
+
+    if (v){
+      const otherPos = S.purchaseOrders.filter(p => p.id !== po.id && poVehicle(p)?.id === v.id);
+      if (!otherPos.length){
+        S.vehicles = S.vehicles.filter(x => x.id !== v.id);
+        S.vehicleMoves = (S.vehicleMoves || []).filter(m => m.vehicleId !== v.id);
+      }
+    }
+
+    S.purchaseOrders = S.purchaseOrders.filter(x => x.id !== po.id);
+    log('po_delete', 'purchases', po.id, { number: po.number }, null, 'Deleted car order with no transactions', po.number);
+    saveState();
+  },
   cancelPO(id, reason){
     const me = requirePerm('purchases', 'approve'); const po = poById(id); if (!po) throw new AppError('PO not found.');
     if (!String(reason || '').trim()) throw new AppError('A reason is required.');
@@ -10650,7 +10678,28 @@ Object.assign(CLICK, {
     log('export', 'coa', null, null, { rows: S.accounts.length }, 'CSV export'); saveState(); }); },
   'je-new'(){ openEntryEditor(null); },
   'ob-new'(){ openEntryEditor({ journal: 'OB', description: 'Opening balances at go-live', accountingDate: todayCairo() }, { journal: 'OB' }); },
-  'je-view'(el){ const e = S.entries.find(x => x.id === el.dataset.id); if (e) jeView(e); },
+  'je-view'(el){
+    if (document.querySelector('.po-tabs-wrapper') || (SCREEN && SCREEN.key && SCREEN.key.startsWith('po:'))){
+      const id = el.dataset.id || (el.closest('[data-id]') && el.closest('[data-id]').dataset.id);
+      if (id) return openJeDrawer(id);
+    }
+    const e = S.entries.find(x => x.id === el.dataset.id);
+    if (e) jeView(e);
+  },
+  'po-del'(el){
+    const id = el.dataset.id;
+    const po = poById(id);
+    if (!po) return;
+    if (!confirm(`Are you sure you want to delete order ${po.number}? This action cannot be undone.`)) return;
+    try {
+      A.deletePO(id);
+      closeModal();
+      render();
+      toast(`Order ${po.number} deleted successfully.`, 'ok');
+    } catch (err){
+      toast(err.message, 'bad');
+    }
+  },
   'je-edit'(el){ const e = S.entries.find(x => x.id === el.dataset.id); closeModal(); openEntryEditor(e, e.journal === 'OB' ? { journal: 'OB' } : {}); },
   'je-add-line'(){ document.getElementById('je-lines').insertAdjacentHTML('beforeend', jeLineRow({})); jeFillRates(); jeRecalc(); const r = document.querySelector('#je-lines tr:last-child [name=l_account]'); if (r) r.focus(); },
   'je-tab'(el){ const f = el.closest('.je-ed'); f.querySelectorAll('.je-tabs [data-t]').forEach(b => b.classList.toggle('on', b === el)); f.querySelectorAll('.je-pane').forEach(p => { p.hidden = p.dataset.p !== el.dataset.t; }); },
@@ -12292,7 +12341,8 @@ function poView(po){
     v && !shut && can('imports', 'create') ? `<button type="button" class="btn" data-act="cx-new" data-veh="${v.id}" data-po="${po.id}">${ic('plus', 14)} Car expense</button>` : '',
     po.status === 'approved' && can('ap', 'create') && !c.invoiced ? `<button type="button" class="btn" data-act="po-adv" data-side="ap" data-id="${po.id}">${ic('plus', 14)} Supplier advance</button>` : '',
     v && c.sold && !shut && can('vehicles', 'edit') ? `<button type="button" class="btn" data-act="car-close" data-id="${v.id}" data-po="${po.id}">Close car</button>` : '',
-    docButtons('po', po, false)].join('');
+    docButtons('po', po, false),
+    (!c.invoiced && !c.sold && !depAll.length && !advAll.length && cxTot.eq(0) && !carJEs.length && can('purchases', 'edit') ? `<button type="button" class="btn danger" data-act="po-del" data-id="${po.id}" title="Delete order (only allowed because it has no transactions)" style="background:#fee2e2;color:#dc2626;border-color:#fca5a5">${ic('close', 14)} Delete order</button>` : '')].join('');
 
   const renderPayRow = x => {
     const e = entryById(x.entryId), av = entryStatus(x) === 'posted' ? advState(x).avail : null;
@@ -12394,9 +12444,8 @@ function poView(po){
               </tbody>
             </table>
           </div>
-        </div>
 
-          <!-- Left Panel: Customer & Supplier -->
+          <!-- Right Panel: Customer & Supplier -->
           <div class="po-panel">
             <div class="po-panel-title">${ic('users', 14)} Customer &amp; Supplier Information</div>
             <table class="po-table-kv">
@@ -12425,6 +12474,8 @@ function poView(po){
               </tbody>
             </table>
           </div>
+        </div>
+
         <!-- Segmented Luxury Tabs -->
         <div class="po-tabs-wrapper">
           <button type="button" class="po-tab-btn active" data-po-tab="invoices">
@@ -12596,10 +12647,10 @@ function poView(po){
                     ${carJEs.map(e => {
                       const j = journalOf(e.journal);
                       const tot = e.totals ? e.totals.egpDebit : '0';
-                      return `<tr data-act="je-view" data-id="${e.id}" style="cursor:pointer">
+                      return `<tr data-act="je-drawer-view" data-id="${e.id}" class="po-je-tr" id="po-je-row-${e.id}" style="cursor:pointer">
                         <td style="white-space:nowrap;font-weight:600">${e.accountingDate}</td>
                         <td><span class="badge b-mute" style="font-weight:600">${esc(j ? j.name : e.journal)}</span></td>
-                        <td><b style="color:#0284c7">${esc(entryRef(e))}</b></td>
+                        <td><button type="button" class="lnk0 mono" data-act="je-drawer-view" data-id="${e.id}" style="color:#0284c7;font-weight:700"><b>${esc(entryRef(e))}</b></button></td>
                         <td class="wrap"><div style="font-size:13px">${esc(e.description || '')}</div>${e.partner ? `<div class="muted" style="font-size:11.5px">${esc(e.partner)}</div>` : ''}</td>
                         <td class="num mono"><b>${money(tot)}</b></td>
                         <td>${badge(e.status)}</td>
