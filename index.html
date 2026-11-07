@@ -1859,88 +1859,57 @@ td.nw,th{white-space:nowrap}
 
 /* ==== Accounting dashboard (Modern Executive Light UI) ==== */
 .ad{display:flex;flex-direction:column;gap:20px;max-width:1400px;margin:0 auto}
-.ad-top-bar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding-bottom:4px}
-.ad-top-title h1{margin:0;font-size:22px;font-weight:700;letter-spacing:-.02em;color:#0f172a}
-.ad-top-title p{margin:3px 0 0;color:#64748b;font-size:13px}
-.ad-top-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+input[type="date"]{min-height:38px;padding:7px 12px;border:1px solid #cbd5e1;border-radius:9px;background:#ffffff;color:#0f172a;font-family:inherit;font-size:13.5px;font-variant-numeric:tabular-nums;cursor:pointer;transition:all .15s ease;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+input[type="date"]:hover{border-color:#94a3b8}
+input[type="date"]:focus{outline:none;border-color:#0284c7;box-shadow:0 0 0 3px rgba(2,132,199,0.15)}
+input[type="date"]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:0.6;filter:invert(0.25) sepia(1) hue-rotate(180deg) saturate(2);transition:opacity .15s ease,transform .15s ease}
+input[type="date"]::-webkit-calendar-picker-indicator:hover{opacity:1;transform:scale(1.15)}
+input[type="date"]::-webkit-datetime-edit{font-family:inherit;letter-spacing:.02em}
+input[type="date"]::-webkit-datetime-edit-text{color:#94a3b8;padding:0 2px}
+input[type="date"]::-webkit-datetime-edit-month-field,input[type="date"]::-webkit-datetime-edit-day-field,input[type="date"]::-webkit-datetime-edit-year-field{color:#0f172a;font-weight:500}
 
-/* 4 Executive KPI Cards */
-.ad-ks-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
-.ad-k{display:flex;flex-direction:column;justify-content:space-between;gap:10px;padding:18px 20px;border-radius:12px;background:#ffffff;border:1px solid #e2e8f0;box-shadow:0 1px 2px rgba(15,23,42,.03);color:#0f172a!important;text-decoration:none!important;transition:border-color .15s,box-shadow .15s,transform .15s;position:relative;overflow:hidden}
-.ad-k:hover{border-color:#cbd5e1;box-shadow:0 4px 12px rgba(15,23,42,.06);transform:translateY(-1px)}
-.ad-k-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.ad-kl{font-size:12.5px;font-weight:600;color:#64748b;letter-spacing:.01em}
-.ad-kic{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;background:#f8fafc;color:#475569;border:1px solid #e2e8f0;flex:none}
-.ad-kic.blue{background:#eff6ff;color:#2563eb;border-color:#dbeafe}
-.ad-kic.emerald{background:#ecfdf5;color:#059669;border-color:#d1fae5}
-.ad-kic.amber{background:#fffbeb;color:#d97706;border-color:#fef3c7}
-.ad-kic.gold{background:#fefce8;color:#ca8a04;border-color:#fef08a}
-.ad-kic.warn{background:#fef2f2;color:#dc2626;border-color:#fee2e2}
-.ad-k b{font-size:22px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:#0f172a;white-space:nowrap;line-height:1.15}
-.ad-k b small{font-size:12px;font-weight:600;color:#64748b;margin-inline-start:3px}
-.ad-k b.neg{color:#dc2626}
+.ad-hero{background:linear-gradient(135deg,#0b1324 0%,#0f172a 50%,#1e293b 100%);border-radius:16px;padding:24px 28px;color:#ffffff;box-shadow:0 10px 25px -5px rgba(15,23,42,0.25),0 8px 10px -6px rgba(15,23,42,0.2);border:1px solid rgba(255,255,255,0.08);margin-bottom:20px}
+.ad-hero-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap}
+.ad-hero-head h1{margin:0;font-size:23px;font-weight:700;color:#ffffff;letter-spacing:-0.02em}
+.ad-hero-head p{margin:4px 0 0;color:#94a3b8;font-size:13.5px}
+.ad-hero-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ad-hero-actions .btn{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#f8fafc;backdrop-filter:blur(8px)}
+.ad-hero-actions .btn:hover{background:rgba(255,255,255,0.16);border-color:rgba(255,255,255,0.3)}
+.ad-hero-actions .btn.primary{background:var(--gold,#d97706);border-color:var(--gold,#d97706);color:#0f172a;font-weight:600}
+.ad-hero-actions .btn.primary:hover{background:#f59e0b;border-color:#f59e0b}
+
+.ad-ks{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.ad-k{display:flex;flex-direction:column;justify-content:space-between;gap:10px;padding:16px 18px;border-radius:12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);backdrop-filter:blur(12px);color:#ffffff;text-decoration:none;transition:all .2s ease}
+.ad-k:hover{background:rgba(255,255,255,0.09);border-color:rgba(255,255,255,0.2);transform:translateY(-2px)}
+.ad-k-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.ad-kl{font-size:12.5px;font-weight:600;color:#94a3b8;letter-spacing:.01em}
+.ad-kic{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);color:#38bdf8}
+.ad-kic.gold{color:#fbbf24;background:rgba(251,191,36,0.12);border-color:rgba(251,191,36,0.2)}
+.ad-kic.emerald{color:#34d399;background:rgba(52,211,153,0.12);border-color:rgba(52,211,153,0.2)}
+.ad-kic.amber{color:#fb923c;background:rgba(251,146,60,0.12);border-color:rgba(251,146,60,0.2)}
+.ad-k b{font-size:22px;font-weight:700;letter-spacing:-0.02em;font-variant-numeric:tabular-nums;color:#ffffff}
+.ad-k b small{font-size:12px;font-weight:500;color:#94a3b8;margin-inline-start:4px}
+.ad-k b.neg{color:#f87171}
 .ad-k-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:20px}
-.ad-ks{font-size:12px;color:#64748b;font-weight:500}
-.ad-ks.bad{color:#dc2626;font-weight:600}
-.ad-ks.ok{color:#059669;font-weight:600}
+.ad-ks{font-size:12px;color:#94a3b8;font-weight:500}
+.ad-ks.bad{color:#f87171;font-weight:600}
+.ad-ks.ok{color:#34d399;font-weight:600}
 .ad-mini{display:flex;align-items:flex-end;gap:3px;height:20px}
-.ad-mini i{display:block;width:5px;border-radius:1.5px;background:#0ea5e9;opacity:.85}
+.ad-mini i{display:block;width:5px;border-radius:1.5px;background:#38bdf8;opacity:.85}
 
-/* Compact Operational Strip */
-.sbs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
-.sb{display:flex;align-items:center;gap:10px;padding:11px 13px;background:#ffffff;border:1px solid #e2e8f0;border-radius:10px;color:#0f172a!important;text-decoration:none!important;position:relative;transition:border-color .15s,background .15s}
-.sb:hover{border-color:#cbd5e1;background:#f8fafc}
-.sb-ic{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;flex:none;background:#f1f5f9;color:#475569}
-.sb-tx{display:flex;flex-direction:column;min-width:0;line-height:1.2}
-.sb-tx b{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sb-l{font-size:12px;font-weight:600;color:#334155;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sbs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin-bottom:20px}
+.sb{background:#ffffff;border:1px solid #e2e8f0;border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:12px;text-decoration:none;color:#0f172a;box-shadow:0 1px 3px rgba(0,0,0,0.04);transition:all .15s ease;position:relative}
+.sb:hover{border-color:#cbd5e1;box-shadow:0 4px 10px rgba(15,23,42,0.06);transform:translateY(-1px)}
+.sb.alert::after{content:'';position:absolute;top:8px;right:8px;width:7px;height:7px;border-radius:50%;background:#ef4444;box-shadow:0 0 0 2px #fff}
+.sb-ic{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;flex:none;background:#f8fafc;color:#64748b;border:1px solid #e2e8f0}
+.sb.alert .sb-ic{background:#fef2f2;color:#dc2626;border-color:#fecaca}
+.sb.warn .sb-ic{background:#fffbeb;color:#d97706;border-color:#fde68a}
+.sb.ok .sb-ic{background:#ecfdf5;color:#059669;border-color:#a7f3d0}
+.sb-tx{min-width:0;flex:1;display:flex;flex-direction:column}
+.sb-tx b{font-size:16px;font-weight:700;line-height:1.15;color:#0f172a}
+.sb-l{font-size:12px;font-weight:600;color:#334155;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
 .sb-s{font-size:11px;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sb.alert{border-color:#fecaca;background:#fffafa}.sb.alert .sb-ic{background:#fef2f2;color:#dc2626}.sb.alert b{color:#dc2626}
-.sb.warn .sb-ic{background:#fffbeb;color:#d97706}
-.sb.ok .sb-ic{background:#ecfdf5;color:#059669}
-.sb.alert::before{content:"";position:absolute;top:8px;right:8px;width:6px;height:6px;border-radius:50%;background:#dc2626}
-
-/* Odoo Enterprise Journal Kanban Grid */
-.ad-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
-.ad-card{background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:14px;box-shadow:0 1px 2px rgba(15,23,42,.03);transition:border-color .15s,box-shadow .15s}
-.ad-card:hover{border-color:#cbd5e1;box-shadow:0 4px 12px rgba(15,23,42,.05)}
-.ad-card header{display:flex;align-items:center;gap:11px}
-.ad-ic{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;flex:none;background:var(--cs,#f1f5f9);color:var(--c,#334155);border:1px solid rgba(15,23,42,.05)}
-.ad-t{flex:1;min-width:0}
-.ad-t h3{margin:0;font-size:14.5px;font-weight:700;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ad-t p{margin:1px 0 0;font-size:12px;color:#64748b}
-.ad-badge{font-size:11px;font-weight:600;padding:2.5px 8px;border-radius:6px;background:#ecfdf5;color:#047857;border:1px solid #a7f3d0;white-space:nowrap}
-.ad-badge.warn{background:#fffbeb;color:#b45309;border-color:#fde68a}
-.ad-badge.bad{background:#fef2f2;color:#b91c1c;border-color:#fecaca}
-.ad-main{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:4px 0}
-.ad-num b{display:block;font-size:21px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:#0f172a}
-.ad-num b small{font-size:12px;font-weight:600;color:#64748b;margin-inline-start:2px}
-.ad-num b.neg{color:#dc2626}
-.ad-num span{font-size:12px;color:#64748b;display:block;margin-top:2px}
-.ad-chart{margin-top:auto}
-.ad-seg-wrap{display:flex;flex-direction:column;gap:8px;background:#f8fafc;padding:10px 12px;border-radius:8px;border:1px solid #f1f5f9}
-.ad-seg-bar{display:flex;height:6px;border-radius:999px;background:#e2e8f0;overflow:hidden;gap:2px}
-.ad-seg-bar > span{height:100%;border-radius:999px}
-.ad-seg-legend{display:flex;justify-content:space-between;font-size:11px;color:#64748b;gap:8px;flex-wrap:wrap}
-.ad-seg-legend b{color:#0f172a;font-variant-numeric:tabular-nums}
-.ad-spark-box{background:#f8fafc;padding:8px 10px 6px;border-radius:8px;border:1px solid #f1f5f9}
-.ad-bars,.ad-spark{display:block;width:100%;height:38px}
-.ad-bl{display:flex;justify-content:space-between;font-size:10.5px;color:#94a3b8;margin-top:3px}
-.ad-bl span{flex:1;text-align:center}.ad-spark + .ad-bl span{flex:none}
-.ad-ring{width:48px;height:48px;flex:none}
-.ad-card footer{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:12px;border-top:1px solid #f1f5f9;margin-top:2px}
-.ad-recent{background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;box-shadow:0 1px 2px rgba(15,23,42,.03)}
-.ad-recent header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid #e2e8f0;background:#f8fafc}
-.ad-recent h2{margin:0;font-size:14.5px;font-weight:700;color:#0f172a}
-.ad-recent ul{list-style:none;margin:0;padding:0}
-.ad-recent li{display:flex;align-items:center;gap:14px;padding:11px 18px;border-bottom:1px solid #f1f5f9;cursor:pointer;transition:background .12s}
-.ad-recent li:last-child{border-bottom:0}.ad-recent li:hover{background:#f8fafc}
-.ad-j{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;flex:none;color:var(--c);background:color-mix(in srgb,var(--c) 10%,white)}
-.ad-rd{flex:1;min-width:0;display:flex;flex-direction:column}.ad-rd b{font-weight:600;font-size:13px;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ad-rd span{font-size:11.5px;color:#64748b}
-.ad-ra{font-weight:700;font-size:13.5px;color:#0f172a;font-variant-numeric:tabular-nums;white-space:nowrap}.ad-ra small{color:#64748b;font-weight:500;font-size:11.5px}
-.ad-empty{color:#64748b;cursor:default!important}
-@media (max-width:1200px){.sbs{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media (max-width:1024px){.ad-ks-row{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:1024px){.ad-ks{grid-template-columns:repeat(2,minmax(0,1fr))}.sbs{grid-template-columns:repeat(3,minmax(0,1fr))}}}
 @media (max-width:640px){.ad-ks-row,.sbs{grid-template-columns:1fr}}
 @media (prefers-reduced-motion:reduce){.ad-k,.sb,.ad-card{transition:none}}
 #upd-bar{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:200;display:flex;align-items:center;gap:12px;padding:10px 12px 10px 18px;background:#0f172a;color:#fff;border-radius:999px;box-shadow:0 10px 30px rgba(15,23,42,.3);font-size:13.5px}
@@ -2174,6 +2143,7 @@ class PermissionError extends AppError {}
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const uid = p => p + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 const nowISO = () => new Date().toISOString();
+function fmtDate(d){ if (!d) return '—'; const s = String(d).trim(); if (!/^\d{4}-\d{2}-\d{2}/.test(s)) return s; const [y, m, day] = s.slice(0, 10).split('-'); return `${day}/${m}/${y}`; }
 function todayCairo(){ return new Date().toLocaleDateString('en-CA', { timeZone: 'Africa/Cairo' }); }
 const isISODate = s => /^\d{4}-\d{2}-\d{2}$/.test(s) && !isNaN(Date.parse(s + 'T00:00:00Z')) && new Date(s + 'T00:00:00Z').toISOString().slice(0,10) === s;
 function ymd(y, m, d){ return new Date(Date.UTC(y, m, d)).toISOString().slice(0, 10); }
@@ -2191,7 +2161,7 @@ async function hashPassword(pw, salt){ let h = salt + ':' + pw; for (let i = 0; 
 
 /* ---------------- i18n ---------------- */
 const EN = {
-  dashboard:'Dashboard', cars:'Cars', month_close:'Month-end Close', vehicles:'Vehicles', inventory:'Inventory', purchases:'Purchases', imports:'Imports & Shipments',
+  dashboard:'Dashboard', cars:'Cars Inventory', month_close:'Month-end Close', vehicles:'Vehicles', inventory:'Inventory', purchases:'Purchases', imports:'Imports & Shipments',
   sales:'Sales', customers:'Customers', suppliers:'Suppliers', accounting:'Accounting', banking:'Banking', expenses:'Expenses',
   costing:'Car Costing', reports:'Reports', settings:'Settings',
   acc_dashboard:'Dashboard', coa:'Chart of Accounts', journals:'Journal Entries', gl:'General Ledger', partner_ledger:'Partner Ledger', tb:'Trial Balance',
@@ -2211,10 +2181,10 @@ const EN = {
   analytics:'Analytics', profitability:'Car Profitability', analytic_accounts:'Analytic Accounts',
   rep_center:'All Reports', budgets:'Budget vs Actual',
   quick_search:'Quick Search...', quick_actions:'Quick Actions', new_car_order:'New Car Order',
-  tax:'Tax', tax_codes:'Tax Codes & Rates', einvoice:'E-invoicing (ETA)', expense_docs:'Expenses', schedules:'Recurring Entries', fixed_assets:'Fixed Assets'
+  tax:'Tax', tax_codes:'Tax Codes & Rates', einvoice:'E-invoicing (ETA)', expense_docs:'General Expenses', schedules:'Recurring Entries', fixed_assets:'Fixed Assets'
 };
 const AR = {
-  dashboard:'لوحة التحكم', cars:'العربيات', month_close:'إقفال الشهر', vehicles:'السيارات', inventory:'المخزون', purchases:'المشتريات', imports:'الاستيراد والشحنات',
+  dashboard:'لوحة التحكم', cars:'مخزون السيارات', month_close:'إقفال الشهر', vehicles:'السيارات', inventory:'المخزون', purchases:'المشتريات', imports:'الاستيراد والشحنات',
   sales:'المبيعات', customers:'العملاء', suppliers:'الموردون', accounting:'المحاسبة', banking:'البنوك', expenses:'المصروفات',
   costing:'تكلفة السيارات', reports:'التقارير', settings:'الإعدادات',
   acc_dashboard:'لوحة المحاسبة', coa:'دليل الحسابات', journals:'قيود اليومية', gl:'دفتر الأستاذ العام', partner_ledger:'دفتر أستاذ الشركاء', tb:'ميزان المراجعة',
@@ -2234,7 +2204,7 @@ const AR = {
   analytics:'التحليلات', profitability:'ربحية السيارات', analytic_accounts:'الحسابات التحليلية',
   rep_center:'مركز التقارير', budgets:'الموازنة مقابل الفعلي',
   quick_search:'بحث سريع...', quick_actions:'إجراءات سريعة', new_car_order:'طلب سيارة جديد',
-  tax:'الضرائب', tax_codes:'أكواد وأسعار الضريبة', einvoice:'جاهزية الفاتورة الإلكترونية', expense_docs:'مستندات المصروفات', schedules:'المستحقات والمدفوعات المقدمة', fixed_assets:'الأصول الثابتة'
+  tax:'الضرائب', tax_codes:'أكواد وأسعار الضريبة', einvoice:'جاهزية الفاتورة الإلكترونية', expense_docs:'مصروفات عامة', schedules:'المستحقات والمدفوعات المقدمة', fixed_assets:'الأصول الثابتة'
 };
 const t = k => (UI.lang === 'ar' ? AR[k] : null) || EN[k] || k;
 
@@ -5688,7 +5658,7 @@ function pageSOs(){
     <div class="filters"><input class="input" data-filter="so_q" placeholder="Search number, customer, car, chassis, salesperson…" value="${esc(F.so_q || '')}" style="min-width:340px"><span class="muted" style="align-self:center;font-size:12.5px;margin-inline-start:auto">${list.length} order${list.length === 1 ? '' : 's'}</span></div>
     <div class="tbl-wrap"><table class="o-list"><thead><tr><th>Number</th><th>Date</th><th>Customer</th><th>Car</th><th>Salesperson</th><th class="num">Total</th><th>Invoice</th><th>Status</th></tr></thead><tbody>
     ${list.map(({ so, cu, st, cars }) => { const inv = so.lines.map(saleInvoiceOf).find(Boolean);
-      return `<tr data-act="so-view" data-id="${so.id}" style="cursor:pointer"><td><b>${esc(so.number)}</b></td><td style="white-space:nowrap">${so.date}</td><td>${esc(cu ? cu.legalName : '?')}</td>
+      return `<tr data-act="so-view" data-id="${so.id}" style="cursor:pointer"><td><b>${esc(so.number)}</b></td><td style="white-space:nowrap">${fmtDate(so.date)}</td><td>${esc(cu ? cu.legalName : '?')}</td>
         <td class="wrap">${cars.length === 1 ? `${esc(carName(cars[0]))}<div class="muted" style="font-size:12px">${esc(cars[0].vin)}</div>` : cars.length ? `${cars.length} cars` : `<span class="muted">${esc((so.lines[0] || {}).description || 'no car yet')}</span>`}</td>
         <td>${esc(userName(so.salespersonId) || '')}</td><td class="num">${money(soNet(so))} <span class="muted">${so.currency}</span></td><td>${inv ? invPill(inv) : '<span class="muted">—</span>'}</td><td><span class="pill ${st[1]}">${st[0]}</span></td></tr>`; }).join('') || `<tr><td colspan="8" class="empty">${q || stf ? 'No orders match.' : 'No sales orders yet. Accept a quotation, or sell a car from its import order.'}</td></tr>`}
     </tbody></table></div></div>`;
@@ -5697,8 +5667,8 @@ function soView(so){
   const me = currentUser(), cu = partnerById('ar', so.customerId), st = soState(so), live = so.status !== 'cancelled';
   const steps = [['Confirmed', true], ['Reserved', ['Reserved', 'Invoiced', 'Delivered'].includes(st[0])], ['Invoiced', ['Invoiced', 'Delivered'].includes(st[0])], ['Delivered', st[0] === 'Delivered']];
   let cur = steps.findIndex(x => !x[1]); cur = cur < 0 ? steps.length - 1 : cur - 1;
-  const f = (l, v0) => `<div class="o-f"><div class="l">${l}</div><div class="v">${v0 || '<span class="muted">—</span>'}</div></div>`;
   const acts = [], stats = [];
+  const v0 = so.lines && so.lines[0] && so.lines[0].vehicleId ? vehById(so.lines[0].vehicleId) : null;
   for (const l of so.lines){ const v = vehById(l.vehicleId), inv = saleInvoiceOf(l), dl = S.deliveries.find(d => d.lineId === l.id && ['pending','delivered'].includes(d.status));
     if (!live) break;
     if (!inv && can('sales', 'edit')) acts.push(`<button type="button" class="btn${v ? '' : ' primary'}" data-act="so-link" data-id="${so.id}" data-line="${l.id}">${v ? 'Change car' : 'Choose car'}</button>`);
@@ -5714,21 +5684,140 @@ function soView(so){
   if (live && !so.creditApproved && can('sales', 'approve') && !so.lines.every(l => S.deliveries.some(d => d.lineId === l.id && d.status === 'delivered'))) acts.push(`<button type="button" class="btn" data-act="so-credit" data-id="${so.id}">Allow delivery on credit</button>`);
   const ipo = so.importPoId ? poById(so.importPoId) : null; if (ipo) stats.unshift(`<button type="button" class="o-stat" data-act="po-view" data-id="${ipo.id}"><div style="display:flex;align-items:center;gap:6px">${ic('purchases', 16)} <b>${esc(ipo.number)}</b></div><small>Import order</small></button>`);
   const net = soNet(so);
+
   openModal({ screen: { key: 'so:' + so.id, reopen: () => { const x = soById(so.id); if (x) soView(x); } }, title: `Sales order ${so.number}`, xwide: true, body: `
-    <div class="o-bar"><div class="btns">${[...new Set(acts)].join('')}</div><div class="o-status">${steps.map(([t0], i) => `<span class="${i === cur ? 'on' : ''}">${t0}</span>`).join('')}</div></div>
-    <div class="o-sheet rec">
-      <div class="o-head"><div><div class="muted" style="font-size:13px">Sales order</div><h2>${esc(so.number)}</h2><span class="pill ${st[1]}" style="margin-top:6px">${st[0]}</span></div>${stats.length ? `<div class="o-stats">${stats.join('')}</div>` : ''}</div>
-      <div class="o-sec c-info" style="border-top:0;padding-top:0;margin-top:10px"><h3>${ic('file', 16)} Order details</h3><div class="o-grid"><div>
-        ${f('Customer', cu ? `<a href="#/partners/statement?side=ar&id=${cu.id}">${esc(cu.legalName)}</a>${cu.phone ? `<span class="sub">${esc(cu.phone)}</span>` : ''}` : '')}
-        ${f('Salesperson', esc(userName(so.salespersonId) || ''))}${D(so.commissionPct || 0).gt(0) ? f('Commission', so.commissionPct + '%') : ''}
-      </div><div>
-        ${f('Order date', so.date)}${f('Currency', so.currency)}${f('Payment', so.creditApproved ? '<span class="pill info">Delivery on credit allowed</span>' : 'Pay before delivery')}${so.paymentTerms ? f('Terms', esc(so.paymentTerms)) : ''}
-      </div></div></div>
-      <div class="o-sec c-gold"><h3>${ic('cars', 16)} Cars</h3><div class="tbl-wrap"><table><thead><tr><th>Product</th><th>Status</th><th class="num">Price</th><th class="num">Discount</th><th class="num">Subtotal</th></tr></thead><tbody>
-        ${so.lines.map(l => { const v = vehById(l.vehicleId); return `<tr><td class="wrap"><b>${v ? `${esc(carName(v))} · ${esc(v.vin)}` : esc(l.description)}</b>${v ? `<div class="muted" style="font-size:12px">${esc(v.code)}${v.exteriorColor ? ' · ' + esc(v.exteriorColor) : ''}</div>` : '<div class="muted" style="font-size:12px">No car chosen yet</div>'}</td>
-          <td>${v ? invPillOf(v) : ''}</td><td class="num">${money(l.price)} ${so.currency}</td><td class="num">${D(l.discount || 0).gt(0) ? '− ' + money(l.discount) : ''}</td><td class="num"><b>${money(D(l.price).minus(l.discount || 0))}</b> ${so.currency}</td></tr>`; }).join('')}
-      </tbody></table></div>
-      <div class="o-tot"><table><tbody><tr><td><b>Total</b></td><td><b style="font-size:16px">${money(net)} ${so.currency}</b></td></tr></tbody></table></div></div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <!-- 1. Top Control Bar: Actions on Left, Odoo Chevron Statusbar on Right -->
+      <div class="o-bar" style="margin:0;width:100%;max-width:none;display:flex;justify-content:${acts.length ? 'space-between' : 'flex-end'};align-items:center">
+        ${acts.length ? `<div class="btns">${[...new Set(acts)].join('')}</div>` : ''}
+        <div class="o-status">
+          ${steps.map(([t0], i) => `<span class="${i === cur ? 'on' : ''}">${t0}</span>`).join('')}
+        </div>
+      </div>
+
+      <!-- 2. Clean Document Sheet matching Customer Invoice standard -->
+      <div class="sheet" style="margin:0;padding:24px 28px;background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.05)">
+        <div class="po-sheet-header">
+          <div class="po-title-section">
+            <span class="po-badge-kind">Sales Order</span>
+            <h2 class="po-title-text">${esc(so.number)}</h2>
+            <div style="font-size:13px;color:#64748b;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+              <span>Date: <b style="color:#1e293b">${fmtDate(so.date)}</b></span>
+              <span class="pill ${st[1]}">${st[0]}</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+            ${v0 ? `
+              <div class="po-car-banner" style="margin:0">
+                <div class="po-car-banner-icon">${ic('cars', 22)}</div>
+                <div class="po-car-banner-info">
+                  <a href="#/veh/view?id=${v0.id}" class="po-car-banner-name" style="text-decoration:none">${esc(carName(v0))}</a>
+                  <span class="po-car-banner-sub">Chassis: <b class="mono" style="color:#0284c7">${esc(v0.vin)}</b> · Code: <span class="mono">${esc(v0.code)}</span></span>
+                </div>
+              </div>
+            ` : ''}
+            ${stats.length ? `<div class="o-stats" style="margin:0">${stats.join('')}</div>` : ''}
+          </div>
+        </div>
+
+        <!-- 2 Clean Panels Grid -->
+        <div class="po-grid-cards">
+          <!-- Left Panel: Financial Summary -->
+          <div class="po-panel">
+            <div class="po-panel-title">${ic('chart', 14)} Financial Summary</div>
+            <table class="po-table-kv">
+              <tbody>
+                <tr>
+                  <td class="lbl">Order Total</td>
+                  <td class="val"><b class="mono" style="font-size:14.5px;color:#0f172a">${money(net)} ${so.currency}</b></td>
+                </tr>
+                <tr>
+                  <td class="lbl">Payment Terms</td>
+                  <td class="val">${so.creditApproved ? '<span class="pill info">Delivery on credit allowed</span>' : '<span class="pill mute">Pay before delivery</span>'}</td>
+                </tr>
+                ${so.paymentTerms ? `
+                <tr>
+                  <td class="lbl">Terms Detail</td>
+                  <td class="val"><span>${esc(so.paymentTerms)}</span></td>
+                </tr>` : ''}
+                ${D(so.commissionPct || 0).gt(0) ? `
+                <tr>
+                  <td class="lbl">Commission</td>
+                  <td class="val"><span class="mono">${so.commissionPct}%</span></td>
+                </tr>` : ''}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Right Panel: Customer & Details -->
+          <div class="po-panel">
+            <div class="po-panel-title">${ic('user', 14)} Customer &amp; Details</div>
+            <table class="po-table-kv">
+              <tbody>
+                <tr>
+                  <td class="lbl">Customer</td>
+                  <td class="val">${cu ? `<a href="#/partners/statement?side=ar&id=${cu.id}" style="font-weight:700;color:#0284c7">${esc(cu.legalName)}</a>${cu.phone ? ` <span class="muted" style="font-size:12px;margin-inline-start:4px">(${esc(cu.phone)})</span>` : ''}` : '<span class="muted">—</span>'}</td>
+                </tr>
+                <tr>
+                  <td class="lbl">Salesperson</td>
+                  <td class="val"><b>${esc(userName(so.salespersonId) || '—')}</b></td>
+                </tr>
+                <tr>
+                  <td class="lbl">Order Date</td>
+                  <td class="val"><span class="mono">${fmtDate(so.date)}</span></td>
+                </tr>
+                <tr>
+                  <td class="lbl">Currency</td>
+                  <td class="val"><span class="mono" style="font-weight:600">${so.currency}</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Ordered Vehicles Section -->
+        <div style="margin-top:20px">
+          <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:10px;display:flex;align-items:center;gap:6px">
+            ${ic('cars', 16)} Ordered Vehicles
+          </div>
+          <div class="tbl-wrap" style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden">
+            <table class="o-list" style="margin:0">
+              <thead>
+                <tr>
+                  <th>Vehicle / Specification</th>
+                  <th>Status</th>
+                  <th class="num">Unit Price</th>
+                  <th class="num">Discount</th>
+                  <th class="num">Subtotal</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${so.lines.map(l => {
+                  const v = vehById(l.vehicleId);
+                  return `<tr>
+                    <td class="wrap">
+                      <b>${v ? `${esc(carName(v))} · ${esc(v.vin)}` : esc(l.description)}</b>
+                      ${v ? `<div class="muted" style="font-size:12px">${esc(v.code)}${v.exteriorColor ? ' · ' + esc(v.exteriorColor) : ''}</div>` : '<div class="muted" style="font-size:12px">No car chosen yet</div>'}
+                    </td>
+                    <td>${v ? invPillOf(v) : '<span class="muted">—</span>'}</td>
+                    <td class="num mono">${money(l.price)} ${so.currency}</td>
+                    <td class="num mono">${D(l.discount || 0).gt(0) ? '− ' + money(l.discount) : '—'}</td>
+                    <td class="num mono"><b style="color:#0f172a">${money(D(l.price).minus(l.discount || 0))}</b> ${so.currency}</td>
+                  </tr>`;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+          <div style="display:flex;justify-content:flex-end;margin-top:14px">
+            <div style="min-width:240px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px 16px">
+              <div style="display:flex;justify-content:space-between;align-items:center;font-size:14px">
+                <span style="font-weight:600;color:#64748b">Total Amount:</span>
+                <b class="mono" style="font-size:16px;color:#0f172a">${money(net)} ${so.currency}</b>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>` });
 }
 function pageDeliveries(){
@@ -5737,7 +5826,7 @@ function pageDeliveries(){
   const credits = S.settlements.filter(s => s.side === 'ar' && s.type === 'cash' && entryStatus(s) === 'posted' && advState(s).avail.gt(0));
   return H(t('deliveries'), 'Vehicles are released only against an approved delivery: invoiced, documents checked, and paid (or credit approved).', (can('ar', 'create') ? '<button class="btn" data-act="ret-new">Sales return</button><button class="btn" data-act="rf-new">Refund customer</button>' : '')) + `
     <div class="card"><div class="card-h"><h2>Delivery orders</h2></div><div class="tbl-wrap"><table><thead><tr><th>Number</th><th>Date</th><th>Vehicle</th><th>Recipient</th><th>Invoice</th><th>Status</th><th></th></tr></thead><tbody>
-    ${[...S.deliveries].reverse().map(d => { const v = vehById(d.vehicleId), inv = S.invoices.find(i => i.id === d.invoiceId); return `<tr><td class="mono">${esc(d.number)}</td><td>${d.date}</td><td><a href="#/veh/view?id=${v.id}">${esc(vehLabel(v))}</a></td><td>${esc(d.receivedBy)} <span class="muted mono" style="font-size:12px">${esc(d.idNumber)}</span></td>
+    ${[...S.deliveries].reverse().map(d => { const v = vehById(d.vehicleId), inv = S.invoices.find(i => i.id === d.invoiceId); return `<tr><td class="mono">${esc(d.number)}</td><td>${fmtDate(d.date)}</td><td><a href="#/veh/view?id=${v.id}">${esc(vehLabel(v))}</a></td><td>${esc(d.receivedBy)} <span class="muted mono" style="font-size:12px">${esc(d.idNumber)}</span></td>
       <td>${esc(inv.number)} · open ${money(invState(inv).openPosted)} ${inv.currency}</td><td>${d.status === 'delivered' ? badge('posted').replace('posted', 'delivered') : badge('submitted').replace('submitted', 'pending')}</td>
       <td style="white-space:nowrap">${docButtons('delivery', d)}${d.status === 'pending' && can('sales', 'approve') && d.createdBy !== me.id ? `<button class="btn sm gold" data-act="dn-approve" data-id="${d.id}">Approve &amp; release</button>` : ''}</td></tr>`; }).join('') || '<tr><td colspan="7" class="empty">No deliveries.</td></tr>'}
     </tbody></table></div></div>
@@ -6538,7 +6627,7 @@ const NAV = [
     { key:'tax_codes', route:'tax/codes', phase:9, mod:'tax' }, { key:'mappings', route:'acc/mappings', phase:2, mod:'mappings' }, { key:'fiscal', route:'settings/fiscal', phase:1, mod:'fiscal' }, { key:'rates', route:'settings/rates', phase:1, mod:'exchange_rates' }, { key:'analytic_accounts', route:'ana/accounts', phase:8, mod:'analytics' }, { key:'month_close', route:'acc/close', phase:2, mod:'ledger' }, { key:'journals', route:'acc/journals', phase:2, mod:'journals' },
     { key:'fixed_assets', route:'fa/register', phase:9, mod:'assets' },
     { key:'coa', route:'acc/coa', phase:2, mod:'coa' }, { key:'gl', route:'acc/gl', phase:2, mod:'ledger' }, { key:'tb', route:'acc/tb', phase:2, mod:'ledger' }, { key:'partner_ledger', route:'acc/partner-ledger', phase:2, mod:'ledger' }, { key:'opening', route:'acc/opening', phase:2, mod:'journals' } ] },
-  { key:'expenses', group:true, children:[ { key:'expense_docs', route:'exp/list', phase:9, mod:'expenses' }, { key:'schedules', route:'exp/schedules', phase:9, mod:'expenses' } ] },
+  { key:'expenses', group:true, children:[ { key:'car_expenses', route:'pur/carexp', phase:6, mod:'imports' }, { key:'expense_docs', route:'exp/list', phase:9, mod:'expenses' }, { key:'schedules', route:'exp/schedules', phase:9, mod:'expenses' } ] },
   { key:'reports', group:true, children:[ { key:'fs', route:'rep/statements', phase:10, mod:'ledger' }, { key:'profitability', route:'ana/profit', phase:8, mod:'analytics' }, { key:'ar', route:'ar/aging', phase:4, mod:'ar' }, { key:'ap', route:'ap/aging', phase:4, mod:'ap' }, { key:'partner_ledger', route:'acc/partner-ledger', phase:2, mod:'ledger' },
     { key:'valuation', route:'inv/valuation', phase:5, mod:'inventory' }, { key:'costing', route:'imp/landed', phase:6, mod:'imports' }, { key:'tax_rep', route:'tax/report', phase:9, mod:'tax' }, { key:'budgets', route:'rep/budgets', phase:10, mod:'ledger' }, { key:'rep_center', route:'rep/center', phase:10, mod:'dashboard' } ] },
   { key:'settings', group:true, children:[
@@ -6691,8 +6780,8 @@ function navHTML(){
 
   const sections = [
     { items: ['dashboard'] },
-    { label: UI.lang === 'ar' ? 'العمليات' : 'Operations', items: ['purchases', 'sales', 'cars'] },
-    { label: UI.lang === 'ar' ? 'المالية' : 'Finance', items: ['banking', 'accounting', 'expenses', 'reports'] }
+    { label: UI.lang === 'ar' ? 'العمليات' : 'Operations', items: ['purchases', 'sales', 'cars', 'expenses'] },
+    { label: UI.lang === 'ar' ? 'المالية' : 'Finance', items: ['banking', 'accounting', 'reports'] }
   ];
 
   return sections.map((sec, idx) => {
@@ -6710,7 +6799,7 @@ function navHTML(){
 }
 /* Each app's top menu, grouped like Odoo: single links and dropdowns. Unlisted pages are appended as links. */
 const NAV_MENUS = {
-  purchases: [['pur/import'], ['pur/carexp'], ['Billing', ['ap/invoices', 'ap/receipts', 'ap/advances']], ['partners/suppliers']],
+  purchases: [['pur/import'], ['partners/suppliers'], ['Billing', ['ap/invoices', 'ap/receipts', 'ap/advances']]],
   sales: [['Orders', ['sal/orders', 'sal/quotes', 'sal/inquiries']], ['Invoicing', ['ar/invoices', 'sal/proforma', 'ar/receipts', 'ar/advances', 'sal/deliveries']], ['partners/customers']],
   cars: [['inv/overview'], ['Cars', ['veh/list', 'inv/stock']], ['Operations', ['inv/receipts', 'inv/deliveries', 'inv/moves', 'inv/counts']]],
   banking: [['bank/accounts'], ['Operations', ['bank/txns', 'bank/transfers']], ['bank/statements'], ['Currency', ['settings/rates', 'bank/reval']]],
@@ -6721,7 +6810,7 @@ const NAV_MENUS = {
     ['Reporting', ['§Statement reports', ['Balance sheet', 'rep/statements?s=bs'], ['Profit and loss', 'rep/statements?s=is'], ['Cash flow statement', 'rep/statements?s=cf'], ['Changes in equity', 'rep/statements?s=eq'],
       '§Partner reports', 'acc/partner-ledger', 'ar/aging', 'ap/aging', '§Audit reports', 'acc/gl', 'acc/tb', 'tax/report', '§Management', 'ana/profit']],
     ['Configuration', ['§Accounting', 'acc/coa', 'tax/codes', 'settings/fiscal', 'settings/rates', '§Management', 'acc/mappings', 'ana/accounts']]],
-  expenses: [['exp/list'], ['exp/schedules']],
+  expenses: [['pur/carexp'], ['exp/list'], ['exp/schedules']],
   reports: [['Financial', ['rep/statements', 'rep/budgets', 'tax/report']], ['Cars', ['ana/profit', 'imp/landed', 'inv/valuation']], ['Partners', ['acc/partner-ledger', 'ar/aging', 'ap/aging']], ['rep/center']],
   settings: [['General', ['settings/company', 'settings/users', 'settings/roles', 'settings/currencies', 'settings/fiscal']], ['Cars & tax', ['veh/settings', 'tax/codes', 'tax/einvoice']],
     ['Accounting', ['acc/mappings', 'ana/accounts', 'settings/sequences']], ['System', ['acc/integrity', 'settings/audit', 'settings/tests', 'settings/data']]]
@@ -6812,15 +6901,7 @@ function viewShell(){
           <span class="top-period-lbl">${pp ? `Period ${esc(pp.name)}` : `Period ${today.slice(0, 7)}`}</span>
         </a>
         <button type="button" class="top-lang-btn" data-act="lang" title="Toggle language (${UI.lang === 'ar' ? 'English' : 'العربية'})">${ic('globe', 15)}<span>${UI.lang === 'ar' ? 'English' : 'العربية'}</span></button>
-        <div class="top-user-menu" title="${esc(u.name)} · ${esc(roleName(u.roles[0]))}">
-          <div class="top-user-avatar">${esc(initials)}</div>
-          <div class="top-user-info">
-            <span class="top-user-name">${esc(u.name)}</span>
-            <span class="top-user-role">${esc(roleName(u.roles[0]))}</span>
-          </div>
-          ${OPEN_ACCESS ? `<select class="top-user-select" data-actas aria-label="Switch active user">${S.users.filter(x => x.active).map(x => `<option value="${esc(x.id)}"${x.id === u.id ? ' selected' : ''}>${esc(x.name)} · ${esc(roleName(x.roles[0]))}</option>`).join('')}</select>` : ''}
-          <span class="top-user-caret">${ic('chev', 12)}</span>
-        </div>
+        
         ${!OPEN_ACCESS ? `<button type="button" class="btn sm" data-act="logout">${t('signout')}</button>` : ''}
       </header>
       ${subnavHTML()}
@@ -7229,31 +7310,33 @@ function pageAccDash(){
   const dateStr = new Date(today + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
   return `<div class="ad">
-    <div class="ad-top-bar">
-      <div class="ad-top-title">
-        <h1>${hello}, ${esc((currentUser().name || '').split(' ')[0] || 'there')}</h1>
-        <p>${dateStr} · Real-time financial &amp; operational overview</p>
-      </div>
-      <div class="ad-top-actions">
-        ${can('ar', 'create') ? `<button class="btn primary sm" data-act="inv-new" data-side="ar">${ic('plus', 14)} New Invoice</button>` : ''}
-        ${can('ap', 'create') ? `<button class="btn sm" data-act="inv-new" data-side="ap">${ic('plus', 14)} New Bill</button>` : ''}
-        ${can('journals', 'create') ? `<button class="btn sm" data-act="je-new">${ic('plus', 14)} Journal Entry</button>` : ''}
-      </div>
-    </div>
-
-    <div class="ad-ks-row">
-      ${kp('coins', 'Cash &amp; Bank Liquidity', cash, `${banks.length} active account${banks.length === 1 ? '' : 's'}`, '<span class="ad-ks ok">Available</span>', '#/bank/accounts', 'blue')}
-      ${kp('inbox', 'Customers Owe You (AR)', ar.tot, `${ar.open.length} open invoice${ar.open.length === 1 ? '' : 's'}`, ar.over.length ? `<span class="ad-ks bad">${money(ar.overTot)} overdue</span>` : '<span class="ad-ks ok">On track</span>', '#/ar/aging', ar.over.length ? 'warn' : 'emerald')}
-      ${kp('truck', 'You Owe Vendors (AP)', ap.tot, `${ap.open.length} open bill${ap.open.length === 1 ? '' : 's'}`, ap.over.length ? `<span class="ad-ks bad">${money(ap.overTot)} past due</span>` : '<span class="ad-ks">Current</span>', '#/ap/aging', ap.over.length ? 'warn' : 'amber')}
-      <a class="ad-k" href="#/rep/statements?s=is">
-        <div class="ad-k-top"><span class="ad-kl">Net Profit (YTD)</span><span class="ad-kic gold">${ic('reports', 17)}</span></div>
-        <b class="${ytd.net.lt(0) ? 'neg' : ''}">${money(ytd.net)}<small>EGP</small></b>
-        <div class="ad-k-foot">
-          <span class="ad-ks">Since ${fyFrom.slice(0, 7)}</span>
-          <span class="ad-mini">${months.map(x => { const mx = months.reduce((m, y) => y.net.abs().gt(m) ? y.net.abs() : m, D0()); const h = mx.eq(0) ? 3 : Math.max(3, +x.net.abs().div(mx).mul(18).toFixed(1)); return `<i title="${x.m}: ${money(x.net)}" style="height:${h}px;${x.net.lt(0) ? 'background:#ef4444' : ''}"></i>`; }).join('')}</span>
+    <section class="ad-hero">
+      <div class="ad-hero-head">
+        <div>
+          <h1>${hello}, ${esc((currentUser().name || '').split(' ')[0] || 'Administrator')}</h1>
+          <p>Here is where the money stands on ${dateStr}.</p>
         </div>
-      </a>
-    </div>
+        <div class="ad-hero-actions">
+          ${can('ar', 'create') ? `<button class="btn primary sm" data-act="inv-new" data-side="ar">${ic('plus', 14)} New Invoice</button>` : ''}
+          ${can('ap', 'create') ? `<button class="btn sm" data-act="inv-new" data-side="ap">${ic('plus', 14)} New Bill</button>` : ''}
+          ${can('journals', 'create') ? `<button class="btn sm" data-act="je-new">${ic('plus', 14)} Journal Entry</button>` : ''}
+        </div>
+      </div>
+
+      <div class="ad-ks">
+        ${kp('coins', 'Cash &amp; Bank Liquidity', cash, `${banks.length} active account${banks.length === 1 ? '' : 's'}`, '<span class="ad-ks ok">Available</span>', '#/bank/accounts', 'blue')}
+        ${kp('inbox', 'Customers Owe You (AR)', ar.tot, `${ar.open.length} open invoice${ar.open.length === 1 ? '' : 's'}`, ar.over.length ? `<span class="ad-ks bad">${money(ar.overTot)} overdue</span>` : '<span class="ad-ks ok">On track</span>', '#/ar/aging', ar.over.length ? 'warn' : 'emerald')}
+        ${kp('truck', 'You Owe Vendors (AP)', ap.tot, `${ap.open.length} open bill${ap.open.length === 1 ? '' : 's'}`, ap.over.length ? `<span class="ad-ks bad">${money(ap.overTot)} past due</span>` : '<span class="ad-ks">Current</span>', '#/ap/aging', ap.over.length ? 'warn' : 'amber')}
+        <a class="ad-k" href="#/rep/statements?s=is">
+          <div class="ad-k-top"><span class="ad-kl">Net Profit (YTD)</span><span class="ad-kic gold">${ic('reports', 17)}</span></div>
+          <b class="${ytd.net.lt(0) ? 'neg' : ''}">${money(ytd.net)}<small>EGP</small></b>
+          <div class="ad-k-foot">
+            <span class="ad-ks">Since ${fyFrom.slice(0, 7)}</span>
+            <span class="ad-mini">${months.map(x => { const mx = months.reduce((m, y) => y.net.abs().gt(m) ? y.net.abs() : m, D0()); const h = mx.eq(0) ? 3 : Math.max(3, +x.net.abs().div(mx).mul(18).toFixed(1)); return `<i title="${x.m}: ${money(x.net)}" style="height:${h}px;${x.net.lt(0) ? 'background:#ef4444' : ''}"></i>`; }).join('')}</span>
+          </div>
+        </a>
+      </div>
+    </section>
 
     <nav class="sbs" aria-label="Operational indicators">${smart}</nav>
 
@@ -7272,7 +7355,7 @@ function pageAccDash(){
 
     <section class="ad-recent"><header><h2>Recent Journal Postings</h2><a class="btn sm" href="#/acc/journals">View all entries</a></header>
       <ul>${recent.map(e => { const [ii, cc] = jb[e.journal] || ['file', '#475569']; return `<li data-act="je-drawer-view" data-id="${e.id}"><span class="ad-j" style="--c:${cc}">${ic(ii, 15)}</span>
-        <div class="ad-rd"><b>${esc(e.description)}</b><span>${esc(entryRef(e))} · ${e.accountingDate}</span></div><span class="ad-ra">${money(e.totals.egpDebit)} <small>EGP</small></span></li>`; }).join('') || '<li class="ad-empty">Nothing posted yet. Your first invoice or journal entry will show here.</li>'}</ul>
+        <div class="ad-rd"><b>${esc(e.description)}</b><span>${esc(entryRef(e))} · ${fmtDate(e.accountingDate)}</span></div><span class="ad-ra">${money(e.totals.egpDebit)} <small>EGP</small></span></li>`; }).join('') || '<li class="ad-empty">Nothing posted yet. Your first invoice or journal entry will show here.</li>'}</ul>
     </section>
   </div>`;
 }
@@ -12253,8 +12336,8 @@ function invoiceView(inv){
             <span class="po-badge-kind">${esc(title)}</span>
             <h2 class="po-title-text">${esc(inv.number)}</h2>
             <div style="font-size:13px;color:#64748b;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-              <span>Date: <b style="color:#1e293b">${inv.date}</b></span>
-              ${inv.dueDate && !isC ? `<span>· Due: <b style="color:${overdue ? '#dc2626' : '#1e293b'}">${inv.dueDate}</b></span>` : ''}
+              <span>Date: <b style="color:#1e293b">${fmtDate(inv.date)}</b></span>
+              ${inv.dueDate && !isC ? `<span>· Due: <b style="color:${overdue ? '#dc2626' : '#1e293b'}">${fmtDate(inv.dueDate)}</b></span>` : ''}
               <span class="pill ${pillCls}">${esc(pillTxt)}</span>
               ${overdue ? '<span class="pill bad">Overdue</span>' : ''}
             </div>
