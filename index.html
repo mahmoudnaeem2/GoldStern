@@ -10368,11 +10368,11 @@ function pagePayroll(){
       <div class="btns" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
         <div class="pr-month" style="margin-right:6px"><button type="button" class="btn sm" data-act="pr-month" data-v="-1" aria-label="Previous month">${ic('back', 14)}</button><b>${monthLabel(month)}</b><button type="button" class="btn sm pr-next" data-act="pr-month" data-v="1" aria-label="Next month">${ic('back', 14)}</button>
           ${month !== todayCairo().slice(0, 7) ? '<button type="button" class="btn sm" data-act="pr-month" data-v="0">This month</button>' : ''}</div>
-        ${ed && sh.lines.length ? `<button type="button" class="btn primary" data-act="pr-save-top">${ic('check', 14)} Save &amp; Prepare Journal Entry</button>` : ''}
+        ${ed && sh.lines.length ? `<button type="button" class="btn primary" data-act="pr-save-top">${ic('check', 14)} Confirm payroll</button>` : ''}
         ${!sh.posted && je ? `<button type="button" class="btn gold" data-act="pr-post-je" data-month="${month}">${ic('check', 14)} Post Journal Entry (${esc(entryRef(je))})</button><button type="button" class="btn" data-act="je-view" data-id="${je.id}">${ic('accounting', 14)} View Entry</button>` : ''}
         ${sh.posted && sh.unpaidLines.length && can('expenses', 'create') ? `<button type="button" class="btn primary" data-act="pr-pay-all" data-month="${month}">${ic('coins', 14)} Pay All Unpaid (${money(sh.unpaidTotal)} EGP)</button>` : ''}
         ${sh.posted && je ? `<button type="button" class="btn" data-act="je-view" data-id="${je.id}">${ic('accounting', 14)} Accrual Entry ${esc(entryRef(je))}</button>` : ''}
-        ${(sh.posted || sh.saved) && can('expenses', 'create') ? `<button type="button" class="btn" data-act="pr-reset-draft" data-month="${month}">${ic('undo', 14)} Reset to draft</button>` : ''}
+        ${(sh.posted || je) && can('expenses', 'create') ? `<button type="button" class="btn" data-act="pr-reset-draft" data-month="${month}">${ic('undo', 14)} Reset to draft</button>` : ''}
       </div>
       <div class="o-status">
         <span class="${!sh.posted && !je ? 'on' : ''}">1. Draft</span>
@@ -10398,9 +10398,6 @@ function pagePayroll(){
         <span class="fs-chk ${sh.allPaid ? 'ok' : ''}" style="font-size:13px">${sh.allPaid ? '✓ All Payslips Paid' : `Payslips Open (${sh.paidLines.length} / ${sh.payableLines.length} Paid)`}</span>
         ${je ? `<span style="font-size:13px;color:#334155">Accrual Journal Entry: <a href="#" data-act="je-view" data-id="${je.id}" style="font-weight:700;color:#0f172a;text-decoration:underline">${esc(entryRef(je))}</a></span>` : ''}
         <span style="font-size:13px;color:#334155">Paid: <b style="color:#15803d">${money(sh.paidTotal)} EGP</b> · Remaining to Pay: <b style="color:${sh.unpaidTotal.gt(0) ? '#b45309' : '#64748b'}">${money(sh.unpaidTotal)} EGP</b></span>
-      </div>
-      <div style="display:flex;gap:8px;align-items:center">
-        ${can('expenses', 'create') ? `<button type="button" class="btn sm" data-act="pr-reset-draft" data-month="${month}">${ic('undo', 13)} Reset to draft</button>` : ''}
       </div>
     </div>` : ''}
 
@@ -10457,21 +10454,6 @@ function pagePayroll(){
         <td>Total (${sh.lines.length})</td><td class="num">${money(sh.salary)}</td><td class="num" id="pr-t-bonus">${money(sh.bonus)}</td><td class="num" id="pr-t-ded">${money(sh.deduction)}</td><td class="num" id="pr-t-net">${money(sh.net)}</td><td></td>
         ${sh.posted ? '<td colspan="2"></td>' : ''}
       </tr></tfoot>` : ''}</table></div>
-
-      ${ed && sh.lines.length ? `<div class="pr-actions">
-        <span class="muted">Enter bonuses, deductions, and notes for ${monthLabel(month)}, then click Save to generate the Journal Entry.</span>
-        <div style="display:flex;gap:8px">
-          <button type="submit" class="btn primary">${ic('check', 15)} Save &amp; Open Journal Entry</button>
-          ${je ? `<button type="button" class="btn gold" data-act="pr-post-je" data-month="${month}">${ic('check', 15)} Post Journal Entry</button>` : ''}
-        </div>
-      </div>` : ''}
-      ${sh.posted ? `<div class="pr-actions">
-        <span class="muted">Select individual or multiple employee payslips above to pay them from any Bank or Cash account, or reset to draft to edit salaries.</span>
-        <div style="display:flex;gap:8px">
-          ${je ? `<button type="button" class="btn" data-act="je-view" data-id="${je.id}">${ic('accounting', 14)} Open Accrual Entry ${esc(entryRef(je))}</button>` : ''}
-          ${can('expenses', 'create') ? `<button type="button" class="btn" data-act="pr-reset-draft" data-month="${month}">${ic('undo', 14)} Reset to draft</button>` : ''}
-        </div>
-      </div>` : ''}
     </form>`;
 }
 function prRecalc(){
