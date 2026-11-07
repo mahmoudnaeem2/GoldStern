@@ -12044,7 +12044,6 @@ function pageImportOrders(){
 function importOrderForm(kind = 'customer'){
   const last = [...S.purchaseOrders].filter(p => p.importOrder && p.kind !== 'local').sort((a, b) => a.createdAt < b.createdAt ? 1 : -1)[0];
   const lastSup = last ? partnerById('ap', last.supplierId) : null, cur = last ? last.currency : 'EUR';
-  const kinds = [['customer', 'users', 'Import for a customer', 'The customer is known; their deposits go on the order'], ['stock', 'cars', 'Import for stock', 'You choose the buyer when you sell'], ['local', 'swap', 'Buy from a customer', 'Buy a used car locally and resell it']];
   const f = (label, input, cls = '') => `<label class="co-f ${cls}"><span>${label}</span>${input}</label>`;
   const card = (title, sub, body) => `<section class="co-card"><header><h3>${title}</h3>${sub ? `<p>${sub}</p>` : ''}</header><div class="co-grid">${body}</div></section>`;
   const carCard = card('Car', 'Typing the chassis fills in the brand when it recognises the maker.',
@@ -12067,7 +12066,6 @@ function importOrderForm(kind = 'customer'){
       f(`Exchange rate <em data-rate-lbl>1 ${cur} = ? EGP</em>`, `<input class="input mono" name="rate" data-rate-for="currency" inputmode="decimal" autocomplete="off" placeholder="from today’s rate">`));
   return `<input type="hidden" name="kind" value="${kind}">
   <div class="co-ed">
-    <div class="co-kinds" role="radiogroup" aria-label="Type of deal">${kinds.map(([k, i, t0, d]) => `<button type="button" role="radio" aria-checked="${k === kind}" class="co-kind${k === kind ? ' on' : ''}" data-act="io-kind" data-kind="${k}"><span class="co-kic">${ic(i, 18)}</span><span><b>${t0}</b><small>${d}</small></span></button>`).join('')}</div>
     <div class="co-body">
       <div class="co-main">${carCard}${partyCard}${priceCard}</div>
       <aside class="co-sum" aria-live="polite">
@@ -13427,7 +13425,7 @@ function poView(po){
 }
 Object.assign(CLICK, {
   'io-new'(el){ const kind = (el && el.dataset && el.dataset.kind) || 'customer'; if (!(el && el.dataset && el.dataset.keep)) UI.coKeep = {};
-    openModal({ title: 'New car order', xwide: true, submit: kind === 'local' ? 'Save purchase' : 'Create car & order', body: importOrderForm(kind),
+    openModal({ title: (ORDER_KINDS[kind] || ORDER_KINDS.customer)[2], xwide: true, submit: kind === 'local' ? 'Save purchase' : 'Create car & order', body: importOrderForm(kind),
     onSubmit: f => { const po = A.createImportOrder(f); toast(po.customerId ? `${po.number} created for ${partnerLabel(partnerById('ar', po.customerId))}.` : `${po.number} created${po.kind === 'local' ? ' — receive the car to record the purchase' : ' for stock'}.`, 'ok'); return () => poView(poById(po.id)); } });
     const fm = document.getElementById('mform'); if (fm){ refreshCombos(fm); syncRateField(fm); coRecalc(); } },
   'io-kind'(el){ const form = document.getElementById('mform'), keep = UI.coKeep = UI.coKeep || {}; if (form) form.querySelectorAll('input[name],select[name]').forEach(i => { if (i.name !== 'kind') keep[i.name] = i.value; });
@@ -14350,7 +14348,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261107-150408';
+const APP_BUILD = 'build-20261107-150729';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
