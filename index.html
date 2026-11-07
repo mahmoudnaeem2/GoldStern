@@ -1858,106 +1858,107 @@ td.nw,th{white-space:nowrap}
 .ex-ed .jf .fa-in .btn{white-space:nowrap}
 
 /* ==== Accounting dashboard (Modern Executive Light UI) ==== */
-.ad{display:flex;flex-direction:column;gap:20px;max-width:1400px;margin:0 auto}
-input[type="date"]{min-height:38px;padding:7px 12px;border:1px solid #cbd5e1;border-radius:9px;background:#ffffff;color:#0f172a;font-family:inherit;font-size:13.5px;font-variant-numeric:tabular-nums;cursor:pointer;transition:all .15s ease;box-shadow:0 1px 2px rgba(0,0,0,.03)}
-input[type="date"]:hover{border-color:#94a3b8}
-input[type="date"]:focus{outline:none;border-color:#0284c7;box-shadow:0 0 0 3px rgba(2,132,199,0.15)}
-input[type="date"]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:0.6;filter:invert(0.25) sepia(1) hue-rotate(180deg) saturate(2);transition:opacity .15s ease,transform .15s ease}
-input[type="date"]::-webkit-calendar-picker-indicator:hover{opacity:1;transform:scale(1.15)}
-input[type="date"]::-webkit-datetime-edit{font-family:inherit;letter-spacing:.02em}
-input[type="date"]::-webkit-datetime-edit-text{color:#94a3b8;padding:0 2px}
-input[type="date"]::-webkit-datetime-edit-month-field,input[type="date"]::-webkit-datetime-edit-day-field,input[type="date"]::-webkit-datetime-edit-year-field{color:#0f172a;font-weight:500}
+/* =========================================================================
+   MODERN & COMFORTABLE EXECUTIVE UIX
+   ========================================================================= */
+.ad{display:flex;flex-direction:column;gap:24px;max-width:1440px;margin:0 auto}
 
-.ad{display:flex;flex-direction:column;gap:20px;max-width:1440px;margin:0 auto}
+/* Executive Header */
+.ad-header{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:4px 0}
+.ad-header-text h1{margin:0;font-size:26px;font-weight:750;letter-spacing:-0.03em;color:#0f172a}
+.ad-header-text p{margin:4px 0 0;font-size:13.5px;color:#64748b}
+.ad-header-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.ad-btn{display:inline-flex;align-items:center;gap:7px;padding:8px 15px;border-radius:9px;font-size:13px;font-weight:600;border:1px solid #cbd5e1;background:#ffffff;color:#0f172a;cursor:pointer;transition:all .15s ease;text-decoration:none;box-shadow:0 1px 2px rgba(0,0,0,0.03)}
+.ad-btn:hover{background:#f8fafc;border-color:#94a3b8;transform:translateY(-1px);box-shadow:0 3px 8px rgba(15,23,42,0.06)}
+.ad-btn.primary{background:#0f172a;border-color:#0f172a;color:#ffffff;box-shadow:0 2px 6px rgba(15,23,42,0.18)}
+.ad-btn.primary:hover{background:#1e293b;border-color:#1e293b;color:#ffffff}
+.ad-btn.gold{background:linear-gradient(135deg,#f59e0b 0%,#d97706 100%);border-color:#d97706;color:#ffffff;box-shadow:0 2px 8px rgba(217,119,6,0.3)}
+.ad-btn.gold:hover{background:linear-gradient(135deg,#fbbf24 0%,#b45309 100%)}
 
-.ad-hero{background:linear-gradient(135deg,#0a1120 0%,#0f172a 50%,#1e293b 100%);border-radius:16px;padding:24px 28px;color:#ffffff;box-shadow:0 10px 25px -5px rgba(15,23,42,0.3),0 8px 10px -6px rgba(15,23,42,0.2);border:1px solid rgba(255,255,255,0.08);position:relative;overflow:hidden}
-.ad-hero::after{content:'';position:absolute;top:-80px;right:-80px;width:240px;height:240px;border-radius:50%;background:radial-gradient(circle,rgba(217,119,6,0.15) 0%,transparent 70%);pointer-events:none}
-.ad-hero-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:22px;flex-wrap:wrap;position:relative;z-index:1}
-.ad-hero-head h1{margin:0;font-size:24px;font-weight:700;color:#ffffff;letter-spacing:-0.02em}
-.ad-hero-head p{margin:4px 0 0;color:#94a3b8;font-size:13.5px}
-.ad-hero-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.ad-hero-actions .btn{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);color:#f8fafc;backdrop-filter:blur(10px);border-radius:8px;font-weight:500;padding:7px 14px;transition:all .15s ease}
-.ad-hero-actions .btn:hover{background:rgba(255,255,255,0.18);border-color:rgba(255,255,255,0.35);color:#fff}
-.ad-hero-actions .btn.primary{background:linear-gradient(135deg,#f59e0b 0%,#d97706 100%);border-color:#d97706;color:#0f172a;font-weight:600;box-shadow:0 2px 8px rgba(217,119,6,0.35)}
-.ad-hero-actions .btn.primary:hover{background:linear-gradient(135deg,#fbbf24 0%,#b45309 100%);color:#0f172a}
+/* Top 4 KPI Cards - Pristine, high-contrast, comfortable light surfaces */
+.ad-kpi-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.ad-kpi-card{display:flex;flex-direction:column;justify-content:space-between;gap:14px;padding:20px 22px;border-radius:14px;background:#ffffff;border:1px solid #e2e8f0;box-shadow:0 1px 3px rgba(15,23,42,0.04),0 4px 12px -2px rgba(15,23,42,0.02);text-decoration:none;color:#0f172a;transition:all .2s cubic-bezier(0.16,1,0.3,1);position:relative}
+.ad-kpi-card:hover{border-color:#cbd5e1;box-shadow:0 8px 24px -4px rgba(15,23,42,0.08),0 2px 6px -1px rgba(15,23,42,0.04);transform:translateY(-2px)}
+.ad-kpi-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.ad-kpi-label{font-size:13px;font-weight:600;color:#64748b;letter-spacing:0.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ad-kpi-icon{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;flex:none}
+.ad-kpi-icon.blue{background:#eff6ff;color:#2563eb;border:1px solid #dbeafe}
+.ad-kpi-icon.emerald{background:#ecfdf5;color:#059669;border:1px solid #d1fae5}
+.ad-kpi-icon.amber{background:#fffbeb;color:#d97706;border:1px solid #fef3c7}
+.ad-kpi-icon.purple{background:#f5f3ff;color:#7c3aed;border:1px solid #ede9fe}
+.ad-kpi-val{font-size:25px;font-weight:750;letter-spacing:-0.03em;font-variant-numeric:tabular-nums;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.15}
+.ad-kpi-val small{font-size:13px;font-weight:600;color:#64748b;margin-inline-start:4px}
+.ad-kpi-val.neg{color:#dc2626}
+.ad-kpi-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12.5px;color:#64748b;min-height:22px}
+.ad-tag{font-size:11.5px;font-weight:650;padding:2px 8px;border-radius:6px;display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.ad-tag.ok{background:#ecfdf5;color:#059669;border:1px solid #a7f3d0}
+.ad-tag.bad{background:#fff1f2;color:#be123c;border:1px solid #fecdd3}
+.ad-tag.warn{background:#fffbeb;color:#b45309;border:1px solid #fde68a}
+.ad-tag.mute{background:#f1f5f9;color:#475569;border:1px solid #e2e8f0}
+.ad-mini-chart{display:flex;align-items:flex-end;gap:3px;height:20px}
+.ad-mini-chart i{display:block;width:5px;border-radius:1.5px;background:#0284c7;opacity:.85}
 
-.ad-ks{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;position:relative;z-index:1}
-.ad-k{display:flex;flex-direction:column;justify-content:space-between;gap:12px;padding:18px 20px;border-radius:14px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);backdrop-filter:blur(12px);color:#ffffff;text-decoration:none;transition:all .2s ease;min-width:0}
-.ad-k:hover{background:rgba(255,255,255,0.09);border-color:rgba(255,255,255,0.25);transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,0.25)}
-.ad-k-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.ad-kl{font-size:13px;font-weight:600;color:#94a3b8;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ad-kic{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);color:#38bdf8;flex:none}
-.ad-kic.gold{color:#fbbf24;background:rgba(251,191,36,0.12);border-color:rgba(251,191,36,0.25)}
-.ad-kic.emerald{color:#34d399;background:rgba(52,211,153,0.12);border-color:rgba(52,211,153,0.25)}
-.ad-kic.amber{color:#fb923c;background:rgba(251,146,60,0.12);border-color:rgba(251,146,60,0.25)}
-.ad-k b{font-size:23px;font-weight:700;letter-spacing:-0.02em;font-variant-numeric:tabular-nums;color:#ffffff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ad-k b small{font-size:12px;font-weight:600;color:#94a3b8;margin-inline-start:4px}
-.ad-k b.neg{color:#f87171}
-.ad-k-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;color:#94a3b8}
-.ad-ks-pill{font-size:11px;font-weight:600;padding:2px 8px;border-radius:6px;white-space:nowrap}
-.ad-ks-pill.ok{background:rgba(52,211,153,0.15);color:#34d399;border:1px solid rgba(52,211,153,0.3)}
-.ad-ks-pill.bad{background:rgba(248,113,113,0.15);color:#f87171;border:1px solid rgba(248,113,113,0.3)}
-.ad-mini{display:flex;align-items:flex-end;gap:3px;height:20px}
-.ad-mini i{display:block;width:5px;border-radius:1.5px;background:#38bdf8;opacity:.85}
-
-.sbs{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:4px}
-.sb{background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:12px;text-decoration:none;color:#0f172a;box-shadow:0 1px 3px rgba(0,0,0,0.04);transition:all .15s ease;position:relative;min-width:0}
-.sb:hover{border-color:#cbd5e1;box-shadow:0 4px 12px rgba(15,23,42,0.08);transform:translateY(-1px)}
-.sb.alert::after{content:'';position:absolute;top:10px;right:10px;width:8px;height:8px;border-radius:50%;background:#ef4444;box-shadow:0 0 0 2px #fff}
-.sb-ic{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;flex:none;background:#f8fafc;color:#64748b;border:1px solid #e2e8f0}
-.sb.alert .sb-ic{background:#fef2f2;color:#dc2626;border-color:#fecaca}
-.sb.warn .sb-ic{background:#fffbeb;color:#d97706;border-color:#fde68a}
+/* 6 Operational Indicators */
+.sbs{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
+.sb{background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:14px;text-decoration:none;color:#0f172a;box-shadow:0 1px 3px rgba(15,23,42,0.03);transition:all .2s ease;position:relative}
+.sb:hover{border-color:#cbd5e1;box-shadow:0 6px 16px -2px rgba(15,23,42,0.06);transform:translateY(-1.5px)}
+.sb.alert::after{content:'';position:absolute;top:10px;right:10px;width:8px;height:8px;border-radius:50%;background:#ef4444;box-shadow:0 0 0 2.5px #fff}
+.sb-ic{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;flex:none;background:#f8fafc;color:#64748b;border:1px solid #e2e8f0}
+.sb.alert .sb-ic{background:#fff1f2;color:#be123c;border-color:#fecdd3}
+.sb.warn .sb-ic{background:#fffbeb;color:#b45309;border-color:#fde68a}
 .sb.ok .sb-ic{background:#ecfdf5;color:#059669;border-color:#a7f3d0}
 .sb-tx{min-width:0;flex:1;display:flex;flex-direction:column}
-.sb-tx b{font-size:16px;font-weight:700;line-height:1.2;color:#0f172a}
-.sb-l{font-size:12px;font-weight:600;color:#334155;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.sb-tx b{font-size:17px;font-weight:750;line-height:1.2;color:#0f172a}
+.sb-l{font-size:12px;font-weight:600;color:#334155;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
 .sb-s{font-size:11px;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
+/* Journal Kanban Cards */
 .ad-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(350px,1fr));gap:18px}
-.ad-card{background:#ffffff;border:1px solid #e2e8f0;border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:14px;box-shadow:0 1px 3px rgba(0,0,0,0.05);transition:all .2s ease;position:relative}
-.ad-card:hover{border-color:#cbd5e1;box-shadow:0 6px 18px rgba(15,23,42,0.08);transform:translateY(-2px)}
+.ad-card{background:#ffffff;border:1px solid #e2e8f0;border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:16px;box-shadow:0 1px 3px rgba(15,23,42,0.04),0 4px 12px -2px rgba(15,23,42,0.02);transition:all .2s cubic-bezier(0.16,1,0.3,1);position:relative}
+.ad-card:hover{border-color:#cbd5e1;box-shadow:0 8px 24px -4px rgba(15,23,42,0.08);transform:translateY(-2px)}
 .ad-card header{display:flex;align-items:center;gap:12px}
 .ad-ic{width:42px;height:42px;border-radius:11px;display:grid;place-items:center;flex:none;background:var(--cs,#f8fafc);color:var(--c,#0f172a);border:1px solid rgba(0,0,0,0.04)}
 .ad-t{flex:1;min-width:0}
-.ad-t h3{margin:0;font-size:15px;font-weight:700;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ad-t h3{margin:0;font-size:15.5px;font-weight:700;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ad-t p{margin:2px 0 0;font-size:12px;color:#64748b}
 .ad-badge{font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:6px;background:#ecfdf5;color:#059669;border:1px solid #a7f3d0}
 .ad-badge.warn{background:#fffbeb;color:#b45309;border-color:#fde68a}
-.ad-badge.bad{background:#fef2f2;color:#b91c1c;border-color:#fecaca}
+.ad-badge.bad{background:#fff1f2;color:#be123c;border-color:#fecdd3}
 .ad-main{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:2px 0}
-.ad-num b{display:block;font-size:24px;font-weight:700;letter-spacing:-0.02em;font-variant-numeric:tabular-nums;color:#0f172a}
+.ad-num b{display:block;font-size:24px;font-weight:750;letter-spacing:-0.03em;font-variant-numeric:tabular-nums;color:#0f172a}
 .ad-num b small{font-size:13px;font-weight:600;color:#64748b;margin-inline-start:3px}
 .ad-num b.neg{color:#dc2626}
-.ad-num span{font-size:12.5px;color:#64748b;display:block;margin-top:2px}
+.ad-num span{font-size:12.5px;color:#64748b;display:block;margin-top:3px}
 .ad-chart{margin-top:auto}
-.ad-seg-wrap{display:flex;flex-direction:column;gap:8px;background:#f8fafc;padding:10px 12px;border-radius:9px;border:1px solid #f1f5f9}
-.ad-seg-bar{display:flex;height:7px;border-radius:999px;background:#e2e8f0;overflow:hidden;gap:2px}
+.ad-seg-wrap{display:flex;flex-direction:column;gap:8px;background:#f8fafc;padding:12px 14px;border-radius:10px;border:1px solid #f1f5f9}
+.ad-seg-bar{display:flex;height:8px;border-radius:999px;background:#e2e8f0;overflow:hidden;gap:2px}
 .ad-seg-bar > span{height:100%;border-radius:999px}
-.ad-seg-legend{display:flex;justify-content:space-between;font-size:11px;color:#64748b;gap:8px;flex-wrap:wrap}
+.ad-seg-legend{display:flex;justify-content:space-between;font-size:11.5px;color:#64748b;gap:8px;flex-wrap:wrap}
 .ad-seg-legend b{color:#0f172a;font-variant-numeric:tabular-nums}
-.ad-spark-box{background:#f8fafc;padding:8px 10px 6px;border-radius:9px;border:1px solid #f1f5f9}
+.ad-spark-box{background:#f8fafc;padding:10px 12px 8px;border-radius:10px;border:1px solid #f1f5f9}
 .ad-bars,.ad-spark{display:block;width:100%;height:38px}
-.ad-bl{display:flex;justify-content:space-between;font-size:10.5px;color:#94a3b8;margin-top:3px}
+.ad-bl{display:flex;justify-content:space-between;font-size:11px;color:#94a3b8;margin-top:4px}
 .ad-bl span{flex:1;text-align:center}.ad-spark + .ad-bl span{flex:none}
 .ad-card footer{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:14px;border-top:1px solid #f1f5f9;margin-top:4px}
 
-.ad-recent{background:#ffffff;border:1px solid #e2e8f0;border-radius:14px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.05)}
-.ad-recent header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid #f1f5f9;background:#f8fafc}
-.ad-recent h2{margin:0;font-size:14.5px;font-weight:700;color:#0f172a}
+/* Recent Journal Postings */
+.ad-recent{background:#ffffff;border:1px solid #e2e8f0;border-radius:14px;overflow:hidden;box-shadow:0 1px 3px rgba(15,23,42,0.04),0 4px 12px -2px rgba(15,23,42,0.02)}
+.ad-recent header{display:flex;align-items:center;justify-content:space-between;padding:16px 22px;border-bottom:1px solid #f1f5f9;background:#f8fafc}
+.ad-recent h2{margin:0;font-size:15px;font-weight:700;color:#0f172a}
 .ad-recent ul{list-style:none;margin:0;padding:0}
-.ad-recent li{display:flex;align-items:center;gap:14px;padding:12px 20px;border-bottom:1px solid #f1f5f9;transition:background .15s ease;cursor:pointer}
+.ad-recent li{display:flex;align-items:center;gap:14px;padding:13px 22px;border-bottom:1px solid #f1f5f9;transition:background .15s ease;cursor:pointer}
 .ad-recent li:last-child{border-bottom:0}
 .ad-recent li:hover{background:#f8fafc}
 .ad-j{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;flex:none;color:var(--c,#475569);background:#f1f5f9}
 .ad-rd{flex:1;min-width:0;display:flex;flex-direction:column}
 .ad-rd b{font-weight:600;font-size:13px;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ad-rd span{font-size:11.5px;color:#64748b;margin-top:1px}
-.ad-ra{font-weight:700;font-size:14px;color:#0f172a;font-variant-numeric:tabular-nums;white-space:nowrap}
-.ad-empty{color:#64748b;padding:24px;text-align:center;cursor:default!important}
+.ad-rd span{font-size:11.5px;color:#64748b;margin-top:2px}
+.ad-ra{font-weight:750;font-size:14px;color:#0f172a;font-variant-numeric:tabular-nums;white-space:nowrap}
+.ad-empty{color:#64748b;padding:28px;text-align:center;cursor:default!important}
 
-@media (max-width:1024px){.ad-ks{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (max-width:640px){.ad-ks,.sbs{grid-template-columns:1fr}}
-@media (prefers-reduced-motion:reduce){.ad-k,.sb,.ad-card{transition:none}}
+@media (max-width:1024px){.ad-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:640px){.ad-kpi-grid,.sbs{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){.ad-kpi-card,.sb,.ad-card{transition:none}}
 #upd-bar{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:200;display:flex;align-items:center;gap:12px;padding:10px 12px 10px 18px;background:#0f172a;color:#fff;border-radius:999px;box-shadow:0 10px 30px rgba(15,23,42,.3);font-size:13.5px}
 #upd-bar .btn.primary{background:var(--gold,#c59b27)!important;border-color:var(--gold,#c59b27)!important;color:#111!important}
 #upd-bar .upd-x{background:none;border:0;color:#94a3b8;display:grid;place-items:center;padding:4px;border-radius:50%;cursor:pointer}#upd-bar .upd-x:hover{color:#fff}
@@ -7288,7 +7289,6 @@ function pageAccDash(){
   const months = [...Array(6)].map((_, i) => addMonthsYM(ym, i - 5)).map(m => ({ m, net: incomeStatement(m + '-01', monthEnd(m) > today ? today : monthEnd(m)).net }));
   const posted = S.entries.filter(e => isPostedStatus(e.status)), drafts = S.entries.filter(e => ['draft','submitted','approved'].includes(e.status));
 
-  /* Sleek segmented aging bar instead of chunky vertical blocks */
   const segAging = (vals, mainColor) => {
     const tot = vals.reduce((s, v) => s.plus(v.abs()), D0());
     const notDue = vals[0] || D0(), d30 = vals[1] || D0(), d60plus = (vals[2] || D0()).plus(vals[3] || D0()).plus(vals[4] || D0());
@@ -7325,13 +7325,6 @@ function pageAccDash(){
       chart: spark(pts, b.kind === 'cash' ? '#0284c7' : '#2563eb'),
       btn: `<a class="btn primary sm" href="#/bank/statements">Reconcile</a><a class="btn sm" href="#/bank/book?id=${b.id}">Transactions</a>` }); }).join('');
 
-  const kp = (i, label, v, sub, badgeHtml, href, icTone) => `<a class="ad-k" href="${href}">
-    <div class="ad-k-top"><span class="ad-kl">${label}</span><span class="ad-kic ${icTone || ''}">${ic(i, 17)}</span></div>
-    <b class="${v.lt(0) ? 'neg' : ''}">${money(v)}<small>EGP</small></b>
-    <div class="ad-k-foot"><span>${sub}</span>${badgeHtml || ''}</div>
-  </a>`;
-
-  const jb = { SJ: ['sales', '#059669'], PJ: ['purchases', '#d97706'], BJ: ['banking', '#2563eb'], GJ: ['accounting', '#475569'], OB: ['calendar', '#7c3aed'] };
   const in7 = addDays(today, 7);
   const apSoon = ap.open.filter(i => i.dueDate && i.dueDate <= in7), apSoonTot = apSoon.reduce((t0, i) => t0.plus(invState(i).egpOpen || 0), D0());
   const lastMonthEnd = monthEnd(lastYm);
@@ -7350,40 +7343,83 @@ function pageAccDash(){
     sb({ i: 'wallet', n: money(held), l: 'Deposits held', s: 'Customer advances (EGP)', href: '#/ar/advances' })
   ].join('');
   const recent = posted.slice().sort((x, y) => x.postedAt < y.postedAt ? 1 : -1).slice(0, 8);
+  const jb = { SJ: ['sales', '#059669'], PJ: ['purchases', '#d97706'], BJ: ['banking', '#2563eb'], GJ: ['accounting', '#475569'], OB: ['calendar', '#7c3aed'] };
   const hello = (n => n < 12 ? 'Good morning' : n < 17 ? 'Good afternoon' : 'Good evening')(+new Date().toLocaleString('en-GB', { hour: '2-digit', hour12: false, timeZone: 'Africa/Cairo' }));
   const dateStr = new Date(today + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
   return `<div class="ad">
-    <section class="ad-hero">
-      <div class="ad-hero-head">
-        <div>
-          <h1>${hello}, ${esc((currentUser().name || '').split(' ')[0] || 'Administrator')}</h1>
-          <p>Here is where the money stands on ${dateStr}.</p>
-        </div>
-        <div class="ad-hero-actions">
-          ${can('ar', 'create') ? `<button class="btn primary sm" data-act="inv-new" data-side="ar">${ic('plus', 14)} New Invoice</button>` : ''}
-          ${can('ap', 'create') ? `<button class="btn sm" data-act="inv-new" data-side="ap">${ic('plus', 14)} New Bill</button>` : ''}
-          ${can('journals', 'create') ? `<button class="btn sm" data-act="je-new">${ic('plus', 14)} Journal Entry</button>` : ''}
-        </div>
+    <!-- 1. Executive Header -->
+    <div class="ad-header">
+      <div class="ad-header-text">
+        <h1>${hello}, ${esc((currentUser().name || '').split(' ')[0] || 'Administrator')}</h1>
+        <p>${dateStr} · Financial &amp; operational overview</p>
       </div>
-
-      <div class="ad-ks">
-        ${kp('coins', 'Cash &amp; Bank Liquidity', cash, `${banks.length} accounts`, '<span class="ad-ks-pill ok">Available</span>', '#/bank/accounts', 'blue')}
-        ${kp('inbox', 'Customers Owe You (AR)', ar.tot, `${ar.open.length} open invoice${ar.open.length === 1 ? '' : 's'}`, ar.over.length ? `<span class="ad-ks-pill bad">${money(ar.overTot)} overdue</span>` : '<span class="ad-ks-pill ok">Current</span>', '#/ar/aging', ar.over.length ? 'warn' : 'emerald')}
-        ${kp('truck', 'You Owe Vendors (AP)', ap.tot, `${ap.open.length} open bill${ap.open.length === 1 ? '' : 's'}`, ap.over.length ? `<span class="ad-ks-pill bad">${money(ap.overTot)} due</span>` : '<span class="ad-ks-pill ok">Current</span>', '#/ap/aging', ap.over.length ? 'warn' : 'amber')}
-        <a class="ad-k" href="#/rep/statements?s=is">
-          <div class="ad-k-top"><span class="ad-kl">Net Profit (YTD)</span><span class="ad-kic gold">${ic('reports', 17)}</span></div>
-          <b class="${ytd.net.lt(0) ? 'neg' : ''}">${money(ytd.net)}<small>EGP</small></b>
-          <div class="ad-k-foot">
-            <span class="ad-ks">Since ${fyFrom.slice(0, 7)}</span>
-            <span class="ad-mini">${months.map(x => { const mx = months.reduce((m, y) => y.net.abs().gt(m) ? y.net.abs() : m, D0()); const h = mx.eq(0) ? 3 : Math.max(3, +x.net.abs().div(mx).mul(18).toFixed(1)); return `<i title="${x.m}: ${money(x.net)}" style="height:${h}px;${x.net.lt(0) ? 'background:#ef4444' : ''}"></i>`; }).join('')}</span>
-          </div>
-        </a>
+      <div class="ad-header-actions">
+        ${can('ar', 'create') ? `<a class="ad-btn primary" href="#/ar/invoices" data-act="inv-new" data-side="ar">${ic('plus', 15)} New Invoice</a>` : ''}
+        ${can('ap', 'create') ? `<a class="ad-btn" href="#/ap/invoices" data-act="inv-new" data-side="ap">${ic('plus', 15)} New Bill</a>` : ''}
+        ${can('journals', 'create') ? `<a class="ad-btn" href="#/acc/journals" data-act="je-new">${ic('plus', 15)} Journal Entry</a>` : ''}
       </div>
-    </section>
+    </div>
 
+    <!-- 2. Top 4 Pristine Financial KPI Cards -->
+    <div class="ad-kpi-grid">
+      <!-- KPI 1: Cash & Bank -->
+      <a class="ad-kpi-card" href="#/bank/accounts">
+        <div class="ad-kpi-top">
+          <span class="ad-kpi-label">Cash &amp; Bank Liquidity</span>
+          <span class="ad-kpi-icon blue">${ic('coins', 18)}</span>
+        </div>
+        <div class="ad-kpi-val ${cash.lt(0) ? 'neg' : ''}">${money(cash)}<small>EGP</small></div>
+        <div class="ad-kpi-foot">
+          <span>${banks.length} active account${banks.length === 1 ? '' : 's'}</span>
+          <span class="ad-tag ok">Available</span>
+        </div>
+      </a>
+
+      <!-- KPI 2: Customer Receivables -->
+      <a class="ad-kpi-card" href="#/ar/aging">
+        <div class="ad-kpi-top">
+          <span class="ad-kpi-label">Customer Receivables (AR)</span>
+          <span class="ad-kpi-icon emerald">${ic('inbox', 18)}</span>
+        </div>
+        <div class="ad-kpi-val">${money(ar.tot)}<small>EGP</small></div>
+        <div class="ad-kpi-foot">
+          <span>${ar.open.length} open invoice${ar.open.length === 1 ? '' : 's'}</span>
+          ${ar.over.length ? `<span class="ad-tag bad">${money(ar.overTot)} overdue</span>` : '<span class="ad-tag ok">On track</span>'}
+        </div>
+      </a>
+
+      <!-- KPI 3: Vendor Payables -->
+      <a class="ad-kpi-card" href="#/ap/aging">
+        <div class="ad-kpi-top">
+          <span class="ad-kpi-label">Vendor Payables (AP)</span>
+          <span class="ad-kpi-icon amber">${ic('truck', 18)}</span>
+        </div>
+        <div class="ad-kpi-val">${money(ap.tot)}<small>EGP</small></div>
+        <div class="ad-kpi-foot">
+          <span>${ap.open.length} open bill${ap.open.length === 1 ? '' : 's'}</span>
+          ${ap.over.length ? `<span class="ad-tag bad">${money(ap.overTot)} due</span>` : '<span class="ad-tag ok">Current</span>'}
+        </div>
+      </a>
+
+      <!-- KPI 4: Net Profit -->
+      <a class="ad-kpi-card" href="#/rep/statements?s=is">
+        <div class="ad-kpi-top">
+          <span class="ad-kpi-label">Net Profit (YTD)</span>
+          <span class="ad-kpi-icon purple">${ic('reports', 18)}</span>
+        </div>
+        <div class="ad-kpi-val ${ytd.net.lt(0) ? 'neg' : ''}">${money(ytd.net)}<small>EGP</small></div>
+        <div class="ad-kpi-foot">
+          <span>Since ${fyFrom.slice(0, 7)}</span>
+          <span class="ad-mini-chart">${months.map(x => { const mx = months.reduce((m, y) => y.net.abs().gt(m) ? y.net.abs() : m, D0()); const h = mx.eq(0) ? 3 : Math.max(3, +x.net.abs().div(mx).mul(18).toFixed(1)); return `<i title="${x.m}: ${money(x.net)}" style="height:${h}px;${x.net.lt(0) ? 'background:#ef4444' : ''}"></i>`; }).join('')}</span>
+        </div>
+      </a>
+    </div>
+
+    <!-- 3. Operational Pulse Strip -->
     <nav class="sbs" aria-label="Operational indicators">${smart}</nav>
 
+    <!-- 4. Journal Kanban Cards Grid -->
     <div class="ad-grid">
       ${card({ i: 'invoices', c: '#059669', cs: '#ecfdf5', t: 'Customer Invoices', sub: 'Sales Journal · AR', num: `${money(ar.tot)} <small>EGP</small>`, numSub: `${ar.open.length} awaiting payment`,
         badge: ar.over.length ? `<span class="ad-badge bad">${ar.over.length} overdue</span>` : '<span class="ad-badge">Up to date</span>', chart: segAging(agAr, '#059669'),
@@ -7397,14 +7433,13 @@ function pageAccDash(){
         btn: (can('journals', 'create') ? `<button class="btn primary sm" data-act="je-new">+ New Entry</button>` : '<span></span>') + `<a class="btn sm" href="#/acc/journals">Journal Entries</a>` })}
     </div>
 
+    <!-- 5. Recent Journal Postings -->
     <section class="ad-recent"><header><h2>Recent Journal Postings</h2><a class="btn sm" href="#/acc/journals">View all entries</a></header>
       <ul>${recent.map(e => { const [ii, cc] = jb[e.journal] || ['file', '#475569']; return `<li data-act="je-drawer-view" data-id="${e.id}"><span class="ad-j" style="--c:${cc}">${ic(ii, 15)}</span>
         <div class="ad-rd"><b>${esc(e.description)}</b><span>${esc(entryRef(e))} · ${fmtDate(e.accountingDate)}</span></div><span class="ad-ra">${money(e.totals.egpDebit)} <small>EGP</small></span></li>`; }).join('') || '<li class="ad-empty">Nothing posted yet. Your first invoice or journal entry will show here.</li>'}</ul>
     </section>
   </div>`;
 }
-
-/* ---------- Chart of accounts ---------- */
 function pageCOA(){
   const F = UI.filters;
   if (!S.accounts.length) return H(t('coa'), '') + needChart();
