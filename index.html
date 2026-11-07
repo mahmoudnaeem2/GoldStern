@@ -2164,6 +2164,22 @@ th{white-space:normal}th.num{white-space:nowrap}
 .mf-card .hint{color:var(--muted)}
 .modal-f{background:transparent!important;border-top:0!important;padding:16px 24px 24px!important}
 @media (max-width:900px){.modal-b.mf-card{margin:12px 12px 0;padding:18px 16px!important}.modal-f{padding:12px 12px 16px!important}}
+
+/* ==== Record / form header bar — breadcrumb ==== */
+.modal-h{height:60px;padding:0 32px!important;gap:14px!important;background:#fff!important;border-bottom:1px solid var(--border)!important;box-shadow:0 1px 0 rgba(16,24,40,.02)}
+.modal-h .back{width:36px!important;height:36px!important;min-height:36px!important;border-radius:10px!important;border:1px solid #e3e7ed!important;background:#fff!important;color:var(--text-2)!important;display:inline-grid!important;place-items:center;flex:none;transition:background .15s,border-color .15s,color .15s,transform .15s}
+.modal-h .back:hover{background:#fbf4e2!important;border-color:#e4d3a6!important;color:#8a6512!important;transform:translateX(-2px);box-shadow:none!important}
+html[dir=rtl] .modal-h .back:hover{transform:translateX(2px)}
+.modal-h .back:focus-visible{outline:2px solid var(--info);outline-offset:2px}
+.mh-crumbs{display:flex;align-items:center;gap:8px;min-width:0;flex:1}
+.mh-parent{border:0!important;background:none!important;padding:4px 6px!important;margin:0 -6px 0 0!important;border-radius:6px;font:inherit;font-size:14px!important;font-weight:500;color:var(--muted)!important;cursor:pointer;white-space:nowrap}
+.mh-parent:hover{color:var(--text)!important;background:var(--surface-2)!important}
+.mh-sep{display:inline-flex;color:#b6bec9;flex:none}
+.mh-sep svg{transform:rotate(-90deg)}html[dir=rtl] .mh-sep svg{transform:rotate(90deg)}
+.modal-h h3{display:flex!important;align-items:center;gap:8px;min-width:0;font-size:15px!important;font-weight:650!important;color:var(--text)!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mh-type{color:var(--text);font-weight:650}
+.mh-no{display:inline-flex;align-items:center;height:26px;padding:0 10px;border-radius:8px;background:#fbf4e2;color:#7a5a10;font-size:13px;font-weight:650;letter-spacing:.02em;font-variant-numeric:tabular-nums;box-shadow:inset 0 0 0 1px rgba(197,155,39,.25)}
+@media (max-width:760px){.modal-h{padding:0 12px!important}.mh-parent,.mh-sep{display:none}}
 </style>
 
 <!-- Journal Entry Right Side Drawer CSS & JS -->
@@ -6739,17 +6755,20 @@ function openModal({ title, body, submit = 'Save', wide = false, xwide = false, 
   MODAL = { onSubmit };
   if (!APPROVALS) submit = String(submit).replace(/(Save|Create) & submit for approval/, 'Save & post').replace(/^Submit for approval$/, 'Save').replace(' (needs approval)', '').replace(/^Create car & purchase order$/, 'Create car & purchase order');
   try { const ch = document.querySelector('.subnav') || document.querySelector('.top'); if (document.documentElement && document.documentElement.style) document.documentElement.style.setProperty('--chrome-top', (ch ? Math.max(0, Math.round(ch.getBoundingClientRect().bottom)) : 0) + 'px'); } catch (x){}
+  const mhParent = (() => { const a = document.querySelector('.subnav > a.on, .subnav .sm-btn.on') || document.querySelector('.subnav .app'); return a ? a.textContent.trim() : ''; })();
   const formCard = !/class="(co-ed|je-ed)/.test(body) && /class="(row|field)[ "]/.test(body);
   document.getElementById('modal-root').innerHTML = `
     <div class="modal-bg"><div class="modal ${wide ? 'wide' : ''} ${xwide ? 'xwide' : ''}" role="main" aria-label="${esc(title)}">
       <form id="mform" autocomplete="off" ${formAttrs}>
-        <div class="modal-h"><button type="button" class="back" data-act="modal-close" aria-label="Back" title="Back">${ic('back', 16)}<span class="back-tx">Back</span></button><span style="color:#cbd5e1;font-size:14px;margin:0 2px">/</span><h3>${esc(title)}</h3></div>
+        <div class="modal-h"><button type="button" class="back" data-act="modal-close" aria-label="Back" title="Back">${ic('back', 16)}<span class="back-tx">Back</span></button><nav class="mh-crumbs" aria-label="Breadcrumb">${mhParent ? `<button type="button" class="mh-parent" data-act="modal-close">${esc(mhParent)}</button><span class="mh-sep" aria-hidden="true">${ic('chev', 14)}</span>` : ''}<h3>${mhTitle(title)}</h3></nav></div>
         <div class="modal-b${formCard ? ' mf-card' : ''}"><div class="note bad form-err" id="mform-err"></div>${formCard ? `<header class="mf-head"><span class="co-step">${ic(formIcon(title), 18)}</span><div class="co-ht"><h3>${esc(title)}</h3><p>${onSubmit ? 'Fields marked * are required.' : ''}</p></div></header>` : ''}${body}</div>
         ${onSubmit ? `<div class="modal-f"><button type="button" class="btn" data-act="modal-close">${t('cancel')}</button><button class="btn ${danger ? 'danger' : 'primary'}" type="submit">${esc(submit)}</button></div>` : (footer ? `<div class="modal-f">${footer}</div>` : '')}
       </form></div></div>`;
   document.querySelectorAll('#mform input').forEach(el => { if (MONEY_FIELD.test(el.name || '') && el.value) el.value = groupDigits(el.value); });
   const first = document.querySelector('#mform .input'); if (first) first.focus();
 }
+function mhTitle(t){ const m = String(t || '').match(/^(.*\S)\s+((?:[A-Z]{2,6}-)+\d{4}-\d+\S*)(.*)$/);
+  return m ? `<span class="mh-type">${esc(m[1])}</span> <span class="mh-no">${esc(m[2])}</span>${m[3] ? `<span class="mh-type">${esc(m[3])}</span>` : ''}` : esc(t); }
 function formIcon(t){ t = String(t || '').toLowerCase();
   return /expense/.test(t) ? 'expenses' : /payment|receipt|refund|advance|settle/.test(t) ? 'wallet' : /invoice|bill|credit note|debit note|quotation|order|pro-forma|proforma|delivery|return/.test(t) ? 'invoices' : /customer|vendor|supplier|partner|user|seller|contact/.test(t) ? 'users' : /bank|cash|transfer|deposit|cheque|statement/.test(t) ? 'banking'
     : /car|vehicle|make|model|brand/.test(t) ? 'cars' : /ship|clearance|landed|freight/.test(t) ? 'truck' : /payment|receipt|refund|advance|settle/.test(t) ? 'wallet'
@@ -14397,7 +14416,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261107-151754';
+const APP_BUILD = 'build-20261107-152034';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
