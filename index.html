@@ -8013,7 +8013,6 @@ function pageCOA(){
       <td>${esc(ACC_TYPES[a.type].en)}</td><td>${a.reconcile ? `<span class="tgl on" title="Allow reconciliation">${ic('check', 12)}</span>` : '<span class="tgl"></span>'}</td><td>${a.currency || '<span class="muted">—</span>'}</td>
       <td class="num">${signed(b0)}</td>
       <td class="num" style="white-space:nowrap" onclick="event.stopPropagation()">
-        ${canDup ? `<button type="button" class="btn sm" data-act="acc-dup" data-id="${a.id}" title="Duplicate account (Odoo style)" style="padding:4px 9px;font-size:12px">${ic('copy', 13)} Duplicate</button>` : ''}
         ${canEdit ? `<button type="button" class="btn sm" data-act="acc-edit" data-id="${a.id}" title="Edit account" style="padding:4px 8px;font-size:12px">${ic('edit', 13)}</button>` : ''}
       </td></tr>`; };
   const body = [...groups.values()].sort((x, y) => (x.g ? x.g.code : '') < (y.g ? y.g.code : '') ? -1 : 1).map(({ g, rows }) => {
