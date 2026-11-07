@@ -2096,8 +2096,8 @@ th{white-space:normal}th.num{white-space:nowrap}
 .co-card{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px 24px 24px;box-shadow:0 1px 2px rgba(16,24,40,.04),0 4px 14px -6px rgba(16,24,40,.06);transition:box-shadow .2s,border-color .2s}
 .co-card:focus-within{border-color:#e4d3a6;box-shadow:0 1px 2px rgba(16,24,40,.04),0 10px 28px -10px rgba(197,155,39,.28)}
 .co-card header{display:flex;align-items:center;gap:14px;margin-bottom:20px}
-.co-step{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;flex:none;background:linear-gradient(135deg,#fbf4e2,#f3e5bd);color:#8a6512;box-shadow:inset 0 0 0 1px rgba(197,155,39,.22)}
-.co-card:focus-within .co-step{background:linear-gradient(135deg,#d9b24a,#b8901f);color:#fff;box-shadow:0 4px 12px -4px rgba(184,144,31,.6)}
+.co-step{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;flex:none;background:linear-gradient(135deg,#eff6ff,#dbeafe);color:#1d4ed8;box-shadow:inset 0 0 0 1px rgba(37,99,235,.2)}
+.co-card:focus-within .co-step{background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;box-shadow:0 4px 12px -4px rgba(37,99,235,.45)}
 .co-ht{flex:1;min-width:0}.co-card h3{margin:0;font-size:16px;font-weight:650;letter-spacing:-.01em;color:var(--text)}.co-card header p{margin:2px 0 0;font-size:13px;color:var(--muted)}
 .co-no{font-size:12px;font-weight:600;color:#a8b0bc;font-variant-numeric:tabular-nums;letter-spacing:.06em}
 .co-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px 18px}
@@ -2151,10 +2151,10 @@ th{white-space:normal}th.num{white-space:nowrap}
 .input::placeholder{color:#9aa3af}
 .input[disabled],.input[readonly]{background-color:#f1f3f6!important;color:var(--muted)}
 .modal-b.mf-card{background:#fff!important;border:1px solid var(--border);border-radius:16px;box-shadow:0 1px 2px rgba(16,24,40,.04),0 4px 14px -6px rgba(16,24,40,.06);margin:20px 24px 0;padding:22px 24px 24px!important}
-.modal-b.mf-card:focus-within{border-color:#e4d3a6;box-shadow:0 1px 2px rgba(16,24,40,.04),0 10px 28px -10px rgba(197,155,39,.28)}
+.modal-b.mf-card:focus-within{border-color:#bfdbfe;box-shadow:0 1px 2px rgba(16,24,40,.04),0 10px 28px -10px rgba(37,99,235,.16)}
 .mf-head{display:flex;align-items:center;gap:14px;margin:0 0 20px}
 .mf-head h3{margin:0;font-size:16px;font-weight:650;letter-spacing:-.01em;color:var(--text)}.mf-head p{margin:2px 0 0;font-size:13px;color:var(--muted)}.mf-head p:empty{display:none}
-.mf-card:focus-within .mf-head .co-step{background:linear-gradient(135deg,#d9b24a,#b8901f);color:#fff;box-shadow:0 4px 12px -4px rgba(184,144,31,.6)}
+.mf-card:focus-within .mf-head .co-step{background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;box-shadow:0 4px 12px -4px rgba(37,99,235,.45)}
 .co-step{transition:background .2s,color .2s,box-shadow .2s}
 .mf-card .field{margin-bottom:14px}
 .mf-card .field > label,.mf-card .field > .lbl{font-size:12.5px;font-weight:600;color:var(--text-2);margin-bottom:6px}
@@ -3773,11 +3773,32 @@ Object.assign(A, {
       if (!isGroup && a.isGroup && hasChildren(a)) throw new AppError('This group has sub-accounts; move them before making it a posting account.');
       if (isGroup && mappedKeysFor(a.id).length) throw new AppError('A mapped account cannot become a group account.');
     }
+    const icon = String(f.icon !== undefined ? f.icon : (a && a.icon) || '').trim();
     const data = { code, nameEn, nameAr: String(f.nameAr || '').trim(), parentId, type, isGroup, normal, allowManual: f.allowManual !== 'no',
-      reconcile: f.reconcile === 'yes', currency, requireCostCenter: f.requireCostCenter === 'yes', revalue: f.revalue === 'yes', description: String(f.description || '').trim() };
-    if (a){ const old = clone(a); Object.assign(a, data); log('account_update', 'coa', a.id, old, clone(a), f.reason || '', a.code); }
-    else { const n = { id: uid('ac'), ...data, system: false, active: true, createdAt: nowISO() }; S.accounts.push(n); log('account_create', 'coa', n.id, null, n, '', n.code); }
-    saveState();
+      reconcile: f.reconcile === 'yes', currency, requireCostCenter: f.requireCostCenter === 'yes', revalue: f.revalue === 'yes', description: String(f.description || '').trim(), icon };
+    if (a){ const old = clone(a); Object.assign(a, data); log('account_update', 'coa', a.id, old, clone(a), f.reason || '', a.code); saveState(); return a; }
+    else { const n = { id: uid('ac'), ...data, system: false, active: true, createdAt: nowISO() }; S.accounts.push(n); log('account_create', 'coa', n.id, null, n, '', n.code); saveState(); return n; }
+  },
+  duplicateAccount(id, overrides = {}){
+    requirePerm('coa', 'create');
+    const src = acc(id); if (!src) throw new AppError('Account not found.');
+    const newCode = overrides.code ? String(overrides.code).trim().toUpperCase() : nextAccountCode(src.code);
+    return this.saveAccount(null, {
+      code: newCode,
+      nameEn: overrides.nameEn !== undefined ? overrides.nameEn : src.nameEn + ' (Copy)',
+      nameAr: overrides.nameAr !== undefined ? overrides.nameAr : (src.nameAr ? src.nameAr + ' (نسخة)' : ''),
+      parentId: overrides.parentId !== undefined ? overrides.parentId : (src.parentId || ''),
+      type: overrides.type || src.type,
+      isGroup: (overrides.isGroup !== undefined ? overrides.isGroup : src.isGroup) ? 'yes' : 'no',
+      normal: overrides.normal || src.normal,
+      currency: overrides.currency !== undefined ? overrides.currency : (src.currency || ''),
+      allowManual: (overrides.allowManual !== undefined ? overrides.allowManual : src.allowManual !== false) ? 'yes' : 'no',
+      reconcile: (overrides.reconcile !== undefined ? overrides.reconcile : !!src.reconcile) ? 'yes' : 'no',
+      requireCostCenter: (overrides.requireCostCenter !== undefined ? overrides.requireCostCenter : !!src.requireCostCenter) ? 'yes' : 'no',
+      revalue: (overrides.revalue !== undefined ? overrides.revalue : !!src.revalue) ? 'yes' : 'no',
+      description: overrides.description !== undefined ? overrides.description : (src.description || ''),
+      icon: overrides.icon !== undefined ? overrides.icon : (src.icon || '')
+    });
   },
   setAccountActive(id, active, reason){
     requirePerm('coa', 'edit');
@@ -7010,7 +7031,7 @@ function openModal({ title, body, submit = 'Save', wide = false, xwide = false, 
       <form id="mform" autocomplete="off" ${formAttrs}>
         <div class="modal-h"><button type="button" class="back" data-act="modal-close" aria-label="Back" title="Back">${ic('back', 16)}<span class="back-tx">Back</span></button><nav class="mh-crumbs" aria-label="Breadcrumb">${mhParent ? `<button type="button" class="mh-parent" data-act="modal-close">${esc(mhParent)}</button><span class="mh-sep" aria-hidden="true">${ic('chev', 14)}</span>` : ''}<h3>${mhTitle(title)}</h3></nav></div>
         <div class="modal-b${formCard ? ' mf-card' : ''}"><div class="note bad form-err" id="mform-err"></div>${formCard ? `<header class="mf-head"><span class="co-step">${ic(formIcon(title), 18)}</span><div class="co-ht"><h3>${esc(title)}</h3><p>${onSubmit ? 'Fields marked * are required.' : ''}</p></div></header>` : ''}${body}</div>
-        ${onSubmit ? `<div class="modal-f"><button type="button" class="btn" data-act="modal-close">${t('cancel')}</button><button class="btn ${danger ? 'danger' : 'primary'}" type="submit">${esc(submit)}</button></div>` : (footer ? `<div class="modal-f">${footer}</div>` : '')}
+        ${onSubmit ? `<div class="modal-f">${footer || ''}<button type="button" class="btn" data-act="modal-close">${t('cancel')}</button><button class="btn ${danger ? 'danger' : 'primary'}" type="submit">${esc(submit)}</button></div>` : (footer ? `<div class="modal-f">${footer}</div>` : '')}
       </form></div></div>`;
   document.querySelectorAll('#mform input').forEach(el => { if (MONEY_FIELD.test(el.name || '') && el.value) el.value = groupDigits(el.value); });
   const first = document.querySelector('#mform .input'); if (first) first.focus();
@@ -7018,9 +7039,11 @@ function openModal({ title, body, submit = 'Save', wide = false, xwide = false, 
 function mhTitle(t){ const m = String(t || '').match(/^(.*\S)\s+((?:[A-Z]{2,6}-)+\d{4}-\d+\S*)(.*)$/);
   return m ? `<span class="mh-type">${esc(m[1])}</span> <span class="mh-no">${esc(m[2])}</span>${m[3] ? `<span class="mh-type">${esc(m[3])}</span>` : ''}` : esc(t); }
 function formIcon(t){ t = String(t || '').toLowerCase();
+  const codeMatch = /^(?:edit|duplicate)\s+([0-9a-z.-]+)$/i.exec(t.trim());
+  if (codeMatch){ const a0 = (S.accounts || []).find(x => x.code.toLowerCase() === codeMatch[1].toLowerCase()); if (a0) return accIconKey(a0); }
   return /expense/.test(t) ? 'expenses' : /payment|receipt|refund|advance|settle/.test(t) ? 'wallet' : /invoice|bill|credit note|debit note|quotation|order|pro-forma|proforma|delivery|return/.test(t) ? 'invoices' : /customer|vendor|supplier|partner|user|seller|contact/.test(t) ? 'users' : /bank|cash|transfer|deposit|cheque|statement/.test(t) ? 'banking'
     : /car|vehicle|make|model|brand/.test(t) ? 'cars' : /ship|clearance|landed|freight/.test(t) ? 'truck' : /payment|receipt|refund|advance|settle/.test(t) ? 'wallet'
-    : /rate|currenc/.test(t) ? 'coins' : /account|journal|entry|budget|fiscal|year|tax|asset|chart/.test(t) ? 'accounting' : /setting|location|categor|template/.test(t) ? 'settings' : 'invoices'; }
+    : /rate|currenc/.test(t) ? 'coins' : /account|journal|entry|budget|fiscal|year|tax|asset|chart/.test(t) ? 'shield' : /setting|location|categor|template/.test(t) ? 'settings' : 'invoices'; }
 function closeModal(){ if (SCREEN){ LAST_SCREEN = SCREEN; LAST_CLOSED_AT = Date.now(); SCREEN = null; } if (EDIT_CTX){ const c = EDIT_CTX; EDIT_CTX = null; if (!c.done) S = JSON.parse(c.snapOrig); } MODAL = null; document.getElementById('modal-root').innerHTML = ''; }
 /* Money fields show thousands separators while typing (909,090.00); the commas are removed before saving. */
 const MONEY_FIELD = /^(salary|pr_bonus|pr_ded|amount|price|salePrice|fee|intermediaryFee|srcAmount|dstAmount|cost|residual|total|egpTotal|applied|portion|estAmount|openingBalance|creditLimit|alloc_applied|alloc_portion|il_amount|pl_price|ex_amount|ql_price|ql_disc|so_price|so_disc|pf_price|pf_disc|lc_amount|lc_tax|l_debit|l_credit|l_rate)$/;
@@ -7246,6 +7269,13 @@ const ICONS = {
   panel: '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/>',
   file: '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/>',
   undo: '<path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/>',
+  copy: '<rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
+  shield: '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>',
+  scale: '<path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>',
+  briefcase: '<rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>',
+  trend: '<polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>',
+  layers: '<path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/>',
+  lock: '<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
   edit: '<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>'
 };
 const ic = (n, sz = 18) => `<svg class="ic" width="${sz}" height="${sz}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n] || ''}</svg>`;
@@ -7804,6 +7834,68 @@ function pageAccDash(){
 function depChip(a){ if (a.type === 'asset' && /^land$/i.test(String(a.nameEn || '').trim())) return ' <span class="dep-chip" title="Land is not depreciated">Not depreciated</span>'; const c = (S.assetCats || []).find(x => x.active !== false && [x.assetAccountId, x.accumAccountId, x.expenseAccountId].includes(a.id)); if (!c) return '';
   const rate = c.method === 'declining' && Number(c.ratePct) ? Number(c.ratePct) : 1200 / (c.lifeMonths || 1), yrs = (c.lifeMonths || 0) / 12;
   return ` <span class="dep-chip" title="${esc(c.name)} — ${c.method === 'declining' ? 'declining balance' : 'straight line'} over ${c.lifeMonths} months">${(Math.round(rate * 100) / 100)}% / yr · ${Number.isInteger(yrs) ? yrs : yrs.toFixed(1)} yrs</span>`; }
+const ACC_ICON_CHOICES = [
+  ['wallet', 'Cash / Wallet'],
+  ['banking', 'Bank / Institution'],
+  ['shield', 'Asset / Reserve'],
+  ['scale', 'Liability / Payable'],
+  ['briefcase', 'Equity / Capital'],
+  ['trend', 'Revenue / Growth'],
+  ['purchases', 'Cost of Sales / Inventory'],
+  ['expenses', 'Expense / Voucher'],
+  ['bill', 'Bills & Payables'],
+  ['users', 'Customers / Receivables'],
+  ['cars', 'Vehicles / Fleet'],
+  ['coins', 'Foreign Currency / FX'],
+  ['sales', 'Tax & Duties'],
+  ['layers', 'Account Group']
+];
+function accIconKey(a = {}){
+  if (a.icon && ICONS[a.icon]) return a.icon;
+  if (a.isGroup) return 'layers';
+  const nm = ((a.nameEn || '') + ' ' + (a.nameAr || '')).toLowerCase();
+  if (/cash|petty|خزينة|نقدية|صندوق/.test(nm)) return 'wallet';
+  if (/bank|بنك|مصرف/.test(nm)) return 'banking';
+  if (/vehicle|car|سيار/.test(nm)) return 'cars';
+  if (/receivable|debtor|customer|عملاء|مدين/.test(nm)) return 'users';
+  if (/payable|creditor|supplier|vendor|مورد|دائن/.test(nm)) return 'bill';
+  if (/tax|vat|customs|ضريب|جمارك/.test(nm)) return 'sales';
+  if (/fx|exchange|currency|عملة|فروق/.test(nm)) return 'coins';
+  const byType = { asset: 'shield', liability: 'scale', equity: 'briefcase', revenue: 'trend', cogs: 'purchases', expense: 'expenses' };
+  return byType[a.type] || 'shield';
+}
+function accTypeTheme(type){
+  const themes = {
+    asset:     { c: '#2563eb', bg: '#eff6ff', bd: '#bfdbfe' },
+    liability: { c: '#d97706', bg: '#fffbeb', bd: '#fde68a' },
+    equity:    { c: '#7c3aed', bg: '#f5f3ff', bd: '#ddd6fe' },
+    revenue:   { c: '#059669', bg: '#ecfdf5', bd: '#a7f3d0' },
+    cogs:      { c: '#0891b2', bg: '#ecfeff', bd: '#a5f3fc' },
+    expense:   { c: '#e11d48', bg: '#fff1f2', bd: '#fecdd3' }
+  };
+  return themes[type] || themes.asset;
+}
+function accBadge(a, sz = 15){
+  const th = accTypeTheme(a.type), box = sz + 14;
+  return `<span class="acc-ic-badge" style="display:inline-flex;align-items:center;justify-content:center;width:${box}px;height:${box}px;border-radius:8px;background:${th.bg};color:${th.c};border:1px solid ${th.bd};flex:none;vertical-align:middle">${ic(accIconKey(a), sz)}</span>`;
+}
+function nextAccountCode(code){
+  const raw = String(code || '').trim().toUpperCase();
+  const used = new Set((S.accounts || []).map(x => x.code));
+  const m = /^(.*?)(\d+)$/.exec(raw);
+  if (m){
+    const pfx = m[1], digits = m[2], len = digits.length;
+    let n = parseInt(digits, 10) + 1;
+    while (n < 10 ** Math.max(len, 8)){
+      const cand = pfx + String(n).padStart(len, '0');
+      if (!used.has(cand)) return cand;
+      n++;
+    }
+  }
+  let k = 1;
+  while (used.has(`${raw}-${k}`)) k++;
+  return `${raw}-${k}`;
+}
 function pageCOA(){
   const F = UI.filters;
   if (!S.accounts.length) return H(t('coa'), '') + needChart();
@@ -7813,20 +7905,24 @@ function pageCOA(){
   if (F.c_q){ const q = F.c_q.toLowerCase(); list = list.filter(a => (a.code + ' ' + a.nameEn + ' ' + (a.nameAr || '')).toLowerCase().includes(q)); }
   if (F.c_inactive !== 'show') list = list.filter(a => a.active);
   const bal = new Map(); for (const { l } of ledgerLines()) bal.set(l.accountId, (bal.get(l.accountId) || D0()).plus(l.egpDebit).minus(l.egpCredit));
-  const top = a => { let x = a; while (x.parentId){ const p0 = acc(x.parentId); if (!p0 || !p0.parentId) return p0 || x; x = p0; } return x; };
   const grpOf = a => { const p0 = a.parentId ? acc(a.parentId) : null; return p0 || null; };
   const gb = F.c_group === 'none' ? null : 'group'; UI.coaShut = UI.coaShut || {};
   const groups = new Map(); for (const a of list){ const g = gb ? grpOf(a) : null, k = g ? g.id : '_'; if (!groups.has(k)) groups.set(k, { g, rows: [] }); groups.get(k).rows.push(a); }
   const signed = v => v.eq(0) ? '<span class="muted">0.00</span>' : `${v.lt(0) ? '−' : ''}${money(v.abs())}`;
+  const canDup = can('coa', 'create'), canEdit = can('coa', 'edit');
   const row = a => { const b0 = bal.get(a.id) || D0();
-    return `<tr data-act="acc-open" data-id="${a.id}" style="cursor:pointer${a.active ? '' : ';opacity:.5'}"><td style="padding-inline-start:${gb ? 34 : 20}px">${esc(a.code)}</td>
-      <td class="wrap"><b style="font-weight:500">${esc(accName(a))}</b>${!a.allowManual ? ' <span class="pill mute" title="Posted only from documents (invoices, payments)">Control</span>' : ''}${depChip(a)}</td>
+    return `<tr data-act="acc-open" data-id="${a.id}" style="cursor:pointer${a.active ? '' : ';opacity:.5'}"><td class="mono" style="padding-inline-start:${gb ? 34 : 20}px;font-weight:600;color:#1e293b">${esc(a.code)}</td>
+      <td class="wrap"><div style="display:flex;align-items:center;gap:10px">${accBadge(a, 15)}<div><b style="font-weight:550">${esc(accName(a))}</b>${!a.allowManual ? ' <span class="pill mute" title="Posted only from documents (invoices, payments)">Control</span>' : ''}${depChip(a)}</div></div></td>
       <td>${esc(ACC_TYPES[a.type].en)}</td><td>${a.reconcile ? `<span class="tgl on" title="Allow reconciliation">${ic('check', 12)}</span>` : '<span class="tgl"></span>'}</td><td>${a.currency || '<span class="muted">—</span>'}</td>
-      <td class="num">${signed(b0)}</td></tr>`; };
+      <td class="num">${signed(b0)}</td>
+      <td class="num" style="white-space:nowrap" onclick="event.stopPropagation()">
+        ${canDup ? `<button type="button" class="btn sm" data-act="acc-dup" data-id="${a.id}" title="Duplicate account (Odoo style)" style="padding:4px 9px;font-size:12px">${ic('copy', 13)} Duplicate</button>` : ''}
+        ${canEdit ? `<button type="button" class="btn sm" data-act="acc-edit" data-id="${a.id}" title="Edit account" style="padding:4px 8px;font-size:12px">${ic('edit', 13)}</button>` : ''}
+      </td></tr>`; };
   const body = [...groups.values()].sort((x, y) => (x.g ? x.g.code : '') < (y.g ? y.g.code : '') ? -1 : 1).map(({ g, rows }) => {
     if (!gb || !g) return rows.map(row).join('');
     const shut = UI.coaShut[g.id], tot = rows.reduce((t, a) => t.plus(bal.get(a.id) || D0()), D0());
-    return `<tr class="grp" data-act="coa-fold" data-id="${g.id}" style="cursor:pointer"><td colspan="5"><span class="fold">${shut ? '▸' : '▾'}</span> <b>${esc(g.code)} ${esc(g.nameEn)}</b> <span class="muted">(${rows.length})</span></td><td class="num"><b>${signed(tot)}</b></td></tr>` + (shut ? '' : rows.map(row).join(''));
+    return `<tr class="grp" data-act="coa-fold" data-id="${g.id}" style="cursor:pointer"><td colspan="5"><span class="fold">${shut ? '▸' : '▾'}</span> ${accBadge(g, 13)} <b style="margin-inline-start:6px">${esc(g.code)} ${esc(g.nameEn)}</b> <span class="muted">(${rows.length})</span></td><td class="num"><b>${signed(tot)}</b></td><td></td></tr>` + (shut ? '' : rows.map(row).join(''));
   }).join('');
   const cnt = k => S.accounts.filter(a => !a.isGroup && a.active && (!k || a.type === k)).length;
   return H(t('coa'), '', `${can('coa', 'export') ? '<button class="btn" data-act="coa-csv">Export</button>' : ''}${can('coa', 'create') ? '<button class="btn primary" data-act="acc-new">New account</button>' : ''}`) + `
@@ -7835,16 +7931,21 @@ function pageCOA(){
         <select class="input" data-filter="c_group"><option value="">Group by account group</option><option value="none" ${F.c_group === 'none' ? 'selected' : ''}>No grouping</option></select>
         <select class="input" data-filter="c_inactive"><option value="">Active accounts</option><option value="show" ${F.c_inactive === 'show' ? 'selected' : ''}>Include archived</option></select>
         <span class="muted" style="align-self:center;font-size:12.5px;margin-inline-start:auto">${list.length} account${list.length === 1 ? '' : 's'}</span></div>
-    <div class="tbl-wrap"><table class="o-list"><thead><tr><th style="width:110px">Code</th><th>Account name</th><th>Type</th><th>Reconcile</th><th>Currency</th><th class="num">Balance (EGP)</th></tr></thead><tbody>${body || '<tr><td colspan="6" class="empty">No accounts match.</td></tr>'}</tbody></table></div></div>`;
+    <div class="tbl-wrap"><table class="o-list"><thead><tr><th style="width:110px">Code</th><th>Account name</th><th>Type</th><th>Reconcile</th><th>Currency</th><th class="num">Balance (EGP)</th><th class="num" style="width:140px">Actions</th></tr></thead><tbody>${body || '<tr><td colspan="7" class="empty">No accounts match.</td></tr>'}</tbody></table></div></div>`;
 }
 function accountView(a){
   const b0 = ledgerLines().filter(x => x.l.accountId === a.id).reduce((t, x) => t.plus(x.l.egpDebit).minus(x.l.egpCredit), D0()), n = ledgerLines().filter(x => x.l.accountId === a.id).length, g = a.parentId ? acc(a.parentId) : null;
   const f = (l, v0) => `<div><dt>${l}</dt><dd>${v0 || '<span class="muted">—</span>'}</dd></div>`, maps = mappedKeysFor(a.id);
-  const acts = [can('coa', 'edit') ? `<button type="button" class="btn primary" data-act="acc-edit" data-id="${a.id}">Edit</button>` : '', `<a class="btn" href="#/acc/gl?account=${a.id}">View ledger</a>`,
+  const th = accTypeTheme(a.type);
+  const acts = [
+    can('coa', 'edit') ? `<button type="button" class="btn primary" data-act="acc-edit" data-id="${a.id}">${ic('edit', 14)} Edit</button>` : '',
+    can('coa', 'create') ? `<button type="button" class="btn" data-act="acc-dup" data-id="${a.id}">${ic('copy', 14)} Duplicate</button>` : '',
+    `<a class="btn" href="#/acc/gl?account=${a.id}">View ledger</a>`,
     can('coa', 'edit') ? `<button type="button" class="btn" data-act="acc-active" data-id="${a.id}">${a.active ? 'Archive' : 'Restore'}</button>` : '',
-    can('coa', 'delete') && !a.system && !accountUsed(a.id) && !hasChildren(a) ? `<button type="button" class="btn danger" data-act="acc-del" data-id="${a.id}">Delete</button>` : ''].join('');
+    can('coa', 'delete') && !a.system && !accountUsed(a.id) && !hasChildren(a) ? `<button type="button" class="btn danger" data-act="acc-del" data-id="${a.id}">Delete</button>` : ''
+  ].join('');
   openModal({ screen: { key: 'acc:' + a.id, reopen: () => { const x = acc(a.id); if (x) accountView(x); } }, title: `Account ${a.code}`, xwide: true, body: `
-    <div class="rec"><div class="rec-top"><div class="rec-title"><div class="rec-ic">${ic('accounting', 22)}</div><div><div class="rec-kind">${esc(ACC_TYPES[a.type].en)} account${g ? ' · ' + esc(g.code + ' ' + g.nameEn) : ''}</div><h2>${esc(a.code)} ${esc(a.nameEn)}</h2>
+    <div class="rec"><div class="rec-top"><div class="rec-title"><div class="rec-ic" style="background:${th.bg};color:${th.c};border-color:${th.bd}">${ic(accIconKey(a), 22)}</div><div><div class="rec-kind">${esc(ACC_TYPES[a.type].en)} account${g ? ' · ' + esc(g.code + ' ' + g.nameEn) : ''}</div><h2>${esc(a.code)} ${esc(a.nameEn)}</h2>
       <div class="rec-meta">${a.active ? '<span class="pill ok">Active</span>' : '<span class="pill mute">Archived</span>'}</div></div></div><div class="rec-actions">${acts}</div></div>
     <div class="rec-layout"><div class="rec-main"><section class="rc"><header><h3>Balance</h3><a class="btn sm" href="#/acc/gl?account=${a.id}">${n} posting${n === 1 ? '' : 's'}</a></header>
       <div style="font-size:30px;font-weight:650;letter-spacing:-.02em;font-variant-numeric:tabular-nums">${money(b0.abs())} <span class="muted" style="font-size:15px;font-weight:500">EGP ${b0.lt(0) ? 'credit' : b0.gt(0) ? 'debit' : ''}</span></div>
@@ -7857,8 +7958,10 @@ function accountForm(a = {}){
   const used = a.id && accountPosted(a.id);
   const groups = S.accounts.filter(x => x.isGroup && x.id !== a.id).sort((x, y) => x.code < y.code ? -1 : 1);
   const lock = used ? 'disabled' : '';
+  const curIcon = accIconKey(a);
   const yn = (name, val, label) => `<div class="field"><label>${label}</label><select class="input" name="${name}"><option value="yes" ${val ? 'selected' : ''}>yes</option><option value="no" ${val ? '' : 'selected'}>no</option></select></div>`;
   return `${used ? '<div class="note warn">This account has posted transactions: code, type, normal balance, group flag and currency are locked.</div>' : ''}
+    ${a._dupFrom ? `<div class="note ok" style="margin-bottom:14px;display:flex;align-items:center;gap:8px">${ic('copy', 15)} <span>Duplicating account <b>${esc(a._dupFrom)}</b> — all settings copied and next available code assigned automatically.</span></div>` : ''}
     <div class="row"><div class="field" style="max-width:140px"><label>Code *</label><input class="input mono" name="code" value="${esc(a.code || '')}" ${used ? 'readonly' : ''} required></div>
       <div class="field"><label>Type *</label><select class="input" name="type" ${lock}>${Object.entries(ACC_TYPES).map(([k, v]) => `<option value="${k}" ${a.type === k ? 'selected' : ''}>${v.en}</option>`).join('')}</select>${used ? `<input type="hidden" name="type" value="${a.type}">` : ''}</div>
       <div class="field"><label>Parent group</label><select class="input" name="parentId"><option value="">— top level —</option>${groups.map(g => `<option value="${g.id}" ${a.parentId === g.id ? 'selected' : ''}>${esc(g.code)} — ${esc(g.nameEn)}</option>`).join('')}</select></div></div>
@@ -7870,6 +7973,13 @@ function accountForm(a = {}){
       <div class="field"><label>Currency restriction</label><select class="input" name="currency" ${lock}><option value="">any currency</option>${S.currencies.map(c => `<option ${a.currency === c.code ? 'selected' : ''}>${c.code}</option>`).join('')}</select>${used ? `<input type="hidden" name="currency" value="${a.currency || ''}">` : ''}</div></div>
     <div class="row">${yn('allowManual', a.allowManual !== false, 'Allow manual entries')}${yn('reconcile', !!a.reconcile, 'Reconciliation required')}${yn('requireCostCenter', !!a.requireCostCenter, 'Cost center required')}${yn('revalue', !!a.revalue, 'Revalue foreign balances (monetary)')}</div>
     <p class="hint" style="margin-top:-6px">Revaluation applies to monetary items only (cash, banks, receivables, payables). Leave it off for inventory, advances and prepayments.</p>
+    <div class="field">
+      <label>Account icon</label>
+      <input type="hidden" name="icon" id="acc-icon-input" value="${esc(curIcon)}">
+      <div class="acc-icon-picker" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px">
+        ${ACC_ICON_CHOICES.map(([k, lbl]) => `<button type="button" class="acc-ic-btn${curIcon === k ? ' on' : ''}" data-act="acc-pick-icon" data-icon="${k}" title="${esc(lbl)}" style="display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:9px;border:1.5px solid ${curIcon === k ? '#2563eb' : '#e2e8f0'};background:${curIcon === k ? '#eff6ff' : '#ffffff'};color:${curIcon === k ? '#1d4ed8' : '#475569'};font-size:12.5px;font-weight:${curIcon === k ? '600' : '500'};cursor:pointer;transition:all .15s ease">${ic(k, 15)} <span>${esc(lbl)}</span></button>`).join('')}
+      </div>
+    </div>
     <div class="field"><label>Description</label><input class="input" name="description" value="${esc(a.description || '')}"></div>
     ${a.id ? '<div class="field"><label>Reason for change</label><input class="input" name="reason"></div>' : ''}`;
 }
@@ -11459,7 +11569,9 @@ Object.assign(CLICK, {
   'acc-new'(){ openModal({ title: 'New account', wide: true, body: accountForm({ type: 'expense', normal: 'debit', allowManual: true }), onSubmit: f => A.saveAccount(null, f) }); },
   'acc-open'(el){ const a = acc(el.dataset.id); if (a) accountView(a); },
   'coa-fold'(el){ UI.coaShut = UI.coaShut || {}; UI.coaShut[el.dataset.id] = !UI.coaShut[el.dataset.id]; render(); },
-  'acc-edit'(el){ const a = acc(el.dataset.id); openModal({ title: `Edit ${a.code}`, wide: true, body: accountForm(a), onSubmit: f => A.saveAccount(a.id, f) }); },
+  'acc-edit'(el){ const a = acc(el.dataset.id); if (!a) return; openModal({ title: `Edit ${a.code}`, wide: true, body: accountForm(a), footer: can('coa', 'create') ? `<button type="button" class="btn" data-act="acc-dup" data-id="${a.id}" style="margin-inline-end:auto">${ic('copy', 14)} Duplicate account</button>` : '', onSubmit: f => A.saveAccount(a.id, f) }); },
+  'acc-dup'(el){ const a = acc(el.dataset.id); if (!a) return; const dup = { ...clone(a), id: null, code: nextAccountCode(a.code), nameEn: a.nameEn + ' (Copy)', nameAr: a.nameAr ? a.nameAr + ' (نسخة)' : '', system: false, _dupFrom: a.code + ' ' + a.nameEn }; openModal({ title: `Duplicate ${a.code}`, submit: 'Create duplicate', wide: true, body: accountForm(dup), onSubmit: f => { const created = A.saveAccount(null, f); toast(`Account ${created.code} (${created.nameEn}) duplicated from ${a.code}.`, 'ok'); } }); },
+  'acc-pick-icon'(el){ const k = el.dataset.icon; const inp = document.getElementById('acc-icon-input'); if (inp) inp.value = k; document.querySelectorAll('.acc-ic-btn').forEach(b => { const on = b.dataset.icon === k; b.classList.toggle('on', on); b.style.borderColor = on ? '#2563eb' : '#e2e8f0'; b.style.background = on ? '#eff6ff' : '#ffffff'; b.style.color = on ? '#1d4ed8' : '#475569'; b.style.fontWeight = on ? '600' : '500'; }); const step = document.querySelector('#modal-root .mf-head .co-step'); if (step) step.innerHTML = ic(k, 18); },
   'acc-active'(el){ const a = acc(el.dataset.id); openModal({ title: `${a.active ? 'Deactivate' : 'Activate'} ${a.code}`, submit: 'Confirm', body: `<p>${a.active ? 'No new postings will be accepted. History and balance are kept.' : 'The account can receive postings again.'}</p><div class="field"><label>Reason *</label><input class="input" name="reason" required></div>`, onSubmit: f => A.setAccountActive(a.id, !a.active, f.reason) }); },
   'acc-del'(el){ const a = acc(el.dataset.id); openModal({ title: `Delete ${a.code}?`, submit: 'Delete', danger: true, body: '<p>The account has never been used. Deletion is recorded in the audit trail.</p>', onSubmit: () => A.deleteAccount(a.id) }); },
   'coa-csv'(){ run(() => { requirePerm('coa', 'export'); downloadCSV('chart-of-accounts.csv', ['code','name_en','name_ar','parent','type','group','normal','manual','reconcile','currency','cost_center_required','system','active','balance_egp'],
