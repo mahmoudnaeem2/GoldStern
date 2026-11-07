@@ -213,7 +213,7 @@ td .muted,.muted{color:var(--muted)}
 .modal-bg{inset:0 0 0 264px;background:var(--bg);display:block;padding:0;overflow:auto}
 html[dir=rtl] .modal-bg{inset:0 264px 0 0}
 .modal,.modal.wide{max-width:none!important;width:100%;max-height:none;min-height:100%;border-radius:0;box-shadow:none;background:var(--bg);display:flex;flex-direction:column}
-.modal > form{display:flex;flex-direction:column;min-height:100vh}
+.modal > form{display:flex;flex-direction:column;min-height:auto}
 .modal-h{position:sticky;top:0;z-index:2;background:var(--surface);padding:18px 32px;gap:12px}
 .modal-h h3{font-size:22px;font-weight:650;letter-spacing:-.01em}
 
@@ -587,7 +587,7 @@ html[dir=rtl] .o-ribbon{border-radius:0 4px 4px 0}
 .smart .k{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}.smart .v{font-weight:650;font-size:14.5px}.smart .s{font-size:12px;color:var(--muted)}
 .smart.go{background:var(--side, #141518);color:#fff;border-color:transparent}.smart.go .k,.smart.go .s{color:#c9c5ba}
 .modal-h .back{margin-inline-start:0!important;order:-1;font-size:14px!important;border:1px solid var(--border)!important;border-radius:8px;padding:6px 12px;background:var(--surface)!important;color:var(--text)!important;cursor:pointer}
-.modal-b{padding:24px 32px;flex:1}
+.modal-b{padding:24px 32px;flex:0 1 auto}
 .modal-b > *{max-width:1280px}
 .modal-f{position:sticky;bottom:0;padding:14px 32px;justify-content:flex-start}
 @media (max-width: 900px){ .modal-bg, html[dir=rtl] .modal-bg{inset:0} .modal-h,.modal-b,.modal-f{padding-inline:16px} }
@@ -1839,11 +1839,10 @@ td.nw,th{white-space:nowrap}
 .subnav{height:48px!important;padding:0 20px!important;gap:0!important;background:#fff!important;border-bottom:1px solid #e5e7eb!important;box-shadow:none!important;align-items:stretch!important;flex-wrap:nowrap!important}
 .subnav::-webkit-scrollbar{display:none}
 .subnav .app{font-size:15px!important;font-weight:700!important;color:#111827!important;border:0!important;margin:0 12px 0 0!important;padding:0 8px!important;align-self:center}
-.subnav > a,.subnav .sm-btn{height:48px!important;display:flex!important;align-items:center;padding:0 12px!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;
-  font-size:14px!important;font-weight:400!important;color:#374151!important;white-space:nowrap;cursor:pointer;position:relative}
-.subnav > a:hover,.subnav .sm-btn:hover,.subnav .sm-dd.open .sm-btn{background:#f3f4f6!important;color:#111827!important}
-.subnav > a.on,.subnav .sm-btn.on{background:transparent!important;color:#111827!important;font-weight:600!important;border:0!important;box-shadow:none!important}
-.subnav > a.on::after,.subnav .sm-btn.on::after{content:"";position:absolute;left:12px;right:12px;bottom:0;height:2px;border-radius:2px 2px 0 0;background:var(--gold,#c59b27)}
+.subnav > a,.subnav .sm-btn{height:34px!important;display:inline-flex!important;align-items:center;padding:0 14px!important;border:1px solid transparent!important;border-radius:8px!important;background:transparent!important;box-shadow:none!important;font-size:13.5px!important;font-weight:500!important;color:#475569!important;white-space:nowrap;cursor:pointer;position:relative;transition:all .15s ease}
+.subnav > a:hover,.subnav .sm-btn:hover,.subnav .sm-dd.open .sm-btn{background:#f1f5f9!important;color:#0f172a!important;border-radius:8px!important}
+.subnav > a.on,.subnav .sm-btn.on{background:#0f172a!important;color:#ffffff!important;font-weight:600!important;border-radius:8px!important;box-shadow:0 1px 3px rgba(15,23,42,0.12)!important;height:34px!important;padding:0 14px!important}
+.subnav > a.on::after,.subnav .sm-btn.on::after{display:none!important}
 .subnav .sm-btn .car{display:none}
 .subnav .sm-dd{display:flex;align-items:stretch}
 @media (hover:hover){.subnav .sm-dd:hover .sm-pop{display:none}.subnav .sm-dd.open .sm-pop{display:block}.subnav .sm-dd:hover .sm-btn{background:#f3f4f6!important}}
@@ -4844,7 +4843,7 @@ Object.assign(A, {
     const v = poVehicle(po), sm = orderSummary(po), c = sm.c;
     const cxTot = v ? carExpensesOf(v.id).reduce((t, r) => t.plus(r.egp), D0()) : D0();
     const ownDep = poAdvances(po, 'ar').filter(x => ACTIVE_ST.includes(entryStatus(x)));
-    const custUnappliedAdvs = (po.customerId ? S.settlements.filter(s => s.side === 'ar' && s.type === 'cash' && s.partnerId === po.customerId && (!s.poId || s.poId === po.id) && (!s.vehicleId || (v && s.vehicleId === v.id)) && ACTIVE_ST.includes(entryStatus(s)) && !ownDep.some(d => d.id === s.id)) : []);
+    const custUnappliedAdvs = [];
     const depAll = [...ownDep, ...custUnappliedAdvs];
     const advAll = poAdvances(po, 'ap').filter(x => ACTIVE_ST.includes(entryStatus(x)));
     const carJEs = v ? carEntries(v) : [];
@@ -7277,7 +7276,7 @@ function entryTotalEgp(e){
 /* ---------- Accounting dashboard ---------- */
 function pageAccDash(){
   if (!S.accounts.length) return H(t('acc_dashboard'), '') + needChart();
-  const live = i => invIsLive(i) && i.type !== 'credit', today = todayCairo(), ym = today.slice(0, 7), lastYm = addMonthsYM(ym, -1);
+  const live = i => invIsLive(i) && i.type !== 'credit', today = todayCairo(), ym = today.slice(0, 7), lastYm = addMonthsYM(ym, -1), cl = closeChecklist(lastYm);
   const side = sd => { const open = S.invoices.filter(i => i.side === sd && live(i) && invState(i).open.gt(0)), over = open.filter(i => i.dueDate && i.dueDate < today);
     const egp = l => l.reduce((t0, i) => t0.plus(invState(i).egpOpen || 0), D0()); return { open, over, tot: egp(open), overTot: egp(over) }; };
   const ar = side('ar'), ap = side('ap');
@@ -7288,43 +7287,32 @@ function pageAccDash(){
   const ytd = incomeStatement(fyFrom, today);
   const months = [...Array(6)].map((_, i) => addMonthsYM(ym, i - 5)).map(m => ({ m, net: incomeStatement(m + '-01', monthEnd(m) > today ? today : monthEnd(m)).net }));
   const posted = S.entries.filter(e => isPostedStatus(e.status)), drafts = S.entries.filter(e => ['draft','submitted','approved'].includes(e.status));
-
-  const segAging = (vals, mainColor) => {
-    const tot = vals.reduce((s, v) => s.plus(v.abs()), D0());
-    const notDue = vals[0] || D0(), d30 = vals[1] || D0(), d60plus = (vals[2] || D0()).plus(vals[3] || D0()).plus(vals[4] || D0());
-    const colors = [mainColor, '#f59e0b', '#ef4444'];
-    const parts = [notDue, d30, d60plus];
-    const segs = tot.gt(0)
-      ? parts.map((v, idx) => v.gt(0) ? `<span style="width:${Math.max(4, +v.abs().div(tot).mul(100).toFixed(1))}%;background:${colors[idx]}"></span>` : '').join('')
-      : `<span style="width:100%;background:#e2e8f0"></span>`;
-    return `<div class="ad-seg-wrap">
-      <div class="ad-seg-bar">${segs}</div>
-      <div class="ad-seg-legend">
-        <span>Not due: <b>${money(notDue)}</b></span>
-        <span>1–30d: <b>${money(d30)}</b></span>
-        <span>31d+: <b style="${d60plus.gt(0) ? 'color:#dc2626' : ''}">${money(d60plus)}</b></span>
-      </div>
-    </div>`;
-  };
-
+  /* tiny charts (SVG, no library) */
+  const bars = (vals, color, labels) => { const mx = vals.reduce((m, v) => v.abs().gt(m) ? v.abs() : m, D0()), n = vals.length, w = 100 / n;
+    return `<svg class="ad-bars" viewBox="0 0 100 44" preserveAspectRatio="none" role="img" aria-label="${esc(labels.map((l, i) => l + ' ' + money(vals[i])).join(', '))}">${vals.map((v, i) => { const h = mx.eq(0) ? 0 : Math.max(v.eq(0) ? 0 : 3, +v.abs().div(mx).mul(38).toFixed(2));
+      return `<rect x="${(i * w + w * .18).toFixed(2)}" y="${(40 - h).toFixed(2)}" width="${(w * .64).toFixed(2)}" height="${h}" rx="1.2" fill="${v.lt(0) ? 'var(--bad)' : color}" opacity="${i === 0 && labels[0] === 'Not due' ? .45 : 1}"/>`; }).join('')}<line x1="0" y1="40.5" x2="100" y2="40.5" stroke="var(--border)" stroke-width=".6"/></svg>
+      <div class="ad-bl">${labels.map(l => `<span>${esc(l)}</span>`).join('')}</div>`; };
   const spark = (vals, color) => { const nums = vals.map(v => +v), mn = Math.min(...nums), mx = Math.max(...nums), rg = mx - mn || 1;
-    const pts = nums.map((v, i) => [(i / (nums.length - 1) * 100).toFixed(2), (34 - (v - mn) / rg * 28).toFixed(2)]);
-    return `<div class="ad-spark-box"><svg class="ad-spark" viewBox="0 0 100 38" preserveAspectRatio="none" aria-hidden="true"><polygon points="0,38 ${pts.map(p0 => p0.join(',')).join(' ')} 100,38" fill="${color}" opacity=".10"/><polyline points="${pts.map(p0 => p0.join(',')).join(' ')}" fill="none" stroke="${color}" stroke-width="1.7" vector-effect="non-scaling-stroke" stroke-linejoin="round"/></svg><div class="ad-bl"><span>60 days ago</span><span>Today</span></div></div>`; };
-
+    const pts = nums.map((v, i) => [(i / (nums.length - 1) * 100).toFixed(2), (36 - (v - mn) / rg * 30).toFixed(2)]);
+    return `<svg class="ad-spark" viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true"><polygon points="0,40 ${pts.map(p0 => p0.join(',')).join(' ')} 100,40" fill="${color}" opacity=".10"/><polyline points="${pts.map(p0 => p0.join(',')).join(' ')}" fill="none" stroke="${color}" stroke-width="1.6" vector-effect="non-scaling-stroke" stroke-linejoin="round"/></svg>`; };
+  const ring = (done, total) => { const r = 22, c = 2 * Math.PI * r, f = total ? done / total : 0;
+    return `<svg class="ad-ring" viewBox="0 0 56 56" aria-hidden="true"><circle cx="28" cy="28" r="${r}" fill="none" stroke="var(--surface-2)" stroke-width="6"/><circle cx="28" cy="28" r="${r}" fill="none" stroke="var(--gold)" stroke-width="6" stroke-linecap="round" stroke-dasharray="${(c * f).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 28 28)"/></svg>`; };
   const card = o => `<section class="ad-card" style="--c:${o.c};--cs:${o.cs}">
-      <header><span class="ad-ic">${ic(o.i, 18)}</span><div class="ad-t"><h3>${o.t}</h3><p>${o.sub}</p></div>${o.badge || ''}</header>
+      <header><span class="ad-ic">${ic(o.i, 20)}</span><div class="ad-t"><h3>${o.t}</h3><p>${o.sub}</p></div>${o.badge || ''}</header>
       <div class="ad-main"><div class="ad-num"><b class="${o.neg ? 'neg' : ''}">${o.num}</b><span>${o.numSub}</span></div>${o.side || ''}</div>
       ${o.chart ? `<div class="ad-chart">${o.chart}</div>` : ''}
       <footer>${o.btn || ''}</footer></section>`;
-
   const bankCards = banks.map(b => { const bal = bankBalance(b), rec = S.statements.filter(st => st.bankId === b.id && st.status === 'reconciled').sort((x, y) => x.to < y.to ? 1 : -1)[0];
     const pts = [...Array(13)].map((_, k) => { try { return bankBalance(b, addDays(today, -60 + k * 5)).fc; } catch (e){ return D0(); } });
-    return card({ i: b.kind === 'cash' ? 'wallet' : 'banking', c: b.kind === 'cash' ? '#0284c7' : '#2563eb', cs: b.kind === 'cash' ? '#f0f9ff' : '#eff6ff', t: esc(b.name), sub: `${b.kind === 'cash' ? 'Cash Account' : 'Bank Account'} · ${b.currency}`,
-      num: `${money(bal.fc)} <small>${b.currency}</small>`, neg: bal.fc.lt(0), numSub: b.currency !== 'EGP' ? `Book value: ${money(bal.egp)} EGP` : 'Current book balance',
-      badge: `<span class="ad-badge ${rec ? '' : 'warn'}">${rec ? 'Reconciled' : 'Unreconciled'}</span>`,
-      chart: spark(pts, b.kind === 'cash' ? '#0284c7' : '#2563eb'),
+    return card({ i: b.kind === 'cash' ? 'wallet' : 'banking', c: b.kind === 'cash' ? '#0e7490' : '#1d4ed8', cs: b.kind === 'cash' ? '#ecfeff' : '#eff6ff', t: esc(b.name), sub: `${b.kind === 'cash' ? 'Cash' : 'Bank'} · ${b.currency}`,
+      num: `${money(bal.fc)} <small>${b.currency}</small>`, neg: bal.fc.lt(0), numSub: b.currency !== 'EGP' ? `${money(bal.egp)} EGP` : 'Balance today',
+      badge: `<span class="ad-badge ${rec ? '' : 'warn'}">${rec ? 'Reconciled to ' + rec.to : 'Not reconciled'}</span>`,
+      chart: spark(pts, b.kind === 'cash' ? '#0e7490' : '#1d4ed8') + '<div class="ad-bl"><span>60 days ago</span><span>Today</span></div>',
       btn: `<a class="btn primary sm" href="#/bank/statements">Reconcile</a><a class="btn sm" href="#/bank/book?id=${b.id}">Transactions</a>` }); }).join('');
-
+  const kp = (i, label, v, sub, href, tone) => `<a class="ad-k" href="${href}"><span class="ad-kic ${tone || ''}">${ic(i, 20)}</span><span class="ad-kl">${label}</span><b class="${v.lt(0) ? 'neg' : ''}">${money(v)}<small> EGP</small></b><span class="ad-ks">${sub}</span></a>`;
+  const done = cl.steps.filter(x => x.state === 'done').length, tot = cl.steps.filter(x => x.state !== 'na').length, issues = cl.steps.filter(x => x.state === 'issue').length;
+  const jb = { SJ: ['sales', '#047857'], PJ: ['purchases', '#b45309'], BJ: ['banking', '#1d4ed8'], GJ: ['accounting', '#475569'], OB: ['calendar', '#7c3aed'] };
+  /* ---- smart buttons: what needs action first, then the books, then the cars ---- */
   const in7 = addDays(today, 7);
   const apSoon = ap.open.filter(i => i.dueDate && i.dueDate <= in7), apSoonTot = apSoon.reduce((t0, i) => t0.plus(invState(i).egpOpen || 0), D0());
   const lastMonthEnd = monthEnd(lastYm);
@@ -7333,113 +7321,51 @@ function pageAccDash(){
   const inStock = k0 ? (k0.grp.stock || 0) + (k0.grp.reserved || 0) : S.vehicles.filter(v => ['stock','reserved'].includes(vStatus(v.status).group)).length;
   const toDeliver = S.vehicles.filter(v => v.status === 'sold' && !S.deliveries.some(d => d.vehicleId === v.id && d.status === 'delivered'));
   const held = (() => { try { const id = getMapping('cust_adv').id; let t0 = D0(); for (const { l } of ledgerLines()) if (l.accountId === id) t0 = t0.plus(l.egpCredit || 0).minus(l.egpDebit || 0); return t0; } catch (e){ return D0(); } })();
-  const sb = (o) => `<a class="sb ${o.tone || ''}" href="${o.href}" title="${esc(o.tip || '')}"><span class="sb-ic">${ic(o.i, 16)}</span><span class="sb-tx"><b>${o.n}</b><span class="sb-l">${o.l}</span><span class="sb-s">${o.s}</span></span></a>`;
+  const sb = (o) => `<a class="sb ${o.tone || ''}" href="${o.href}" title="${esc(o.tip || '')}"><span class="sb-ic">${ic(o.i, 18)}</span><span class="sb-tx"><b>${o.n}</b><span class="sb-l">${o.l}</span><span class="sb-s">${o.s}</span></span></a>`;
   const smart = [
-    sb({ i: 'truck', n: apSoon.length, l: 'Bills due in 7d', s: apSoon.length ? `${money(apSoonTot)} EGP` : 'None due', tone: ap.over.length ? 'alert' : apSoon.length ? 'warn' : 'ok', href: '#/ap/aging', tip: 'Vendor bills due by ' + in7 }),
-    sb({ i: 'banking', n: unrec.length, l: 'Banks to reconcile', s: unrec.length ? 'Pending statement' : 'All reconciled', tone: unrec.length ? 'warn' : 'ok', href: '#/bank/statements', tip: unrec.map(b => b.name).join(', ') }),
-    sb({ i: 'file', n: drafts.length, l: 'Entries to post', s: drafts.length ? 'Drafts waiting' : 'All posted', tone: drafts.length ? 'warn' : 'ok', href: '#/acc/journals' }),
-    sb({ i: 'cars', n: inStock, l: 'Cars in stock', s: k0 && D(k0.inventory).gt(0) ? `${money(k0.inventory)} EGP` : inStock ? 'In showroom' : 'None in stock', href: '#/inv/stock' }),
-    sb({ i: 'cars', n: toDeliver.length, l: 'Cars to deliver', s: 'Sold, awaiting handover', tone: toDeliver.length ? 'warn' : '', href: '#/inv/deliveries' }),
-    sb({ i: 'wallet', n: money(held), l: 'Deposits held', s: 'Customer advances (EGP)', href: '#/ar/advances' })
+    sb({ i: 'truck', n: apSoon.length, l: 'Bills due in 7 days', s: apSoon.length ? `${money(apSoonTot)} EGP` : 'Nothing due this week', tone: ap.over.length ? 'alert' : apSoon.length ? 'warn' : 'ok', href: '#/ap/aging', tip: 'Vendor bills due by ' + in7 }),
+    sb({ i: 'banking', n: unrec.length, l: 'Banks to reconcile', s: unrec.length ? 'last month not reconciled' : 'All reconciled', tone: unrec.length ? 'warn' : 'ok', href: '#/bank/statements', tip: unrec.map(b => b.name).join(', ') }),
+    sb({ i: 'file', n: drafts.length, l: 'Entries to post', s: drafts.length ? 'drafts waiting' : 'All posted', tone: drafts.length ? 'warn' : 'ok', href: '#/acc/journals' }),
+    sb({ i: 'cars', n: inStock, l: 'Cars in stock', s: k0 && D(k0.inventory).gt(0) ? `${money(k0.inventory)} at cost` : inStock ? 'cost not posted yet (no supplier bill)' : 'none in stock', href: '#/inv/stock' }),
+    sb({ i: 'cars', n: toDeliver.length, l: 'Cars to deliver', s: 'sold, not handed over', tone: toDeliver.length ? 'warn' : '', href: '#/inv/deliveries' }),
+    sb({ i: 'wallet', n: money(held), l: 'Deposits held', s: 'EGP from customers, not invoiced', href: '#/ar/advances' })
   ].join('');
   const recent = posted.slice().sort((x, y) => x.postedAt < y.postedAt ? 1 : -1).slice(0, 8);
-  const jb = { SJ: ['sales', '#059669'], PJ: ['purchases', '#d97706'], BJ: ['banking', '#2563eb'], GJ: ['accounting', '#475569'], OB: ['calendar', '#7c3aed'] };
   const hello = (n => n < 12 ? 'Good morning' : n < 17 ? 'Good afternoon' : 'Good evening')(+new Date().toLocaleString('en-GB', { hour: '2-digit', hour12: false, timeZone: 'Africa/Cairo' }));
-  const dateStr = new Date(today + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-
   return `<div class="ad">
-    <!-- 1. Executive Header -->
-    <div class="ad-header">
-      <div class="ad-header-text">
-        <h1>${hello}, ${esc((currentUser().name || '').split(' ')[0] || 'Administrator')}</h1>
-        <p>${dateStr} · Financial &amp; operational overview</p>
-      </div>
-      <div class="ad-header-actions">
-        ${can('ar', 'create') ? `<a class="ad-btn primary" href="#/ar/invoices" data-act="inv-new" data-side="ar">${ic('plus', 15)} New Invoice</a>` : ''}
-        ${can('ap', 'create') ? `<a class="ad-btn" href="#/ap/invoices" data-act="inv-new" data-side="ap">${ic('plus', 15)} New Bill</a>` : ''}
-        ${can('journals', 'create') ? `<a class="ad-btn" href="#/acc/journals" data-act="je-new">${ic('plus', 15)} Journal Entry</a>` : ''}
+    <div class="ad-hero">
+      <div class="ad-hi"><h1>${hello}, ${esc((currentUser().name || '').split(' ')[0] || 'there')}</h1><p>Here is where the money stands on ${new Date(today + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}.</p></div>
+      <div class="ad-ks-row">
+        ${kp('coins', 'Cash &amp; bank', cash, `${banks.length} account${banks.length === 1 ? '' : 's'}`, '#/bank/accounts')}
+        ${kp('inbox', 'Customers owe you', ar.tot, ar.over.length ? `${money(ar.overTot)} overdue` : `${ar.open.length} open invoice${ar.open.length === 1 ? '' : 's'}`, '#/ar/aging', ar.over.length ? 'warn' : '')}
+        ${kp('truck', 'You owe vendors', ap.tot, ap.over.length ? `${money(ap.overTot)} past due` : `${ap.open.length} open bill${ap.open.length === 1 ? '' : 's'}`, '#/ap/aging', ap.over.length ? 'warn' : '')}
+        <a class="ad-k ad-k-p" href="#/rep/statements?s=is"><span class="ad-kic">${ic('reports', 20)}</span><span class="ad-kl">Profit since ${fyFrom.slice(0, 7)}</span><b class="${ytd.net.lt(0) ? 'neg' : ''}">${money(ytd.net)}<small> EGP</small></b>
+          <span class="ad-mini">${months.map(x => { const mx = months.reduce((m, y) => y.net.abs().gt(m) ? y.net.abs() : m, D0()); const h = mx.eq(0) ? 2 : Math.max(2, +x.net.abs().div(mx).mul(26).toFixed(1)); return `<i title="${x.m}: ${money(x.net)}" style="height:${h}px;${x.net.lt(0) ? 'background:#fca5a5' : ''}"></i>`; }).join('')}</span></a>
       </div>
     </div>
-
-    <!-- 2. Top 4 Pristine Financial KPI Cards -->
-    <div class="ad-kpi-grid">
-      <!-- KPI 1: Cash & Bank -->
-      <a class="ad-kpi-card" href="#/bank/accounts">
-        <div class="ad-kpi-top">
-          <span class="ad-kpi-label">Cash &amp; Bank Liquidity</span>
-          <span class="ad-kpi-icon blue">${ic('coins', 18)}</span>
-        </div>
-        <div class="ad-kpi-val ${cash.lt(0) ? 'neg' : ''}">${money(cash)}<small>EGP</small></div>
-        <div class="ad-kpi-foot">
-          <span>${banks.length} active account${banks.length === 1 ? '' : 's'}</span>
-          <span class="ad-tag ok">Available</span>
-        </div>
-      </a>
-
-      <!-- KPI 2: Customer Receivables -->
-      <a class="ad-kpi-card" href="#/ar/aging">
-        <div class="ad-kpi-top">
-          <span class="ad-kpi-label">Customer Receivables (AR)</span>
-          <span class="ad-kpi-icon emerald">${ic('inbox', 18)}</span>
-        </div>
-        <div class="ad-kpi-val">${money(ar.tot)}<small>EGP</small></div>
-        <div class="ad-kpi-foot">
-          <span>${ar.open.length} open invoice${ar.open.length === 1 ? '' : 's'}</span>
-          ${ar.over.length ? `<span class="ad-tag bad">${money(ar.overTot)} overdue</span>` : '<span class="ad-tag ok">On track</span>'}
-        </div>
-      </a>
-
-      <!-- KPI 3: Vendor Payables -->
-      <a class="ad-kpi-card" href="#/ap/aging">
-        <div class="ad-kpi-top">
-          <span class="ad-kpi-label">Vendor Payables (AP)</span>
-          <span class="ad-kpi-icon amber">${ic('truck', 18)}</span>
-        </div>
-        <div class="ad-kpi-val">${money(ap.tot)}<small>EGP</small></div>
-        <div class="ad-kpi-foot">
-          <span>${ap.open.length} open bill${ap.open.length === 1 ? '' : 's'}</span>
-          ${ap.over.length ? `<span class="ad-tag bad">${money(ap.overTot)} due</span>` : '<span class="ad-tag ok">Current</span>'}
-        </div>
-      </a>
-
-      <!-- KPI 4: Net Profit -->
-      <a class="ad-kpi-card" href="#/rep/statements?s=is">
-        <div class="ad-kpi-top">
-          <span class="ad-kpi-label">Net Profit (YTD)</span>
-          <span class="ad-kpi-icon purple">${ic('reports', 18)}</span>
-        </div>
-        <div class="ad-kpi-val ${ytd.net.lt(0) ? 'neg' : ''}">${money(ytd.net)}<small>EGP</small></div>
-        <div class="ad-kpi-foot">
-          <span>Since ${fyFrom.slice(0, 7)}</span>
-          <span class="ad-mini-chart">${months.map(x => { const mx = months.reduce((m, y) => y.net.abs().gt(m) ? y.net.abs() : m, D0()); const h = mx.eq(0) ? 3 : Math.max(3, +x.net.abs().div(mx).mul(18).toFixed(1)); return `<i title="${x.m}: ${money(x.net)}" style="height:${h}px;${x.net.lt(0) ? 'background:#ef4444' : ''}"></i>`; }).join('')}</span>
-        </div>
-      </a>
-    </div>
-
-    <!-- 3. Operational Pulse Strip -->
-    <nav class="sbs" aria-label="Operational indicators">${smart}</nav>
-
-    <!-- 4. Journal Kanban Cards Grid -->
+    <nav class="sbs" aria-label="What needs attention">${smart}</nav>
     <div class="ad-grid">
-      ${card({ i: 'invoices', c: '#059669', cs: '#ecfdf5', t: 'Customer Invoices', sub: 'Sales Journal · AR', num: `${money(ar.tot)} <small>EGP</small>`, numSub: `${ar.open.length} awaiting payment`,
-        badge: ar.over.length ? `<span class="ad-badge bad">${ar.over.length} overdue</span>` : '<span class="ad-badge">Up to date</span>', chart: segAging(agAr, '#059669'),
-        btn: (can('ar', 'create') ? `<button class="btn primary sm" data-act="inv-new" data-side="ar">+ New Invoice</button>` : '<span></span>') + `<a class="btn sm" href="#/ar/invoices">All Invoices</a>` })}
-      ${card({ i: 'bill', c: '#d97706', cs: '#fffbeb', t: 'Vendor Bills', sub: 'Purchase Journal · AP', num: `${money(ap.tot)} <small>EGP</small>`, numSub: `${ap.open.length} open to pay`,
-        badge: ap.over.length ? `<span class="ad-badge bad">${ap.over.length} late</span>` : '<span class="ad-badge">Current</span>', chart: segAging(agAp, '#3b82f6'),
-        btn: (can('ap', 'create') ? `<button class="btn primary sm" data-act="inv-new" data-side="ap">+ New Bill</button>` : '<span></span>') + `<a class="btn sm" href="#/ap/invoices">All Bills</a>` })}
+      ${card({ i: 'invoices', c: '#047857', cs: '#ecfdf5', t: 'Customer invoices', sub: 'Sales journal', num: `${money(ar.tot)} <small>EGP</small>`, numSub: `${ar.open.length} waiting for payment`,
+        badge: ar.over.length ? `<span class="ad-badge bad">${ar.over.length} overdue</span>` : '', chart: bars(agAr, '#047857', BUCKETS),
+        btn: (can('ar', 'create') ? `<button class="btn primary sm" data-act="inv-new" data-side="ar">New invoice</button>` : '') + `<a class="btn sm" href="#/ar/invoices">Invoices</a>` })}
+      ${card({ i: 'bill', c: '#b45309', cs: '#fffbeb', t: 'Vendor bills', sub: 'Purchase journal', num: `${money(ap.tot)} <small>EGP</small>`, numSub: `${ap.open.length} to pay`,
+        badge: ap.over.length ? `<span class="ad-badge bad">${ap.over.length} late</span>` : '', chart: bars(agAp, '#b45309', BUCKETS),
+        btn: (can('ap', 'create') ? `<button class="btn primary sm" data-act="inv-new" data-side="ap">New bill</button>` : '') + `<a class="btn sm" href="#/ap/invoices">Bills</a>` })}
       ${bankCards}
-      ${card({ i: 'accounting', c: '#475569', cs: '#f1f5f9', t: 'General Journal', sub: 'Miscellaneous Operations', num: String(posted.filter(e => e.accountingDate.startsWith(ym)).length), numSub: `entries posted in ${ym}`,
-        badge: drafts.length ? `<span class="ad-badge warn">${drafts.length} draft</span>` : '<span class="ad-badge">Posted</span>',
-        btn: (can('journals', 'create') ? `<button class="btn primary sm" data-act="je-new">+ New Entry</button>` : '<span></span>') + `<a class="btn sm" href="#/acc/journals">Journal Entries</a>` })}
+      ${card({ i: 'accounting', c: '#475569', cs: '#f1f5f9', t: 'Miscellaneous operations', sub: 'General journal', num: String(posted.filter(e => e.accountingDate.startsWith(ym)).length), numSub: 'entries posted this month',
+        badge: drafts.length ? `<span class="ad-badge warn">${drafts.length} not posted</span>` : '',
+        btn: (can('journals', 'create') ? `<button class="btn primary sm" data-act="je-new">New entry</button>` : '') + `<a class="btn sm" href="#/acc/journals">Entries</a>` })}
+      ${card({ i: 'calendar', c: '#a16207', cs: '#fefce8', t: `Close ${lastYm}`, sub: 'Month-end checklist', num: `${done}<small> of ${tot}</small>`, numSub: issues ? `${issues} step${issues === 1 ? '' : 's'} to fix` : (done === tot ? 'Ready to lock' : 'steps done'), neg: false,
+        side: ring(done, tot), badge: issues ? `<span class="ad-badge bad">${issues} to fix</span>` : '', btn: `<a class="btn primary sm" href="#/acc/close">Open checklist</a>` })}
     </div>
-
-    <!-- 5. Recent Journal Postings -->
-    <section class="ad-recent"><header><h2>Recent Journal Postings</h2><a class="btn sm" href="#/acc/journals">View all entries</a></header>
-      <ul>${recent.map(e => { const [ii, cc] = jb[e.journal] || ['file', '#475569']; return `<li data-act="je-drawer-view" data-id="${e.id}"><span class="ad-j" style="--c:${cc}">${ic(ii, 15)}</span>
-        <div class="ad-rd"><b>${esc(e.description)}</b><span>${esc(entryRef(e))} · ${fmtDate(e.accountingDate)}</span></div><span class="ad-ra">${money(e.totals.egpDebit)} <small>EGP</small></span></li>`; }).join('') || '<li class="ad-empty">Nothing posted yet. Your first invoice or journal entry will show here.</li>'}</ul>
+    <section class="ad-recent"><header><h2>Recently posted</h2><a class="btn sm" href="#/acc/journals">All entries</a></header>
+      <ul>${recent.map(e => { const [ii, cc] = jb[e.journal] || ['file', '#475569']; return `<li data-act="je-view" data-id="${e.id}"><span class="ad-j" style="--c:${cc}">${ic(ii, 16)}</span>
+        <div class="ad-rd"><b>${esc(e.description)}</b><span>${esc(entryRef(e))} · ${e.accountingDate}</span></div><span class="ad-ra">${money(e.totals.egpDebit)} <small>EGP</small></span></li>`; }).join('') || '<li class="ad-empty">Nothing posted yet. Your first invoice or journal entry will show here.</li>'}</ul>
     </section>
   </div>`;
 }
+
+/* ---------- Chart of accounts ---------- */
 function pageCOA(){
   const F = UI.filters;
   if (!S.accounts.length) return H(t('coa'), '') + needChart();
@@ -9075,14 +9001,16 @@ function poListStatus(po){
 }
 function poListPage(title, sub, list, newBtn){
   const F = UI.filters, q = String(F.po_q || '').trim().toLowerCase();
-  let rows = list.map(po => ({ po, v: poVehicle(po), sup: partnerById('ap', po.supplierId), cust: po.customerId ? partnerById('ar', po.customerId) : null, st: poListStatus(po), c: poCycle(po) }));
+  let rows = list.map(po => ({ po, v: poVehicle(po), sup: partnerById('ap', po.supplierId), cust: po.customerId ? partnerById('ar', po.customerId) : null, st: poListStatus(po), c: poCycle(po), kind: poKind(po) }));
   if (q) rows = rows.filter(r => `${r.po.number} ${r.sup ? r.sup.legalName : ''} ${r.cust ? r.cust.legalName : ''} ${r.v ? r.v.vin + ' ' + makeName(r.v.makeId) + ' ' + modelName(r.v.makeId, r.v.modelId) : ''}`.toLowerCase().includes(q));
   if (F.po_st) rows = rows.filter(r => r.st[0] === F.po_st);
+  if (F.po_kind) rows = rows.filter(r => r.kind === F.po_kind);
   rows.sort((a, b) => a.po.date === b.po.date ? (a.po.createdAt < b.po.createdAt ? 1 : -1) : (a.po.date < b.po.date ? 1 : -1));
   const statuses = [...new Set(list.map(po => poListStatus(po)[0]))];
   const total = po => po.lines.reduce((t, l) => t.plus(l.price), D0());
   return H(title, sub, newBtn) + `
     <div class="card"><div class="filters"><input class="input" data-filter="po_q" placeholder="Search number, supplier, customer, car or chassis…" value="${esc(F.po_q || '')}" style="min-width:320px">
+      <select class="input" data-filter="po_kind"><option value="">All types</option><option value="customer" ${F.po_kind === 'customer' ? 'selected' : ''}>Import for customer</option><option value="stock" ${F.po_kind === 'stock' ? 'selected' : ''}>Import for stock</option><option value="local" ${F.po_kind === 'local' ? 'selected' : ''}>Buy from customer</option></select>
       <select class="input" data-filter="po_st"><option value="">All statuses</option>${statuses.map(x => `<option ${F.po_st === x ? 'selected' : ''}>${x}</option>`).join('')}</select>
       <span class="muted" style="align-self:center;font-size:12.5px;margin-inline-start:auto">${rows.length} order${rows.length === 1 ? '' : 's'}</span></div>
     <div class="tbl-wrap"><table class="o-list"><thead><tr><th>Number</th><th>Type</th><th>Supplier</th><th>Customer</th><th>Car</th><th class="num">Total</th><th>Supplier invoice</th><th>Customer invoice</th><th>Status</th></tr></thead><tbody>
@@ -12756,7 +12684,7 @@ function printCarReport(po){
   if (!bd.length && !expected) for (const z of cxRows) costLines.push({ label: costTypeName(z.x.carExp.type), sub: `${z.x.number} · ${z.x.date}`, fc: z.x.currency !== 'EGP' ? `${money(z.share)} ${z.x.currency}` : '', rate: z.x.currency !== 'EGP' ? fmtNum(z.x.rate || 0, 4) : '', egp: z.egp });
   /* money in / out */
   const ownDep = poAdvances(po, 'ar').filter(x => ACTIVE_ST.includes(entryStatus(x)));
-  const custUnappliedAdvs = (cust ? S.settlements.filter(s => s.side === 'ar' && s.type === 'cash' && s.partnerId === cust.id && (!s.poId || s.poId === po.id) && (!s.vehicleId || (v && s.vehicleId === v.id)) && ACTIVE_ST.includes(entryStatus(s)) && !ownDep.some(d => d.id === s.id)) : []);
+  const custUnappliedAdvs = [];
   const dep = [...ownDep, ...custUnappliedAdvs];
   const adv = poAdvances(po, 'ap').filter(x => ACTIVE_ST.includes(entryStatus(x)));
   const reds = (inv, own) => inv ? invState(inv).reductions.filter(r => ACTIVE_ST.includes(r.status) && !own.some(x => x.id === r.src.id || x.id === r.src.sourceId)).map(r => ({ number: r.src.number, date: r.src.date, kind: r.src.type === 'credit' ? 'Credit note' : r.src.type === 'advance' ? 'Deposit applied' : 'Payment', amount: r.applied, currency: inv.currency, egp: D(r.carrying || 0) })) : [];
@@ -13010,7 +12938,7 @@ function poView(po){
   const carJEs = v ? carEntries(v) : [];
 
   const ownDep = poAdvances(po, 'ar').filter(x => ACTIVE_ST.includes(entryStatus(x)));
-  const custUnappliedAdvs = (cust ? S.settlements.filter(s => s.side === 'ar' && s.type === 'cash' && s.partnerId === cust.id && (!s.poId || s.poId === po.id) && (!s.vehicleId || (v && s.vehicleId === v.id)) && ACTIVE_ST.includes(entryStatus(s)) && !ownDep.some(d => d.id === s.id)) : []);
+  const custUnappliedAdvs = [];
   const dep = [...ownDep, ...custUnappliedAdvs];
   const adv = poAdvances(po, 'ap').filter(x => ACTIVE_ST.includes(entryStatus(x)));
 
