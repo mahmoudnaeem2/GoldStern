@@ -2141,6 +2141,29 @@ th{white-space:normal}th.num{white-space:nowrap}
 @media (prefers-reduced-motion:reduce){.co-card,.co-prog i b,.co-ed .input{transition:none}}
 @media (max-width:1100px){.co-body{grid-template-columns:1fr}.co-sum{position:static}}
 @media (max-width:760px){.co-grid{grid-template-columns:1fr 1fr}.co-f.span2,.co-f.span3{grid-column:1/-1}.co-card{padding:18px}}
+
+/* ==== Design language — same look as the car order form, system-wide ==== */
+.card,.po-panel{border-radius:16px!important;border:1px solid var(--border)!important;box-shadow:0 1px 2px rgba(16,24,40,.04),0 4px 14px -6px rgba(16,24,40,.06)!important}
+.card > .tbl-wrap:last-child,.card > .tbl-wrap:only-child{border-radius:0 0 16px 16px}
+.input:not(.je-ed .input):not(.co-money .input):not(.combo-input.bare){border-radius:10px!important;border:1px solid #e3e7ed!important;background-color:#f8fafc!important;transition:background-color .15s,border-color .15s,box-shadow .15s}
+.input:not(.je-ed .input):not(.co-money .input):hover{border-color:#cfd6df!important}
+.input:not(.je-ed .input):not(.co-money .input):focus{background-color:#fff!important;border-color:var(--gold,#c59b27)!important;box-shadow:0 0 0 4px rgba(197,155,39,.14)!important;outline:none!important}
+.input::placeholder{color:#9aa3af}
+.input[disabled],.input[readonly]{background-color:#f1f3f6!important;color:var(--muted)}
+.modal-b.mf-card{background:#fff!important;border:1px solid var(--border);border-radius:16px;box-shadow:0 1px 2px rgba(16,24,40,.04),0 4px 14px -6px rgba(16,24,40,.06);margin:20px 24px 0;padding:22px 24px 24px!important}
+.modal-b.mf-card:focus-within{border-color:#e4d3a6;box-shadow:0 1px 2px rgba(16,24,40,.04),0 10px 28px -10px rgba(197,155,39,.28)}
+.mf-head{display:flex;align-items:center;gap:14px;margin:0 0 20px}
+.mf-head h3{margin:0;font-size:16px;font-weight:650;letter-spacing:-.01em;color:var(--text)}.mf-head p{margin:2px 0 0;font-size:13px;color:var(--muted)}.mf-head p:empty{display:none}
+.mf-card:focus-within .mf-head .co-step{background:linear-gradient(135deg,#d9b24a,#b8901f);color:#fff;box-shadow:0 4px 12px -4px rgba(184,144,31,.6)}
+.co-step{transition:background .2s,color .2s,box-shadow .2s}
+.mf-card .field{margin-bottom:14px}
+.mf-card .field > label,.mf-card .field > .lbl{font-size:12.5px;font-weight:600;color:var(--text-2);margin-bottom:6px}
+.mf-card .field input.input:not([type=checkbox]):not([type=radio]),.mf-card .field select.input{min-height:42px}
+.mf-card .row{gap:16px 18px;align-items:start!important}
+.mf-card > .tbl-wrap{border:1px solid var(--border);border-radius:12px;overflow:auto;margin:6px 0 10px}
+.mf-card .hint{color:var(--muted)}
+.modal-f{background:transparent!important;border-top:0!important;padding:16px 24px 24px!important}
+@media (max-width:900px){.modal-b.mf-card{margin:12px 12px 0;padding:18px 16px!important}.modal-f{padding:12px 12px 16px!important}}
 </style>
 
 <!-- Journal Entry Right Side Drawer CSS & JS -->
@@ -6716,16 +6739,21 @@ function openModal({ title, body, submit = 'Save', wide = false, xwide = false, 
   MODAL = { onSubmit };
   if (!APPROVALS) submit = String(submit).replace(/(Save|Create) & submit for approval/, 'Save & post').replace(/^Submit for approval$/, 'Save').replace(' (needs approval)', '').replace(/^Create car & purchase order$/, 'Create car & purchase order');
   try { const ch = document.querySelector('.subnav') || document.querySelector('.top'); if (document.documentElement && document.documentElement.style) document.documentElement.style.setProperty('--chrome-top', (ch ? Math.max(0, Math.round(ch.getBoundingClientRect().bottom)) : 0) + 'px'); } catch (x){}
+  const formCard = !/class="(co-ed|je-ed)/.test(body) && /class="(row|field)[ "]/.test(body);
   document.getElementById('modal-root').innerHTML = `
     <div class="modal-bg"><div class="modal ${wide ? 'wide' : ''} ${xwide ? 'xwide' : ''}" role="main" aria-label="${esc(title)}">
       <form id="mform" autocomplete="off" ${formAttrs}>
         <div class="modal-h"><button type="button" class="back" data-act="modal-close" aria-label="Back" title="Back">${ic('back', 16)}<span class="back-tx">Back</span></button><span style="color:#cbd5e1;font-size:14px;margin:0 2px">/</span><h3>${esc(title)}</h3></div>
-        <div class="modal-b"><div class="note bad form-err" id="mform-err"></div>${body}</div>
+        <div class="modal-b${formCard ? ' mf-card' : ''}"><div class="note bad form-err" id="mform-err"></div>${formCard ? `<header class="mf-head"><span class="co-step">${ic(formIcon(title), 18)}</span><div class="co-ht"><h3>${esc(title)}</h3><p>${onSubmit ? 'Fields marked * are required.' : ''}</p></div></header>` : ''}${body}</div>
         ${onSubmit ? `<div class="modal-f"><button type="button" class="btn" data-act="modal-close">${t('cancel')}</button><button class="btn ${danger ? 'danger' : 'primary'}" type="submit">${esc(submit)}</button></div>` : (footer ? `<div class="modal-f">${footer}</div>` : '')}
       </form></div></div>`;
   document.querySelectorAll('#mform input').forEach(el => { if (MONEY_FIELD.test(el.name || '') && el.value) el.value = groupDigits(el.value); });
   const first = document.querySelector('#mform .input'); if (first) first.focus();
 }
+function formIcon(t){ t = String(t || '').toLowerCase();
+  return /expense/.test(t) ? 'expenses' : /payment|receipt|refund|advance|settle/.test(t) ? 'wallet' : /invoice|bill|credit note|debit note|quotation|order|pro-forma|proforma|delivery|return/.test(t) ? 'invoices' : /customer|vendor|supplier|partner|user|seller|contact/.test(t) ? 'users' : /bank|cash|transfer|deposit|cheque|statement/.test(t) ? 'banking'
+    : /car|vehicle|make|model|brand/.test(t) ? 'cars' : /ship|clearance|landed|freight/.test(t) ? 'truck' : /payment|receipt|refund|advance|settle/.test(t) ? 'wallet'
+    : /rate|currenc/.test(t) ? 'coins' : /account|journal|entry|budget|fiscal|year|tax|asset|chart/.test(t) ? 'accounting' : /setting|location|categor|template/.test(t) ? 'settings' : 'invoices'; }
 function closeModal(){ if (SCREEN){ LAST_SCREEN = SCREEN; LAST_CLOSED_AT = Date.now(); SCREEN = null; } if (EDIT_CTX){ const c = EDIT_CTX; EDIT_CTX = null; if (!c.done) S = JSON.parse(c.snapOrig); } MODAL = null; document.getElementById('modal-root').innerHTML = ''; }
 /* Money fields show thousands separators while typing (909,090.00); the commas are removed before saving. */
 const MONEY_FIELD = /^(amount|price|salePrice|fee|intermediaryFee|srcAmount|dstAmount|cost|residual|total|egpTotal|applied|portion|estAmount|openingBalance|creditLimit|alloc_applied|alloc_portion|il_amount|pl_price|ex_amount|ql_price|ql_disc|so_price|so_disc|pf_price|pf_disc|lc_amount|lc_tax|l_debit|l_credit|l_rate)$/;
@@ -14374,7 +14402,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261107-151103';
+const APP_BUILD = 'build-20261107-151723';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
