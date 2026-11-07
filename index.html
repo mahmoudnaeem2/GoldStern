@@ -3287,6 +3287,11 @@ function doPost(e, me, snapshot){
   e.number = nextNumber(j.seq, e.accountingDate);
   e.status = 'posted'; e.postedBy = me.id; e.postedAt = nowISO();
   e.history.push({ at: e.postedAt, by: me.id, action: 'posted', note: e.number });
+  const prAccrual = (S.payrolls || []).find(p => p.entryId === e.id);
+  if (prAccrual && prAccrual.status !== 'posted'){
+    prAccrual.status = 'posted';
+    prAccrual.postedAt = e.postedAt;
+  }
 }
 
 /* ---------------- Reports ---------------- */
@@ -9989,19 +9994,96 @@ const prMonthEnd = m => { const [y, mm] = m.split('-').map(Number); return ymd(y
 const empInitials = n => String(n || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0] || '').join('').toUpperCase() || '?';
 function payrollOf(month){ hrInit(); return S.payrolls.find(p => p.month === month) || null; }
 /* sheet = saved lines (+ any active employee missing from a draft), or a fresh sheet from active employees */
+function payrollAccounts(){
+  if (!S.expenseCats || !S.expenseCats.length) ensureStandardExpenseCats();
+  const cat = (S.expenseCats || []).find(c => /salar|wage|payroll/i.test(c.name)) || (S.expenseCats || [])[0];
+  const expAcc = (cat && acc(cat.accountId)) || famAcc('6100') || (S.accounts || []).find(a => a.type === 'expense' && !a.isGroup && a.active);
+  const payAcc = (S.accounts || []).find(a => (a.code === '201700' || a.code === '2170') && !a.isGroup && a.active)
+    || famAcc('2170')
+    || (() => { try { return getMapping('employee_payable'); } catch (e){ return null; } })()
+    || (() => { try { return getMapping('accrued'); } catch (e){ return null; } })()
+    || (S.accounts || []).find(a => a.type === 'liability' && !a.isGroup && a.active && a.allowManual);
+  if (!expAcc || !payAcc) throw new AppError('Configure Salaries Expense and Payroll Payables accounts in Chart of Accounts first.');
+  return { expAcc, payAcc, costCenter: (cat && cat.costCenter) || 'ADM', catName: (cat && cat.name) || 'Salaries & Wages' };
+}
 function payrollSheet(month, over){
-  hrInit(); const pr = payrollOf(month), posted = pr && pr.status === 'posted';
+  hrInit(); const pr = payrollOf(month);
+  const je = pr && pr.entryId ? entryById(pr.entryId) : null;
+  if (pr && je && je.status === 'posted' && pr.status !== 'posted') pr.status = 'posted';
+  const posted = !!(pr && pr.status === 'posted');
+  const saved = !!(pr && !posted && (pr.entryId || pr.status === 'saved' || pr.status === 'draft'));
+  const legacyExp = pr && pr.expenseId ? S.expenses.find(z => z.id === pr.expenseId) : null;
   let lines = pr ? pr.lines.map(l => ({ ...l })) : [];
-  if (!posted){ for (const e of S.employees.filter(e => e.active !== false && (!e.startDate || e.startDate.slice(0, 7) <= month))) if (!lines.some(l => l.empId === e.id)) lines.push({ empId: e.id, salary: e.salary, bonus: '0', deduction: '0', note: '', bankId: e.bankId || '' });
+  if (!posted){
+    for (const e of S.employees.filter(e => e.active !== false && (!e.startDate || e.startDate.slice(0, 7) <= month)))
+      if (!lines.some(l => l.empId === e.id)) lines.push({ empId: e.id, salary: e.salary, bonus: '0', deduction: '0', note: '' });
     lines = lines.filter(l => { const e = S.employees.find(x => x.id === l.empId); return e && e.active !== false; });
-    for (const l of lines){ const e = S.employees.find(x => x.id === l.empId); l.salary = e.salary; if (l.bankId === undefined) l.bankId = e.bankId || ''; } }
-  if (over && !posted){ const arr = k => [].concat(over[k] ?? []), ids = arr('pr_emp'), hasBanks = over.pr_bank !== undefined;
-    ids.forEach((id, i) => { const l = lines.find(z => z.empId === id); if (!l) return; l.bonus = String(arr('pr_bonus')[i] || '0').replace(/,/g, '').trim() || '0'; l.deduction = String(arr('pr_ded')[i] || '0').replace(/,/g, '').trim() || '0'; l.note = String(arr('pr_note')[i] || '').trim(); if (hasBanks) l.bankId = String(arr('pr_bank')[i] || '').trim(); }); }
-  for (const l of lines){ const e = S.employees.find(x => x.id === l.empId) || {}; l.name = l.name || e.name || '—'; l.code = e.code || ''; l.title = e.title || ''; l.bankId = l.bankId || '';
-    const num = v => /^\d+(\.\d+)?$/.test(String(v)) ? D(v) : D0(); l.net = num(l.salary).plus(num(l.bonus)).minus(num(l.deduction)); }
+    for (const l of lines){ const e = S.employees.find(x => x.id === l.empId); l.salary = e.salary; }
+  }
+  if (over && !posted){
+    const arr = k => [].concat(over[k] ?? []), ids = arr('pr_emp');
+    ids.forEach((id, i) => {
+      const l = lines.find(z => z.empId === id); if (!l) return;
+      l.bonus = String(arr('pr_bonus')[i] || '0').replace(/,/g, '').trim() || '0';
+      l.deduction = String(arr('pr_ded')[i] || '0').replace(/,/g, '').trim() || '0';
+      l.note = String(arr('pr_note')[i] || '').trim();
+    });
+  }
+  for (const l of lines){
+    const e = S.employees.find(x => x.id === l.empId) || {};
+    l.name = l.name || e.name || '—'; l.code = e.code || ''; l.title = e.title || '';
+    const num = v => /^\d+(\.\d+)?$/.test(String(v)) ? D(v) : D0();
+    l.net = num(l.salary).plus(num(l.bonus)).minus(num(l.deduction));
+    if (posted && legacyExp && !l.paid && !pr.entryId){
+      l.paid = true;
+      l.paidDate = pr.paidDate || legacyExp.date;
+      l.paidEntryId = legacyExp.entryId;
+      l.paidBanks = (legacyExp.payments && legacyExp.payments.length) ? legacyExp.payments : (legacyExp.bankId ? [{ bankId: legacyExp.bankId, amount: l.net.toFixed(2) }] : []);
+    }
+    l.paid = !!(posted && l.paid && l.net.gt(0));
+  }
   lines.sort((a, b) => String(a.name).localeCompare(String(b.name)));
   const sum = k => lines.reduce((t, l) => t.plus(k === 'net' ? l.net : (/^\d+(\.\d+)?$/.test(String(l[k])) ? D(l[k]) : D0())), D0());
-  return { month, pr, posted, lines, salary: sum('salary'), bonus: sum('bonus'), deduction: sum('deduction'), net: sum('net') };
+  const payableLines = lines.filter(l => l.net.gt(0));
+  const paidLines = payableLines.filter(l => l.paid);
+  const unpaidLines = payableLines.filter(l => !l.paid);
+  const paidTotal = paidLines.reduce((t, l) => t.plus(l.net), D0());
+  const unpaidTotal = unpaidLines.reduce((t, l) => t.plus(l.net), D0());
+  const allPaid = posted && payableLines.length > 0 && unpaidLines.length === 0;
+  return { month, pr, je, posted, saved, allPaid, lines, payableLines, paidLines, unpaidLines, salary: sum('salary'), bonus: sum('bonus'), deduction: sum('deduction'), net: sum('net'), paidTotal, unpaidTotal };
+}
+function buildPayrollEntryLines(month, lines){
+  const { expAcc, payAcc, costCenter } = payrollAccounts();
+  const pay = lines.filter(l => l.net.gt(0));
+  const jl = [];
+  for (const l of pay){
+    const details = [
+      D(l.bonus).gt(0) ? `+${money(l.bonus)} bonus` : '',
+      D(l.deduction).gt(0) ? `−${money(l.deduction)} deduction` : '',
+      l.note ? l.note : ''
+    ].filter(Boolean).join(' · ');
+    jl.push({
+      id: uid('jl'),
+      accountId: expAcc.id,
+      debit: l.net.toFixed(2),
+      credit: '',
+      costCenter,
+      partner: l.name,
+      vehicle: '',
+      description: `Salary ${monthLabel(month)} — ${l.name}${details ? ' (' + details + ')' : ''}`
+    });
+    jl.push({
+      id: uid('jl'),
+      accountId: payAcc.id,
+      debit: '',
+      credit: l.net.toFixed(2),
+      costCenter: '',
+      partner: l.name,
+      vehicle: '',
+      description: `Net salary payable — ${l.name} (${monthLabel(month)})`
+    });
+  }
+  return jl;
 }
 Object.assign(A, {
   saveEmployee(id, f){
@@ -10016,61 +10098,207 @@ Object.assign(A, {
     log(old ? 'employee_edit' : 'employee_create', 'expenses', e.id, old, clone(e), '', e.code); saveState(); return e;
   },
   savePayroll(month, f){
-    requirePerm('expenses', 'create'); hrInit(); if (!/^\d{4}-\d{2}$/.test(month)) throw new AppError('Pick a month.');
+    const me = requirePerm('expenses', 'create'); hrInit(); if (!/^\d{4}-\d{2}$/.test(month)) throw new AppError('Pick a month.');
     const sh = payrollSheet(month, f); if (sh.posted) throw new AppError(`${monthLabel(month)} payroll is already posted and can’t be changed.`);
     for (const l of sh.lines){ for (const [k, lbl] of [['bonus', 'Bonus'], ['deduction', 'Deduction']]) if (!/^\d+(\.\d{1,2})?$/.test(String(l[k]))) throw new AppError(`${lbl} for ${l.name} must be a positive number.`);
       if (l.net.lt(0)) throw new AppError(`Net pay for ${l.name} would be negative. Reduce the deduction.`); }
     let pr = payrollOf(month); const old = pr ? clone(pr) : null;
-    const lines = sh.lines.map(l => ({ empId: l.empId, name: l.name, salary: D(l.salary).toFixed(2), bonus: D(l.bonus).toFixed(2), deduction: D(l.deduction).toFixed(2), note: l.note || '', bankId: l.bankId || '' }));
-    if (pr) Object.assign(pr, { lines, updatedAt: nowISO() }); else { pr = { id: uid('pr'), month, status: 'draft', lines, createdAt: nowISO() }; S.payrolls.push(pr); }
+    const lines = sh.lines.map(l => ({ empId: l.empId, name: l.name, salary: D(l.salary).toFixed(2), bonus: D(l.bonus).toFixed(2), deduction: D(l.deduction).toFixed(2), note: l.note || '', paid: false }));
+    const end = prMonthEnd(month), accDate = isISODate(f && f.date) ? f.date : (end < todayCairo() ? end : todayCairo());
+    let je = pr && pr.entryId ? entryById(pr.entryId) : null;
+    if (S.accounts && S.accounts.length && sh.lines.some(l => l.net.gt(0))){
+      const jl = buildPayrollEntryLines(month, sh.lines);
+      if (je && je.status === 'draft'){
+        je.accountingDate = accDate;
+        je.documentDate = accDate;
+        je.description = `Payroll Accrual — ${monthLabel(month)}`;
+        je.lines = jl;
+        const c = computeEntry(je);
+        je.rate = c.rate; je.rateMethod = c.method; je.rateRecordIds = c.records; je.lines = c.lines;
+        const sum = k => je.lines.reduce((t, l0) => t.plus(l0[k] || '0'), D0());
+        je.totals = { fcDebit: sum('debit').toFixed(2), fcCredit: sum('credit').toFixed(2), egpDebit: sum('egpDebit').toFixed(2), egpCredit: sum('egpCredit').toFixed(2) };
+      } else {
+        je = docEntryShell(me, 'GJ', accDate, 'EGP', 'official', 'PAYROLL-' + month, `Payroll Accrual — ${monthLabel(month)}`, jl, { reference: 'PAYROLL-' + month });
+        S.entries.push(je);
+      }
+    }
+    if (pr) Object.assign(pr, { status: 'saved', lines, entryId: je ? je.id : pr.entryId, updatedAt: nowISO() });
+    else { pr = { id: uid('pr'), month, status: 'saved', lines, entryId: je ? je.id : null, createdAt: nowISO() }; S.payrolls.push(pr); }
     log(old ? 'payroll_edit' : 'payroll_create', 'expenses', pr.id, old, clone(pr), '', 'Payroll ' + month); saveState(); return pr;
   },
-  postPayroll(month, f){
-    requirePerm('expenses', 'create'); const pr = A.savePayroll(month, f.sheet || {}), sh = payrollSheet(month);
-    const pay = sh.lines.filter(l => l.net.gt(0)); if (!pay.length) throw new AppError('Nothing to pay this month — add employees or salaries first.');
-    if (!isISODate(f.date)) throw new AppError('Pick the payment date.');
-    if (!S.expenseCats.length) ensureStandardExpenseCats();
-    const cat = S.expenseCats.find(c => /salar|wage|payroll/i.test(c.name)) || S.expenseCats[0]; if (!cat) throw new AppError('Add a “Salaries” expense category first.');
-    const desc = l => `Salary ${monthLabel(month)} — ${l.name}${D(l.bonus).gt(0) ? ` (+${money(l.bonus)} bonus)` : ''}${D(l.deduction).gt(0) ? ` (−${money(l.deduction)} deduction)` : ''}`;
-    const arr = k => [].concat(f[k] ?? []);
-    let pay_bank = arr('pay_bank').filter(Boolean), pay_amount = arr('pay_amount').map(v => String(v || '').trim().replace(/,/g, '')).filter((_, i) => arr('pay_bank')[i]);
-    if (!pay_bank.length && f.bankId){
-      pay_bank = [f.bankId];
-      pay_amount = [sh.net.toFixed(2)];
+  postPayrollEntry(month, f = {}){
+    const me = requirePerm('expenses', 'create');
+    const pr = f.sheet ? A.savePayroll(month, f.sheet) : (payrollOf(month) || A.savePayroll(month, {}));
+    const sh = payrollSheet(month);
+    if (!sh.payableLines.length) throw new AppError('Nothing to post this month — add employees or salaries first.');
+    let je = pr.entryId ? entryById(pr.entryId) : null;
+    const end = prMonthEnd(month), accDate = isISODate(f.date) ? f.date : (je && isISODate(je.accountingDate) ? je.accountingDate : (end < todayCairo() ? end : todayCairo()));
+    if (!je){
+      const jl = buildPayrollEntryLines(month, sh.lines);
+      je = docEntryShell(me, 'GJ', accDate, 'EGP', 'official', 'PAYROLL-' + month, `Payroll Accrual — ${monthLabel(month)}`, jl, { reference: 'PAYROLL-' + month });
+      S.entries.push(je);
+      pr.entryId = je.id;
+    } else if (isISODate(f.date)){
+      je.accountingDate = f.date;
+      je.documentDate = f.date;
     }
-    const x = A.createExpense({ date: f.date, method: 'bank', bankId: pay_bank[0] || f.bankId, pay_bank, pay_amount, partner: 'Payroll ' + monthLabel(month), ref: 'PAYROLL-' + month,
-      ex_cat: pay.map(() => cat.name), ex_desc: pay.map(desc), ex_amount: pay.map(l => l.net.toFixed(2)), ex_cc: pay.map(() => ''), ex_vehicle: pay.map(() => ''), ex_partner: pay.map(l => l.name) });
-    const old = clone(pr); Object.assign(pr, { status: 'posted', expenseId: x.id, payments: x.payments || [], postedAt: nowISO(), paidDate: f.date });
-    log('payroll_post', 'expenses', pr.id, old, clone(pr), '', 'Payroll ' + month); saveState(); return { pr, x };
+    if (je.status !== 'posted'){
+      const pc = checkPostingAllowed(je.accountingDate); if (!pc.ok) throw new AppError(pc.reason);
+      doPost(je, me);
+    }
+    const old = clone(pr);
+    Object.assign(pr, { status: 'posted', entryId: je.id, postedAt: nowISO(), accrualDate: je.accountingDate });
+    log('payroll_post', 'expenses', pr.id, old, clone(pr), '', 'Payroll ' + month);
+    saveState(); return { pr, je };
+  },
+  payPayrollSlips(month, empIds, f = {}){
+    const me = requirePerm('expenses', 'create'); hrInit();
+    const pr = payrollOf(month); if (!pr || pr.status !== 'posted') throw new AppError('Post the payroll Journal Entry first before paying payslips.');
+    const sh = payrollSheet(month);
+    const targetIds = Array.isArray(empIds) && empIds.length ? empIds : sh.unpaidLines.map(l => l.empId);
+    const toPay = sh.unpaidLines.filter(l => targetIds.includes(l.empId));
+    if (!toPay.length) throw new AppError('Select at least one unpaid employee payslip to pay.');
+    const date = isISODate(f.date) ? f.date : todayCairo();
+    const pc = checkPostingAllowed(date); if (!pc.ok) throw new AppError(pc.reason);
+    const total = toPay.reduce((t, l) => t.plus(l.net), D0());
+    const arr = k => [].concat(f[k] ?? []);
+    const pBanks = arr('pay_bank'), pAmts = arr('pay_amount').map(v => String(v || '').trim().replace(/,/g, ''));
+    let rawSplits = pBanks.map((bid, i) => ({ bankId: String(bid || '').trim(), amount: pAmts[i] || '' })).filter(p => p.bankId || p.amount);
+    if (!rawSplits.length && f.bankId) rawSplits = [{ bankId: String(f.bankId).trim(), amount: total.toFixed(2) }];
+    if (!rawSplits.length) throw new AppError('Select the bank or cash account to pay from.');
+    rawSplits.forEach((p, idx0) => {
+      if (typeof p.bankId === 'string' && /^(gl|newcash):/.test(p.bankId)) p.bankId = materializeBank(p.bankId);
+      const bk = bankById(p.bankId);
+      if (!bk || !bk.active) throw new AppError(`Payment line ${idx0 + 1}: select an active bank or cash account.`);
+      p.bank = bk;
+    });
+    if (rawSplits.length === 1 && !rawSplits[0].amount) rawSplits[0].amount = total.toFixed(2);
+    let splitSum = D0();
+    rawSplits.forEach((p, idx0) => {
+      if (!amtOk(p.amount, 'EGP') || !D(p.amount).gt(0)) throw new AppError(`Payment line ${idx0 + 1}: enter a positive EGP amount.`);
+      p.amount = D(p.amount).toFixed(2);
+      splitSum = splitSum.plus(p.amount);
+    });
+    if (!splitSum.eq(total)) throw new AppError(`Payment split total (${money(splitSum)} EGP) must equal the selected payslips total (${money(total)} EGP).`);
+
+    const { payAcc } = payrollAccounts();
+    const batchSeq = (S.entries || []).filter(x => String(x.sourceRef || '').startsWith('PAYSLIP-' + month)).length + 1;
+    const srcRef = `PAYSLIP-${month}-${String(batchSeq).padStart(2, '0')}`;
+    const ref = String(f.ref || srcRef).trim();
+    const jl = [];
+    for (const l of toPay){
+      jl.push({
+        id: uid('jl'),
+        accountId: payAcc.id,
+        debit: l.net.toFixed(2),
+        credit: '',
+        costCenter: '',
+        partner: l.name,
+        vehicle: '',
+        description: `Payslip payment ${monthLabel(month)} — ${l.name}`
+      });
+    }
+    for (const p of rawSplits){
+      jl.push({
+        id: uid('jl'),
+        accountId: p.bank.glAccountId,
+        debit: '',
+        credit: p.amount,
+        costCenter: '',
+        partner: toPay.length === 1 ? toPay[0].name : `Payroll ${monthLabel(month)} (${toPay.length} employees)`,
+        vehicle: '',
+        description: `Salary payment ${monthLabel(month)} — ${toPay.map(x => x.name).join(', ')}`
+      });
+    }
+    const je = docEntryShell(me, 'BJ', date, 'EGP', 'official', srcRef, `Salary Payment — ${monthLabel(month)} (${toPay.map(x => x.name).join(', ')})`, jl, { reference: ref });
+    submitDocEntry(je, me);
+    const paidBanks = rawSplits.map(p => ({ bankId: p.bank.id, amount: p.amount }));
+    for (const l of pr.lines){
+      if (toPay.some(t => t.empId === l.empId)){
+        l.paid = true;
+        l.paidDate = date;
+        l.paidEntryId = je.id;
+        l.paidBanks = paidBanks;
+      }
+    }
+    log('payroll_pay', 'expenses', pr.id, null, { month, employees: toPay.map(x => x.name), total: total.toFixed(2), entryId: je.id }, '', je.number || je.draftRef);
+    saveState(); return { pr, je, paidCount: toPay.length, total };
+  },
+  unpayPayrollSlip(month, empId){
+    requirePerm('expenses', 'create'); hrInit();
+    const pr = payrollOf(month); if (!pr) throw new AppError('Payroll not found.');
+    const line = pr.lines.find(l => l.empId === empId); if (!line || !line.paid) throw new AppError('Payslip is not marked as paid.');
+    const entryId = line.paidEntryId;
+    if (entryId){
+      const e = entryById(entryId);
+      if (e){
+        const pc = checkPostingAllowed(e.accountingDate); if (!pc.ok) throw new AppError('Cannot undo payment: ' + pc.reason);
+        S.entries = S.entries.filter(en => en.id !== entryId);
+      }
+      for (const l of pr.lines){
+        if (l.paidEntryId === entryId){
+          l.paid = false;
+          delete l.paidDate;
+          delete l.paidEntryId;
+          delete l.paidBanks;
+        }
+      }
+    } else {
+      line.paid = false;
+      delete line.paidDate;
+      delete line.paidBanks;
+    }
+    log('payroll_unpay', 'expenses', pr.id, null, { month, empId }, 'Payslip payment undone', 'Payroll ' + month);
+    saveState(); return pr;
+  },
+  postPayroll(month, f = {}){
+    requirePerm('expenses', 'create');
+    const { pr, je } = A.postPayrollEntry(month, f);
+    let payRes = null;
+    if (f.bankId || (f.pay_bank && [].concat(f.pay_bank).filter(Boolean).length)){
+      payRes = A.payPayrollSlips(month, null, f);
+    }
+    return { pr, je, x: { id: je.id, number: je.number || je.draftRef, entryId: je.id, payments: payRes ? pr.lines[0].paidBanks : [] } };
   },
   resetPayrollToDraft(month, reason){
     requirePerm('expenses', 'create'); hrInit();
     const pr = payrollOf(month); if (!pr) throw new AppError('Payroll record not found.');
-    if (pr.status !== 'posted') throw new AppError(`${monthLabel(month)} payroll is already in draft status.`);
     const old = clone(pr);
+    const entryIds = new Set();
+    if (pr.entryId) entryIds.add(pr.entryId);
+    (pr.lines || []).forEach(l => { if (l.paidEntryId) entryIds.add(l.paidEntryId); });
     if (pr.expenseId){
       const x = S.expenses.find(z => z.id === pr.expenseId);
       if (x){
-        const e = entryById(x.entryId);
-        if (e){
-          const pc = checkPostingAllowed(e.accountingDate); if (!pc.ok) throw new AppError('Cannot reset payroll to draft: ' + pc.reason);
-          S.entries = S.entries.filter(en => en.id !== e.id);
-        }
+        if (x.entryId) entryIds.add(x.entryId);
         if (x.invoiceId) S.invoices = S.invoices.filter(i => i.id !== x.invoiceId);
         S.expenses = S.expenses.filter(z => z.id !== x.id);
       }
     }
-    Object.assign(pr, { status: 'draft', expenseId: null, payments: null, postedAt: null, paidDate: null, updatedAt: nowISO() });
+    for (const eid of entryIds){
+      const e = entryById(eid);
+      if (e && e.status === 'posted'){
+        const pc = checkPostingAllowed(e.accountingDate); if (!pc.ok) throw new AppError('Cannot reset payroll to draft: ' + pc.reason);
+      }
+    }
+    if (entryIds.size) S.entries = S.entries.filter(en => !entryIds.has(en.id));
+    (pr.lines || []).forEach(l => {
+      l.paid = false;
+      delete l.paidDate;
+      delete l.paidEntryId;
+      delete l.paidBanks;
+    });
+    Object.assign(pr, { status: 'draft', entryId: null, expenseId: null, payments: null, postedAt: null, paidDate: null, updatedAt: nowISO() });
     log('payroll_reset_draft', 'expenses', pr.id, old, clone(pr), reason || 'Reset to draft', 'Payroll ' + month);
     saveState(); return pr;
   }
 });
 function payrollExport(month, over){
   run(() => { const sh = payrollSheet(month, over), n = v => Number(D(v || 0).toFixed(2));
-    const rows = sh.lines.map(l => ({ k: 'line', c: [l.code, l.name, l.title, n(l.salary), n(l.bonus), n(l.deduction), n(l.net), l.note || ''] }));
-    rows.push({ k: 'grand', c: ['', 'Total', `${sh.lines.length} employee${sh.lines.length === 1 ? '' : 's'}`, n(sh.salary), n(sh.bonus), n(sh.deduction), n(sh.net), ''] });
-    XW.save(`payroll-${month}.xlsx`, [{ name: 'Payroll ' + month, title: `Payroll — ${monthLabel(month)}`, subtitle: `${(S.company && S.company.name) || 'Goldstern'} · EGP · ${sh.posted ? 'posted' : 'draft'}`,
-      columns: [{ h: 'Code', w: 11 }, { h: 'Employee', w: 28 }, { h: 'Job title', w: 20 }, { h: 'Base salary', t: 'money', w: 15 }, { h: 'Bonus', t: 'money', w: 13 }, { h: 'Deduction', t: 'money', w: 13 }, { h: 'Net pay', t: 'money', w: 15 }, { h: 'Note', w: 28 }], rows }]);
+    const rows = sh.lines.map(l => ({ k: 'line', c: [l.code, l.name, l.title, n(l.salary), n(l.bonus), n(l.deduction), n(l.net), l.paid ? 'Paid' : (sh.posted ? 'To Pay' : 'Draft'), l.note || ''] }));
+    rows.push({ k: 'grand', c: ['', 'Total', `${sh.lines.length} employee${sh.lines.length === 1 ? '' : 's'}`, n(sh.salary), n(sh.bonus), n(sh.deduction), n(sh.net), '', ''] });
+    XW.save(`payroll-${month}.xlsx`, [{ name: 'Payroll ' + month, title: `Payroll — ${monthLabel(month)}`, subtitle: `${(S.company && S.company.name) || 'Goldstern'} · EGP · ${sh.allPaid ? 'paid' : sh.posted ? 'posted' : 'draft'}`,
+      columns: [{ h: 'Code', w: 11 }, { h: 'Employee', w: 28 }, { h: 'Job title', w: 20 }, { h: 'Base salary', t: 'money', w: 15 }, { h: 'Bonus', t: 'money', w: 13 }, { h: 'Deduction', t: 'money', w: 13 }, { h: 'Net pay', t: 'money', w: 15 }, { h: 'Status', w: 12 }, { h: 'Note', w: 28 }], rows }]);
     log('export', 'expenses', null, null, { payroll: month, format: 'xlsx' }, 'Payroll export'); saveState(); toast('Payroll sheet downloaded.', 'ok'); });
 }
 function employeeForm(e){
@@ -10113,15 +10341,26 @@ function pageEmployees(){
 }
 function pagePayroll(){
   hrInit(); const month = UI.prMonth = UI.prMonth || todayCairo().slice(0, 7), sh = payrollSheet(month), ed = can('expenses', 'create') && !sh.posted;
-  const x = sh.pr && sh.pr.expenseId ? S.expenses.find(z => z.id === sh.pr.expenseId) : null;
-  const je = x && x.entryId ? entryById(x.entryId) : null;
+  const je = sh.je;
   const tile = (icon, cls, l, v, sub) => `<div class="xp-k ${cls}"><span class="xp-kic">${ic(icon, 18)}</span><div><span class="xp-kl">${l}</span><b>${money(v)} <small>EGP</small></b><em>${sub}</em></div></div>`;
   const inp = (n, v) => ed ? `<input class="input mono pr-in" name="${n}" inputmode="decimal" value="${D(v || 0).eq(0) ? '' : groupDigits(v)}" placeholder="0">` : `<span>${D(v || 0).eq(0) ? '<span class="zero">—</span>' : money(v)}</span>`;
-  const pays = (x && x.payments && x.payments.length) ? x.payments : (sh.pr && sh.pr.payments && sh.pr.payments.length ? sh.pr.payments : (x && x.bankId ? [{ bankId: x.bankId, amount: x.total }] : []));
-  const payBadges = pays.map(p => { const b = bankById(p.bankId); return `<span class="xp-m bank">${ic('banking', 13)}${esc(b ? b.name : 'Cash / bank')}${pays.length > 1 ? ` · <b>${money(p.amount)} EGP</b>` : ''}</span>`; }).join(' ');
-  const bankLabelOf = bid => { if (!bid) return '<span class="muted">Paid via sheet split</span>'; const b = bankById(bid); return b ? `<span class="xp-m bank">${ic('banking', 12)}${esc(b.name)}</span>` : '<span class="muted">—</span>'; };
 
-  return H(t('payroll'), 'Review monthly salaries, add bonuses or deductions, assign bank or cash accounts per employee or split payment across multiple accounts on post.',
+  const renderPaidCell = l => {
+    if (!l.net.gt(0)) return '<span class="muted">No net pay</span>';
+    if (!l.paid) return '<span class="pill gold">To Pay</span>';
+    const pje = l.paidEntryId ? entryById(l.paidEntryId) : null;
+    const bks = (l.paidBanks && l.paidBanks.length)
+      ? l.paidBanks.map(b0 => { const bk = bankById(b0.bankId); return `<span class="xp-m bank" style="font-size:11.5px;padding:2px 8px">${ic('banking', 12)}${esc(bk ? bk.name : 'Cash / Bank')}</span>`; }).join(' ')
+      : '';
+    return `<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+      <span class="pill ok">✓ Paid</span>
+      ${bks}
+      ${pje ? `<a href="#" data-act="je-view" data-id="${pje.id}" class="mono" style="font-size:12px;font-weight:700;color:#0f172a;text-decoration:underline">${esc(entryRef(pje))}</a>` : ''}
+      ${l.paidDate ? `<span class="muted" style="font-size:11.5px">${esc(l.paidDate)}</span>` : ''}
+    </div>`;
+  };
+
+  return H(t('payroll'), '1. Select month, enter bonuses/deductions & notes, then click Save.  2. Post the generated Journal Entry.  3. Pay employees individually or select multiple payslips together.',
     `<a class="btn" href="#/hr/employees">${ic('hr', 14)} Employees</a>` +
     (can('expenses', 'create') ? `<button type="button" class="btn" data-act="emp-new">${ic('plus', 14)} New employee</button>` : '') +
     `<button type="button" class="btn" data-act="pr-xlsx">${ic('file', 14)} Export Excel</button>`) + `
@@ -10129,43 +10368,110 @@ function pagePayroll(){
       <div class="btns" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
         <div class="pr-month" style="margin-right:6px"><button type="button" class="btn sm" data-act="pr-month" data-v="-1" aria-label="Previous month">${ic('back', 14)}</button><b>${monthLabel(month)}</b><button type="button" class="btn sm pr-next" data-act="pr-month" data-v="1" aria-label="Next month">${ic('back', 14)}</button>
           ${month !== todayCairo().slice(0, 7) ? '<button type="button" class="btn sm" data-act="pr-month" data-v="0">This month</button>' : ''}</div>
-        ${ed && sh.lines.length ? `<button type="button" class="btn primary" data-act="pr-post">${ic('check', 14)} Post salaries</button><button type="button" class="btn" data-act="pr-save-top">Save draft</button>` : ''}
-        ${sh.posted && can('expenses', 'create') ? `<button type="button" class="btn" data-act="pr-reset-draft" data-month="${month}">${ic('undo', 14)} Reset to draft</button>` : ''}
-        ${x ? `<button type="button" class="btn" data-act="ex-view" data-id="${x.id}">${ic('expenses', 14)} Expense ${esc(x.number)}</button>` : ''}
-        ${je ? `<button type="button" class="btn" data-act="je-view" data-id="${je.id}">${ic('accounting', 14)} Entry ${esc(entryRef(je))}</button>` : ''}
+        ${ed && sh.lines.length ? `<button type="button" class="btn primary" data-act="pr-save-top">${ic('check', 14)} Save &amp; Prepare Journal Entry</button>` : ''}
+        ${!sh.posted && je ? `<button type="button" class="btn gold" data-act="pr-post-je" data-month="${month}">${ic('check', 14)} Post Journal Entry (${esc(entryRef(je))})</button><button type="button" class="btn" data-act="je-view" data-id="${je.id}">${ic('accounting', 14)} View Entry</button>` : ''}
+        ${sh.posted && sh.unpaidLines.length && can('expenses', 'create') ? `<button type="button" class="btn primary" data-act="pr-pay-all" data-month="${month}">${ic('coins', 14)} Pay All Unpaid (${money(sh.unpaidTotal)} EGP)</button>` : ''}
+        ${sh.posted && je ? `<button type="button" class="btn" data-act="je-view" data-id="${je.id}">${ic('accounting', 14)} Accrual Entry ${esc(entryRef(je))}</button>` : ''}
+        ${(sh.posted || sh.saved) && can('expenses', 'create') ? `<button type="button" class="btn" data-act="pr-reset-draft" data-month="${month}">${ic('undo', 14)} Reset to draft</button>` : ''}
       </div>
       <div class="o-status">
-        <span class="${!sh.posted && !sh.pr ? 'on' : ''}">Draft</span>
-        <span class="${!sh.posted && sh.pr ? 'on' : ''}">Saved</span>
-        <span class="${sh.posted ? 'on' : ''}">Posted</span>
+        <span class="${!sh.posted && !je ? 'on' : ''}">1. Draft</span>
+        <span class="${!sh.posted && je ? 'on' : ''}">2. Journal Entry</span>
+        <span class="${sh.posted && !sh.allPaid ? 'on' : ''}">3. Payslips to Pay</span>
+        <span class="${sh.allPaid ? 'on' : ''}">4. Paid</span>
       </div>
     </div>
-    ${sh.posted ? `<div class="card" style="margin-bottom:14px;padding:14px 18px;background:linear-gradient(90deg,#f0fdf4,#ffffff);border:1px solid #bbf7d0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+
+    ${!sh.posted && je ? `<div class="card" style="margin-bottom:14px;padding:14px 18px;background:linear-gradient(90deg,#fffbeb,#ffffff);border:1px solid #fde68a;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-        <span class="fs-chk ok" style="font-size:13px">✓ Posted ${esc(sh.pr.paidDate || '')}</span>
-        ${x ? `<span style="font-size:13px;color:#334155">Voucher: <a href="#" data-act="ex-view" data-id="${x.id}" style="font-weight:700;color:#0f172a;text-decoration:underline">${esc(x.number)}</a></span>` : ''}
-        ${je ? `<span style="font-size:13px;color:#334155">Journal Entry: <a href="#" data-act="je-view" data-id="${je.id}" style="font-weight:700;color:#0f172a;text-decoration:underline">${esc(entryRef(je))}</a></span>` : ''}
-        ${payBadges ? `<span style="font-size:13px;color:#334155;display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap">Paid from: ${payBadges}</span>` : ''}
+        <span class="pill gold">Draft Journal Entry Ready</span>
+        <span style="font-size:13.5px;color:#1e293b">Accrual entry <a href="#" data-act="je-view" data-id="${je.id}" style="font-weight:700;text-decoration:underline">${esc(entryRef(je))}</a> (${money(sh.net)} EGP) is prepared. Review or post it to unlock employee Payslip payments.</span>
       </div>
-      ${can('expenses', 'create') ? `<div style="display:flex;gap:8px"><button type="button" class="btn sm" data-act="pr-reset-draft" data-month="${month}">${ic('undo', 13)} Reset to draft</button></div>` : ''}
+      <div style="display:flex;gap:8px;align-items:center">
+        <button type="button" class="btn sm" data-act="je-view" data-id="${je.id}">${ic('accounting', 14)} Open Journal Entry</button>
+        <button type="button" class="btn primary sm" data-act="pr-post-je" data-month="${month}">${ic('check', 14)} Post Journal Entry</button>
+      </div>
     </div>` : ''}
+
+    ${sh.posted ? `<div class="card" style="margin-bottom:14px;padding:14px 18px;background:${sh.allPaid ? 'linear-gradient(90deg,#f0fdf4,#ffffff)' : 'linear-gradient(90deg,#eff6ff,#ffffff)'};border:1px solid ${sh.allPaid ? '#bbf7d0' : '#bfdbfe'};display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+        <span class="fs-chk ${sh.allPaid ? 'ok' : ''}" style="font-size:13px">${sh.allPaid ? '✓ All Payslips Paid' : `Payslips Open (${sh.paidLines.length} / ${sh.payableLines.length} Paid)`}</span>
+        ${je ? `<span style="font-size:13px;color:#334155">Accrual Journal Entry: <a href="#" data-act="je-view" data-id="${je.id}" style="font-weight:700;color:#0f172a;text-decoration:underline">${esc(entryRef(je))}</a></span>` : ''}
+        <span style="font-size:13px;color:#334155">Paid: <b style="color:#15803d">${money(sh.paidTotal)} EGP</b> · Remaining to Pay: <b style="color:${sh.unpaidTotal.gt(0) ? '#b45309' : '#64748b'}">${money(sh.unpaidTotal)} EGP</b></span>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        ${can('expenses', 'create') ? `<button type="button" class="btn sm" data-act="pr-reset-draft" data-month="${month}">${ic('undo', 13)} Reset to draft</button>` : ''}
+      </div>
+    </div>` : ''}
+
     <div class="xp-kpis">
-      <div class="xp-hero"><div class="xp-hero-top"><span class="xp-kic">${ic('wallet', 20)}</span><span class="xp-tag">${sh.lines.length} employee${sh.lines.length === 1 ? '' : 's'}</span></div><span class="xp-kl">Net to pay</span><b id="pr-k-net">${money(sh.net)} <small>EGP</small></b><em>${monthLabel(month)}</em></div>
-      ${tile('hr', 'info', 'Base salaries', sh.salary, 'From the employee list')}
-      <div class="xp-k ok"><span class="xp-kic">${ic('plus', 18)}</span><div><span class="xp-kl">Bonuses</span><b id="pr-k-bonus">${money(sh.bonus)} <small>EGP</small></b><em>Added this month</em></div></div>
-      <div class="xp-k bad"><span class="xp-kic">${ic('coins', 18)}</span><div><span class="xp-kl">Deductions</span><b id="pr-k-ded">${money(sh.deduction)} <small>EGP</small></b><em>Taken off this month</em></div></div>
+      <div class="xp-hero"><div class="xp-hero-top"><span class="xp-kic">${ic('wallet', 20)}</span><span class="xp-tag">${sh.lines.length} employee${sh.lines.length === 1 ? '' : 's'}</span></div><span class="xp-kl">Total Net Payroll</span><b id="pr-k-net">${money(sh.net)} <small>EGP</small></b><em>${monthLabel(month)}</em></div>
+      ${sh.posted
+        ? tile('check', 'ok', 'Paid Payslips', sh.paidTotal, `${sh.paidLines.length} of ${sh.payableLines.length} employees paid`) +
+          tile('coins', sh.unpaidTotal.gt(0) ? 'gold' : 'info', 'Remaining to Pay', sh.unpaidTotal, `${sh.unpaidLines.length} employee${sh.unpaidLines.length === 1 ? '' : 's'} waiting payment`) +
+          tile('hr', 'info', 'Base / +Bonus / −Ded.', sh.salary, `+${money(sh.bonus)} bonus · −${money(sh.deduction)} ded.`)
+        : tile('hr', 'info', 'Base salaries', sh.salary, 'From the employee list') +
+          `<div class="xp-k ok"><span class="xp-kic">${ic('plus', 18)}</span><div><span class="xp-kl">Bonuses</span><b id="pr-k-bonus">${money(sh.bonus)} <small>EGP</small></b><em>Added this month</em></div></div>
+          <div class="xp-k bad"><span class="xp-kic">${ic('coins', 18)}</span><div><span class="xp-kl">Deductions</span><b id="pr-k-ded">${money(sh.deduction)} <small>EGP</small></b><em>Taken off this month</em></div></div>`
+      }
     </div>
+
     <form class="card xp-list pr-sheet" id="pr-form" data-form="pr-save" data-month="${month}">
-      <div class="tbl-wrap"><table class="o-list xp-tbl pr-tbl"><thead><tr><th>Employee</th><th class="num">Base salary</th><th class="num">Bonus</th><th class="num">Deduction</th><th class="num">Net pay</th><th>Paid from (Bank / Cash)</th><th>Note</th></tr></thead><tbody>
-        ${sh.lines.map(l => `<tr><td><input type="hidden" name="pr_emp" value="${l.empId}"><div class="pg-who"><span class="pg-av ar">${esc(empInitials(l.name))}</span><div><b>${esc(l.name)}</b><span>${esc([l.code, l.title].filter(Boolean).join(' · '))}</span></div></div></td>
-          <td class="num" data-sal="${D(l.salary).toFixed(2)}">${money(l.salary)}</td><td class="num">${inp('pr_bonus', l.bonus)}</td><td class="num">${inp('pr_ded', l.deduction)}</td>
+      ${sh.posted && sh.unpaidLines.length && can('expenses', 'create') ? `
+      <div style="padding:12px 16px;background:#f8fafc;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <label style="display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:13px;cursor:pointer">
+            <input type="checkbox" id="pr-chk-all" data-act="pr-sel-all"> Select all unpaid (${sh.unpaidLines.length})
+          </label>
+          <span id="pr-sel-stat" class="muted" style="font-size:13px">Select one or more employees to pay together from any Bank or Cash account.</span>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button type="button" class="btn primary sm" id="pr-pay-sel-btn" data-act="pr-pay-selected" data-month="${month}">${ic('coins', 14)} Pay Selected</button>
+          <button type="button" class="btn sm" data-act="pr-pay-all" data-month="${month}">Pay All Unpaid (${money(sh.unpaidTotal)} EGP)</button>
+        </div>
+      </div>` : ''}
+
+      <div class="tbl-wrap"><table class="o-list xp-tbl pr-tbl"><thead><tr>
+        ${sh.posted ? '<th style="width:38px;text-align:center"></th>' : ''}
+        <th>Employee</th><th class="num">Base salary</th><th class="num">Bonus</th><th class="num">Deduction</th><th class="num">Net pay</th><th>Notes</th>
+        ${sh.posted ? '<th>Payment Status / Paid From</th><th style="text-align:right">Actions</th>' : ''}
+      </tr></thead><tbody>
+        ${sh.lines.map(l => `<tr>
+          ${sh.posted ? `<td style="text-align:center">${!l.paid && l.net.gt(0) ? `<input type="checkbox" class="pr-emp-chk" value="${l.empId}" data-emp="${l.empId}" data-net="${l.net.toFixed(2)}">` : (l.paid ? '<span style="color:#15803d;font-weight:700">✓</span>' : '')}</td>` : ''}
+          <td><input type="hidden" name="pr_emp" value="${l.empId}"><div class="pg-who"><span class="pg-av ar">${esc(empInitials(l.name))}</span><div><b>${esc(l.name)}</b><span>${esc([l.code, l.title].filter(Boolean).join(' · '))}</span></div></div></td>
+          <td class="num" data-sal="${D(l.salary).toFixed(2)}">${money(l.salary)}</td>
+          <td class="num">${inp('pr_bonus', l.bonus)}</td>
+          <td class="num">${inp('pr_ded', l.deduction)}</td>
           <td class="num pr-net"><b>${money(l.net)}</b></td>
-          <td style="min-width:210px">${ed ? `<select class="input" name="pr_bank"><option value="">Default (choose / split on post)</option>${bankOptions(l.bankId || '', b => b.currency === 'EGP')}</select>` : (l.bankId ? bankLabelOf(l.bankId) : (payBadges || '<span class="muted">—</span>'))}</td>
-          <td>${ed ? `<input class="input pr-note" name="pr_note" value="${esc(l.note || '')}" placeholder="Reason (optional)">` : esc(l.note || '—')}</td></tr>`).join('')
-        || `<tr><td colspan="7"><div class="xp-empty">${ic('hr', 22)}<b>No employees on this payroll</b><span>Add employees with their salary first.</span><a class="btn primary sm" href="#/hr/employees">Go to employees</a></div></td></tr>`}
-      </tbody>${sh.lines.length ? `<tfoot><tr class="pg-tot"><td>Total (${sh.lines.length})</td><td class="num">${money(sh.salary)}</td><td class="num" id="pr-t-bonus">${money(sh.bonus)}</td><td class="num" id="pr-t-ded">${money(sh.deduction)}</td><td class="num" id="pr-t-net">${money(sh.net)}</td><td colspan="2"></td></tr></tfoot>` : ''}</table></div>
-      ${ed && sh.lines.length ? `<div class="pr-actions"><span class="muted">You can assign a specific Bank or Cash account per employee, or split the total payment across multiple accounts when posting.</span><button class="btn">Save draft</button><button type="button" class="btn primary" data-act="pr-post">${ic('check', 15)} Post salaries</button></div>` : ''}
-      ${sh.posted ? `<div class="pr-actions"><span class="muted">This payroll is posted and locked. Reset to draft if you need to adjust amounts or payment accounts.</span>${x ? `<button type="button" class="btn" data-act="ex-view" data-id="${x.id}">${ic('expenses', 14)} View Expense ${esc(x.number)}</button>` : ''}${can('expenses', 'create') ? `<button type="button" class="btn" data-act="pr-reset-draft" data-month="${month}">${ic('undo', 14)} Reset to draft</button>` : ''}</div>` : ''}
+          <td>${ed ? `<input class="input pr-note" name="pr_note" value="${esc(l.note || '')}" placeholder="Write note (optional)…">` : esc(l.note || '—')}</td>
+          ${sh.posted ? `<td>${renderPaidCell(l)}</td>
+          <td style="text-align:right;white-space:nowrap">
+            ${!l.paid && l.net.gt(0) && can('expenses', 'create') ? `<button type="button" class="btn primary sm" data-act="pr-pay-one" data-month="${month}" data-emp="${l.empId}">${ic('coins', 13)} Pay</button>` : ''}
+            <button type="button" class="btn sm" data-act="pr-slip" data-month="${month}" data-emp="${l.empId}" title="View Payslip">${ic('file', 13)} Payslip</button>
+            ${l.paid && can('expenses', 'create') ? `<button type="button" class="btn sm" data-act="pr-unpay-one" data-month="${month}" data-emp="${l.empId}" title="Undo payment">${ic('undo', 13)}</button>` : ''}
+          </td>` : ''}
+        </tr>`).join('')
+        || `<tr><td colspan="${sh.posted ? 9 : 6}"><div class="xp-empty">${ic('hr', 22)}<b>No employees on this payroll</b><span>Add employees with their salary first.</span><a class="btn primary sm" href="#/hr/employees">Go to employees</a></div></td></tr>`}
+      </tbody>${sh.lines.length ? `<tfoot><tr class="pg-tot">
+        ${sh.posted ? '<td></td>' : ''}
+        <td>Total (${sh.lines.length})</td><td class="num">${money(sh.salary)}</td><td class="num" id="pr-t-bonus">${money(sh.bonus)}</td><td class="num" id="pr-t-ded">${money(sh.deduction)}</td><td class="num" id="pr-t-net">${money(sh.net)}</td><td></td>
+        ${sh.posted ? '<td colspan="2"></td>' : ''}
+      </tr></tfoot>` : ''}</table></div>
+
+      ${ed && sh.lines.length ? `<div class="pr-actions">
+        <span class="muted">Enter bonuses, deductions, and notes for ${monthLabel(month)}, then click Save to generate the Journal Entry.</span>
+        <div style="display:flex;gap:8px">
+          <button type="submit" class="btn primary">${ic('check', 15)} Save &amp; Open Journal Entry</button>
+          ${je ? `<button type="button" class="btn gold" data-act="pr-post-je" data-month="${month}">${ic('check', 15)} Post Journal Entry</button>` : ''}
+        </div>
+      </div>` : ''}
+      ${sh.posted ? `<div class="pr-actions">
+        <span class="muted">Select individual or multiple employee payslips above to pay them from any Bank or Cash account, or reset to draft to edit salaries.</span>
+        <div style="display:flex;gap:8px">
+          ${je ? `<button type="button" class="btn" data-act="je-view" data-id="${je.id}">${ic('accounting', 14)} Open Accrual Entry ${esc(entryRef(je))}</button>` : ''}
+          ${can('expenses', 'create') ? `<button type="button" class="btn" data-act="pr-reset-draft" data-month="${month}">${ic('undo', 14)} Reset to draft</button>` : ''}
+        </div>
+      </div>` : ''}
     </form>`;
 }
 function prRecalc(){
@@ -10175,6 +10481,24 @@ function prRecalc(){
     tb = tb.plus(b); td = td.plus(d); tn = tn.plus(net); const c = tr.querySelector('.pr-net b'); if (c){ c.textContent = money(net); c.classList.toggle('neg', net.lt(0)); } });
   const set = (id, v, unit) => { const el = document.getElementById(id); if (el) el.innerHTML = money(v) + (unit ? ' <small>EGP</small>' : ''); };
   set('pr-t-bonus', tb); set('pr-t-ded', td); set('pr-t-net', tn); set('pr-k-net', tn, 1); set('pr-k-bonus', tb, 1); set('pr-k-ded', td, 1);
+}
+function prSelRecalc(){
+  const form = document.getElementById('pr-form'); if (!form) return;
+  const chks = [...form.querySelectorAll('.pr-emp-chk')];
+  const sel = chks.filter(c => c.checked);
+  const allBox = document.getElementById('pr-chk-all');
+  if (allBox && chks.length) allBox.checked = sel.length === chks.length;
+  const tot = sel.reduce((t, c) => t.plus(c.dataset.net || '0'), D0());
+  const st = document.getElementById('pr-sel-stat');
+  if (st){
+    st.innerHTML = sel.length
+      ? `<b style="color:#0f172a">Selected: ${sel.length} employee${sel.length === 1 ? '' : 's'} · ${money(tot)} EGP</b>`
+      : 'Select one or more employees to pay together from any Bank or Cash account.';
+  }
+  const btn = document.getElementById('pr-pay-sel-btn');
+  if (btn){
+    btn.innerHTML = `${ic('coins', 14)} Pay Selected${sel.length ? ` (${sel.length} · ${money(tot)} EGP)` : ''}`;
+  }
 }
 function prPayRecalc(){
   const tb = document.getElementById('pr-pay-rows'), st = document.getElementById('pr-pay-status');
@@ -10190,10 +10514,71 @@ function prPayRecalc(){
   else if (diff.gt(0)) st.innerHTML = `<span style="color:#b45309;font-weight:700">Remaining: ${money(diff)} EGP</span> <span class="muted">(Allocated: ${money(sum)})</span>`;
   else st.innerHTML = `<span style="color:#b91c1c;font-weight:700">Over by ${money(diff.abs())} EGP</span> <span class="muted">(Allocated: ${money(sum)})</span>`;
 }
+function openPaySlipsModal(month, empIds){
+  const sh = payrollSheet(month);
+  const targets = (empIds && empIds.length) ? sh.unpaidLines.filter(l => empIds.includes(l.empId)) : sh.unpaidLines;
+  if (!targets.length){ toast('Select at least one unpaid employee payslip first.', 'bad'); return; }
+  const total = targets.reduce((t, l) => t.plus(l.net), D0());
+  const end = prMonthEnd(month), date = end < todayCairo() ? end : todayCairo();
+  openModal({
+    title: targets.length === 1 ? `Pay Payslip — ${targets[0].name} (${monthLabel(month)})` : `Pay Selected Payslips (${targets.length} employees · ${monthLabel(month)})`,
+    wide: true,
+    submit: `Confirm & Pay ${money(total)} EGP`,
+    body: `
+      <div style="border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc;padding:12px 14px;margin-bottom:14px">
+        <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;margin-bottom:8px">Payslips Included (${targets.length})</div>
+        <div style="max-height:160px;overflow:auto;display:flex;flex-direction:column;gap:6px">
+          ${targets.map(l => `<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:4px 0;border-bottom:1px dashed #e2e8f0">
+            <span><b>${esc(l.name)}</b> <span class="muted">${esc(l.code)}</span>${l.note ? ` · <i class="muted">${esc(l.note)}</i>` : ''}</span>
+            <b class="mono">${money(l.net)} EGP</b>
+          </div>`).join('')}
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:6px;border-top:2px solid #cbd5e1;font-size:14px">
+          <b>Total Amount to Pay</b>
+          <b class="mono" style="font-size:16px;color:#0f172a">${money(total)} EGP</b>
+        </div>
+      </div>
+      <div class="row" style="margin-bottom:12px">
+        <div class="field"><label>Payment date *</label><input class="input" type="date" name="date" value="${date}" required></div>
+        <div class="field"><label>Reference (optional)</label><input class="input" name="ref" value="PAYSLIP-${month}" placeholder="e.g. Bank transfer ref"></div>
+      </div>
+      <div class="field">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <label style="margin:0;font-weight:700">Paid from (Bank or Cash account) *</label>
+          <button type="button" class="btn sm" data-act="pr-add-pay">${ic('plus', 13)} Split across another Bank / Cash</button>
+        </div>
+        <div class="tbl-wrap" style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden">
+          <table class="je-grid" style="margin:0">
+            <thead><tr><th>Bank or Cash Account</th><th class="num" style="width:180px">Amount (EGP)</th><th style="width:38px"></th></tr></thead>
+            <tbody id="pr-pay-rows" data-total="${total.toFixed(2)}">
+              <tr class="pr-pay-row">
+                <td><select class="input" name="pay_bank">${bankOptions('', b => b.currency === 'EGP')}</select></td>
+                <td style="width:180px"><input class="input mono num" name="pay_amount" inputmode="decimal" value="${total.toFixed(2)}" placeholder="0.00"></td>
+                <td style="width:38px;text-align:center"><button type="button" class="jl-del" data-act="pr-del-pay" title="Remove">${ic('close', 14)}</button></td>
+              </tr>
+            </tbody>
+            <tfoot><tr>
+              <td style="padding:8px 12px"><button type="button" class="je-add" data-act="pr-add-pay">+ Add another Bank / Cash account</button></td>
+              <td colspan="2" class="num" id="pr-pay-status" style="padding:8px 12px;font-size:13px"></td>
+            </tr></tfoot>
+          </table>
+        </div>
+      </div>`,
+    onSubmit: f => {
+      const r = A.payPayrollSlips(month, targets.map(l => l.empId), f);
+      toast(`Paid ${r.paidCount} payslip${r.paidCount === 1 ? '' : 's'} (${money(r.total)} EGP) — ${entryRef(r.je)}.`, 'ok');
+    }
+  });
+  prPayRecalc();
+}
 document.addEventListener('input', e => {
   if (!e.target || !e.target.closest) return;
   if (e.target.closest('#pr-form')) prRecalc();
   if (e.target.closest('#pr-pay-rows')) prPayRecalc();
+});
+document.addEventListener('change', e => {
+  if (!e.target || !e.target.closest) return;
+  if (e.target.classList && e.target.classList.contains('pr-emp-chk')) prSelRecalc();
 });
 
 function expenseView(x){
@@ -11827,16 +12212,94 @@ Object.assign(CLICK, {
   'pr-xlsx'(){ const form = document.getElementById('pr-form'), month = UI.prMonth || todayCairo().slice(0, 7), sh = payrollSheet(month);
     if (form && !sh.posted && sh.lines.length && can('expenses', 'create')){ try { A.savePayroll(month, formData(form)); } catch (ex){ if (ex instanceof AppError){ toast(ex.message, 'bad'); return; } throw ex; } }
     payrollExport(month, null); },
-  'pr-save-top'(){ const form = document.getElementById('pr-form'); if (form) run(() => { A.savePayroll(form.dataset.month, formData(form)); }, 'Payroll draft saved.'); },
+  'pr-save-top'(){
+    const form = document.getElementById('pr-form'); if (!form) return;
+    const month = form.dataset.month;
+    run(() => {
+      const pr = A.savePayroll(month, formData(form));
+      const je = pr.entryId ? entryById(pr.entryId) : null;
+      if (je) setTimeout(() => jeView(je), 20);
+    }, 'Payroll saved — review and post the Journal Entry.');
+  },
+  'pr-post-je'(el){
+    const month = el.dataset.month || UI.prMonth || todayCairo().slice(0, 7);
+    const form = document.getElementById('pr-form');
+    const sheet = (form && !payrollSheet(month).posted) ? formData(form) : null;
+    run(() => {
+      const { je } = A.postPayrollEntry(month, { sheet });
+      toast(`Payroll Journal Entry ${je.number} posted — you can now pay the employee payslips.`, 'ok');
+    });
+  },
+  'pr-sel-all'(el){
+    const form = document.getElementById('pr-form'); if (!form) return;
+    const on = !!el.checked;
+    form.querySelectorAll('.pr-emp-chk').forEach(c => { c.checked = on; });
+    prSelRecalc();
+  },
+  'pr-pay-one'(el){
+    const month = el.dataset.month || UI.prMonth || todayCairo().slice(0, 7);
+    openPaySlipsModal(month, [el.dataset.emp]);
+  },
+  'pr-pay-selected'(el){
+    const month = el.dataset.month || UI.prMonth || todayCairo().slice(0, 7);
+    const form = document.getElementById('pr-form');
+    const ids = form ? [...form.querySelectorAll('.pr-emp-chk:checked')].map(c => c.value) : [];
+    if (!ids.length){ toast('Check at least one employee payslip to pay, or click Pay on an employee row.', 'bad'); return; }
+    openPaySlipsModal(month, ids);
+  },
+  'pr-pay-all'(el){
+    const month = el.dataset.month || UI.prMonth || todayCairo().slice(0, 7);
+    openPaySlipsModal(month, null);
+  },
+  'pr-unpay-one'(el){
+    const month = el.dataset.month || UI.prMonth || todayCairo().slice(0, 7);
+    const empId = el.dataset.emp;
+    const sh = payrollSheet(month), l = sh.lines.find(x => x.empId === empId);
+    if (!l) return;
+    if (!confirm(`Cancel payment for ${l.name} and return their payslip to unpaid (To Pay)?`)) return;
+    run(() => { A.unpayPayrollSlip(month, empId); }, `${l.name}'s payslip returned to unpaid.`);
+  },
+  'pr-slip'(el){
+    const month = el.dataset.month || UI.prMonth || todayCairo().slice(0, 7);
+    const sh = payrollSheet(month), l = sh.lines.find(x => x.empId === el.dataset.emp);
+    if (!l) return;
+    const pje = l.paidEntryId ? entryById(l.paidEntryId) : null;
+    const bks = (l.paidBanks && l.paidBanks.length) ? l.paidBanks.map(b0 => (bankById(b0.bankId) || {}).name || 'Cash / Bank').join(' + ') : '—';
+    openModal({
+      title: `Payslip — ${l.name} (${monthLabel(month)})`,
+      body: `<div class="card" style="padding:18px;border:1px solid #e2e8f0;border-radius:12px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid #e2e8f0;padding-bottom:12px;margin-bottom:12px">
+          <div>
+            <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase">Employee Payslip · ${esc(monthLabel(month))}</div>
+            <h3 style="margin:4px 0 2px;font-size:18px">${esc(l.name)}</h3>
+            <div class="muted" style="font-size:12.5px">${esc([l.code, l.title].filter(Boolean).join(' · '))}</div>
+          </div>
+          <span class="pill ${l.paid ? 'ok' : (sh.posted ? 'gold' : 'info')}">${l.paid ? '✓ Paid' : (sh.posted ? 'To Pay' : 'Draft')}</span>
+        </div>
+        <table style="width:100%;font-size:13.5px;border-collapse:collapse">
+          <tr><td style="padding:6px 0;color:#64748b">Base Salary</td><td class="num mono" style="padding:6px 0;font-weight:600">${money(l.salary)} EGP</td></tr>
+          <tr><td style="padding:6px 0;color:#15803d">Bonus (+)</td><td class="num mono" style="padding:6px 0;color:#15803d;font-weight:600">+${money(l.bonus)} EGP</td></tr>
+          <tr><td style="padding:6px 0;color:#b91c1c">Deduction (−)</td><td class="num mono" style="padding:6px 0;color:#b91c1c;font-weight:600">−${money(l.deduction)} EGP</td></tr>
+          <tr style="border-top:2px solid #0f172a"><td style="padding:10px 0;font-weight:700;font-size:15px">Net Pay</td><td class="num mono" style="padding:10px 0;font-weight:800;font-size:16px">${money(l.net)} EGP</td></tr>
+        </table>
+        ${l.note ? `<div style="margin-top:10px;padding:8px 12px;background:#f8fafc;border-radius:8px;font-size:12.5px"><b>Note:</b> ${esc(l.note)}</div>` : ''}
+        ${l.paid ? `<div style="margin-top:12px;padding-top:10px;border-top:1px dashed #cbd5e1;font-size:12.5px;color:#334155;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">
+          <span><b>Paid from:</b> ${esc(bks)}</span>
+          <span><b>Date:</b> ${esc(l.paidDate || '—')}</span>
+          ${pje ? `<span><b>Entry:</b> <a href="#" data-act="je-view" data-id="${pje.id}">${esc(entryRef(pje))}</a></span>` : ''}
+        </div>` : ''}
+      </div>
+      ${sh.posted && !l.paid && l.net.gt(0) && can('expenses', 'create') ? `<div style="margin-top:12px;display:flex;justify-content:flex-end"><button type="button" class="btn primary" data-act="pr-pay-one" data-month="${month}" data-emp="${l.empId}">${ic('coins', 14)} Pay ${money(l.net)} EGP Now</button></div>` : ''}`
+    });
+  },
   'pr-reset-draft'(el){
     const month = el.dataset.month || UI.prMonth || todayCairo().slice(0, 7);
     const pr = payrollOf(month); if (!pr) return;
-    const x = pr.expenseId ? S.expenses.find(z => z.id === pr.expenseId) : null;
     openModal({
       title: `Reset ${monthLabel(month)} Payroll to Draft`,
       submit: 'Reset to Draft',
       body: `<p>Are you sure you want to reset <b>${esc(monthLabel(month))}</b> payroll back to draft status?</p>
-        ${x ? `<div class="note warn" style="margin-top:10px"><b>Notice:</b> This will unpost and remove the generated payroll expense voucher <b>${esc(x.number)}</b> and its journal entry so you can edit the salaries, bonuses, deductions, or payment accounts and post again cleanly.</div>` : ''}
+        <div class="note warn" style="margin-top:10px"><b>Notice:</b> This will unpost and remove the payroll accrual entry and any payslip payment entries for ${esc(monthLabel(month))}, while keeping all employee bonuses, deductions, and notes so you can edit and save again.</div>
         <div class="field" style="margin-top:12px"><label>Reason for resetting to draft *</label><input class="input" name="reason" value="Adjustment needed" required></div>`,
       onSubmit: f => {
         A.resetPayrollToDraft(month, f.reason);
@@ -11863,56 +12326,26 @@ Object.assign(CLICK, {
     el.closest('tr').remove();
     prPayRecalc();
   },
-  'pr-post'(){ const form = document.getElementById('pr-form'), month = UI.prMonth, sheet = form ? formData(form) : {};
-    let sh; try { A.savePayroll(month, sheet); sh = payrollSheet(month); } catch (ex){ if (ex instanceof AppError){ toast(ex.message, 'bad'); return; } throw ex; }
-    const payLines = sh.lines.filter(l => l.net.gt(0));
-    if (!payLines.length){ toast('Nothing to pay this month — add employees or salaries first.', 'bad'); return; }
-    const end = prMonthEnd(month), date = end < todayCairo() ? end : todayCairo();
-    const byBank = new Map();
-    let unassigned = D0();
-    payLines.forEach(l => {
-      if (l.bankId) byBank.set(l.bankId, (byBank.get(l.bankId) || D0()).plus(l.net));
-      else unassigned = unassigned.plus(l.net);
+  'pr-post'(){
+    const month = UI.prMonth || todayCairo().slice(0, 7);
+    const form = document.getElementById('pr-form');
+    const sheet = (form && !payrollSheet(month).posted) ? formData(form) : null;
+    run(() => {
+      const { je } = A.postPayrollEntry(month, { sheet });
+      toast(`Payroll Journal Entry ${je.number} posted — you can now pay the employee payslips.`, 'ok');
     });
-    const initSplits = [...byBank.entries()].map(([bid, amt]) => ({ bankId: bid, amount: amt.toFixed(2) }));
-    if (unassigned.gt(0) || !initSplits.length) initSplits.push({ bankId: '', amount: (unassigned.gt(0) ? unassigned : sh.net).toFixed(2) });
-    const rowHtml = (s, i) => `<tr class="pr-pay-row">
-      <td><select class="input" name="pay_bank">${bankOptions(s.bankId || '', b => b.currency === 'EGP')}</select></td>
-      <td style="width:180px"><input class="input mono num" name="pay_amount" inputmode="decimal" value="${s.amount}" placeholder="0.00"></td>
-      <td style="width:38px;text-align:center"><button type="button" class="jl-del" data-act="pr-del-pay" title="Remove">${ic('close', 14)}</button></td>
-    </tr>`;
-    openModal({ title: 'Post payroll — ' + monthLabel(month), wide: true, submit: 'Post ' + money(sh.net) + ' EGP', body: `
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:12px 14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;margin-bottom:14px">
-        <div><div style="font-size:11px;color:#64748b;text-transform:uppercase;font-weight:700">Employees</div><b style="font-size:15px">${payLines.length}</b></div>
-        <div><div style="font-size:11px;color:#64748b;text-transform:uppercase;font-weight:700">Base Salaries</div><b style="font-size:15px">${money(sh.salary)} EGP</b></div>
-        <div><div style="font-size:11px;color:#64748b;text-transform:uppercase;font-weight:700">Bonuses / Ded.</div><b style="font-size:15px;color:#15803d">+${money(sh.bonus)}</b> <span style="font-size:13px;color:#b91c1c">−${money(sh.deduction)}</span></div>
-        <div><div style="font-size:11px;color:#64748b;text-transform:uppercase;font-weight:700">Net to Pay</div><b style="font-size:16px;color:#0f172a">${money(sh.net)} EGP</b></div>
-      </div>
-      <div class="row" style="margin-bottom:12px">
-        <div class="field" style="max-width:220px"><label>Payment date *</label><input class="input" type="date" name="date" value="${date}" required></div>
-      </div>
-      <div class="field">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-          <label style="margin:0;font-weight:700">Paid from (Bank / Cash accounts) *</label>
-          <button type="button" class="btn sm" data-act="pr-add-pay">${ic('plus', 13)} Split across another Bank / Cash</button>
-        </div>
-        <div class="tbl-wrap" style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden">
-          <table class="je-grid" style="margin:0">
-            <thead><tr><th>Bank or Cash Account</th><th class="num" style="width:180px">Amount (EGP)</th><th style="width:38px"></th></tr></thead>
-            <tbody id="pr-pay-rows" data-total="${sh.net.toFixed(2)}">${initSplits.map(rowHtml).join('')}</tbody>
-            <tfoot><tr>
-              <td style="padding:8px 12px"><button type="button" class="je-add" data-act="pr-add-pay">+ Add another Bank / Cash account</button></td>
-              <td colspan="2" class="num" id="pr-pay-status" style="padding:8px 12px;font-size:13px"></td>
-            </tr></tfoot>
-          </table>
-        </div>
-      </div>
-      <p class="hint" style="margin-top:10px">You can pay the entire payroll from one account or split it across multiple Bank and Cash accounts. This creates a salaries expense voucher under General Expenses and posts the journal entry.</p>`,
-      onSubmit: f => { const r = A.postPayroll(month, { ...f, sheet }); toast(`${monthLabel(month)} payroll posted as ${r.x.number}.`, 'ok'); } });
-    prPayRecalc();
   }
 });
-Object.assign(FORM_HANDLERS, { 'pr-save'(f, form){ run(() => { A.savePayroll(form.dataset.month, f); }, 'Payroll draft saved.'); } });
+Object.assign(FORM_HANDLERS, {
+  'pr-save'(f, form){
+    const month = form.dataset.month;
+    run(() => {
+      const pr = A.savePayroll(month, f);
+      const je = pr.entryId ? entryById(pr.entryId) : null;
+      if (je) setTimeout(() => jeView(je), 20);
+    }, 'Payroll saved — review and post the Journal Entry.');
+  }
+});
 Object.assign(CLICK, {
     'pl-fold'(el){ UI.plFold = UI.plFold || {}; UI.plFold[el.dataset.id] = !UI.plFold[el.dataset.id]; render(); },
   'pl-unfold-all'(){ UI.plFold = {}; for (const p of [...S.customers, ...S.suppliers]) UI.plFold[p.id] = false; render(); },
@@ -11976,7 +12409,15 @@ Object.assign(CLICK, {
   },
   'je-submit'(el){ jeAct(el.dataset.id, () => A.submitEntry(el.dataset.id), 'Submitted for approval.'); },
   'je-approve'(el){ jeAct(el.dataset.id, () => A.approveEntry(el.dataset.id), 'Entry approved.'); },
-  'je-post'(el){ jeAct(el.dataset.id, () => A.postEntry(el.dataset.id), 'Entry posted.'); },
+  'je-post'(el){
+    const id = el.dataset.id, isPr = (S.payrolls || []).some(p => p.entryId === id);
+    if (isPr && location.hash === '#/hr/payroll'){
+      closeModal();
+      run(() => A.postEntry(id), 'Payroll Journal Entry posted — you can now pay the payslips.');
+      return;
+    }
+    jeAct(id, () => A.postEntry(id), 'Entry posted.');
+  },
   'je-reject'(el){ const id = el.dataset.id; closeModal(); openModal({ title: 'Reject entry', submit: 'Reject', danger: true, body: '<div class="field"><label>Reason *</label><input class="input" name="reason" required></div>', onSubmit: f => { A.rejectEntry(id, f.reason); return () => jeView(S.entries.find(x => x.id === id)); } }); },
   'je-del'(el){ const id = el.dataset.id; closeModal(); openModal({ title: 'Delete unposted entry?', submit: 'Delete', danger: true, body: '<p>The draft is removed; the deletion is recorded in the audit trail.</p>', onSubmit: () => A.deleteEntry(id) }); },
   'je-reverse'(el){
