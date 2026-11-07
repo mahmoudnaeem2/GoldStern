@@ -2282,6 +2282,66 @@ html[dir=rtl] .pg-car{transform:rotate(90deg)}
 .pg-tot em{font-style:normal;font-weight:500;font-size:12px;color:var(--muted);margin-inline-start:6px}
 .pg-note{margin:10px 2px 0;font-size:12.5px;color:var(--muted)}
 @media (max-width:900px){.pg-date,.pg-init td:first-child,.pg-more td{padding-inline-start:14px!important}.pg-fold{margin-inline-start:0}}
+
+/* ==== Financial statements & report centre ==== */
+.xp-seg a{border:0;background:transparent;font-size:13px;font-weight:500;color:var(--muted);padding:6px 12px;border-radius:8px;cursor:pointer;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center}
+.xp-seg a:hover{color:var(--text)}
+.xp-seg a.on{background:#fff;color:var(--text);font-weight:600;box-shadow:0 1px 2px rgba(16,24,40,.08),0 1px 3px rgba(16,24,40,.06)}
+.is-tabs{display:flex}.is-tabs .xp-seg{margin-bottom:4px}
+.fs-form{gap:14px;align-items:flex-end}
+.fs-f{display:flex;flex-direction:column;gap:5px;margin:0}.fs-f span{font-size:12px;font-weight:600;color:var(--muted)}.fs-f .input{height:38px;width:170px}
+.fs-go{height:38px}
+.fs-chk{margin-inline-start:auto;align-self:center;font-size:12.5px;font-weight:600;padding:5px 12px;border-radius:999px}
+.fs-chk.ok{background:#e8f6f0;color:#047857}.fs-chk.bad{background:#fdecec;color:#c62828}
+.xp-kpis.two{grid-template-columns:1.35fr 1fr}
+.fs-card{padding:0!important;overflow:hidden}
+.fs-tbl{width:100%;border-collapse:collapse;font-size:13.5px}
+.fs-tbl thead th{background:#f8fafc;font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);text-align:start;padding:11px 20px;border-bottom:1px solid var(--border);white-space:nowrap}
+.fs-tbl th.num,.fs-tbl td.num{text-align:end;white-space:nowrap;font-variant-numeric:tabular-nums;width:200px}
+.fs-tbl td{padding:9px 20px;border-bottom:1px solid #f0f2f5}
+.fs-tbl td.neg{color:#c62828}
+.fs-code{display:inline-block;min-width:64px;margin-inline-end:10px;font-size:12px;color:#9aa3af;font-variant-numeric:tabular-nums}
+.fs-sec td{padding-top:18px!important;padding-bottom:8px!important;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#8a6512;border-bottom:1px solid #f3e5bd!important;background:#fff}
+.fs-acc td:first-child{padding-inline-start:28px;color:var(--text-2)}
+.fs-sub td{font-weight:650;background:#fafbfc;border-top:1px solid var(--border)}
+.fs-grand td{font-weight:700;font-size:14.5px;background:#fdfaf2;border-top:2px solid #e4d3a6;border-bottom:1px solid #e4d3a6}
+.fs-cmp{color:var(--muted)}
+.fs-tbl.eq td.num{width:150px}
+.rc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;align-items:start}
+.rc-card{padding:18px 18px 10px!important}
+.rc-card header{display:flex;align-items:center;gap:12px;margin-bottom:10px}.rc-card h2{margin:0;font-size:15px;font-weight:650}
+.rc-card ul{list-style:none;margin:0;padding:0}
+.rc-card li a{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 10px;margin:0 -10px;border-radius:8px;font-size:13.5px;color:var(--text-2);text-decoration:none}
+.rc-card li a .ic{transform:rotate(-90deg);color:#c3c9d2;transition:transform .15s,color .15s}
+html[dir=rtl] .rc-card li a .ic{transform:rotate(90deg)}
+.rc-card li a:hover{background:#fdfaf2;color:var(--text)}.rc-card li a:hover .ic{color:#8a6512}
+.rc-card li + li a{border-top:1px solid #f3f4f6}
+@media (max-width:760px){.fs-tbl th.num,.fs-tbl td.num{width:auto}.fs-code{min-width:0}}
+
+/* Report period pills → segmented control */
+.is-tools .o-pills{display:inline-flex;flex-wrap:wrap;gap:2px;padding:3px;background:#f1f3f6;border-radius:11px}
+.is-tools .o-pill{border:0!important;background:transparent!important;color:var(--muted)!important;font-size:13px!important;font-weight:500!important;padding:6px 12px!important;border-radius:8px!important;box-shadow:none!important;height:auto!important}
+.is-tools .o-pill:hover{color:var(--text)!important}
+.is-tools .o-pill.on{background:#fff!important;color:var(--text)!important;font-weight:600!important;box-shadow:0 1px 2px rgba(16,24,40,.08),0 1px 3px rgba(16,24,40,.06)!important}
+.is-tools{border-radius:16px!important}
+.xp-hero b.neg{color:#fca5a5}.xp-k b.neg{color:#c62828}
+
+/* Expense voucher view */
+.xv-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 28px}
+.xv-kv{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #f0f2f5;font-size:13.5px}
+.xv-kv > span{color:var(--muted)}.xv-kv > b{font-weight:600;text-align:end;min-width:0;overflow-wrap:anywhere}
+.xv-lines{border:1px solid var(--border);border-radius:12px;overflow:auto}
+.xv-lines table{width:100%;border-collapse:collapse;font-size:13.5px}
+.xv-lines th{background:#f8fafc;font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);text-align:start;padding:10px 14px;border-bottom:1px solid var(--border)}
+.xv-lines td{padding:12px 14px;border-bottom:1px solid #f0f2f5;vertical-align:middle}
+.xv-lines td span{display:block;font-size:12px;color:var(--muted);margin-top:2px}
+.xv-lines .num{text-align:end;white-space:nowrap;font-variant-numeric:tabular-nums}
+.xv-lines tfoot td{background:#fdfaf2;font-weight:700;border-bottom:0;border-top:1px solid #e4d3a6}
+.co-sum .xv-je{color:#f1d48a;text-decoration:none;font-weight:600}.co-sum .xv-je:hover{text-decoration:underline}
+.co-sum .xv-btn{width:100%;justify-content:center;margin-top:16px;background:rgba(255,255,255,.08)!important;border:1px solid rgba(255,255,255,.14)!important;color:#fff!important;height:40px}
+.co-sum .xv-btn:hover{background:rgba(255,255,255,.14)!important}
+.xv .co-sum-tag{text-transform:capitalize}
+@media (max-width:760px){.xv-grid{grid-template-columns:1fr}}
 </style>
 
 <!-- Journal Entry Right Side Drawer CSS & JS -->
@@ -9960,50 +10020,32 @@ const P9_CLICKS = {
     if (!x) return;
     const e = S.entries.find(y => y.id === x.entryId);
     const b = x.bankId ? bankById(x.bankId) : null;
-    const f = (l, v0) => '<div class="o-f"><div class="l">' + l + '</div><div class="v">' + (v0 || '<span class="muted">—</span>') + '</div></div>';
+    const method = x.method === 'bank' ? (b ? (b.name || bankLabel(b)) : 'Cash / bank') : x.method === 'supplier' ? 'Supplier bill' : 'Employee claim';
+    const mIcon = x.method === 'bank' ? 'banking' : x.method === 'supplier' ? 'truck' : 'users';
+    const lines = (x.lines && x.lines.length) ? x.lines : [{ category: 'Operating expense', description: x.ref, amount: x.total }];
+    const kv = (l, v0) => `<div class="xv-kv"><span>${l}</span><b>${v0 || '<i class="muted">—</i>'}</b></div>`;
     openModal({
-      title: 'Expense Voucher ' + x.number,
-      wide: true,
-      body: '<div class="o-sheet rec" style="margin:0 auto">' +
-        '<div class="o-head">' +
-          '<div>' +
-            '<div class="muted" style="font-size:12px;text-transform:uppercase;font-weight:600">Operating Expense Voucher</div>' +
-            '<h2 style="margin:2px 0 6px">' + esc(x.number) + '</h2>' +
-            '<span class="pill ok">' + esc(x.method === 'bank' ? (b ? bankLabel(b) : 'Bank / Cash') : (x.method === 'supplier' ? 'Supplier Bill' : 'Employee Claim')) + '</span>' +
-          '</div>' +
-          (e ? '<div class="o-stats"><a class="o-stat" href="#/acc/journals" data-act="je-view" data-id="' + e.id + '"><div style="display:flex;align-items:center;gap:6px">' + ic('accounting', 16) + ' <b>' + esc(entryRef(e)) + '</b></div><small>Journal Entry</small></a></div>' : '') +
-        '</div>' +
-        '<div class="o-sec c-info" style="border-top:0;padding-top:0;margin-top:12px">' +
-          '<div class="o-grid">' +
-            '<div>' +
-              f('Voucher Date', esc(x.date)) +
-              f('Payment Method', esc(x.method === 'bank' ? (b ? bankLabel(b) : 'Bank / Cash') : (x.method === 'supplier' ? 'Supplier Bill' : 'Employee Claim'))) +
-              f('Payee / Vendor', esc(x.payee || '—')) +
-            '</div>' +
-            '<div>' +
-              f('Reference / Bill No.', esc(x.ref || '—')) +
-              f('Total Amount', '<b>' + money(x.total) + ' ' + x.currency + '</b>') +
-              f('Status', e ? entryLink(e) + ' ' + badge(e.status) : 'Recorded') +
-            '</div>' +
-          '</div>' +
-        '</div>' +
-        '<div class="o-sec c-gold">' +
-          '<h3>' + ic('file', 16) + ' Expense Items Breakdown</h3>' +
-          '<div class="tbl-wrap"><table>' +
-            '<thead><tr><th>Category</th><th>Description</th><th>Cost Center</th><th>Vehicle</th><th class="num">Amount (' + x.currency + ')</th></tr></thead>' +
-            '<tbody>' +
-              ((x.lines && x.lines.length) ? x.lines.map(l => '<tr>' +
-                '<td><b>' + esc(l.category) + '</b></td>' +
-                '<td>' + esc(l.description || '—') + '</td>' +
-                '<td>' + esc(l.costCenter || '—') + '</td>' +
-                '<td>' + esc(l.vehicle || '—') + '</td>' +
-                '<td class="num"><b>' + money(l.amount) + '</b></td>' +
-              '</tr>').join('') : '<tr><td>Operating Expense</td><td>' + esc(x.ref) + '</td><td>—</td><td>—</td><td class="num"><b>' + money(x.total) + '</b></td></tr>') +
-            '</tbody>' +
-          '</table></div>' +
-          '<div class="o-tot"><table><tbody><tr><td><b>Total:</b></td><td><b style="font-size:16px">' + money(x.total) + ' ' + x.currency + '</b></td></tr></tbody></table></div>' +
-        '</div>' +
-      '</div>'
+      title: 'Expense ' + x.number,
+      xwide: true,
+      body: `<div class="co-ed xv"><div class="co-body"><div class="co-main">
+        <section class="co-card"><header><span class="co-step">${ic('expenses', 18)}</span><div class="co-ht"><h3>Expense details</h3><p>Operating expense · ${esc(x.date)}</p></div><b class="co-no">01</b></header>
+          <div class="xv-grid">${kv('Date', esc(x.date))}${kv('Paid via', `<span class="xp-m ${x.method === 'bank' ? 'bank' : x.method === 'supplier' ? 'sup' : 'emp'}">${ic(mIcon, 13)}${esc(method)}</span>`)}${kv('Payee / vendor', esc(x.payee || ''))}${kv('Reference', esc(x.ref || ''))}</div></section>
+        <section class="co-card"><header><span class="co-step">${ic('invoices', 18)}</span><div class="co-ht"><h3>Expense lines</h3><p>${lines.length} line${lines.length === 1 ? '' : 's'} · amounts in ${x.currency}</p></div><b class="co-no">02</b></header>
+          <div class="xv-lines"><table><thead><tr><th>Category</th><th>Cost centre</th><th>Car</th><th class="num">Amount</th></tr></thead><tbody>
+            ${lines.map(l => `<tr><td><b>${esc(l.category || 'Operating expense')}</b>${l.description ? `<span>${esc(l.description)}</span>` : ''}</td><td>${esc(l.costCenter || '—')}</td><td>${l.vehicle ? `<span class="mono">${esc(l.vehicle)}</span>` : '—'}</td><td class="num">${money(l.amount)}</td></tr>`).join('')}
+          </tbody><tfoot><tr><td colspan="3">Total</td><td class="num">${money(x.total)} ${x.currency}</td></tr></tfoot></table></div></section>
+      </div>
+      <aside class="co-sum">
+        <div class="co-sum-top"><span class="co-sum-ic">${ic('expenses', 20)}</span><span class="co-sum-tag">${e ? esc(e.status) : 'Recorded'}</span></div>
+        <h3>${esc(x.number)}</h3><p class="co-s-vin">${esc(x.date)}${x.payee ? ' · ' + esc(x.payee) : ''}</p>
+        <dl>
+          <div><dt>Paid via</dt><dd>${esc(method)}</dd></div>
+          <div><dt>Lines</dt><dd>${lines.length}</dd></div>
+          ${e ? `<div><dt>Journal entry</dt><dd><a class="xv-je" data-act="je-view" data-id="${e.id}" href="#/acc/journals">${esc(entryRef(e))}</a></dd></div>` : ''}
+        </dl>
+        <div class="co-s-tot"><span>Total</span><b>${money(x.total)} ${x.currency}</b></div>
+        ${e ? `<button type="button" class="btn xv-btn" data-act="je-view" data-id="${e.id}">${ic('accounting', 15)} Open journal entry</button>` : ''}
+      </aside></div></div>`
     });
   },
   'ex-new'(){
@@ -10207,7 +10249,8 @@ function pageExecutive(){
       <div class="card"><div class="card-h"><h2>Bank balances by currency</h2></div><div class="card-b">${barChart(['EGP','EUR','USD'].map(c => ({ label: c, value: k.banks.filter(x => x.b.currency === c).reduce((t, x) => t.plus(x.fc), D0()) })))}<p class="hint" style="margin:0">Bars show each currency in its own units.</p></div></div></div>` : ''}`;
 }
 function pageReportCenter(){
-  const L = (r, l, m) => !m || can(m, 'read') ? `<li><a href="#/${r}">${esc(l)}</a></li>` : '';
+  const L = (r, l, m) => !m || can(m, 'read') ? `<li><a href="#/${r}"><span>${esc(l)}</span>${ic('chev', 14)}</a></li>` : '';
+  const RC_ICONS = { 'Accounting': 'accounting', 'Banking & FX': 'banking', 'Receivables': 'users', 'Payables': 'truck', 'Inventory & imports': 'cars', 'Sales & profitability': 'sales', 'Tax': 'file', 'Assets & expenses': 'expenses' };
   const groups = [['Accounting', [['rep/statements?s=bs','Balance sheet','ledger'], ['rep/statements?s=is','Income statement','ledger'], ['rep/statements?s=cf','Cash flow statement','ledger'], ['rep/statements?s=eq','Statement of changes in equity','ledger'], ['acc/tb','Trial balance','ledger'], ['acc/gl','General ledger','ledger'], ['acc/journals','Journal report','journals'], ['acc/coa','Chart of accounts','coa'], ['acc/opening','Opening balances','journals'], ['rep/budgets','Budget vs actual','ledger'], ['acc/integrity','Financial integrity','integrity'], ['settings/fiscal','Period closing','fiscal']]],
     ['Banking & FX', [['bank/accounts','Bank balances / bank book','banking'], ['bank/statements','Bank reconciliation','banking'], ['bank/fx','Realized & unrealized FX, exposure','banking'], ['bank/reval','FX revaluation','fx_reval']]],
     ['Receivables', [['ar/aging','AR aging & overdue','ar'], ['ar/invoices','Customer invoices','ar'], ['ar/receipts','Collections','ar'], ['ar/advances','Customer advances','ar'], ['acc/partner-ledger','Partner ledger','ledger'], ['partners/customers','Customer statements','customers']]],
@@ -10216,8 +10259,10 @@ function pageReportCenter(){
     ['Sales & profitability', [['sal/orders','Sales register','sales'], ['ana/profit','Vehicle profitability / gross margin','analytics'], ['sal/deliveries','Deliveries & sales returns','sales']]],
     ['Tax', [['tax/report','Tax report','tax'], ['tax/einvoice','E-invoice readiness','tax']]], ['Assets & expenses', [['fa/register','Fixed asset register','assets'], ['exp/list','Expenses','expenses'], ['exp/schedules','Accruals & prepayments','expenses']]]];
   return H(t('rep_center'), 'Every report is computed from posted data. Statements export to Excel; any page prints to PDF from the browser (Print → Save as PDF), including Arabic layouts.', `<button class="btn primary" data-act="fin-xlsx" data-k="is,bs,cf,tb,pl,ar,ap,profit" data-name="goldstern-financial-pack">Financial pack (Excel)</button>`) +
-    `<div class="grid g3">${groups.map(([g, items]) => { const li = items.map(([r, l, m]) => L(r, l, m)).join(''); return li ? `<div class="card"><div class="card-h"><h2>${esc(g)}</h2></div><div class="card-b"><ul class="scope" style="margin:0;padding-inline-start:18px">${li}</ul></div></div>` : ''; }).join('')}</div>`;
+    `<div class="rc-grid">${groups.map(([g, items]) => { const li = items.map(([r, l, m]) => L(r, l, m)).join(''); return li ? `<section class="card rc-card"><header><span class="co-step">${ic(RC_ICONS[g] || 'reports', 18)}</span><h2>${esc(g)}</h2></header><ul>${li}</ul></section>` : ''; }).join('')}</div>`;
 }
+function stmtTabs(kind){ const T = [['bs', 'Balance sheet'], ['is', 'Profit & loss'], ['cf', 'Cash flow'], ['eq', 'Changes in equity']];
+  return `<nav class="xp-seg" aria-label="Financial statements">${T.map(([k, l]) => `<a href="#/rep/statements?s=${k}" class="${k === kind ? 'on' : ''}"${k === kind ? ' aria-current="page"' : ''}>${l}</a>`).join('')}</nav>`; }
 function pageStatements(){
   const kind = ['bs','is','cf','eq'].includes(routeParam('s')) ? routeParam('s') : 'is', yr = todayCairo().slice(0, 4);
   const R0 = UI.fs = UI.fs || { from: yr + '-01-01', to: todayCairo(), asOf: todayCairo(), cFrom: '', cTo: '', cAsOf: '' };
@@ -10226,17 +10271,31 @@ function pageStatements(){
   const cmp = kind === 'is' && R0.cFrom && R0.cTo ? statementRows('is', { from: R0.cFrom, to: R0.cTo }) : kind === 'bs' && R0.cAsOf ? statementRows('bs', { asOf: R0.cAsOf }) : null;
   const cmpMap = new Map((cmp || []).filter(r => r.length === 3).map(r => [r[0] + '|' + r[1], r[2]]));
   const titles = { bs: 'Balance sheet', is: 'Income statement', cf: 'Cash flow statement', eq: 'Changes in equity' };
-  let check = '';
-  if (kind === 'bs'){ const b = balanceSheet(R0.asOf); check = `<div class="note ${b.balanced ? '' : 'bad'}">${b.balanced ? '✓' : '✕'} Assets ${money(b.assets)} = liabilities ${money(b.liabilities)} + equity ${money(b.equity)}</div>`; }
-  if (kind === 'cf'){ const c = cashFlow(R0.from, R0.to); check = `<div class="note ${c.reconciles ? '' : 'bad'}">${c.reconciles ? '✓' : '✕'} Opening cash + net flows = closing cash (${money(c.closing)}).</div>`; }
-  const body = rows.slice(1).map(r => { if (kind === 'eq') return `<tr>${r.map((c, i) => `<td class="${i > 1 ? 'num' : ''}" style="${r[0] === 'Code' ? 'font-weight:600' : ''}">${typeof c === 'number' ? money(c) : esc(c)}</td>`).join('')}</tr>`;
-    if (r.length === 1) return `<tr style="background:var(--surface-2)"><td colspan="${cmp ? 4 : 3}"><b>${esc(r[0])}</b></td></tr>`;
-    const total = !r[0]; return `<tr style="${total ? 'font-weight:700' : ''}"><td class="mono">${esc(r[0])}</td><td>${esc(r[1])}</td><td class="num">${money(r[2])}</td>${cmp ? `<td class="num muted">${cmpMap.has(r[0] + '|' + r[1]) ? money(cmpMap.get(r[0] + '|' + r[1])) : ''}</td>` : ''}</tr>`; }).join('');
-  return H(titles[kind], `${esc(rows[0][1])} · EGP · posted entries only`, `<button class="btn" data-act="fs-xlsx" data-k="${kind}">Export Excel</button><button class="btn" onclick="window.print()">Print / PDF</button>`) + `
-    <div class="card"><div class="filters">${['bs','is','cf','eq'].map(k2 => `<a class="btn sm ${k2 === kind ? 'primary' : ''}" href="#/rep/statements?s=${k2}">${titles[k2]}</a>`).join('')}</div>
-      <form data-form="fs"><div class="filters">${kind === 'bs' ? `<label class="muted" style="align-self:center">As at</label><input class="input" type="date" name="asOf" value="${R0.asOf}"><label class="muted" style="align-self:center">Compare as at</label><input class="input" type="date" name="cAsOf" value="${R0.cAsOf}">`
-        : `<label class="muted" style="align-self:center">From</label><input class="input" type="date" name="from" value="${R0.from}"><label class="muted" style="align-self:center">To</label><input class="input" type="date" name="to" value="${R0.to}">${kind === 'is' ? `<label class="muted" style="align-self:center">Compare</label><input class="input" type="date" name="cFrom" value="${R0.cFrom}"><input class="input" type="date" name="cTo" value="${R0.cTo}">` : ''}`}<button class="btn">Run</button></div></form></div>
-    ${check}<div class="card"><div class="tbl-wrap"><table>${cmp ? `<thead><tr><th></th><th></th><th class="num">${esc(rows[0][1])}</th><th class="num">${esc(cmp[0][1])}</th></tr></thead>` : ''}<tbody>${body}</tbody></table></div></div>`;
+  const egp = '<small>EGP</small>', tile = (icon, cls, l, v, sub) => `<div class="xp-k ${cls}"><span class="xp-kic">${ic(icon, 18)}</span><div><span class="xp-kl">${l}</span><b>${money(v)} ${egp}</b><em>${sub}</em></div></div>`;
+  const hero = (icon, l, v, sub, tag) => `<div class="xp-hero"><div class="xp-hero-top"><span class="xp-kic">${ic(icon, 20)}</span>${tag}</div><span class="xp-kl">${l}</span><b>${money(v)} ${egp}</b><em>${sub}</em></div>`;
+  let kpis = '', chk = '';
+  if (kind === 'bs'){ const b = balanceSheet(R0.asOf); chk = `<span class="fs-chk ${b.balanced ? 'ok' : 'bad'}">${b.balanced ? '✓ Balanced' : '✕ Not balanced'}</span>`;
+    kpis = hero('accounting', 'Total assets', b.assets, `as at ${R0.asOf}`, `<span class="xp-tag">${b.balanced ? 'Balanced' : 'Check'}</span>`) + tile('truck', 'bad', 'Liabilities', b.liabilities, 'What the company owes') + tile('wallet', 'gold', 'Equity', b.equity, 'Owners’ stake incl. this year’s profit') + tile('coins', 'ok', 'Current year earnings', b.earnings, 'Not yet closed to retained earnings'); }
+  if (kind === 'cf'){ const c = cashFlow(R0.from, R0.to); chk = `<span class="fs-chk ${c.reconciles ? 'ok' : 'bad'}">${c.reconciles ? '✓ Reconciles to cash' : '✕ Does not reconcile'}</span>`;
+    kpis = hero('banking', 'Closing cash', c.closing, `${R0.from} to ${R0.to}`, '<span class="xp-tag">Direct method</span>') + tile('wallet', 'info', 'Opening cash', c.opening, 'Start of the period') + tile('swap', D(c.closing).minus(c.opening).lt(0) ? 'bad' : 'ok', 'Net change', D(c.closing).minus(c.opening), 'Inflows less outflows') + tile('sales', 'gold', 'From operations', c.totals.operating, 'Net operating activities'); }
+  if (kind === 'eq'){ const e = equityStatement(R0.from, R0.to);
+    kpis = hero('wallet', 'Total equity', e.total, `${R0.from} to ${R0.to}`, '') + tile('coins', 'ok', 'Profit for the period', e.earn.profit, 'Unclosed earnings movement'); }
+  const isTot = r => !r[0] && /^(total|net |gross|operating profit|opening cash|closing cash)/i.test(r[1]), isGrand = r => /^(total assets|total liabilities|closing cash|total equity|net profit)/i.test(r[1] || '');
+  const body = kind === 'eq'
+    ? rows.slice(2).map(r => `<tr class="${!r[0] ? (/^total/i.test(r[1]) ? 'fs-grand' : 'fs-sub') : 'fs-acc'}"><td><span class="fs-code">${esc(r[0])}</span>${esc(r[1])}</td>${r.slice(2).map(c => `<td class="num${typeof c === 'number' && c < 0 ? ' neg' : ''}">${typeof c === 'number' ? money(c) : ''}</td>`).join('')}</tr>`).join('')
+    : rows.slice(1).map(r => {
+      if (r.length === 1) return `<tr class="fs-sec"><td colspan="${cmp ? 3 : 2}">${esc(r[0])}</td></tr>`;
+      const cls = isGrand(r) ? 'fs-grand' : isTot(r) ? 'fs-sub' : 'fs-acc', neg = Number(r[2]) < 0;
+      return `<tr class="${cls}"><td>${r[0] ? `<span class="fs-code">${esc(r[0])}</span>` : ''}${esc(r[1])}</td><td class="num${neg ? ' neg' : ''}">${money(r[2])}</td>${cmp ? `<td class="num fs-cmp">${cmpMap.has(r[0] + '|' + r[1]) ? money(cmpMap.get(r[0] + '|' + r[1])) : ''}</td>` : ''}</tr>`; }).join('');
+  const head = kind === 'eq' ? `<tr><th>Component</th>${rows[1].slice(2).map(h => `<th class="num">${esc(h)}</th>`).join('')}</tr>` : `<tr><th>Account</th><th class="num">${esc(rows[0][1])}</th>${cmp ? `<th class="num">${esc(cmp[0][1])}</th>` : ''}</tr>`;
+  return H(titles[kind], `${esc(rows[0][1])} · EGP · posted entries only`, `<button class="btn" data-act="fs-xlsx" data-k="${kind}">${ic('file', 14)} Export Excel</button><button class="btn" onclick="window.print()">${ic('printer', 14)} Print / PDF</button>`) + `
+    <div class="card pg-tools"><div class="pg-tr">${stmtTabs(kind)}</div>
+      <form data-form="fs" class="pg-tr fs-form">${kind === 'bs'
+        ? `<label class="fs-f"><span>As at</span><input class="input" type="date" name="asOf" value="${R0.asOf}"></label><label class="fs-f"><span>Compare with</span><input class="input" type="date" name="cAsOf" value="${R0.cAsOf}"></label>`
+        : `<label class="fs-f"><span>From</span><input class="input" type="date" name="from" value="${R0.from}"></label><label class="fs-f"><span>To</span><input class="input" type="date" name="to" value="${R0.to}"></label>`}
+        <button class="btn primary fs-go">Update</button>${chk}</form></div>
+    <div class="xp-kpis${kind === 'eq' ? ' two' : ''}">${kpis}</div>
+    <div class="card fs-card"><div class="tbl-wrap"><table class="fs-tbl${kind === 'eq' ? ' eq' : ''}"><thead>${head}</thead><tbody>${body}</tbody></table></div></div>`;
 }
 /* ---------- Income statement (Odoo-style: periods, comparison, foldable sections, drill-down) ---------- */
 const IS_PRESETS = [['this_month','This month'],['this_quarter','This quarter'],['this_year','This financial year'],['last_month','Last month'],['last_quarter','Last quarter'],['last_year','Last financial year'],['custom','Custom']];
@@ -10323,20 +10382,23 @@ function pageIncomeStatement(){
     if (si === 2) body += sumRow('Operating profit', M.operating, 'hi');
   });
   body += sumRow('Net profit', M.net, 'net');
+  const kpT = (icon, cls, k, v, sub) => `<div class="xp-k ${cls}"><span class="xp-kic">${ic(icon, 18)}</span><div><span class="xp-kl">${k}</span><b class="${v.lt(0) ? 'neg' : ''}">${money(v)} <small>EGP</small></b><em>${esc(sub)}</em></div></div>`;
   const kp = (k, v, sub) => `<div class="is-kpi"><div class="k">${k}</div><div class="v${v.lt(0) ? ' neg' : ''}">${money(v)}</div><div class="s">${sub}</div></div>`;
   const g = M.gross[main], n = M.net[main], ox = M.sections[2].v[main];
   const presetBtns = IS_PRESETS.map(([k, l]) => `<button type="button" class="o-pill ${P.preset === k ? 'on' : ''}" data-act="is-set" data-f="preset" data-v="${k}">${l}</button>`).join('');
   const cmpSel = `<select class="input" data-act-change="is-cmp" id="is-cmp">${IS_COMPARE.map(([k, l]) => `<option value="${k}" ${P.cmp === k ? 'selected' : ''}>${l}</option>`).join('')}</select>`;
   const head = `<tr><th></th>${cols.map(c => `<th class="num">${esc(c.label)}</th>`).join('')}${showPct ? '<th class="num">% of revenue</th>' : ''}${showVar ? '<th class="num">Change</th>' : ''}</tr>`;
   return H('Income statement', `${P.from} to ${P.to} · EGP · posted entries only`, `<a class="btn" href="#/ana/profit">Profit by car</a><button class="btn" data-act="fs-xlsx" data-k="is">Export Excel</button><button class="btn" onclick="window.print()">Print / PDF</button>`) + `
-    <div class="card is-tools"><div class="is-tabs">${['bs','is','cf','eq'].map(k2 => `<a class="btn sm ${k2 === 'is' ? 'primary' : ''}" href="#/rep/statements?s=${k2}">${{ bs: 'Balance sheet', is: 'Income statement', cf: 'Cash flow', eq: 'Changes in equity' }[k2]}</a>`).join('')}</div>
+    <div class="card is-tools"><div class="is-tabs">${stmtTabs('is')}</div>
       <div class="is-row"><span class="lbl">Period</span><div class="o-pills">${presetBtns}</div></div>
       ${P.preset === 'custom' ? `<form class="is-row" data-form="is-range"><span class="lbl">Dates</span><input class="input" type="date" name="from" value="${P.from}"><span class="muted">to</span><input class="input" type="date" name="to" value="${P.to}"><button class="btn sm">Apply</button></form>` : ''}
       <div class="is-row"><span class="lbl">Compare</span>${cmpSel}
         <label class="is-chk"><input type="checkbox" data-act="is-tog" data-f="pct" ${P.pct ? 'checked' : ''} ${cols.length > 1 ? 'disabled' : ''}> % of revenue</label>
         <label class="is-chk"><input type="checkbox" data-act="is-tog" data-f="zero" ${P.zero ? 'checked' : ''}> Show zero lines</label>
         <span class="spacer"></span><button type="button" class="btn sm" data-act="is-foldall" data-v="0">Unfold all</button><button type="button" class="btn sm" data-act="is-foldall" data-v="1">Fold all</button></div></div>
-    <div class="is-kpis">${kp('Revenue', rev, isRangeLabel(P.from, P.to))}${kp('Gross profit', g, rev.eq(0) ? 'margin —' : 'margin ' + pctOf(g))}${kp('Operating expenses', ox, rev.eq(0) ? '—' : pctOf(ox) + ' of revenue')}${kp('Net profit', n, rev.eq(0) ? 'margin —' : 'margin ' + pctOf(n))}</div>
+    <div class="xp-kpis">
+      <div class="xp-hero"><div class="xp-hero-top"><span class="xp-kic">${ic('reports', 20)}</span><span class="xp-tag">${rev.eq(0) ? 'margin —' : 'margin ' + pctOf(n)}</span></div><span class="xp-kl">Net profit</span><b class="${n.lt(0) ? 'neg' : ''}">${money(n)} <small>EGP</small></b><em>${esc(isRangeLabel(P.from, P.to))}</em></div>
+      ${kpT('sales', 'ok', 'Revenue', rev, isRangeLabel(P.from, P.to))}${kpT('coins', 'gold', 'Gross profit', g, rev.eq(0) ? 'margin —' : 'margin ' + pctOf(g))}${kpT('expenses', 'bad', 'Operating expenses', ox, rev.eq(0) ? '—' : pctOf(ox) + ' of revenue')}</div>
     <div class="card is-card"><div class="tbl-wrap"><table class="is-tbl${cols.length > 3 ? ' many' : ''}"><thead>${head}</thead><tbody>${body}</tbody></table></div></div>`;
 }
 function isExportRows(){
@@ -14402,7 +14464,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261107-152717';
+const APP_BUILD = 'build-20261107-153017';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
