@@ -7490,7 +7490,6 @@ function pageAccDash(){
     sb({ i: 'cars', n: toDeliver.length, l: 'Cars to deliver', s: 'sold, not handed over', tone: toDeliver.length ? 'warn' : '', href: '#/inv/deliveries' }),
     sb({ i: 'wallet', n: money(held), l: 'Deposits held', s: 'EGP from customers, not invoiced', href: '#/ar/advances' })
   ].join('');
-  const recent = posted.slice().sort((x, y) => x.postedAt < y.postedAt ? 1 : -1).slice(0, 8);
   const hello = (n => n < 12 ? 'Good morning' : n < 17 ? 'Good afternoon' : 'Good evening')(+new Date().toLocaleString('en-GB', { hour: '2-digit', hour12: false, timeZone: 'Africa/Cairo' }));
   return `<div class="ad">
     <div class="ad-hero">
@@ -7518,10 +7517,6 @@ function pageAccDash(){
       ${card({ i: 'calendar', c: '#a16207', cs: '#fefce8', t: `Close ${lastYm}`, sub: 'Month-end checklist', num: `${done}<small> of ${tot}</small>`, numSub: issues ? `${issues} step${issues === 1 ? '' : 's'} to fix` : (done === tot ? 'Ready to lock' : 'steps done'), neg: false,
         side: ring(done, tot), badge: issues ? `<span class="ad-badge bad">${issues} to fix</span>` : '', btn: `<a class="btn primary sm" href="#/acc/close">Open checklist</a>` })}
     </div>
-    <section class="ad-recent"><header><h2>Recently posted</h2><a class="btn sm" href="#/acc/journals">All entries</a></header>
-      <ul>${recent.map(e => { const [ii, cc] = jb[e.journal] || ['file', '#475569']; return `<li data-act="je-view" data-id="${e.id}"><span class="ad-j" style="--c:${cc}">${ic(ii, 16)}</span>
-        <div class="ad-rd"><b>${esc(e.description)}</b><span>${esc(entryRef(e))} · ${e.accountingDate}</span></div><span class="ad-ra">${money(e.totals.egpDebit)} <small>EGP</small></span></li>`; }).join('') || '<li class="ad-empty">Nothing posted yet. Your first invoice or journal entry will show here.</li>'}</ul>
-    </section>
   </div>`;
 }
 
@@ -14402,7 +14397,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261107-151723';
+const APP_BUILD = 'build-20261107-151754';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
