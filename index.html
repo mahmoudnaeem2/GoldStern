@@ -4037,8 +4037,8 @@ function lineFc(e, l){
   if (l.fcCurrency) return { cur: l.fcCurrency, d: D(l.fcDebit || '0'), c: D(l.fcCredit || '0'), rate: l.fcRate || null };
   return { cur: e.currency, d: D(l.debit || '0'), c: D(l.credit || '0'), rate: e.rate || null };
 }
-const isCashAccount = a => !!a && a.type === 'asset' && !a.isGroup && a.active && a.allowManual && !!a.currency && (/^11\d{2}$/.test(String(a.code)) || /^101[12]\d{2}$/.test(String(a.code)));
-const glBank = a => ({ id: 'gl:' + a.id, name: accName(a), currency: a.currency, glAccountId: a.id, kind: /cash|خزين|نقد/i.test(a.nameEn + ' ' + (a.nameAr || '')) ? 'cash' : 'bank', active: true, virtual: true, openingBalance: '0.00' });
+const isCashAccount = a => !!a && a.type === 'asset' && !a.isGroup && a.active && a.allowManual && (/^11\d{2,}$/.test(String(a.code)) || /^101[12]\d*$/.test(String(a.code)) || ['cash', 'bank'].includes(a.icon) || (/\b(cash|bank|treasury|safe|petty)\b|خزين|نقد|بنك|مصرف/i.test((a.nameEn || '') + ' ' + (a.nameAr || '')) && !/receivable|advance|inventory|deposit|prepaid|tax|vat/i.test(a.nameEn || '')));
+const glBank = a => ({ id: 'gl:' + a.id, name: accName(a), currency: a.currency || 'EGP', glAccountId: a.id, kind: a.icon === 'cash' || /cash|petty|treasury|safe|خزين|نقد/i.test((a.nameEn || '') + ' ' + (a.nameAr || '')) ? 'cash' : 'bank', active: true, virtual: true, openingBalance: '0.00' });
 const bankById = id => { if (typeof id === 'string' && id.startsWith('newcash:')){ const cur = id.slice(8); return { id, name: `Cash on Hand — ${cur} (new)`, currency: cur, glAccountId: '', kind: 'cash', active: true, virtual: true, openingBalance: '0.00' }; }
   if (typeof id === 'string' && id.startsWith('gl:')){ const a = acc(id.slice(3)); if (!a) return null; return S.banks.find(b => b.glAccountId === a.id) || (isCashAccount(a) ? glBank(a) : null); } return S.banks.find(b => b.id === id) || null; };
 /* Bank and cash choices: registered bank accounts plus every cash/bank account in the chart that is not linked yet. */
@@ -4065,7 +4065,7 @@ function materializeBank(v){
   if (typeof v !== 'string' || !v.startsWith('gl:')) return v;
   const a = acc(v.slice(3)); if (!isCashAccount(a)) throw new AppError('Select a cash or bank account.');
   const ex = S.banks.find(b => b.glAccountId === a.id); if (ex) return ex.id;
-  const g = glBank(a), n = { id: uid('bk'), name: g.name, bankName: '', accountNo: '', iban: '', branch: '', swift: '', kind: g.kind, currency: a.currency, glAccountId: a.id, openingBalance: '0.00', openingDate: '', active: true, createdAt: nowISO(), createdBy: currentUser() ? currentUser().id : null };
+  const g = glBank(a), n = { id: uid('bk'), name: g.name, bankName: '', accountNo: '', iban: '', branch: '', swift: '', kind: g.kind, currency: a.currency || g.currency || 'EGP', glAccountId: a.id, openingBalance: '0.00', openingDate: '', active: true, createdAt: nowISO(), createdBy: currentUser() ? currentUser().id : null };
   S.banks.push(n); log('bank_create', 'banking', n.id, null, n, `Linked automatically from chart of accounts ${a.code}`, n.name); return n.id;
 }
 const bankLabel = b => b ? `${b.name} (${b.currency})` : '?';
@@ -6742,24 +6742,116 @@ Object.assign(A, {
       if (method === 'supplier'){ if (!sup) throw new AppError(`"${pname}" is not a vendor yet. Click "New vendor" next to Partner to create it.`); f.supplierId = sup.id; }
       if (method === 'employee') f.employee = pname; if (method === 'bank') f.payee = sup ? sup.legalName : pname; }
     if (method === 'supplier' && !f.supplierId) throw new AppError('Select the vendor in Partner.');
-    let cur = 'EGP', b = null; if (method === 'bank'){ b = bankById(f.bankId); if (!b || !b.active) throw new AppError('Select the bank or cash account.'); cur = b.currency; }
+    let cur = 'EGP', b = null, paySplits = [];
+    if (method === 'bank'){
+      const pBanks = arr('pay_bank'), pAmts = arr('pay_amount').map(v => String(v || '').trim().replace(/,/g, ''));
+      const rawSplits = pBanks.map((bid, i) => ({ bankId: String(bid || '').trim(), amount: pAmts[i] || '' })).filter(p => p.bankId || p.amount);
+      if (rawSplits.length){
+        rawSplits.forEach((p, idx0) => {
+          const bk = bankById(p.bankId);
+          if (!bk || !bk.active) throw new AppError(`Payment line ${idx0 + 1}: select an active bank or cash account.`);
+          p.bank = bk;
+        });
+        b = rawSplits[0].bank; cur = b.currency || 'EGP';
+        rawSplits.forEach((p, idx0) => { if ((p.bank.currency || 'EGP') !== cur) throw new AppError(`Payment line ${idx0 + 1}: all split payment accounts must use the same currency (${cur}).`); });
+        paySplits = rawSplits;
+      } else {
+        b = bankById(f.bankId); if (!b || !b.active) throw new AppError('Select the bank or cash account.'); cur = b.currency || 'EGP';
+        paySplits = [{ bankId: b.id, bank: b, amount: '' }];
+      }
+    }
     const idx = vehicleIndex();
     lines.forEach((l, i) => { if (!l.cat) throw new AppError(`Line ${i + 1}: select a category.`); if (!amtOk(l.amount, cur) || !D(l.amount).gt(0)) throw new AppError(`Line ${i + 1}: enter a positive ${cur} amount.`);
       l.costCenter = l.costCenter || l.cat.costCenter; if (l.vehicle && !idx.get(l.vehicle)) throw new AppError(`Line ${i + 1}: unknown vehicle ${l.vehicle}.`); l.vehicleId = l.vehicle ? idx.get(l.vehicle) : null; if (l.vehicleId && (vehById(l.vehicleId) || {}).closedAt) throw new AppError(`Line ${i + 1}: car ${l.vehicle} is closed.`); });
     if (method === 'supplier'){
       const inv = A.createInvoice('ap', { partnerId: f.supplierId, date: f.date, currency: 'EGP', partnerRef: ref, il_account: lines.map(l => l.cat.accountId), il_desc: lines.map(l => l.description || l.cat.name), il_amount: lines.map(l => l.amount), il_cc: lines.map(l => l.costCenter), il_vehicle: lines.map(l => l.vehicle) });
-      const x = { id: uid('ex'), number: inv.number, date: f.date, method, ref, payee: (partnerById('ap', f.supplierId) || {}).legalName, total: inv.total, currency: 'EGP', invoiceId: inv.id, entryId: inv.entryId, createdBy: me.id, createdAt: nowISO() };
+      const x = { id: uid('ex'), number: inv.number, date: f.date, method, ref, payee: (partnerById('ap', f.supplierId) || {}).legalName, total: inv.total, currency: 'EGP', invoiceId: inv.id, entryId: inv.entryId, status: 'posted', createdBy: me.id, createdAt: nowISO() };
       S.expenses.push(x); log('expense_create', 'expenses', x.id, null, x, '', x.number); saveState(); return x;
     }
     const total = lines.reduce((t, l) => t.plus(l.amount), D0()), payee = method === 'employee' ? String(f.employee || '').trim() : String(f.payee || '').trim();
     if (method === 'employee' && !payee) throw new AppError('Enter the employee being reimbursed.');
+    if (method === 'bank'){
+      if (paySplits.length === 1 && !paySplits[0].amount) paySplits[0].amount = total.toFixed(2);
+      let splitSum = D0();
+      paySplits.forEach((p, idx0) => {
+        if (!amtOk(p.amount, cur) || !D(p.amount).gt(0)) throw new AppError(`Payment line ${idx0 + 1}: enter a positive ${cur} amount.`);
+        p.amount = D(p.amount).toFixed(2);
+        splitSum = splitSum.plus(p.amount);
+      });
+      if (!splitSum.eq(total)) throw new AppError(`Payment split total (${money(splitSum)} ${cur}) must equal the expense total (${money(total)} ${cur}).`);
+    }
     const number = previewNumber(S.sequences.find(s => s.doc === 'expense_claim'), f.date);
     const jl = lines.map(l => ({ id: uid('jl'), accountId: l.cat.accountId, debit: D(l.amount).toFixed(2), credit: '', costCenter: l.costCenter, partner: l.partner || payee, vehicle: l.vehicle, vehicleId: l.vehicleId || undefined, description: `${l.cat.name}${l.description ? ': ' + l.description : ''}` }));
-    jl.push({ id: uid('jl'), accountId: method === 'bank' ? b.glAccountId : getMapping('employee_payable').id, debit: '', credit: total.toFixed(2), costCenter: '', partner: payee, vehicle: '', description: method === 'bank' ? (ref ? `Paid ${ref}` : 'Expense settlement') : `Reimbursement due to ${payee}` });
+    if (method === 'bank'){
+      paySplits.forEach(p => {
+        jl.push({ id: uid('jl'), accountId: p.bank.glAccountId, debit: '', credit: D(p.amount).toFixed(2), costCenter: '', partner: payee, vehicle: '', description: (ref ? `Paid ${ref}` : 'Expense settlement') + (paySplits.length > 1 ? ` — ${p.bank.name}` : '') });
+      });
+    } else {
+      jl.push({ id: uid('jl'), accountId: getMapping('employee_payable').id, debit: '', credit: total.toFixed(2), costCenter: '', partner: payee, vehicle: '', description: `Reimbursement due to ${payee}` });
+    }
     const e = docEntryShell(me, method === 'bank' ? 'BJ' : 'GJ', f.date, cur, 'official', number, `Expense ${number}${payee ? ' — ' + payee : (ref ? ' — ' + ref : '')}`, jl, { reference: ref });
     submitDocEntry(e, me); nextNumber('expense_claim', f.date);
-    const x = { id: uid('ex'), number, date: f.date, method, ref, payee, bankId: b ? b.id : '', total: total.toFixed(2), currency: cur, lines: lines.map(l => ({ category: l.cat.name, accountId: l.cat.accountId, partner: l.partner, amount: l.amount, costCenter: l.costCenter, vehicle: l.vehicle, description: l.description })), entryId: e.id, createdBy: me.id, createdAt: nowISO() };
+    const payments = method === 'bank' ? paySplits.map(p => ({ bankId: p.bank.id, amount: D(p.amount).toFixed(2) })) : [];
+    const x = { id: uid('ex'), number, date: f.date, method, ref, payee, bankId: b ? b.id : '', payments, total: total.toFixed(2), currency: cur, status: e.status, lines: lines.map(l => ({ category: l.cat.name, accountId: l.cat.accountId, partner: l.partner, amount: l.amount, costCenter: l.costCenter, vehicle: l.vehicle, description: l.description })), entryId: e.id, createdBy: me.id, createdAt: nowISO() };
     S.expenses.push(x); log('expense_create', 'expenses', x.id, null, x, '', number); saveState(); return x;
+  },
+  resetExpenseToDraft(exId, reason){
+    const me = requirePerm('expenses', 'create');
+    const x = S.expenses.find(y => y.id === exId); if (!x) throw new AppError('Expense not found.');
+    if (x.invoiceId){
+      A.resetInvoiceToDraft(x.invoiceId, reason);
+      x.status = 'draft';
+    } else {
+      const e = entryById(x.entryId); if (!e) throw new AppError('Journal entry not found.');
+      if (e.status === 'draft') throw new AppError(`${x.number} is already in draft status.`);
+      const pc = checkPostingAllowed(e.accountingDate); if (!pc.ok) throw new AppError('Cannot reset to draft: ' + pc.reason);
+      const prev = e.status;
+      e.status = 'draft';
+      e.history = (e.history || []).concat([{ at: nowISO(), by: me.id, action: 'reset to draft', note: reason || 'Reset to draft' }]);
+      x.status = 'draft';
+      log('document_reset_draft', 'expenses', x.id, { status: prev }, { status: 'draft' }, reason || 'Reset to draft', x.number);
+    }
+    const pr = (S.payrolls || []).find(p => p.expenseId === x.id);
+    if (pr && pr.status === 'posted'){
+      const oldPr = clone(pr);
+      pr.status = 'draft';
+      log('payroll_reset_draft', 'expenses', pr.id, oldPr, clone(pr), reason || 'Linked expense reset to draft', 'Payroll ' + pr.month);
+    }
+    saveState(); return x;
+  },
+  postDraftExpense(exId){
+    const me = requirePerm('expenses', 'create');
+    const x = S.expenses.find(y => y.id === exId); if (!x) throw new AppError('Expense not found.');
+    if (x.invoiceId){
+      A.postDraftInvoice(x.invoiceId);
+      x.status = 'posted';
+    } else {
+      const e = entryById(x.entryId); if (!e) throw new AppError('Journal entry not found.');
+      if (e.status === 'posted') throw new AppError(`${x.number} is already posted.`);
+      const pc = checkPostingAllowed(e.accountingDate); if (!pc.ok) throw new AppError('Cannot post expense: ' + pc.reason);
+      doPost(e, me);
+      x.status = 'posted';
+      log('entry_post', 'expenses', x.id, { status: 'draft' }, { status: 'posted' }, 'Expense posted from draft', x.number);
+    }
+    const pr = (S.payrolls || []).find(p => p.expenseId === x.id);
+    if (pr && pr.status !== 'posted'){
+      pr.status = 'posted';
+      pr.postedAt = nowISO();
+    }
+    saveState(); return x;
+  },
+  deleteDraftExpense(exId){
+    requirePerm('expenses', 'create');
+    const x = S.expenses.find(y => y.id === exId); if (!x) throw new AppError('Expense not found.');
+    const e = entryById(x.entryId);
+    if (e && e.status === 'posted') throw new AppError('Reset the expense to draft before deleting it.');
+    if (x.invoiceId) S.invoices = S.invoices.filter(i => i.id !== x.invoiceId);
+    if (e) S.entries = S.entries.filter(en => en.id !== e.id);
+    S.expenses = S.expenses.filter(y => y.id !== x.id);
+    const pr = (S.payrolls || []).find(p => p.expenseId === x.id);
+    if (pr){ pr.status = 'draft'; pr.expenseId = null; }
+    log('expense_delete', 'expenses', x.id, x, null, 'Deleted draft expense', x.number);
+    saveState(); return true;
   },
   createSchedule(f){
     const me = requirePerm('expenses', 'create');
@@ -9900,12 +9992,12 @@ function payrollOf(month){ hrInit(); return S.payrolls.find(p => p.month === mon
 function payrollSheet(month, over){
   hrInit(); const pr = payrollOf(month), posted = pr && pr.status === 'posted';
   let lines = pr ? pr.lines.map(l => ({ ...l })) : [];
-  if (!posted){ for (const e of S.employees.filter(e => e.active !== false && (!e.startDate || e.startDate.slice(0, 7) <= month))) if (!lines.some(l => l.empId === e.id)) lines.push({ empId: e.id, salary: e.salary, bonus: '0', deduction: '0', note: '' });
+  if (!posted){ for (const e of S.employees.filter(e => e.active !== false && (!e.startDate || e.startDate.slice(0, 7) <= month))) if (!lines.some(l => l.empId === e.id)) lines.push({ empId: e.id, salary: e.salary, bonus: '0', deduction: '0', note: '', bankId: e.bankId || '' });
     lines = lines.filter(l => { const e = S.employees.find(x => x.id === l.empId); return e && e.active !== false; });
-    for (const l of lines){ const e = S.employees.find(x => x.id === l.empId); l.salary = e.salary; } }
-  if (over && !posted){ const arr = k => [].concat(over[k] ?? []), ids = arr('pr_emp');
-    ids.forEach((id, i) => { const l = lines.find(z => z.empId === id); if (!l) return; l.bonus = String(arr('pr_bonus')[i] || '0').replace(/,/g, '').trim() || '0'; l.deduction = String(arr('pr_ded')[i] || '0').replace(/,/g, '').trim() || '0'; l.note = String(arr('pr_note')[i] || '').trim(); }); }
-  for (const l of lines){ const e = S.employees.find(x => x.id === l.empId) || {}; l.name = l.name || e.name || '—'; l.code = e.code || ''; l.title = e.title || '';
+    for (const l of lines){ const e = S.employees.find(x => x.id === l.empId); l.salary = e.salary; if (l.bankId === undefined) l.bankId = e.bankId || ''; } }
+  if (over && !posted){ const arr = k => [].concat(over[k] ?? []), ids = arr('pr_emp'), hasBanks = over.pr_bank !== undefined;
+    ids.forEach((id, i) => { const l = lines.find(z => z.empId === id); if (!l) return; l.bonus = String(arr('pr_bonus')[i] || '0').replace(/,/g, '').trim() || '0'; l.deduction = String(arr('pr_ded')[i] || '0').replace(/,/g, '').trim() || '0'; l.note = String(arr('pr_note')[i] || '').trim(); if (hasBanks) l.bankId = String(arr('pr_bank')[i] || '').trim(); }); }
+  for (const l of lines){ const e = S.employees.find(x => x.id === l.empId) || {}; l.name = l.name || e.name || '—'; l.code = e.code || ''; l.title = e.title || ''; l.bankId = l.bankId || '';
     const num = v => /^\d+(\.\d+)?$/.test(String(v)) ? D(v) : D0(); l.net = num(l.salary).plus(num(l.bonus)).minus(num(l.deduction)); }
   lines.sort((a, b) => String(a.name).localeCompare(String(b.name)));
   const sum = k => lines.reduce((t, l) => t.plus(k === 'net' ? l.net : (/^\d+(\.\d+)?$/.test(String(l[k])) ? D(l[k]) : D0())), D0());
@@ -9929,7 +10021,7 @@ Object.assign(A, {
     for (const l of sh.lines){ for (const [k, lbl] of [['bonus', 'Bonus'], ['deduction', 'Deduction']]) if (!/^\d+(\.\d{1,2})?$/.test(String(l[k]))) throw new AppError(`${lbl} for ${l.name} must be a positive number.`);
       if (l.net.lt(0)) throw new AppError(`Net pay for ${l.name} would be negative. Reduce the deduction.`); }
     let pr = payrollOf(month); const old = pr ? clone(pr) : null;
-    const lines = sh.lines.map(l => ({ empId: l.empId, name: l.name, salary: D(l.salary).toFixed(2), bonus: D(l.bonus).toFixed(2), deduction: D(l.deduction).toFixed(2), note: l.note || '' }));
+    const lines = sh.lines.map(l => ({ empId: l.empId, name: l.name, salary: D(l.salary).toFixed(2), bonus: D(l.bonus).toFixed(2), deduction: D(l.deduction).toFixed(2), note: l.note || '', bankId: l.bankId || '' }));
     if (pr) Object.assign(pr, { lines, updatedAt: nowISO() }); else { pr = { id: uid('pr'), month, status: 'draft', lines, createdAt: nowISO() }; S.payrolls.push(pr); }
     log(old ? 'payroll_edit' : 'payroll_create', 'expenses', pr.id, old, clone(pr), '', 'Payroll ' + month); saveState(); return pr;
   },
@@ -9940,10 +10032,37 @@ Object.assign(A, {
     if (!S.expenseCats.length) ensureStandardExpenseCats();
     const cat = S.expenseCats.find(c => /salar|wage|payroll/i.test(c.name)) || S.expenseCats[0]; if (!cat) throw new AppError('Add a “Salaries” expense category first.');
     const desc = l => `Salary ${monthLabel(month)} — ${l.name}${D(l.bonus).gt(0) ? ` (+${money(l.bonus)} bonus)` : ''}${D(l.deduction).gt(0) ? ` (−${money(l.deduction)} deduction)` : ''}`;
-    const x = A.createExpense({ date: f.date, method: 'bank', bankId: f.bankId, partner: 'Payroll ' + monthLabel(month), ref: 'PAYROLL-' + month,
-      ex_cat: pay.map(() => cat.id), ex_desc: pay.map(desc), ex_amount: pay.map(l => l.net.toFixed(2)), ex_cc: pay.map(() => ''), ex_vehicle: pay.map(() => ''), ex_partner: pay.map(l => l.name) });
-    const old = clone(pr); Object.assign(pr, { status: 'posted', expenseId: x.id, postedAt: nowISO(), paidDate: f.date });
+    const arr = k => [].concat(f[k] ?? []);
+    let pay_bank = arr('pay_bank').filter(Boolean), pay_amount = arr('pay_amount').map(v => String(v || '').trim().replace(/,/g, '')).filter((_, i) => arr('pay_bank')[i]);
+    if (!pay_bank.length && f.bankId){
+      pay_bank = [f.bankId];
+      pay_amount = [sh.net.toFixed(2)];
+    }
+    const x = A.createExpense({ date: f.date, method: 'bank', bankId: pay_bank[0] || f.bankId, pay_bank, pay_amount, partner: 'Payroll ' + monthLabel(month), ref: 'PAYROLL-' + month,
+      ex_cat: pay.map(() => cat.name), ex_desc: pay.map(desc), ex_amount: pay.map(l => l.net.toFixed(2)), ex_cc: pay.map(() => ''), ex_vehicle: pay.map(() => ''), ex_partner: pay.map(l => l.name) });
+    const old = clone(pr); Object.assign(pr, { status: 'posted', expenseId: x.id, payments: x.payments || [], postedAt: nowISO(), paidDate: f.date });
     log('payroll_post', 'expenses', pr.id, old, clone(pr), '', 'Payroll ' + month); saveState(); return { pr, x };
+  },
+  resetPayrollToDraft(month, reason){
+    requirePerm('expenses', 'create'); hrInit();
+    const pr = payrollOf(month); if (!pr) throw new AppError('Payroll record not found.');
+    if (pr.status !== 'posted') throw new AppError(`${monthLabel(month)} payroll is already in draft status.`);
+    const old = clone(pr);
+    if (pr.expenseId){
+      const x = S.expenses.find(z => z.id === pr.expenseId);
+      if (x){
+        const e = entryById(x.entryId);
+        if (e){
+          const pc = checkPostingAllowed(e.accountingDate); if (!pc.ok) throw new AppError('Cannot reset payroll to draft: ' + pc.reason);
+          S.entries = S.entries.filter(en => en.id !== e.id);
+        }
+        if (x.invoiceId) S.invoices = S.invoices.filter(i => i.id !== x.invoiceId);
+        S.expenses = S.expenses.filter(z => z.id !== x.id);
+      }
+    }
+    Object.assign(pr, { status: 'draft', expenseId: null, payments: null, postedAt: null, paidDate: null, updatedAt: nowISO() });
+    log('payroll_reset_draft', 'expenses', pr.id, old, clone(pr), reason || 'Reset to draft', 'Payroll ' + month);
+    saveState(); return pr;
   }
 });
 function payrollExport(month, over){
@@ -9995,15 +10114,41 @@ function pageEmployees(){
 function pagePayroll(){
   hrInit(); const month = UI.prMonth = UI.prMonth || todayCairo().slice(0, 7), sh = payrollSheet(month), ed = can('expenses', 'create') && !sh.posted;
   const x = sh.pr && sh.pr.expenseId ? S.expenses.find(z => z.id === sh.pr.expenseId) : null;
+  const je = x && x.entryId ? entryById(x.entryId) : null;
   const tile = (icon, cls, l, v, sub) => `<div class="xp-k ${cls}"><span class="xp-kic">${ic(icon, 18)}</span><div><span class="xp-kl">${l}</span><b>${money(v)} <small>EGP</small></b><em>${sub}</em></div></div>`;
   const inp = (n, v) => ed ? `<input class="input mono pr-in" name="${n}" inputmode="decimal" value="${D(v || 0).eq(0) ? '' : groupDigits(v)}" placeholder="0">` : `<span>${D(v || 0).eq(0) ? '<span class="zero">—</span>' : money(v)}</span>`;
-  const status = sh.posted ? `<span class="fs-chk ok">✓ Posted${x ? ` · <a href="#" data-act="ex-view" data-id="${x.id}">${esc(x.number)}</a>` : ''}</span>` : sh.pr ? '<span class="fs-chk pr-draft">Draft — saved</span>' : '<span class="fs-chk pr-draft">Not saved yet</span>';
-  return H(t('payroll'), 'Each month: check the salaries, add bonuses or deductions, then post. Posting records the salaries as an expense paid from the bank or cash account you choose.',
-    `<a class="btn" href="#/hr/employees">${ic('hr', 14)} Employees</a><button type="button" class="btn" data-act="pr-xlsx">${ic('file', 14)} Export Excel</button>`) + `
-    <div class="card pg-tools"><div class="pg-tr">
-      <div class="pr-month"><button type="button" class="btn sm" data-act="pr-month" data-v="-1" aria-label="Previous month">${ic('back', 14)}</button><b>${monthLabel(month)}</b><button type="button" class="btn sm pr-next" data-act="pr-month" data-v="1" aria-label="Next month">${ic('back', 14)}</button>
-        ${month !== todayCairo().slice(0, 7) ? '<button type="button" class="btn sm" data-act="pr-month" data-v="0">This month</button>' : ''}</div>
-      ${status}</div></div>
+  const pays = (x && x.payments && x.payments.length) ? x.payments : (sh.pr && sh.pr.payments && sh.pr.payments.length ? sh.pr.payments : (x && x.bankId ? [{ bankId: x.bankId, amount: x.total }] : []));
+  const payBadges = pays.map(p => { const b = bankById(p.bankId); return `<span class="xp-m bank">${ic('banking', 13)}${esc(b ? b.name : 'Cash / bank')}${pays.length > 1 ? ` · <b>${money(p.amount)} EGP</b>` : ''}</span>`; }).join(' ');
+  const bankLabelOf = bid => { if (!bid) return '<span class="muted">Paid via sheet split</span>'; const b = bankById(bid); return b ? `<span class="xp-m bank">${ic('banking', 12)}${esc(b.name)}</span>` : '<span class="muted">—</span>'; };
+
+  return H(t('payroll'), 'Review monthly salaries, add bonuses or deductions, assign bank or cash accounts per employee or split payment across multiple accounts on post.',
+    `<a class="btn" href="#/hr/employees">${ic('hr', 14)} Employees</a>` +
+    (can('expenses', 'create') ? `<button type="button" class="btn" data-act="emp-new">${ic('plus', 14)} New employee</button>` : '') +
+    `<button type="button" class="btn" data-act="pr-xlsx">${ic('file', 14)} Export Excel</button>`) + `
+    <div class="o-bar" style="margin:0 0 14px;width:100%;max-width:none;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+      <div class="btns" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <div class="pr-month" style="margin-right:6px"><button type="button" class="btn sm" data-act="pr-month" data-v="-1" aria-label="Previous month">${ic('back', 14)}</button><b>${monthLabel(month)}</b><button type="button" class="btn sm pr-next" data-act="pr-month" data-v="1" aria-label="Next month">${ic('back', 14)}</button>
+          ${month !== todayCairo().slice(0, 7) ? '<button type="button" class="btn sm" data-act="pr-month" data-v="0">This month</button>' : ''}</div>
+        ${ed && sh.lines.length ? `<button type="button" class="btn primary" data-act="pr-post">${ic('check', 14)} Post salaries</button><button type="button" class="btn" data-act="pr-save-top">Save draft</button>` : ''}
+        ${sh.posted && can('expenses', 'create') ? `<button type="button" class="btn" data-act="pr-reset-draft" data-month="${month}">${ic('undo', 14)} Reset to draft</button>` : ''}
+        ${x ? `<button type="button" class="btn" data-act="ex-view" data-id="${x.id}">${ic('expenses', 14)} Expense ${esc(x.number)}</button>` : ''}
+        ${je ? `<button type="button" class="btn" data-act="je-view" data-id="${je.id}">${ic('accounting', 14)} Entry ${esc(entryRef(je))}</button>` : ''}
+      </div>
+      <div class="o-status">
+        <span class="${!sh.posted && !sh.pr ? 'on' : ''}">Draft</span>
+        <span class="${!sh.posted && sh.pr ? 'on' : ''}">Saved</span>
+        <span class="${sh.posted ? 'on' : ''}">Posted</span>
+      </div>
+    </div>
+    ${sh.posted ? `<div class="card" style="margin-bottom:14px;padding:14px 18px;background:linear-gradient(90deg,#f0fdf4,#ffffff);border:1px solid #bbf7d0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <span class="fs-chk ok" style="font-size:13px">✓ Posted ${esc(sh.pr.paidDate || '')}</span>
+        ${x ? `<span style="font-size:13px;color:#334155">Voucher: <a href="#" data-act="ex-view" data-id="${x.id}" style="font-weight:700;color:#0f172a;text-decoration:underline">${esc(x.number)}</a></span>` : ''}
+        ${je ? `<span style="font-size:13px;color:#334155">Journal Entry: <a href="#" data-act="je-view" data-id="${je.id}" style="font-weight:700;color:#0f172a;text-decoration:underline">${esc(entryRef(je))}</a></span>` : ''}
+        ${payBadges ? `<span style="font-size:13px;color:#334155;display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap">Paid from: ${payBadges}</span>` : ''}
+      </div>
+      ${can('expenses', 'create') ? `<div style="display:flex;gap:8px"><button type="button" class="btn sm" data-act="pr-reset-draft" data-month="${month}">${ic('undo', 13)} Reset to draft</button></div>` : ''}
+    </div>` : ''}
     <div class="xp-kpis">
       <div class="xp-hero"><div class="xp-hero-top"><span class="xp-kic">${ic('wallet', 20)}</span><span class="xp-tag">${sh.lines.length} employee${sh.lines.length === 1 ? '' : 's'}</span></div><span class="xp-kl">Net to pay</span><b id="pr-k-net">${money(sh.net)} <small>EGP</small></b><em>${monthLabel(month)}</em></div>
       ${tile('hr', 'info', 'Base salaries', sh.salary, 'From the employee list')}
@@ -10011,13 +10156,16 @@ function pagePayroll(){
       <div class="xp-k bad"><span class="xp-kic">${ic('coins', 18)}</span><div><span class="xp-kl">Deductions</span><b id="pr-k-ded">${money(sh.deduction)} <small>EGP</small></b><em>Taken off this month</em></div></div>
     </div>
     <form class="card xp-list pr-sheet" id="pr-form" data-form="pr-save" data-month="${month}">
-      <div class="tbl-wrap"><table class="o-list xp-tbl pr-tbl"><thead><tr><th>Employee</th><th class="num">Base salary</th><th class="num">Bonus</th><th class="num">Deduction</th><th class="num">Net pay</th><th>Note</th></tr></thead><tbody>
+      <div class="tbl-wrap"><table class="o-list xp-tbl pr-tbl"><thead><tr><th>Employee</th><th class="num">Base salary</th><th class="num">Bonus</th><th class="num">Deduction</th><th class="num">Net pay</th><th>Paid from (Bank / Cash)</th><th>Note</th></tr></thead><tbody>
         ${sh.lines.map(l => `<tr><td><input type="hidden" name="pr_emp" value="${l.empId}"><div class="pg-who"><span class="pg-av ar">${esc(empInitials(l.name))}</span><div><b>${esc(l.name)}</b><span>${esc([l.code, l.title].filter(Boolean).join(' · '))}</span></div></div></td>
           <td class="num" data-sal="${D(l.salary).toFixed(2)}">${money(l.salary)}</td><td class="num">${inp('pr_bonus', l.bonus)}</td><td class="num">${inp('pr_ded', l.deduction)}</td>
-          <td class="num pr-net"><b>${money(l.net)}</b></td><td>${ed ? `<input class="input pr-note" name="pr_note" value="${esc(l.note || '')}" placeholder="Reason (optional)">` : esc(l.note || '—')}</td></tr>`).join('')
-        || `<tr><td colspan="6"><div class="xp-empty">${ic('hr', 22)}<b>No employees on this payroll</b><span>Add employees with their salary first.</span><a class="btn primary sm" href="#/hr/employees">Go to employees</a></div></td></tr>`}
-      </tbody>${sh.lines.length ? `<tfoot><tr class="pg-tot"><td>Total</td><td class="num">${money(sh.salary)}</td><td class="num" id="pr-t-bonus">${money(sh.bonus)}</td><td class="num" id="pr-t-ded">${money(sh.deduction)}</td><td class="num" id="pr-t-net">${money(sh.net)}</td><td></td></tr></tfoot>` : ''}</table></div>
-      ${ed && sh.lines.length ? `<div class="pr-actions"><span class="muted">Bonuses and deductions apply to ${monthLabel(month)} only.</span><button class="btn">Save draft</button><button type="button" class="btn primary" data-act="pr-post">${ic('check', 15)} Post salaries</button></div>` : ''}
+          <td class="num pr-net"><b>${money(l.net)}</b></td>
+          <td style="min-width:210px">${ed ? `<select class="input" name="pr_bank"><option value="">Default (choose / split on post)</option>${bankOptions(l.bankId || '', b => b.currency === 'EGP')}</select>` : (l.bankId ? bankLabelOf(l.bankId) : (payBadges || '<span class="muted">—</span>'))}</td>
+          <td>${ed ? `<input class="input pr-note" name="pr_note" value="${esc(l.note || '')}" placeholder="Reason (optional)">` : esc(l.note || '—')}</td></tr>`).join('')
+        || `<tr><td colspan="7"><div class="xp-empty">${ic('hr', 22)}<b>No employees on this payroll</b><span>Add employees with their salary first.</span><a class="btn primary sm" href="#/hr/employees">Go to employees</a></div></td></tr>`}
+      </tbody>${sh.lines.length ? `<tfoot><tr class="pg-tot"><td>Total (${sh.lines.length})</td><td class="num">${money(sh.salary)}</td><td class="num" id="pr-t-bonus">${money(sh.bonus)}</td><td class="num" id="pr-t-ded">${money(sh.deduction)}</td><td class="num" id="pr-t-net">${money(sh.net)}</td><td colspan="2"></td></tr></tfoot>` : ''}</table></div>
+      ${ed && sh.lines.length ? `<div class="pr-actions"><span class="muted">You can assign a specific Bank or Cash account per employee, or split the total payment across multiple accounts when posting.</span><button class="btn">Save draft</button><button type="button" class="btn primary" data-act="pr-post">${ic('check', 15)} Post salaries</button></div>` : ''}
+      ${sh.posted ? `<div class="pr-actions"><span class="muted">This payroll is posted and locked. Reset to draft if you need to adjust amounts or payment accounts.</span>${x ? `<button type="button" class="btn" data-act="ex-view" data-id="${x.id}">${ic('expenses', 14)} View Expense ${esc(x.number)}</button>` : ''}${can('expenses', 'create') ? `<button type="button" class="btn" data-act="pr-reset-draft" data-month="${month}">${ic('undo', 14)} Reset to draft</button>` : ''}</div>` : ''}
     </form>`;
 }
 function prRecalc(){
@@ -10028,8 +10176,86 @@ function prRecalc(){
   const set = (id, v, unit) => { const el = document.getElementById(id); if (el) el.innerHTML = money(v) + (unit ? ' <small>EGP</small>' : ''); };
   set('pr-t-bonus', tb); set('pr-t-ded', td); set('pr-t-net', tn); set('pr-k-net', tn, 1); set('pr-k-bonus', tb, 1); set('pr-k-ded', td, 1);
 }
-document.addEventListener('input', e => { if (e.target.closest && e.target.closest('#pr-form')) prRecalc(); });
+function prPayRecalc(){
+  const tb = document.getElementById('pr-pay-rows'), st = document.getElementById('pr-pay-status');
+  if (!tb || !st) return;
+  const total = D(tb.dataset.total || '0');
+  let sum = D0();
+  tb.querySelectorAll('[name=pay_amount]').forEach(i => {
+    const v = String(i.value || '').replace(/,/g, '').trim();
+    if (/^\d+(\.\d+)?$/.test(v)) sum = sum.plus(v);
+  });
+  const diff = total.minus(sum);
+  if (diff.eq(0)) st.innerHTML = `<span style="color:#15803d;font-weight:700">✓ Allocated: ${money(sum)} / ${money(total)} EGP</span>`;
+  else if (diff.gt(0)) st.innerHTML = `<span style="color:#b45309;font-weight:700">Remaining: ${money(diff)} EGP</span> <span class="muted">(Allocated: ${money(sum)})</span>`;
+  else st.innerHTML = `<span style="color:#b91c1c;font-weight:700">Over by ${money(diff.abs())} EGP</span> <span class="muted">(Allocated: ${money(sum)})</span>`;
+}
+document.addEventListener('input', e => {
+  if (!e.target || !e.target.closest) return;
+  if (e.target.closest('#pr-form')) prRecalc();
+  if (e.target.closest('#pr-pay-rows')) prPayRecalc();
+});
 
+function expenseView(x){
+  if (!x) return;
+  const e = S.entries.find(y => y.id === x.entryId);
+  const st = e ? e.status : (x.status || 'posted');
+  const isPosted = st === 'posted';
+  const b = x.bankId ? bankById(x.bankId) : null;
+  const pays = (x.payments && x.payments.length) ? x.payments : (b ? [{ bankId: b.id, amount: x.total }] : []);
+  const method = x.method === 'bank'
+    ? (pays.length > 1 ? pays.map(p => { const bk = bankById(p.bankId); return `${bk ? bk.name : 'Account'} (${money(p.amount)})`; }).join(' + ') : (b ? (b.name || bankLabel(b)) : 'Cash / bank'))
+    : x.method === 'supplier' ? 'Supplier bill' : 'Employee claim';
+  const mIcon = x.method === 'bank' ? 'banking' : x.method === 'supplier' ? 'truck' : 'users';
+  const lines = (x.lines && x.lines.length) ? x.lines : [{ category: 'Operating expense', description: x.ref, amount: x.total }];
+  const kv = (l, v0) => `<div class="xv-kv"><span>${l}</span><b>${v0 || '<i class="muted">—</i>'}</b></div>`;
+  const paidViaHtml = x.method === 'bank' && pays.length > 1
+    ? `<div style="display:flex;flex-wrap:wrap;gap:6px">${pays.map(p => { const bk = bankById(p.bankId); return `<span class="xp-m bank">${ic('banking', 13)}${esc(bk ? bk.name : 'Cash / bank')} · <b>${money(p.amount)} ${x.currency}</b></span>`; }).join('')}</div>`
+    : `<span class="xp-m ${x.method === 'bank' ? 'bank' : x.method === 'supplier' ? 'sup' : 'emp'}">${ic(mIcon, 13)}${esc(method)}</span>`;
+
+  const acts = [];
+  if (!isPosted && can('expenses', 'create')) acts.push(`<button type="button" class="btn primary" data-act="ex-post" data-id="${x.id}">${ic('check', 14)} Post</button>`);
+  if (isPosted && can('expenses', 'create')) acts.push(`<button type="button" class="btn" data-act="ex-reset-draft" data-id="${x.id}">${ic('undo', 14)} Reset to draft</button>`);
+  const editBtn = docButtons(x.carExp ? 'car-expense' : 'expense', x, false);
+  if (editBtn) acts.push(editBtn);
+  if (!isPosted && can('expenses', 'create')) acts.push(`<button type="button" class="btn danger" data-act="ex-del" data-id="${x.id}">${ic('close', 14)} Delete</button>`);
+  if (e) acts.push(`<button type="button" class="btn" data-act="je-view" data-id="${e.id}">${ic('accounting', 14)} Journal Entry</button>`);
+
+  openModal({
+    screen: { key: 'ex:' + x.id, reopen: () => { const z = S.expenses.find(y => y.id === x.id); if (z) expenseView(z); } },
+    title: 'Expense ' + x.number,
+    xwide: true,
+    body: `<div style="display:flex;flex-direction:column;gap:14px">
+      <div class="o-bar" style="margin:0;width:100%;max-width:none">
+        <div class="btns">${acts.join('')}</div>
+        <div class="o-status">
+          <span class="${!isPosted ? 'on' : ''}">Draft</span>
+          <span class="${isPosted ? 'on' : ''}">Posted</span>
+        </div>
+      </div>
+      <div class="co-ed xv"><div class="co-body"><div class="co-main">
+        <section class="co-card"><header><span class="co-step">${ic('expenses', 18)}</span><div class="co-ht"><h3>Expense details</h3><p>Operating expense · ${esc(x.date)}</p></div><b class="co-no">01</b></header>
+          <div class="xv-grid">${kv('Date', esc(x.date))}${kv('Paid via', paidViaHtml)}${kv('Payee / vendor', esc(x.payee || ''))}${kv('Reference', esc(x.ref || ''))}</div></section>
+        <section class="co-card"><header><span class="co-step">${ic('invoices', 18)}</span><div class="co-ht"><h3>Expense lines</h3><p>${lines.length} line${lines.length === 1 ? '' : 's'} · amounts in ${x.currency}</p></div><b class="co-no">02</b></header>
+          <div class="xv-lines"><table><thead><tr><th>Category</th><th>Partner</th><th>Cost centre</th><th>Car</th><th class="num">Amount</th></tr></thead><tbody>
+            ${lines.map(l => `<tr><td><b>${esc(l.category || 'Operating expense')}</b>${l.description ? `<span>${esc(l.description)}</span>` : ''}</td><td>${esc(l.partner || x.payee || '—')}</td><td>${esc(l.costCenter || '—')}</td><td>${l.vehicle ? `<span class="mono">${esc(l.vehicle)}</span>` : '—'}</td><td class="num">${money(l.amount)}</td></tr>`).join('')}
+          </tbody><tfoot><tr><td colspan="4">Total</td><td class="num">${money(x.total)} ${x.currency}</td></tr></tfoot></table></div></section>
+      </div>
+      <aside class="co-sum">
+        <div class="co-sum-top"><span class="co-sum-ic">${ic('expenses', 20)}</span><span class="co-sum-tag">${esc(st)}</span></div>
+        <h3>${esc(x.number)}</h3><p class="co-s-vin">${esc(x.date)}${x.payee ? ' · ' + esc(x.payee) : ''}</p>
+        <dl>
+          <div><dt>Paid via</dt><dd>${esc(method)}</dd></div>
+          <div><dt>Lines</dt><dd>${lines.length}</dd></div>
+          ${e ? `<div><dt>Journal entry</dt><dd><a class="xv-je" data-act="je-view" data-id="${e.id}" href="#/acc/journals">${esc(entryRef(e))}</a></dd></div>` : ''}
+        </dl>
+        <div class="co-s-tot"><span>Total</span><b>${money(x.total)} ${x.currency}</b></div>
+        ${e ? `<button type="button" class="btn xv-btn" data-act="je-view" data-id="${e.id}">${ic('accounting', 15)} Open journal entry</button>` : ''}
+        ${isPosted && can('expenses', 'create') ? `<button type="button" class="btn xv-btn" style="margin-top:8px" data-act="ex-reset-draft" data-id="${x.id}">${ic('undo', 15)} Reset to draft</button>` : ''}
+      </aside></div></div>
+    </div>`
+  });
+}
 function pageExpenses(){
   ensureStandardExpenseCats();
   const ed = can('expenses', 'approve');
@@ -10049,7 +10275,11 @@ function pageExpenses(){
   const tabs = [['', 'All'], ['bank', 'Cash & bank'], ['supplier', 'Supplier bills'], ['employee', 'Employee claims']];
   const plus = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-inline-end:4px"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>';
   const tile = (icon, cls, label, val, sub) => `<div class="xp-k ${cls}"><span class="xp-kic">${ic(icon, 18)}</span><div><span class="xp-kl">${label}</span><b>${money(val)} <small>EGP</small></b><em>${sub}</em></div></div>`;
-  const methodTag = x => { const b = x.bankId ? bankById(x.bankId) : null;
+  const methodTag = x => {
+    if (x.method === 'bank' && x.payments && x.payments.length > 1){
+      return x.payments.map(p => { const bk = bankById(p.bankId); return `<span class="xp-m bank" style="margin-inline-end:4px">${ic('banking', 13)}${esc(bk ? bk.name : 'Cash / bank')} (${money(p.amount)})</span>`; }).join('');
+    }
+    const b = x.bankId ? bankById(x.bankId) : null;
     return x.method === 'bank' ? `<span class="xp-m bank">${ic('banking', 13)}${esc(b ? b.name || bankLabel(b) : 'Cash / bank')}</span>` : x.method === 'supplier' ? `<span class="xp-m sup">${ic('truck', 13)}Supplier bill</span>` : `<span class="xp-m emp">${ic('users', 13)}Employee claim</span>`; };
 
   return H(t('expense_docs'), 'Running costs of the business — rent, utilities, salaries, marketing, office. Costs of a specific car are under Car expenses and go into that car’s cost.',
@@ -10440,51 +10670,100 @@ const P9_CLICKS = {
 
   'ex-view'(el){
     const x = S.expenses.find(y => y.id === el.dataset.id);
-    if (!x) return;
-    const e = S.entries.find(y => y.id === x.entryId);
-    const b = x.bankId ? bankById(x.bankId) : null;
-    const method = x.method === 'bank' ? (b ? (b.name || bankLabel(b)) : 'Cash / bank') : x.method === 'supplier' ? 'Supplier bill' : 'Employee claim';
-    const mIcon = x.method === 'bank' ? 'banking' : x.method === 'supplier' ? 'truck' : 'users';
-    const lines = (x.lines && x.lines.length) ? x.lines : [{ category: 'Operating expense', description: x.ref, amount: x.total }];
-    const kv = (l, v0) => `<div class="xv-kv"><span>${l}</span><b>${v0 || '<i class="muted">—</i>'}</b></div>`;
+    if (x) expenseView(x);
+  },
+  'ex-reset-draft'(el){
+    const x = S.expenses.find(y => y.id === el.dataset.id); if (!x) return;
+    const pr = (S.payrolls || []).find(p => p.expenseId === x.id);
     openModal({
-      title: 'Expense ' + x.number,
-      xwide: true,
-      body: `<div class="co-ed xv"><div class="co-body"><div class="co-main">
-        <section class="co-card"><header><span class="co-step">${ic('expenses', 18)}</span><div class="co-ht"><h3>Expense details</h3><p>Operating expense · ${esc(x.date)}</p></div><b class="co-no">01</b></header>
-          <div class="xv-grid">${kv('Date', esc(x.date))}${kv('Paid via', `<span class="xp-m ${x.method === 'bank' ? 'bank' : x.method === 'supplier' ? 'sup' : 'emp'}">${ic(mIcon, 13)}${esc(method)}</span>`)}${kv('Payee / vendor', esc(x.payee || ''))}${kv('Reference', esc(x.ref || ''))}</div></section>
-        <section class="co-card"><header><span class="co-step">${ic('invoices', 18)}</span><div class="co-ht"><h3>Expense lines</h3><p>${lines.length} line${lines.length === 1 ? '' : 's'} · amounts in ${x.currency}</p></div><b class="co-no">02</b></header>
-          <div class="xv-lines"><table><thead><tr><th>Category</th><th>Cost centre</th><th>Car</th><th class="num">Amount</th></tr></thead><tbody>
-            ${lines.map(l => `<tr><td><b>${esc(l.category || 'Operating expense')}</b>${l.description ? `<span>${esc(l.description)}</span>` : ''}</td><td>${esc(l.costCenter || '—')}</td><td>${l.vehicle ? `<span class="mono">${esc(l.vehicle)}</span>` : '—'}</td><td class="num">${money(l.amount)}</td></tr>`).join('')}
-          </tbody><tfoot><tr><td colspan="3">Total</td><td class="num">${money(x.total)} ${x.currency}</td></tr></tfoot></table></div></section>
-      </div>
-      <aside class="co-sum">
-        <div class="co-sum-top"><span class="co-sum-ic">${ic('expenses', 20)}</span><span class="co-sum-tag">${e ? esc(e.status) : 'Recorded'}</span></div>
-        <h3>${esc(x.number)}</h3><p class="co-s-vin">${esc(x.date)}${x.payee ? ' · ' + esc(x.payee) : ''}</p>
-        <dl>
-          <div><dt>Paid via</dt><dd>${esc(method)}</dd></div>
-          <div><dt>Lines</dt><dd>${lines.length}</dd></div>
-          ${e ? `<div><dt>Journal entry</dt><dd><a class="xv-je" data-act="je-view" data-id="${e.id}" href="#/acc/journals">${esc(entryRef(e))}</a></dd></div>` : ''}
-        </dl>
-        <div class="co-s-tot"><span>Total</span><b>${money(x.total)} ${x.currency}</b></div>
-        ${e ? `<button type="button" class="btn xv-btn" data-act="je-view" data-id="${e.id}">${ic('accounting', 15)} Open journal entry</button>` : ''}
-      </aside></div></div>`
+      title: `Reset ${x.number} to Draft`,
+      submit: 'Reset to Draft',
+      body: `<p>Are you sure you want to reset <b>${esc(x.number)}</b> back to draft status? Its journal entry will be unposted and removed from the general ledger until posted again.</p>
+        ${pr ? `<div class="note warn" style="margin-top:10px"><b>Notice:</b> This expense is linked to <b>${esc(monthLabel(pr.month))} Payroll</b>. Resetting it to draft will also unlock the ${esc(monthLabel(pr.month))} payroll sheet so you can edit it.</div>` : ''}
+        <div class="field" style="margin-top:12px"><label>Reason for resetting to draft *</label><input class="input" name="reason" value="Correction needed" required></div>`,
+      onSubmit: f => {
+        A.resetExpenseToDraft(x.id, f.reason);
+        toast(`${x.number} reset to draft.`, 'ok');
+        return () => { const z = S.expenses.find(y => y.id === x.id); if (z) expenseView(z); };
+      }
     });
+  },
+  'ex-post'(el){
+    const x = S.expenses.find(y => y.id === el.dataset.id); if (!x) return;
+    try {
+      A.postDraftExpense(x.id);
+      toast(`${x.number} posted successfully.`, 'ok');
+      expenseView(S.expenses.find(y => y.id === x.id));
+    } catch (err){ toast(err.message, 'bad'); }
+  },
+  'ex-del'(el){
+    const x = S.expenses.find(y => y.id === el.dataset.id); if (!x) return;
+    if (!confirm(`Delete draft expense ${x.number}? This action cannot be undone.`)) return;
+    try {
+      A.deleteDraftExpense(x.id);
+      closeModal();
+      render();
+      toast(`${x.number} deleted.`, 'ok');
+    } catch (err){ toast(err.message, 'bad'); }
+  },
+  'ex-add-pay'(){
+    const box = document.getElementById('ex-pay-splits'); if (!box) return;
+    box.hidden = false;
+    const tb = document.getElementById('ex-pay-tbody'); if (!tb) return;
+    const form = document.getElementById('mform');
+    if (tb.children.length === 0 && form){
+      const firstBank = (form.querySelector('[name=bankId]') || {}).value || '';
+      let tot = D0();
+      form.querySelectorAll('[name=ex_amount]').forEach(i => { const v = i.value.trim().replace(/,/g, ''); if (/^\d+(\.\d+)?$/.test(v)) tot = tot.plus(v); });
+      tb.insertAdjacentHTML('beforeend', `<tr><td><select class="input" name="pay_bank">${bankOptions(firstBank)}</select></td><td style="width:150px"><input class="input num mono" name="pay_amount" inputmode="decimal" value="${tot.gt(0) ? tot.toFixed(2) : ''}" placeholder="0.00"></td><td style="width:34px"><button type="button" class="jl-del" data-act="ex-del-pay">${ic('close', 14)}</button></td></tr>`);
+    }
+    tb.insertAdjacentHTML('beforeend', `<tr><td><select class="input" name="pay_bank">${bankOptions('')}</select></td><td style="width:150px"><input class="input num mono" name="pay_amount" inputmode="decimal" placeholder="0.00"></td><td style="width:34px"><button type="button" class="jl-del" data-act="ex-del-pay">${ic('close', 14)}</button></td></tr>`);
+    const singleSel = document.getElementById('ex-single-bank-wrap'); if (singleSel) singleSel.hidden = true;
+    exRecalc();
+  },
+  'ex-del-pay'(el){
+    const tb = document.getElementById('ex-pay-tbody'); if (!tb) return;
+    el.closest('tr').remove();
+    if (tb.children.length === 0){
+      const box = document.getElementById('ex-pay-splits'); if (box) box.hidden = true;
+      const singleSel = document.getElementById('ex-single-bank-wrap'); if (singleSel) singleSel.hidden = false;
+    }
+    exRecalc();
   },
   'ex-new'(){
     if (!S.expenseCats.length) ensureStandardExpenseCats();
+    hrInit();
+    const partnerOpts = [
+      ...(S.employees || []).filter(p => p.active !== false).map(p => `<option value="${esc(p.name)}">${esc(p.code || 'EMP')} · employee${p.title ? ' · ' + esc(p.title) : ''}</option>`),
+      ...(S.suppliers || []).filter(p => p.active !== false).map(p => `<option value="${esc(p.legalName)}">${esc(p.code)} · vendor</option>`),
+      ...(S.customers || []).filter(p => p.active !== false).map(p => `<option value="${esc(p.legalName)}">${esc(p.code)} · customer</option>`)
+    ].join('');
     openModal({ title: 'New expense', xwide: true, submit: 'Save & submit', body: `
     <datalist id="ex-cats">${S.expenseCats.filter(c => c.active !== false).map(c => `<option value="${esc(c.name)}">${esc((acc(c.accountId) || {}).code || '')} · category</option>`).join('')}
       ${S.accounts.filter(a => !a.isGroup && a.active && ['expense'].includes(a.type)).sort((x, y) => x.code < y.code ? -1 : 1).map(a => `<option value="${esc(a.code + ' ' + accName(a))}">account</option>`).join('')}</datalist>
-    <datalist id="ex-partners">${S.suppliers.filter(p => p.active !== false).map(p => `<option value="${esc(p.legalName)}">${esc(p.code)} · vendor</option>`).join('')}</datalist>
+    <datalist id="ex-partners">${partnerOpts}</datalist>
     <datalist id="ex-cars">${S.vehicles.filter(v => !v.closedAt).map(v => `<option value="${esc(v.vin)}">${esc(carName(v))}</option>`).join('')}</datalist>
     <div class="je-ed ex-ed">
       <div class="je-head"><div class="je-kind">Expense</div><h2>New expense</h2></div>
       <div class="je-fields">
         <div class="je-col">
           <label class="jf"><span>Paid via *</span><select class="input" name="method"><option value="bank">Bank / cash (paid now)</option><option value="supplier">Vendor bill (pay later)</option><option value="employee">Employee reimbursement</option></select></label>
-          <label class="jf" id="ex-bank-row"><span>Paid from *</span><select class="input" name="bankId">${bankOptions('')}</select></label>
-          <label class="jf"><span id="ex-partner-lbl">Partner</span><div class="fa-in"><input class="input" name="partner" list="ex-partners" placeholder="Search vendor or type a name…" autocomplete="off"><button type="button" class="btn sm" data-act="ex-new-vendor">New vendor</button></div></label>
+          <div class="jf" id="ex-bank-row"><span>Paid from *</span>
+            <div>
+              <div id="ex-single-bank-wrap" style="display:flex;gap:6px;align-items:center">
+                <select class="input" name="bankId" style="flex:1">${bankOptions('')}</select>
+                <button type="button" class="btn sm" data-act="ex-add-pay" title="Pay from multiple Bank / Cash accounts">+ Split</button>
+              </div>
+              <div id="ex-pay-splits" hidden style="border:1px solid #e2e8f0;border-radius:8px;padding:8px;background:#f8fafc">
+                <table class="je-grid" style="margin:0"><thead><tr><th>Bank / Cash Account</th><th class="num" style="width:150px">Amount</th><th style="width:34px"></th></tr></thead><tbody id="ex-pay-tbody"></tbody></table>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">
+                  <button type="button" class="je-add" data-act="ex-add-pay">+ Add account</button>
+                  <span id="ex-pay-split-stat" style="font-size:12px"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <label class="jf"><span id="ex-partner-lbl">Partner</span><div class="fa-in"><input class="input" name="partner" list="ex-partners" placeholder="Search partner, employee, or vendor…" autocomplete="off"><button type="button" class="btn sm" data-act="ex-new-vendor">New vendor</button></div></label>
         </div><div class="je-col">
           <label class="jf"><span>Date *</span><input class="input" type="date" name="date" value="${todayCairo()}" required></label>
           <label class="jf"><span id="ex-ref-lbl">Reference</span><input class="input" name="ref" placeholder="receipt / invoice no."></label>
@@ -11548,14 +11827,89 @@ Object.assign(CLICK, {
   'pr-xlsx'(){ const form = document.getElementById('pr-form'), month = UI.prMonth || todayCairo().slice(0, 7), sh = payrollSheet(month);
     if (form && !sh.posted && sh.lines.length && can('expenses', 'create')){ try { A.savePayroll(month, formData(form)); } catch (ex){ if (ex instanceof AppError){ toast(ex.message, 'bad'); return; } throw ex; } }
     payrollExport(month, null); },
+  'pr-save-top'(){ const form = document.getElementById('pr-form'); if (form) run(() => { A.savePayroll(form.dataset.month, formData(form)); }, 'Payroll draft saved.'); },
+  'pr-reset-draft'(el){
+    const month = el.dataset.month || UI.prMonth || todayCairo().slice(0, 7);
+    const pr = payrollOf(month); if (!pr) return;
+    const x = pr.expenseId ? S.expenses.find(z => z.id === pr.expenseId) : null;
+    openModal({
+      title: `Reset ${monthLabel(month)} Payroll to Draft`,
+      submit: 'Reset to Draft',
+      body: `<p>Are you sure you want to reset <b>${esc(monthLabel(month))}</b> payroll back to draft status?</p>
+        ${x ? `<div class="note warn" style="margin-top:10px"><b>Notice:</b> This will unpost and remove the generated payroll expense voucher <b>${esc(x.number)}</b> and its journal entry so you can edit the salaries, bonuses, deductions, or payment accounts and post again cleanly.</div>` : ''}
+        <div class="field" style="margin-top:12px"><label>Reason for resetting to draft *</label><input class="input" name="reason" value="Adjustment needed" required></div>`,
+      onSubmit: f => {
+        A.resetPayrollToDraft(month, f.reason);
+        toast(`${monthLabel(month)} payroll reset to draft.`, 'ok');
+      }
+    });
+  },
+  'pr-add-pay'(){
+    const tb = document.getElementById('pr-pay-rows'); if (!tb) return;
+    const total = D(tb.dataset.total || '0');
+    let used = D0();
+    tb.querySelectorAll('[name=pay_amount]').forEach(i => { const v = String(i.value || '').replace(/,/g, '').trim(); if (/^\d+(\.\d+)?$/.test(v)) used = used.plus(v); });
+    const rem = total.minus(used);
+    const opts = bankOptions('', b => b.currency === 'EGP');
+    tb.insertAdjacentHTML('beforeend', `<tr class="pr-pay-row">
+      <td><select class="input" name="pay_bank">${opts}</select></td>
+      <td style="width:180px"><input class="input mono num" name="pay_amount" inputmode="decimal" value="${rem.gt(0) ? rem.toFixed(2) : ''}" placeholder="0.00"></td>
+      <td style="width:38px;text-align:center"><button type="button" class="jl-del" data-act="pr-del-pay" title="Remove">${ic('close', 14)}</button></td>
+    </tr>`);
+    prPayRecalc();
+  },
+  'pr-del-pay'(el){
+    const tb = document.getElementById('pr-pay-rows'); if (!tb || tb.children.length <= 1) return;
+    el.closest('tr').remove();
+    prPayRecalc();
+  },
   'pr-post'(){ const form = document.getElementById('pr-form'), month = UI.prMonth, sheet = form ? formData(form) : {};
     let sh; try { A.savePayroll(month, sheet); sh = payrollSheet(month); } catch (ex){ if (ex instanceof AppError){ toast(ex.message, 'bad'); return; } throw ex; }
+    const payLines = sh.lines.filter(l => l.net.gt(0));
+    if (!payLines.length){ toast('Nothing to pay this month — add employees or salaries first.', 'bad'); return; }
     const end = prMonthEnd(month), date = end < todayCairo() ? end : todayCairo();
-    openModal({ title: 'Post payroll ' + monthLabel(month), submit: 'Post ' + money(sh.net) + ' EGP', body: `
-      <div class="row"><div class="field"><label>Paid from *</label><select class="input" name="bankId">${bankOptions('', b => b.currency === 'EGP')}</select></div>
-        <div class="field"><label>Payment date *</label><input class="input" type="date" name="date" value="${date}"></div></div>
-      <p class="hint">This records one salaries expense (${sh.lines.filter(l => l.net.gt(0)).length} line${sh.lines.length === 1 ? '' : 's'}, ${money(sh.net)} EGP) under General expenses and posts it to the books. After posting, ${monthLabel(month)} payroll is locked.</p>`,
+    const byBank = new Map();
+    let unassigned = D0();
+    payLines.forEach(l => {
+      if (l.bankId) byBank.set(l.bankId, (byBank.get(l.bankId) || D0()).plus(l.net));
+      else unassigned = unassigned.plus(l.net);
+    });
+    const initSplits = [...byBank.entries()].map(([bid, amt]) => ({ bankId: bid, amount: amt.toFixed(2) }));
+    if (unassigned.gt(0) || !initSplits.length) initSplits.push({ bankId: '', amount: (unassigned.gt(0) ? unassigned : sh.net).toFixed(2) });
+    const rowHtml = (s, i) => `<tr class="pr-pay-row">
+      <td><select class="input" name="pay_bank">${bankOptions(s.bankId || '', b => b.currency === 'EGP')}</select></td>
+      <td style="width:180px"><input class="input mono num" name="pay_amount" inputmode="decimal" value="${s.amount}" placeholder="0.00"></td>
+      <td style="width:38px;text-align:center"><button type="button" class="jl-del" data-act="pr-del-pay" title="Remove">${ic('close', 14)}</button></td>
+    </tr>`;
+    openModal({ title: 'Post payroll — ' + monthLabel(month), wide: true, submit: 'Post ' + money(sh.net) + ' EGP', body: `
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:12px 14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;margin-bottom:14px">
+        <div><div style="font-size:11px;color:#64748b;text-transform:uppercase;font-weight:700">Employees</div><b style="font-size:15px">${payLines.length}</b></div>
+        <div><div style="font-size:11px;color:#64748b;text-transform:uppercase;font-weight:700">Base Salaries</div><b style="font-size:15px">${money(sh.salary)} EGP</b></div>
+        <div><div style="font-size:11px;color:#64748b;text-transform:uppercase;font-weight:700">Bonuses / Ded.</div><b style="font-size:15px;color:#15803d">+${money(sh.bonus)}</b> <span style="font-size:13px;color:#b91c1c">−${money(sh.deduction)}</span></div>
+        <div><div style="font-size:11px;color:#64748b;text-transform:uppercase;font-weight:700">Net to Pay</div><b style="font-size:16px;color:#0f172a">${money(sh.net)} EGP</b></div>
+      </div>
+      <div class="row" style="margin-bottom:12px">
+        <div class="field" style="max-width:220px"><label>Payment date *</label><input class="input" type="date" name="date" value="${date}" required></div>
+      </div>
+      <div class="field">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <label style="margin:0;font-weight:700">Paid from (Bank / Cash accounts) *</label>
+          <button type="button" class="btn sm" data-act="pr-add-pay">${ic('plus', 13)} Split across another Bank / Cash</button>
+        </div>
+        <div class="tbl-wrap" style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden">
+          <table class="je-grid" style="margin:0">
+            <thead><tr><th>Bank or Cash Account</th><th class="num" style="width:180px">Amount (EGP)</th><th style="width:38px"></th></tr></thead>
+            <tbody id="pr-pay-rows" data-total="${sh.net.toFixed(2)}">${initSplits.map(rowHtml).join('')}</tbody>
+            <tfoot><tr>
+              <td style="padding:8px 12px"><button type="button" class="je-add" data-act="pr-add-pay">+ Add another Bank / Cash account</button></td>
+              <td colspan="2" class="num" id="pr-pay-status" style="padding:8px 12px;font-size:13px"></td>
+            </tr></tfoot>
+          </table>
+        </div>
+      </div>
+      <p class="hint" style="margin-top:10px">You can pay the entire payroll from one account or split it across multiple Bank and Cash accounts. This creates a salaries expense voucher under General Expenses and posts the journal entry.</p>`,
       onSubmit: f => { const r = A.postPayroll(month, { ...f, sheet }); toast(`${monthLabel(month)} payroll posted as ${r.x.number}.`, 'ok'); } });
+    prPayRecalc();
   }
 });
 Object.assign(FORM_HANDLERS, { 'pr-save'(f, form){ run(() => { A.savePayroll(form.dataset.month, f); }, 'Payroll draft saved.'); } });
@@ -11795,9 +12149,12 @@ const DOC_KINDS = {
     block: d => { const i = d.invoiceId && S.invoices.find(x => x.id === d.invoiceId); return i ? invBlock(i) : ''; } },
   expense: { label: 'expense', coll: () => S.expenses, fn: 'createExpense', mod: () => 'expenses', call: f => A.createExpense(f),
     open: () => CLICK['ex-new'](),
-    toForm: d => { const inv = d.invoiceId ? S.invoices.find(i => i.id === d.invoiceId) : null, lines = inv ? inv.lines.map(l => ({ category: (S.expenseCats.find(c => c.accountId === l.accountId) || {}).name, description: l.description, amount: l.amount, costCenter: l.costCenter, vehicle: l.vehicle })) : (d.lines || []);
-      return { ...pickStr(d, ['date','method','bankId','ref']), supplierId: inv ? inv.partnerId : '', employee: d.method === 'employee' ? d.payee : '', payee: d.method === 'bank' ? d.payee : '',
-        ex_cat: lines.map(l => (S.expenseCats.find(c => c.name === l.category) || {}).id || ''), ex_desc: lines.map(l => l.description || ''), ex_amount: lines.map(l => l.amount || ''), ex_cc: lines.map(l => l.costCenter || ''), ex_vehicle: lines.map(l => l.vehicle || '') }; } },
+    toForm: d => { const inv = d.invoiceId ? S.invoices.find(i => i.id === d.invoiceId) : null, lines = inv ? inv.lines.map(l => ({ category: (S.expenseCats.find(c => c.accountId === l.accountId) || {}).name, description: l.description, amount: l.amount, costCenter: l.costCenter, vehicle: l.vehicle, partner: '' })) : (d.lines || []);
+      const resolveCat = v => { const c = (S.expenseCats || []).find(x => x.id === v || x.name === v); return c ? c.name : (v || ''); };
+      const pays = (d.payments && d.payments.length > 1) ? d.payments : [];
+      return { ...pickStr(d, ['date','method','bankId','ref']), partner: inv ? ((partnerById('ap', inv.partnerId) || {}).legalName || '') : (d.payee || ''), supplierId: inv ? inv.partnerId : '', employee: d.method === 'employee' ? d.payee : '', payee: d.method === 'bank' ? d.payee : '',
+        ...(pays.length ? { pay_bank: pays.map(p => p.bankId), pay_amount: pays.map(p => p.amount) } : {}),
+        ex_cat: lines.map(l => resolveCat(l.category)), ex_desc: lines.map(l => l.description || ''), ex_partner: lines.map(l => l.partner || ''), ex_amount: lines.map(l => l.amount || ''), ex_cc: lines.map(l => l.costCenter || ''), ex_vehicle: lines.map(l => l.vehicle || '') }; } },
   asset: { label: 'fixed asset', coll: () => S.assets, fn: 'createAsset', mod: () => 'assets', call: f => A.createAsset(f), entryOf: d => entryById(d.acquisitionEntryId), numberOf: d => d.code, entryOptional: true,
     open: () => CLICK['fa-new'](),
     toForm: d => { const e = entryById(d.acquisitionEntryId), bl = e ? e.lines.find(l => S.banks.some(b => b.glAccountId === l.accountId)) : null;
@@ -11873,7 +12230,15 @@ function correctBlock(kind, d){
   if (!can(reg.mod(d), 'create')) return 'Your role cannot enter these documents.';
   return reversalBlocker(e);
 }
-const formOf = (kind, d) => d.form ? clone(d.form) : DOC_KINDS[kind].toForm(d);
+const formOf = (kind, d) => {
+  const f = d.form ? clone(d.form) : DOC_KINDS[kind].toForm(d);
+  if (kind === 'expense' && f && f.ex_cat){
+    const resolveCat = v => { const c = (S.expenseCats || []).find(x => x.id === v || x.name === v); return c ? c.name : (v || ''); };
+    f.ex_cat = [].concat(f.ex_cat).map(resolveCat);
+    if (!f.partner && d.payee) f.partner = d.payee;
+  }
+  return f;
+};
 
 /* Take the document (its entry and anything generated with it) out of the working state. */
 function virtualRemove(reg, d){
@@ -11960,7 +12325,11 @@ for (const reg of Object.values(DOC_KINDS)){
 for (const name of ['createSettlement','createBankTxn','createTransfer','createExpense','createRefund','createAsset']){
   const prev = A[name]; if (!prev) continue;
   const w = function(...args){
-    for (const a of args) if (a && typeof a === 'object' && !Array.isArray(a)) for (const k of ['bankId','fromBankId','toBankId']) if (typeof a[k] === 'string' && /^(gl|newcash):/.test(a[k])) a[k] = materializeBank(a[k]);
+    for (const a of args) if (a && typeof a === 'object' && !Array.isArray(a)){
+      for (const k of ['bankId','fromBankId','toBankId']) if (typeof a[k] === 'string' && /^(gl|newcash):/.test(a[k])) a[k] = materializeBank(a[k]);
+      if (Array.isArray(a.pay_bank)) a.pay_bank = a.pay_bank.map(v => typeof v === 'string' && /^(gl|newcash):/.test(v) ? materializeBank(v) : v);
+      else if (typeof a.pay_bank === 'string' && /^(gl|newcash):/.test(a.pay_bank)) a.pay_bank = materializeBank(a.pay_bank);
+    }
     return prev.apply(A, args);
   };
   w.__orig = prev.__orig || prev; A[name] = w;
@@ -11999,7 +12368,11 @@ function fillForm(f){
     const pre = kk.split('_')[0] + '_'; done.add(kk);
     for (const k2 of arr.filter(k => k !== kk && k.startsWith(pre))){ done.add(k2);
       f[kk].forEach((kv, i) => { const ke = all(kk).find(e => e.value === String(kv)); const el = ke && ke.closest('tr') && ke.closest('tr').querySelector(`[name="${k2}"]`); if (el) setEl(el, f[k2][i]); }); } }
-  const adders = [...form().querySelectorAll('button[data-act$="-add"]')];
+  if (Array.isArray(f.pay_bank) && f.pay_bank.length > 1 && form().querySelector('[data-act="ex-add-pay"]')){
+    const tb = document.getElementById('ex-pay-tbody');
+    while (tb && tb.children.length < f.pay_bank.length) CLICK['ex-add-pay']();
+  }
+  const adders = [...form().querySelectorAll('button[data-act$="-add"], button[data-act$="-add-line"]')];
   for (const k of arr.filter(k => !done.has(k))){
     const vals = f[k]; let els = all(k); if (!els.length) continue;
     if (els[0].type === 'checkbox' || els[0].type === 'radio'){ els.forEach(el => setEl(el, vals)); continue; }
@@ -12062,6 +12435,11 @@ function operationalReversalBlocker(e){
   return '';
 }
 function onEntryReversed(e, r){
+  const ex = (S.expenses || []).find(x => x.entryId === e.id);
+  if (ex){
+    const pr = (S.payrolls || []).find(p => p.expenseId === ex.id);
+    if (pr && pr.status === 'posted'){ pr.status = 'draft'; pr.expenseId = null; }
+  }
   const back = (vids, status, why) => { for (const vid of vids || []){ const v = vehById(vid); if (!v) continue; const m = lastMoveTo(v, status, e.number); if (m && v.status === status){ v.status = m.from; recordMove(v, 'status', status, m.from, why, r.accountingDate, r.number); } } };
   if (e.purchaseFor) back(e.purchaseFor, 'purchased', `Purchase invoice ${e.number} reversed by ${r.number}`);
   if (e.saleAction && e.saleAction.type === 'invoice') back(e.saleAction.vehicleIds, 'sold', `Sale ${e.number} reversed by ${r.number}`);
@@ -14951,6 +15329,13 @@ function exRecalc(){
   form.querySelector('#ex-cur').textContent = cur; form.querySelector('#ex-ref-lbl').textContent = m === 'supplier' ? 'Vendor invoice no. *' : 'Reference';
   let t = D0(), bad = false; form.querySelectorAll('[name=ex_amount]').forEach(i => { const v = i.value.trim().replace(/,/g, ''); if (!v) return; if (/^\d+(\.\d+)?$/.test(v)) t = t.plus(v); else bad = true; });
   form.querySelector('#ex-total').innerHTML = `<span class="muted">Total</span> <b>${bad ? '—' : money(t)}</b> <span class="muted">${cur}</span>`;
+  const splitBox = form.querySelector('#ex-pay-splits'), splitStat = form.querySelector('#ex-pay-split-stat');
+  if (splitBox && !splitBox.hidden && splitStat){
+    let ps = D0();
+    splitBox.querySelectorAll('[name=pay_amount]').forEach(i => { const v = i.value.trim().replace(/,/g, ''); if (/^\d+(\.\d+)?$/.test(v)) ps = ps.plus(v); });
+    const diff = t.minus(ps);
+    splitStat.innerHTML = diff.eq(0) ? `<b style="color:#15803d">✓ Balanced (${money(ps)} ${cur})</b>` : `<b style="color:#b45309">Remaining: ${money(diff)} ${cur}</b>`;
+  }
   form.querySelectorAll('[name=ex_cat]').forEach(i => { const ok = !i.value.trim() || (() => { try { return !!expenseCatFrom(i.value); } catch (e){ return false; } })(); i.classList.toggle('bad-in', !ok); i.title = ok ? '' : 'No category or expense account matches'; });
 }
 /* Reopen the expense form after a quick-create, keeping what was typed. */
