@@ -2072,6 +2072,47 @@ th{white-space:normal}th.num{white-space:nowrap}
 .sbs{grid-template-columns:repeat(3,minmax(0,1fr))!important}
 @media (min-width:1500px){.sbs{grid-template-columns:repeat(6,minmax(0,1fr))!important}}
 @media (max-width:760px){.sbs{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+
+/* ==== New car order form ==== */
+.co-ed{display:flex;flex-direction:column;gap:16px}
+.co-kinds{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.co-kind{display:flex;align-items:flex-start;gap:12px;text-align:start;padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:var(--surface);cursor:pointer;font:inherit;color:var(--text)}
+.co-kind:hover{border-color:#c9d0da}
+.co-kind b{display:block;font-size:14px;font-weight:600}.co-kind small{display:block;font-size:12.5px;color:var(--muted);margin-top:2px;line-height:1.35}
+.co-kic{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;flex:none;background:var(--surface-2);color:var(--muted)}
+.co-kind.on{border-color:var(--btn-primary,#1f2a3c);box-shadow:inset 0 0 0 1px var(--btn-primary,#1f2a3c);background:#fbfcfd}
+.co-kind.on .co-kic{background:var(--btn-primary,#1f2a3c);color:#fff}
+.co-kind:focus-visible{outline:2px solid var(--info);outline-offset:2px}
+.co-body{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px;align-items:start}
+.co-main{display:flex;flex-direction:column;gap:16px;min-width:0}
+.co-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px}
+.co-card header{margin-bottom:14px}.co-card h3{margin:0;font-size:15px;font-weight:600}.co-card header p{margin:3px 0 0;font-size:12.5px;color:var(--muted)}
+.co-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px 16px}
+.co-f{display:flex;flex-direction:column;gap:6px;min-width:0;margin:0}
+.co-f > span{font-size:13px;font-weight:500;color:var(--text-2)}
+.co-f > span em{font-style:normal;color:var(--muted);font-weight:400;margin-inline-start:4px}
+.co-f.span2{grid-column:span 2}
+.co-f .input{height:40px}
+.co-f .hint:empty{display:none}
+.co-vin{position:relative}.co-vin .input{text-transform:uppercase;letter-spacing:.06em;padding-inline-end:52px}
+.co-cnt{position:absolute;inset-inline-end:12px;top:50%;transform:translateY(-50%);font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.co-cnt.ok{color:var(--ok);font-weight:600}
+.co-money{display:flex;align-items:stretch;border:1px solid var(--border);border-radius:8px;background:#fff;overflow:hidden;height:40px}
+.co-money:focus-within{border-color:var(--gold);box-shadow:var(--focus)}
+.co-money .input{border:0!important;box-shadow:none!important;flex:1;min-width:0;height:auto!important;text-align:end;border-radius:0}
+.co-money select,.co-money > span{border:0;border-inline-start:1px solid var(--border);background:var(--surface-2);padding:0 10px;font:inherit;font-size:13px;font-weight:600;color:var(--text-2);display:flex;align-items:center}
+.co-sum{position:sticky;top:0;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px}
+.co-sum-ic{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:var(--surface-2);color:var(--text-2);margin-bottom:12px}
+.co-sum h3{margin:0;font-size:18px;font-weight:700;letter-spacing:-.01em;word-break:break-word}
+.co-s-vin{margin:3px 0 14px;font-size:12.5px;color:var(--muted);font-family:var(--mono,ui-monospace,monospace)}
+.co-sum dl{margin:0;border-top:1px solid var(--border)}
+.co-sum dl div{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid #eef1f5;font-size:13px}
+.co-sum dt{color:var(--muted)}.co-sum dd{margin:0;text-align:end;font-weight:500;min-width:0;overflow-wrap:anywhere}
+.co-s-tot{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-top:14px;padding:12px 14px;border-radius:10px;background:var(--surface-2)}
+.co-s-tot span{font-size:13px;color:var(--text-2)}.co-s-tot b{font-size:18px;font-variant-numeric:tabular-nums}
+.co-s-note{margin:12px 0 0;font-size:12px;color:var(--muted);line-height:1.45}
+@media (max-width:1100px){.co-body{grid-template-columns:1fr}.co-sum{position:static}}
+@media (max-width:760px){.co-kinds{grid-template-columns:1fr}.co-grid{grid-template-columns:1fr 1fr}.co-f.span2{grid-column:1/-1}}
 </style>
 
 <!-- Journal Entry Right Side Drawer CSS & JS -->
@@ -6837,6 +6878,8 @@ function markClickableRows(){ document.querySelectorAll('main.content td:not(.nw
 if (typeof MutationObserver !== 'undefined') new MutationObserver(() => { clearTimeout(window.__mcr); window.__mcr = setTimeout(markClickableRows, 30); }).observe(document.documentElement, { childList: true, subtree: true });
 /* Line icons (24 × 24, stroke = currentColor) — Modern Feather/Lucide vector set. */
 const ICONS = {
+  users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  swap: '<path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/>',
   logout: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/>',
   expenses: '<path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 17.5v-11"/>',
   grid: '<rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="10" y="3" rx="1"/><rect width="5" height="5" x="17" y="3" rx="1"/><rect width="5" height="5" x="3" y="10" rx="1"/><rect width="5" height="5" x="10" y="10" rx="1"/><rect width="5" height="5" x="17" y="10" rx="1"/><rect width="5" height="5" x="3" y="17" rx="1"/><rect width="5" height="5" x="10" y="17" rx="1"/><rect width="5" height="5" x="17" y="17" rx="1"/>',
@@ -11877,7 +11920,7 @@ if (typeof document !== 'undefined' && document.addEventListener){
             const form = e.target.closest('form') || document.getElementById('mform');
             if (e.target.dataset.pick === 'make' && form){
               refreshModels(form);
-              const md = form.querySelector('[data-pick=model]');
+              const md = form.querySelector('input[data-pick=model]');
               if (md) setTimeout(() => { try { md.focus(); const mdWrap = md.closest('.combo-wrap'); if (mdWrap) renderComboDropdown(mdWrap, '', true); } catch(x){} }, 60);
             }
           } else {
@@ -11892,7 +11935,7 @@ if (typeof document !== 'undefined' && document.addEventListener){
 
   document.addEventListener('input', e => {
     const form = document.getElementById('mform'); if (!form || !form.contains(e.target) || !e.target.matches('[data-vin]')) return;
-    const g = vinGuess(e.target.value), mk = form.querySelector('[data-pick=make]'), h = document.getElementById('vin-hint');
+    const g = vinGuess(e.target.value), mk = form.querySelector('input[data-pick=make]'), h = document.getElementById('vin-hint');
     if (g.make && mk && (!mk.value || mk.dataset.auto)){
       mk.value = g.make;
       mk.dataset.auto = '1';
@@ -11993,29 +12036,62 @@ function pageImportOrders(){
 function importOrderForm(kind = 'customer'){
   const last = [...S.purchaseOrders].filter(p => p.importOrder && p.kind !== 'local').sort((a, b) => a.createdAt < b.createdAt ? 1 : -1)[0];
   const lastSup = last ? partnerById('ap', last.supplierId) : null, cur = last ? last.currency : 'EUR';
-  const sec = (txt, sub) => `<div class="o-sec" style="margin-top:18px;padding-top:14px"><h3>${txt}${sub ? `<span class="muted" style="font-weight:400;font-size:13px">${sub}</span>` : ''}</h3>`;
+  const kinds = [['customer', 'users', 'Import for a customer', 'The customer is known; their deposits go on the order'], ['stock', 'cars', 'Import for stock', 'You choose the buyer when you sell'], ['local', 'swap', 'Buy from a customer', 'Buy a used car locally and resell it']];
+  const f = (label, input, cls = '') => `<label class="co-f ${cls}"><span>${label}</span>${input}</label>`;
+  const card = (title, sub, body) => `<section class="co-card"><header><h3>${title}</h3>${sub ? `<p>${sub}</p>` : ''}</header><div class="co-grid">${body}</div></section>`;
+  const carCard = card('Car', 'Typing the chassis fills in the brand when it recognises the maker.',
+    f('Brand *', combo('makeName', makeOpts(), '', 'Pick or type, e.g. BMW', 'make')) +
+    f('Model *', combo('modelName', [], '', 'Pick or type, e.g. X5', 'model')) +
+    f('Chassis number (VIN) *', `<div class="co-vin"><input class="input mono" name="vin" data-vin autocomplete="off" placeholder="e.g. WBA5A31060G123456" maxlength="17"><span class="co-cnt" id="co-vin-cnt">0/17</span></div><span class="hint" id="vin-hint"></span>`, 'span2') +
+    f('Model year', `<input class="input mono" name="year" value="${todayCairo().slice(0, 4)}" inputmode="numeric" maxlength="4">`) +
+    (kind === 'local' ? f('Mileage (km)', '<input class="input mono" name="mileage" inputmode="numeric">') + f('Colour', '<input class="input" name="exteriorColor">') : ''));
+  const partyCard = kind === 'customer' ? card('Customer', 'The car is imported for this customer.',
+      f('Customer *', combo('customerName', partnerOpts('ar'), '', 'Pick or type a new customer name', 'customer'), 'span2') +
+      f('Mobile', '<input class="input" name="customerPhone" inputmode="tel" placeholder="Only needed for a new customer">'))
+    : kind === 'local' ? card('Seller', 'The customer you are buying the car from.',
+      f('Seller *', combo('sellerName', partnerOpts('ap'), '', 'Pick or type the seller’s name', 'supplier'), 'span2') +
+      f('Mobile', '<input class="input" name="sellerPhone" inputmode="tel" placeholder="Only needed for a new seller">')) : '';
+  const priceCard = kind === 'local' ? card('Price', '', f('Agreed price *', '<div class="co-money"><input class="input mono" name="price" inputmode="decimal" placeholder="0.00"><span>EGP</span></div>') + f('Date', `<input class="input" type="date" name="date" value="${todayCairo()}">`))
+    : card('Supplier & price', kind === 'stock' ? 'Bought for stock — you choose the buyer when you sell.' : '',
+      f('Supplier *', combo('supplierName', partnerOpts('ap'), lastSup ? lastSup.legalName : '', 'Pick or type a new supplier name', 'supplier'), 'span2') +
+      f('Order date', `<input class="input" type="date" name="date" value="${todayCairo()}">`) +
+      f('Purchase price *', `<div class="co-money"><input class="input mono" name="price" inputmode="decimal" placeholder="0.00"><select name="currency" aria-label="Currency">${S.companyCurrencies.filter(c => c.active).map(c => `<option ${c.code === cur ? 'selected' : ''}>${c.code}</option>`).join('')}</select></div>`) +
+      f(`Exchange rate <em data-rate-lbl>1 ${cur} = ? EGP</em>`, `<input class="input mono" name="rate" data-rate-for="currency" inputmode="decimal" autocomplete="off" placeholder="from today’s rate">`));
   return `<input type="hidden" name="kind" value="${kind}">
-    <div class="o-sec" style="border-top:0;padding-top:0;margin-top:0"><h3>Car</h3>
-    <div class="row"><div class="field"><label>Brand *</label>${combo('makeName', makeOpts(), '', 'Pick or type, e.g. BMW', 'make')}</div>
-      <div class="field"><label>Model *</label>${combo('modelName', [], '', 'Pick or type, e.g. X5', 'model')}</div></div>
-    <div class="row" style="align-items:flex-start"><div class="field" style="width:280px;max-width:280px"><label>Chassis number (VIN) *</label><input class="input mono" name="vin" data-vin autocomplete="off" style="text-transform:uppercase;letter-spacing:1px" placeholder="17 characters"><span class="hint" id="vin-hint">Typing the chassis fills in the brand when it recognises the maker.</span></div>
-      <div class="field" style="width:110px;max-width:110px"><label>Year</label><input class="input mono" name="year" value="${todayCairo().slice(0, 4)}" style="text-align:center"></div>
-      ${kind === 'local' ? '<div class="field" style="max-width:140px"><label>Mileage (km)</label><input class="input mono" name="mileage" inputmode="numeric"></div><div class="field" style="max-width:150px"><label>Colour</label><input class="input" name="exteriorColor"></div>' : ''}</div></div>
-    ${kind === 'customer' ? `${sec('Customer', ' — the car is imported for them')}
-    <div class="row"><div class="field" style="flex:2"><label>Customer *</label>${combo('customerName', partnerOpts('ar'), '', 'Pick or type a new customer name', 'customer')}</div>
-      <div class="field"><label>Mobile</label><input class="input" name="customerPhone" placeholder="only for a new customer"></div></div></div>` : ''}
-    ${kind === 'local' ? `${sec('Seller', ' — the customer you are buying the car from')}
-    <div class="row"><div class="field" style="flex:2"><label>Seller *</label>${combo('sellerName', partnerOpts('ap'), '', 'Pick or type the seller’s name', 'supplier')}</div>
-      <div class="field"><label>Mobile</label><input class="input" name="sellerPhone" placeholder="only for a new seller"></div></div>
-    <div class="row"><div class="field" style="flex:2"><label>Agreed price (EGP) *</label><input class="input mono" name="price" inputmode="decimal"></div>
-      <div class="field" style="max-width:170px"><label>Date</label><input class="input" type="date" name="date" value="${todayCairo()}"></div></div></div>`
-    : `${sec('Purchase order', kind === 'stock' ? ' — for stock, you choose the buyer when you sell' : '')}
-    <div class="row"><div class="field" style="flex:2"><label>Supplier *</label>${combo('supplierName', partnerOpts('ap'), lastSup ? lastSup.legalName : '', 'Pick or type a new supplier name', 'supplier')}</div>
-      <div class="field"><label>Purchase price *</label><input class="input mono" name="price" inputmode="decimal"></div>
-      <div class="field" style="max-width:110px"><label>Currency</label><select class="input" name="currency">${S.companyCurrencies.filter(c => c.active).map(c => `<option ${c.code === cur ? 'selected' : ''}>${c.code}</option>`).join('')}</select></div>
-      <div class="field" style="max-width:170px"><label>Exchange rate <span class="muted" data-rate-lbl>1 ${cur} = ? EGP</span></label><input class="input mono" name="rate" data-rate-for="currency" inputmode="decimal" autocomplete="off"></div>
-      <div class="field" style="max-width:170px"><label>Order date</label><input class="input" type="date" name="date" value="${todayCairo()}"></div></div></div>`}`;
+  <div class="co-ed">
+    <div class="co-kinds" role="radiogroup" aria-label="Type of deal">${kinds.map(([k, i, t0, d]) => `<button type="button" role="radio" aria-checked="${k === kind}" class="co-kind${k === kind ? ' on' : ''}" data-act="io-kind" data-kind="${k}"><span class="co-kic">${ic(i, 18)}</span><span><b>${t0}</b><small>${d}</small></span></button>`).join('')}</div>
+    <div class="co-body">
+      <div class="co-main">${carCard}${partyCard}${priceCard}</div>
+      <aside class="co-sum" aria-live="polite">
+        <div class="co-sum-ic">${ic('cars', 22)}</div>
+        <h3 id="co-s-car">New car</h3><p class="co-s-vin" id="co-s-vin">Chassis not entered</p>
+        <dl>
+          ${kind === 'customer' ? '<div><dt>Customer</dt><dd id="co-s-cust">—</dd></div>' : kind === 'local' ? '<div><dt>Seller</dt><dd id="co-s-sell">—</dd></div>' : '<div><dt>Buyer</dt><dd>chosen when you sell</dd></div>'}
+          ${kind !== 'local' ? '<div><dt>Supplier</dt><dd id="co-s-sup">—</dd></div>' : ''}
+          <div><dt>Price</dt><dd id="co-s-price">—</dd></div>
+          ${kind !== 'local' ? '<div><dt>Rate</dt><dd id="co-s-rate">—</dd></div>' : ''}
+        </dl>
+        <div class="co-s-tot"><span>Cost in EGP</span><b id="co-s-egp">—</b></div>
+        <p class="co-s-note">${kind === 'local' ? 'The purchase is recorded when you receive the car.' : 'The supplier bill is recorded when the car arrives; deposits can be added on the order.'}</p>
+      </aside>
+    </div>
+  </div>`;
 }
+function coRecalc(){
+  const form = document.getElementById('mform'); if (!form || !form.querySelector('.co-ed')) return;
+  const v = n => ((form.querySelector(`[name=${n}]`) || {}).value || '').trim(), set = (id, t0) => { const el = form.querySelector('#' + id); if (el) el.textContent = t0; };
+  const car = [v('makeName'), v('modelName'), v('year')].filter(Boolean).join(' ');
+  set('co-s-car', car || 'New car'); const h = document.querySelector('.modal .modal-h h3, .modal-h h3'); 
+  const vin = v('vin').toUpperCase(); set('co-s-vin', vin ? 'Chassis ' + vin : 'Chassis not entered'); set('co-vin-cnt', vin.length + '/17');
+  const cnt = form.querySelector('#co-vin-cnt'); if (cnt) cnt.classList.toggle('ok', vin.length === 17);
+  set('co-s-cust', v('customerName') || '—'); set('co-s-sell', v('sellerName') || '—'); set('co-s-sup', v('supplierName') || '—');
+  const kind = v('kind'), cur = kind === 'local' ? 'EGP' : (v('currency') || 'EGP'), price = v('price').replace(/,/g, ''), rate = v('rate').replace(/,/g, '');
+  const num = x => /^\d+(\.\d+)?$/.test(x);
+  set('co-s-price', num(price) ? `${money(price)} ${cur}` : '—'); set('co-s-rate', cur === 'EGP' ? '1.0000' : num(rate) ? `1 ${cur} = ${fmtNum(rate, 4)} EGP` : '—');
+  set('co-s-egp', num(price) && (cur === 'EGP' || num(rate)) ? money(D(price).mul(cur === 'EGP' ? 1 : rate)) + ' EGP' : '—');
+}
+document.addEventListener('input', e => { if (e.target.closest && e.target.closest('.co-ed')) coRecalc(); });
+document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.co-ed')) setTimeout(coRecalc, 0); });
 const ORDER_KINDS = { customer: ['Customer import', 'info', 'Import for a customer'], stock: ['Stock import', 'gold', 'Import for stock'], local: ['Bought from customer', 'ok', 'Buy from a customer'] };
 const poKind = po => po.kind || (po.importOrder ? 'customer' : 'stock');
 
@@ -13342,10 +13418,14 @@ function poView(po){
     </div>` });
 }
 Object.assign(CLICK, {
-  'io-new'(el){ const kind = (el && el.dataset && el.dataset.kind) || 'customer';
-    openModal({ title: ORDER_KINDS[kind][2], xwide: true, submit: kind === 'local' ? 'Save purchase' : 'Create car & order', body: importOrderForm(kind),
+  'io-new'(el){ const kind = (el && el.dataset && el.dataset.kind) || 'customer'; if (!(el && el.dataset && el.dataset.keep)) UI.coKeep = {};
+    openModal({ title: 'New car order', xwide: true, submit: kind === 'local' ? 'Save purchase' : 'Create car & order', body: importOrderForm(kind),
     onSubmit: f => { const po = A.createImportOrder(f); toast(po.customerId ? `${po.number} created for ${partnerLabel(partnerById('ar', po.customerId))}.` : `${po.number} created${po.kind === 'local' ? ' — receive the car to record the purchase' : ' for stock'}.`, 'ok'); return () => poView(poById(po.id)); } });
-    const fm = document.getElementById('mform'); if (fm){ refreshCombos(fm); syncRateField(fm); } },
+    const fm = document.getElementById('mform'); if (fm){ refreshCombos(fm); syncRateField(fm); coRecalc(); } },
+  'io-kind'(el){ const form = document.getElementById('mform'), keep = UI.coKeep = UI.coKeep || {}; if (form) form.querySelectorAll('input[name],select[name]').forEach(i => { if (i.name !== 'kind') keep[i.name] = i.value; });
+    CLICK['io-new']({ dataset: { kind: el.dataset.kind, keep: '1' } }); const f2 = document.getElementById('mform'); if (!f2) return;
+    for (const [n, v0] of Object.entries(keep)){ if (!v0) continue; const i = f2.querySelector(`[name="${n}"]`); if (i && (i.type !== 'date' || v0)) { i.value = v0; i.dispatchEvent(new Event('input', { bubbles: true })); } }
+    const fv = f2.querySelector('[name=makeName]'); if (fv) fv.dispatchEvent(new Event('change', { bubbles: true })); syncRateField(f2); coRecalc(); },
   'po-view'(el){ const po = poById(el.dataset.id); if (po) poView(po); },
   'po-adv'(el){ closeModal(); openPoAdvance(poById(el.dataset.id), el.dataset.side); },
 });
@@ -14262,7 +14342,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261107-145447';
+const APP_BUILD = 'build-20261107-145925';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
