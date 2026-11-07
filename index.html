@@ -2367,6 +2367,11 @@ html[dir=rtl] .pr-month .btn .ic{transform:scaleX(-1)}html[dir=rtl] .pr-next .ic
 .pf-row{cursor:pointer;transition:background .12s}.pf-row:hover{background:#fafbfc}
 .pf-tbl td.num b{font-weight:650}
 .fs-f select.input{height:38px;min-width:150px}
+
+.fs-tbl tr[data-act],.fs-tbl tr[data-href]{cursor:pointer;transition:background .12s}
+.fs-tbl tr[data-act]:hover td,.fs-tbl tr[data-href]:hover td{background:#f5f8ff}
+.fs-tbl tr[data-act]:hover td.num,.fs-tbl tr[data-href]:hover td.num{color:#1d4ed8;text-decoration:underline;text-underline-offset:3px}
+.fs-tbl tr[data-act]:focus-visible,.fs-tbl tr[data-href]:focus-visible{outline:2px solid var(--info);outline-offset:-2px}
 </style>
 
 <!-- Journal Entry Right Side Drawer CSS & JS -->
@@ -10467,13 +10472,16 @@ function pageStatements(){
     kpis = hero('banking', 'Closing cash', c.closing, `${R0.from} to ${R0.to}`, '<span class="xp-tag">Direct method</span>') + tile('wallet', 'info', 'Opening cash', c.opening, 'Start of the period') + tile('swap', D(c.closing).minus(c.opening).lt(0) ? 'bad' : 'ok', 'Net change', D(c.closing).minus(c.opening), 'Inflows less outflows') + tile('sales', 'gold', 'From operations', c.totals.operating, 'Net operating activities'); }
   if (kind === 'eq'){ const e = equityStatement(R0.from, R0.to);
     kpis = hero('wallet', 'Total equity', e.total, `${R0.from} to ${R0.to}`, '') + tile('coins', 'ok', 'Profit for the period', e.earn.profit, 'Unclosed earnings movement'); }
+  const fromD = kind === 'bs' ? '1900-01-01' : R0.from, toD = kind === 'bs' ? R0.asOf : R0.to;
+  const drill = code => { const a = code && S.accounts.find(x => x.code === code && !x.isGroup); return a ? ` data-act="is-gl" data-id="${a.id}" data-from="${fromD}" data-to="${toD}" tabindex="0" title="Open the general ledger for ${esc(a.code)}"` : ''; };
+  const earnRow = r => /^current year earnings|^unclosed earnings/i.test(r[1] || '') ? ` data-href="#/rep/statements?s=is" onclick="location.hash='#/rep/statements?s=is'" tabindex="0" title="Open profit & loss"` : '';
   const isTot = r => !r[0] && /^(total|net |gross|operating profit|opening cash|closing cash)/i.test(r[1]), isGrand = r => /^(total assets|total liabilities|closing cash|total equity|net profit)/i.test(r[1] || '');
   const body = kind === 'eq'
-    ? rows.slice(2).map(r => `<tr class="${!r[0] ? (/^total/i.test(r[1]) ? 'fs-grand' : 'fs-sub') : 'fs-acc'}"><td><span class="fs-code">${esc(r[0])}</span>${esc(r[1])}</td>${r.slice(2).map(c => `<td class="num${typeof c === 'number' && c < 0 ? ' neg' : ''}">${typeof c === 'number' ? money(c) : ''}</td>`).join('')}</tr>`).join('')
+    ? rows.slice(2).map(r => `<tr class="${!r[0] ? (/^total/i.test(r[1]) ? 'fs-grand' : 'fs-sub') : 'fs-acc'}"${drill(r[0])}${earnRow(r)}><td><span class="fs-code">${esc(r[0])}</span>${esc(r[1])}</td>${r.slice(2).map(c => `<td class="num${typeof c === 'number' && c < 0 ? ' neg' : ''}">${typeof c === 'number' ? money(c) : ''}</td>`).join('')}</tr>`).join('')
     : rows.slice(1).map(r => {
       if (r.length === 1) return `<tr class="fs-sec"><td colspan="${cmp ? 3 : 2}">${esc(r[0])}</td></tr>`;
       const cls = isGrand(r) ? 'fs-grand' : isTot(r) ? 'fs-sub' : 'fs-acc', neg = Number(r[2]) < 0;
-      return `<tr class="${cls}"><td>${r[0] ? `<span class="fs-code">${esc(r[0])}</span>` : ''}${esc(r[1])}</td><td class="num${neg ? ' neg' : ''}">${money(r[2])}</td>${cmp ? `<td class="num fs-cmp">${cmpMap.has(r[0] + '|' + r[1]) ? money(cmpMap.get(r[0] + '|' + r[1])) : ''}</td>` : ''}</tr>`; }).join('');
+      return `<tr class="${cls}"${drill(r[0])}${earnRow(r)}><td>${r[0] ? `<span class="fs-code">${esc(r[0])}</span>` : ''}${esc(r[1])}</td><td class="num${neg ? ' neg' : ''}">${money(r[2])}</td>${cmp ? `<td class="num fs-cmp">${cmpMap.has(r[0] + '|' + r[1]) ? money(cmpMap.get(r[0] + '|' + r[1])) : ''}</td>` : ''}</tr>`; }).join('');
   const head = kind === 'eq' ? `<tr><th>Component</th>${rows[1].slice(2).map(h => `<th class="num">${esc(h)}</th>`).join('')}</tr>` : `<tr><th>Account</th><th class="num">${esc(rows[0][1])}</th>${cmp ? `<th class="num">${esc(cmp[0][1])}</th>` : ''}</tr>`;
   return H(titles[kind], `${esc(rows[0][1])} · EGP · posted entries only`, `<button class="btn" data-act="fs-xlsx" data-k="${kind}">${ic('file', 14)} Export Excel</button><button class="btn" onclick="window.print()">${ic('printer', 14)} Print / PDF</button>`) + `
     <div class="card pg-tools"><div class="pg-tr">${stmtTabs(kind)}</div>
@@ -14670,7 +14678,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261107-154540';
+const APP_BUILD = 'build-20261107-155734';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
