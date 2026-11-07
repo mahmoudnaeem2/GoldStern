@@ -17,6 +17,7 @@ const FEATURES = {
   'Expenses module': 'function ensureStandardExpenseCats',
   'New version banner': 'function checkForUpdate',
   'Odoo chart built in': 'function convertToOdooChart',
+  'Employees & payroll': 'function pagePayroll',
 };
 let bad = 0;
 /* every inline script must parse — a syntax error means a blank page */
