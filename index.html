@@ -2357,7 +2357,10 @@ html[dir=rtl] .pr-month .btn .ic{transform:scaleX(-1)}html[dir=rtl] .pr-next .ic
 .xp-k em a{color:#8a6512;font-weight:600;text-decoration:none}
 
 /* ==== Car profitability ==== */
-.pf-seg{margin-inline-start:auto;align-self:center}
+.pf-seg{align-self:center}
+.pf-search{margin-inline-start:0;flex:1 1 220px;max-width:340px}.pg-card .pf-seg{margin-inline-start:auto}.pf-search .input{height:38px}
+.pf-cust{display:flex!important;align-items:center;gap:4px;color:#7a5a10!important;font-weight:500}
+.pf-tbl .pg-who span .ic{vertical-align:-2px;opacity:.7}
 .pf-tbl .pg-who{gap:10px}.pf-tbl .pg-who span{white-space:nowrap}.pf-tbl .pg-who > div{min-width:0}.pf-tbl .pg-who b{max-width:240px}
 .pg-av.st{background:#eef1f5;color:#5b6676}
 .pf-chip{font-style:normal;font-size:11.5px;font-weight:600;border-radius:999px;padding:2px 8px;white-space:nowrap;margin-inline-start:4px}
@@ -7066,9 +7069,18 @@ document.addEventListener('click', e => {
   if (el.dataset.act === 'modal-bg' && e.target !== el) return;
   const h = CLICK[el.dataset.act]; if (h){ e.preventDefault(); h(el); }
 });
+/* search boxes filter live while typing (debounced), keeping focus and caret */
+let FILTER_T = null;
+document.addEventListener('input', e => {
+  const el = e.target; if (!el.matches || !el.matches('input[data-filter]') || !['text', 'search', ''].includes(el.getAttribute('type') || '')) return;
+  clearTimeout(FILTER_T); FILTER_T = setTimeout(() => {
+    const k = el.dataset.filter, v = el.value, pos = el.selectionStart; if (UI.filters[k] === v) return; UI.filters[k] = v; render();
+    const n = document.querySelector(`input[data-filter="${k}"]`); if (n){ n.focus(); try { n.setSelectionRange(pos, pos); } catch (x){} }
+  }, 180);
+});
 document.addEventListener('change', e => {
   const sw = e.target.closest('[data-actas]'); if (sw){ try { A.actAs(sw.value); render(); toast('Now acting as ' + currentUser().name + '.'); } catch (x){ toast(x.message, 'bad'); } return; }
-  const el = e.target.closest('[data-filter]'); if (el){ UI.filters[el.dataset.filter] = el.value; render(); }
+  const el = e.target.closest('[data-filter]'); if (el){ if (UI.filters[el.dataset.filter] === el.value) return; UI.filters[el.dataset.filter] = el.value; render(); }
 });
 ['click','keydown'].forEach(ev => document.addEventListener(ev, () => { if (SESSION && SESSION.userId){ SESSION.lastActive = Date.now(); saveSession(); } }, true));
 setInterval(() => {
@@ -9594,8 +9606,14 @@ const P6_CLICKS = {
 function pageProfit(){
   const P0 = UI.profit = UI.profit || { from: '0001-01-01', to: todayCairo(), by: 'vehicle' }, show = UI.profitShow || 'all', byV = P0.by === 'vehicle';
   const all = profitability(P0.from, P0.to, P0.by), sold = r => byV ? !r.gross.eq(0) || !r.cogs.eq(0) : true;
-  const rows = byV ? all.filter(r => show === 'all' || (show === 'sold' ? sold(r) : !sold(r))) : all;
-  const tot = Object.fromEntries(PROFIT_SUMS.map(x => [x, all.reduce((t, r) => t.plus(r[x]), D0())]));
+  const q = String(UI.filters.pf_q || '').trim().toLowerCase();
+  const custOf = v => { const inv = S.invoices.find(i => i.side === 'ar' && (i.vehicleIds || []).includes(v.id) && i.type !== 'credit'); if (inv) return partnerLabel(partnerById('ar', inv.partnerId));
+    const po = (S.purchaseOrders || []).find(p => p.customerId && p.lines.some(l => l.vehicleId === v.id)); return po ? partnerLabel(partnerById('ar', po.customerId)) : ''; };
+  if (byV) for (const r of all) r.cust = custOf(r.vehicle);
+  const hit = r => !q || (byV ? [r.vehicle.vin, r.vehicle.code, makeName(r.vehicle.makeId), modelName(r.vehicle.makeId, r.vehicle.modelId), r.cust] : [r.label]).join(' ').toLowerCase().includes(q);
+  const rows = (byV ? all.filter(r => show === 'all' || (show === 'sold' ? sold(r) : !sold(r))) : all).filter(hit);
+  const tot = Object.fromEntries(PROFIT_SUMS.map(x => [x, rows.reduce((t, r) => t.plus(r[x]), D0())])), filtered = rows.length !== all.length;
+  const tot0 = null;
   const vAll = byV ? all : profitability(P0.from, P0.to, 'vehicle'), isS = r => !r.gross.eq(0) || !r.cogs.eq(0), nSold = vAll.filter(isS).length, nStock = vAll.length - nSold;
   const pct = (a, b) => D(b).gt(0) ? D(a).div(b).mul(100).toFixed(1) + '%' : '—';
   const cell = (v, b) => `<td class="num${D(v).lt(0) ? ' neg' : ''}">${D(v).eq(0) ? '<span class="zero">—</span>' : (b ? `<b>${money(v)}</b>` : money(v))}</td>`;
@@ -9604,7 +9622,7 @@ function pageProfit(){
   const BY = [['vehicle','By car'],['make','By make'],['model','By model'],['supplier','By supplier'],['shipment','By shipment'],['salesperson','By salesperson'],['month','By month'],['quarter','By quarter'],['year','By year']];
   const head = `<tr><th>${byV ? 'Car' : 'Group'}</th>${byV ? '<th class="num">Cost</th>' : '<th class="num">Cars</th>'}<th class="num">Net revenue</th><th class="num">Cost of sale</th><th class="num">Gross profit</th><th class="num">Margin</th><th class="num">Direct expenses</th><th class="num">Contribution</th></tr>`;
   const row = r => { const isSold = sold(r), rev = `gross ${money(r.gross)} − discounts ${money(r.disc)} − returns ${money(r.ret)}${r.tax.eq(0) ? '' : ` · sales tax ${money(r.tax)} (not revenue)`}`;
-    const who = byV ? `<div class="pg-who"><span class="pg-av ${isSold ? 'ar' : 'st'}">${ic('cars', 15)}</span><div><b>${esc(makeName(r.vehicle.makeId))} ${esc(modelName(r.vehicle.makeId, r.vehicle.modelId))}${r.vehicle.year ? ' ' + r.vehicle.year : ''}</b><span>${esc(r.vehicle.code)}${r.vehicle.vin ? ' · ' + esc(r.vehicle.vin) : ''}</span></div>${isSold ? `<em class="pf-chip sold">Sold${r.saleDate ? ' ' + r.saleDate : ''}</em>` : '<em class="pf-chip stock">In stock</em>'}</div>` : `<b>${esc(r.label)}</b>`;
+    const who = byV ? `<div class="pg-who"><span class="pg-av ${isSold ? 'ar' : 'st'}">${ic('cars', 15)}</span><div><b>${esc(makeName(r.vehicle.makeId))} ${esc(modelName(r.vehicle.makeId, r.vehicle.modelId))}${r.vehicle.year ? ' ' + r.vehicle.year : ''}</b><span>${esc(r.vehicle.code)}${r.vehicle.vin ? ' · ' + esc(r.vehicle.vin) : ''}</span>${r.cust ? `<span class="pf-cust">${ic('users', 12)} ${esc(r.cust)}</span>` : ''}</div>${isSold ? `<em class="pf-chip sold">Sold${r.saleDate ? ' ' + r.saleDate : ''}</em>` : '<em class="pf-chip stock">In stock</em>'}</div>` : `<b>${esc(r.label)}</b>`;
     const dz = f => byV ? ` data-act="pf-view" data-id="${r.vehicle.id}" data-f="${f}"` : '';
     const dcell = (v, b, f) => cell(v, b).replace('<td class="num', `<td${dz(f)} class="num pf-dz`);
     return `<tr${byV ? ` data-act="pf-view" data-id="${r.vehicle.id}" data-f="all" class="pf-row" tabindex="0" title="Open this car’s profit breakdown"` : ''}><td>${who}</td>${byV ? dcell(r.landed.gt(0) ? r.landed : r.purchase, 0, 'cost') : `<td class="num">${r.count}</td>`}
@@ -9617,17 +9635,16 @@ function pageProfit(){
       <label class="fs-f"><span>To</span><input class="input" type="date" name="to" value="${P0.to}"></label>
       <label class="fs-f"><span>Group</span><select class="input" name="by">${BY.map(([k, l]) => `<option value="${k}" ${P0.by === k ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
       <button class="btn primary fs-go">Update</button>
-      ${byV ? `<div class="xp-seg pf-seg" role="tablist">${[['all', 'All', all.length], ['sold', 'Sold', nSold], ['stock', 'In stock', nStock]].map(([k, l, n]) => `<button type="button" role="tab" aria-selected="${show === k}" class="${show === k ? 'on' : ''}" data-act="profit-show" data-v="${k}">${l}<span>${n}</span></button>`).join('')}</div>` : ''}
     </div></form>
     <div class="xp-kpis">
-      <div class="xp-hero"><div class="xp-hero-top"><span class="xp-kic">${ic('reports', 20)}</span><span class="xp-tag">margin ${pct(tot.gp, tot.net)}</span></div><span class="xp-kl">Gross profit on cars sold</span><b class="${tot.gp.lt(0) ? 'neg' : ''}">${money(tot.gp)} ${egp}</b><em>${nSold} car${nSold === 1 ? '' : 's'} sold${tot.fx.eq(0) ? '' : ` · realized FX ${money(tot.fx)} shown separately`}</em></div>
+      <div class="xp-hero"><div class="xp-hero-top"><span class="xp-kic">${ic('reports', 20)}</span><span class="xp-tag">margin ${pct(tot.gp, tot.net)}</span></div><span class="xp-kl">Gross profit on cars sold${filtered ? ' · filtered' : ''}</span><b class="${tot.gp.lt(0) ? 'neg' : ''}">${money(tot.gp)} ${egp}</b><em>${byV ? rows.filter(sold).length : nSold} car${(byV ? rows.filter(sold).length : nSold) === 1 ? '' : 's'} sold${tot.fx.eq(0) ? '' : ` · realized FX ${money(tot.fx)} shown separately`}</em></div>
       ${tile('sales', 'ok', 'Net sales revenue', tot.net, `cost of sale ${money(tot.cogs)}`)}
       ${tile('expenses', 'bad', 'Direct car expenses', tot.direct, 'Posted against specific cars')}
       ${tile('coins', tot.contribution.lt(0) ? 'bad' : 'gold', 'Net contribution', tot.contribution, `${pct(tot.contribution, tot.net)} of revenue`)}
     </div>
-    <div class="card pg-card"><div class="tbl-wrap"><table class="pg-tbl pf-tbl"><thead>${head}</thead><tbody>
-      ${rows.map(row).join('') || `<tr><td colspan="8"><div class="xp-empty">${ic('cars', 22)}<b>No cars in this view</b><span>Try another tab or a wider date range.</span></div></td></tr>`}
-    </tbody><tfoot><tr class="pg-tot"><td>Total${byV && show !== 'all' ? ` <em>${rows.length} shown · totals cover all ${all.length}</em>` : ''}</td>${byV ? cell(tot.landed) : `<td class="num">${vAll.length}</td>`}${cell(tot.net, 1)}${cell(tot.cogs, 1)}${cell(tot.gp, 1)}<td class="num">${pct(tot.gp, tot.net)}</td>${cell(tot.direct, 1)}${cell(tot.contribution, 1)}</tr></tfoot></table></div></div>
+    <div class="card pg-card"><div class="xp-bar"><label class="xp-search pf-search">${ic('search', 15)}<input class="input" data-filter="pf_q" placeholder="${byV ? 'Chassis, customer, car…' : 'Search group…'}" value="${esc(UI.filters.pf_q || '')}" aria-label="Search cars"></label>      ${byV ? `<div class="xp-seg pf-seg" role="tablist">${[['all', 'All', all.length], ['sold', 'Sold', nSold], ['stock', 'In stock', nStock]].map(([k, l, n]) => `<button type="button" role="tab" aria-selected="${show === k}" class="${show === k ? 'on' : ''}" data-act="profit-show" data-v="${k}">${l}<span>${n}</span></button>`).join('')}</div>` : ''}</div><div class="tbl-wrap"><table class="pg-tbl pf-tbl"><thead>${head}</thead><tbody>
+      ${rows.map(row).join('') || `<tr><td colspan="8"><div class="xp-empty">${ic('cars', 22)}<b>${q ? `No car matches “${esc(UI.filters.pf_q)}”` : 'No cars in this view'}</b><span>${q ? 'Search by chassis number, customer name, car code or model.' : 'Try another tab or a wider date range.'}</span></div></td></tr>`}
+    </tbody><tfoot><tr class="pg-tot"><td>Total${filtered ? ` <em>${rows.length} of ${all.length} shown</em>` : ''}</td>${byV ? cell(tot.landed) : `<td class="num">${vAll.length}</td>`}${cell(tot.net, 1)}${cell(tot.cogs, 1)}${cell(tot.gp, 1)}<td class="num">${pct(tot.gp, tot.net)}</td>${cell(tot.direct, 1)}${cell(tot.contribution, 1)}</tr></tfoot></table></div></div>
     <p class="pg-note">Running costs (rent, salaries…) are not split across cars — they are in the income statement. Hover a revenue figure to see discounts, returns and sales tax.</p>`;
 }
 /* One car's profit & loss, line by line (drill-down from Car profitability) */
@@ -14839,7 +14856,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261107-160517';
+const APP_BUILD = 'build-20261107-161048';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
