@@ -2372,6 +2372,8 @@ html[dir=rtl] .pr-month .btn .ic{transform:scaleX(-1)}html[dir=rtl] .pr-next .ic
 .fs-tbl tr[data-act]:hover td,.fs-tbl tr[data-href]:hover td{background:#f5f8ff}
 .fs-tbl tr[data-act]:hover td.num,.fs-tbl tr[data-href]:hover td.num{color:#1d4ed8;text-decoration:underline;text-underline-offset:3px}
 .fs-tbl tr[data-act]:focus-visible,.fs-tbl tr[data-href]:focus-visible{outline:2px solid var(--info);outline-offset:-2px}
+
+.dep-chip{display:inline-flex;align-items:center;margin-inline-start:6px;font-size:11.5px;font-weight:600;color:#7a5a10;background:#fbf4e2;border:1px solid rgba(197,155,39,.25);border-radius:999px;padding:1px 8px;white-space:nowrap;vertical-align:1px}
 </style>
 
 <!-- Journal Entry Right Side Drawer CSS & JS -->
@@ -2989,9 +2991,21 @@ const ODOO_COA_TEMPLATE = [
   ['101800','Prepaid Expenses','مصروفات مدفوعة مقدماً','asset','101000',''],
   ['101900','Other Current Assets','أصول متداولة أخرى','asset','101000',''],
   ['102000','Non-Current Assets (Fixed Assets)','الأصول غير المتداولة (أصول ثابتة)','asset','100000','g'],
+  ['102010','Land','أراضي','asset','102000',''],
+  ['102020','Buildings','مباني وإنشاءات','asset','102000',''],
+  ['102030','Leasehold Improvements (Showroom Fit-out)','تحسينات على أماكن مستأجرة (تجهيز المعرض)','asset','102000',''],
   ['102100','Furniture & Office Equipment','أثاث ومعدات مكتبية','asset','102000',''],
+  ['102110','Computers & IT Equipment','أجهزة حاسب آلي ومعدات تقنية','asset','102000',''],
+  ['102120','Showroom & Workshop Equipment','معدات المعرض والورشة','asset','102000',''],
   ['102200','Company Vehicles (Fixed Assets)','سيارات الشركة (أصول ثابتة)','asset','102000',''],
-  ['102300','Accumulated Depreciation','مجمع الإهلاك','asset','102000','n=credit'],
+  ['102250','Software & Intangible Assets','برامج وأصول غير ملموسة','asset','102000',''],
+  ['102300','Accumulated Depreciation — Furniture & Office Equipment','مجمع إهلاك الأثاث والمعدات المكتبية','asset','102000','n=credit'],
+  ['102320','Accumulated Depreciation — Buildings','مجمع إهلاك المباني','asset','102000','n=credit'],
+  ['102330','Accumulated Depreciation — Leasehold Improvements','مجمع إهلاك التحسينات على الأماكن المستأجرة','asset','102000','n=credit'],
+  ['102340','Accumulated Depreciation — Computers & IT Equipment','مجمع إهلاك أجهزة الحاسب الآلي','asset','102000','n=credit'],
+  ['102350','Accumulated Depreciation — Showroom & Workshop Equipment','مجمع إهلاك معدات المعرض والورشة','asset','102000','n=credit'],
+  ['102360','Accumulated Depreciation — Company Vehicles','مجمع إهلاك سيارات الشركة','asset','102000','n=credit'],
+  ['102370','Accumulated Amortization — Software & Intangibles','مجمع استهلاك البرامج والأصول غير الملموسة','asset','102000','n=credit'],
   ['102900','Other Non-Current Assets','أصول غير متداولة أخرى','asset','102000',''],
   ['200000','Liabilities','الخصوم والالتزامات','liability',null,'g'],
   ['201000','Current Liabilities','الخصوم المتداولة','liability','200000','g'],
@@ -3031,17 +3045,49 @@ const ODOO_COA_TEMPLATE = [
   ['504000','Inventory Losses & Adjustments','خسائر وتسويات المخزون','cogs','500000','s'],
   ['600000','Operating Expenses','المصروفات التشغيلية','expense',null,'g'],
   ['601000','Salaries and Wages','الرواتب والأجور','expense','600000','cc'],
+  ['601010','Bonuses & Incentives','المكافآت والحوافز','expense','600000',''],
+  ['601020','Sales Commissions','عمولات المبيعات','expense','600000',''],
+  ['601030','Social Insurance — Employer Share','التأمينات الاجتماعية — حصة صاحب العمل','expense','600000',''],
+  ['601040','Medical Insurance & Staff Welfare','التأمين الطبي ورعاية العاملين','expense','600000',''],
+  ['601050','Training & Development','التدريب والتطوير','expense','600000',''],
+  ['601060','End of Service & Severance','مكافآت نهاية الخدمة والتعويضات','expense','600000',''],
   ['601100','Rent Expense','الإيجار','expense','600000','cc'],
+  ['601110','Showroom Maintenance & Repairs','صيانة وإصلاح المعرض','expense','600000',''],
+  ['601120','Cleaning & Security','النظافة والأمن','expense','600000',''],
   ['601200','Utilities (Electricity & Water)','المرافق (كهرباء ومياه)','expense','600000','cc'],
+  ['601210','Telephone & Internet','التليفون والإنترنت','expense','600000',''],
   ['601300','Marketing & Advertising','التسويق والدعاية والإعلان','expense','600000','cc'],
+  ['601310','Online & Social Media Ads','إعلانات الإنترنت ووسائل التواصل','expense','600000',''],
+  ['601320','Exhibitions & Events','المعارض والفعاليات','expense','600000',''],
+  ['601330','Printing & Brochures','المطبوعات والكتالوجات','expense','600000',''],
   ['601400','Transportation & Travel','النقل والانتقالات والسفر','expense','600000','cc'],
+  ['601410','Company Vehicles — Fuel & Maintenance','سيارات الشركة — وقود وصيانة','expense','600000',''],
+  ['601420','Car Registration & Plates','ترخيص السيارات واللوحات','expense','600000',''],
   ['601500','Insurance Expense','التأمين','expense','600000',''],
   ['601600','Professional & Legal Fees','أتعاب مهنية وقانونية','expense','600000',''],
+  ['601610','Audit & Accounting Fees','أتعاب المراجعة والمحاسبة','expense','600000',''],
+  ['601620','Consulting Fees','أتعاب استشارية','expense','600000',''],
   ['601700','Bank Charges & Fees','مصروفات وعمولات بنكية','expense','600000','s'],
+  ['601710','Interest on Loans & Facilities','فوائد القروض والتسهيلات','expense','600000',''],
   ['601800','Import Expenses — Not Capitalized','مصروفات استيراد غير مرسملة','expense','600000',''],
   ['602000','Administrative Expenses','مصروفات إدارية وعمومية','expense','600000','cc'],
+  ['602010','Office Supplies & Stationery','أدوات مكتبية ومطبوعات','expense','600000',''],
+  ['602020','Government Fees & Licenses','رسوم حكومية وتراخيص','expense','600000',''],
+  ['602030','Software Subscriptions','اشتراكات البرامج','expense','600000',''],
+  ['602040','Postage & Courier','البريد والشحن السريع','expense','600000',''],
+  ['602050','Hospitality & Entertainment','الضيافة','expense','600000',''],
+  ['602060','Donations','التبرعات','expense','600000',''],
+  ['602070','Penalties & Fines','الغرامات والجزاءات','expense','600000',''],
+  ['602080','Stamp Duty & Other Taxes','ضريبة الدمغة وضرائب أخرى','expense','600000',''],
   ['602100','Selling & Showroom Expenses','مصروفات بيعية ومعارض','expense','600000','cc'],
-  ['602200','Depreciation Expense','مصروف الإهلاك','expense','600000',''],
+  ['602110','Car Delivery & Handover Costs','مصروفات تسليم السيارات','expense','600000',''],
+  ['602200','Depreciation — Furniture & Office Equipment','إهلاك الأثاث والمعدات المكتبية','expense','600000',''],
+  ['602210','Depreciation — Buildings','إهلاك المباني','expense','600000',''],
+  ['602220','Depreciation — Leasehold Improvements','إهلاك التحسينات على الأماكن المستأجرة','expense','600000',''],
+  ['602240','Depreciation — Computers & IT Equipment','إهلاك أجهزة الحاسب الآلي','expense','600000',''],
+  ['602250','Depreciation — Showroom & Workshop Equipment','إهلاك معدات المعرض والورشة','expense','600000',''],
+  ['602260','Depreciation — Company Vehicles','إهلاك سيارات الشركة','expense','600000',''],
+  ['602270','Amortization — Software & Intangibles','استهلاك البرامج والأصول غير الملموسة','expense','600000',''],
   ['602300','Bad Debt Expense','مصروف الديون المعدومة','expense','600000',''],
   ['602400','Loss on Asset Disposal / Impairment','خسائر التخلص من الأصول واضمحلالها','expense','600000',''],
   ['602500','FX Losses — Realized','خسائر فروق عملة محققة','expense','600000','s'],
@@ -7735,6 +7781,10 @@ function pageAccDash(){
 }
 
 /* ---------- Chart of accounts ---------- */
+/* depreciation rate badge for fixed-asset, accumulated-depreciation and depreciation-expense accounts */
+function depChip(a){ if (a.type === 'asset' && /^land$/i.test(String(a.nameEn || '').trim())) return ' <span class="dep-chip" title="Land is not depreciated">Not depreciated</span>'; const c = (S.assetCats || []).find(x => x.active !== false && [x.assetAccountId, x.accumAccountId, x.expenseAccountId].includes(a.id)); if (!c) return '';
+  const rate = c.method === 'declining' && Number(c.ratePct) ? Number(c.ratePct) : 1200 / (c.lifeMonths || 1), yrs = (c.lifeMonths || 0) / 12;
+  return ` <span class="dep-chip" title="${esc(c.name)} — ${c.method === 'declining' ? 'declining balance' : 'straight line'} over ${c.lifeMonths} months">${(Math.round(rate * 100) / 100)}% / yr · ${Number.isInteger(yrs) ? yrs : yrs.toFixed(1)} yrs</span>`; }
 function pageCOA(){
   const F = UI.filters;
   if (!S.accounts.length) return H(t('coa'), '') + needChart();
@@ -7751,7 +7801,7 @@ function pageCOA(){
   const signed = v => v.eq(0) ? '<span class="muted">0.00</span>' : `${v.lt(0) ? '−' : ''}${money(v.abs())}`;
   const row = a => { const b0 = bal.get(a.id) || D0();
     return `<tr data-act="acc-open" data-id="${a.id}" style="cursor:pointer${a.active ? '' : ';opacity:.5'}"><td style="padding-inline-start:${gb ? 34 : 20}px">${esc(a.code)}</td>
-      <td class="wrap"><b style="font-weight:500">${esc(accName(a))}</b>${!a.allowManual ? ' <span class="pill mute" title="Posted only from documents (invoices, payments)">Control</span>' : ''}</td>
+      <td class="wrap"><b style="font-weight:500">${esc(accName(a))}</b>${!a.allowManual ? ' <span class="pill mute" title="Posted only from documents (invoices, payments)">Control</span>' : ''}${depChip(a)}</td>
       <td>${esc(ACC_TYPES[a.type].en)}</td><td>${a.reconcile ? `<span class="tgl on" title="Allow reconciliation">${ic('check', 12)}</span>` : '<span class="tgl"></span>'}</td><td>${a.currency || '<span class="muted">—</span>'}</td>
       <td class="num">${signed(b0)}</td></tr>`; };
   const body = [...groups.values()].sort((x, y) => (x.g ? x.g.code : '') < (y.g ? y.g.code : '') ? -1 : 1).map(({ g, rows }) => {
@@ -14536,6 +14586,61 @@ function famAcc(code){
   const byName = (S.accounts || []).filter(a => a.active && !a.isGroup && String(a.nameEn).trim().toLowerCase() === t[1].trim().toLowerCase());
   return byName[0] || null;
 }
+/* Default fixed-asset classes: [name, asset, accumulated depreciation, depreciation expense, useful life (months), annual rate %] — straight line, book rates (review with your auditor; tax rates under Law 91/2005 art. 25 differ). */
+const DEFAULT_ASSET_CATS = [
+  ['Buildings', '102020', '102320', '602210', 240, 5],
+  ['Leasehold improvements (showroom fit-out)', '102030', '102330', '602220', 60, 20],
+  ['Furniture & office equipment', '102100', '102300', '602200', 120, 10],
+  ['Computers & IT equipment', '102110', '102340', '602240', 48, 25],
+  ['Showroom & workshop equipment', '102120', '102350', '602250', 60, 20],
+  ['Company vehicles', '102200', '102360', '602260', 60, 20],
+  ['Software & intangibles', '102250', '102370', '602270', 36, 33.33]
+];
+const accNorm = t => String(t || '').toLowerCase().replace(/&/g, ' and ').replace(/\([^)]*\)/g, ' ').replace(/\b(expenses?|account|accounts|the|a|an)\b/g, ' ').replace(/[^a-z0-9؀-ۿ]+/g, ' ').replace(/\s+/g, ' ').trim();
+/* Merge accounts that are the same thing under two codes (e.g. a legacy "Advertising" next to "Marketing & Advertising").
+   Everything that pointed at the duplicate — journal lines, documents, mappings, banks, categories — is re-pointed to the kept account. */
+function mergeDuplicateAccounts(){
+  if (chartFamily() !== 'odoo') return [];
+  const od = new Map(ODOO_COA_TEMPLATE.map(r => [r[0], r])), canon = new Map();
+  const m = stdToOdooMap(); for (const r of COA_TEMPLATE) if (m[r[0]] && !String(r[5]).includes('g') && accNorm(r[1]) === accNorm((od.get(m[r[0]]) || [])[1] || r[1])) canon.set(accNorm(r[1]), m[r[0]]);
+  Object.entries({ advertising: '601300', marketing: '601300', rent: '601100', utilities: '601200', transportation: '601400', travel: '601400', insurance: '601500', 'professional fees': '601600', 'legal fees': '601600',
+    'bank charges': '601700', 'bank fees': '601700', depreciation: '602200', 'office supplies': '602010', stationery: '602010', salaries: '601000', wages: '601000', commissions: '601020', 'sales commission': '601020',
+    'telephone': '601210', internet: '601210', 'accounts receivable': '101300', 'accounts payable': '201100', 'customer advances': '201200', 'supplier advances': '101400', 'accumulated depreciation': '102300',
+    'payroll payables': '201700', 'other taxes payable': '201600', 'bank loans': '202100', 'service revenue': '403000', 'sales discounts': '404000', 'sales returns': '405000', 'customs deposits recoverable amounts': '101600',
+    'input tax recoverable': '101700', 'vat payable output tax': '201500', 'professional fees': '601600', 'selling': '602100' }).forEach(([k, c]) => canon.set(accNorm(k), c));
+  for (const r of ODOO_COA_TEMPLATE) if (!String(r[5]).includes('g')) canon.set(accNorm(r[1]), r[0]);
+  const lines = new Map(); for (const e of S.entries || []) for (const l of e.lines || []) lines.set(l.accountId, (lines.get(l.accountId) || 0) + 1);
+  const groups = new Map();
+  for (const a of S.accounts.filter(x => !x.isGroup)){
+    const n = accNorm(a.nameEn), c = canon.get(n), key = `${a.type}|${a.currency || ''}|${c || 'n:' + n}`; if (!n) continue;
+    if (!groups.has(key)) groups.set(key, []); groups.get(key).push({ a, tmpl: c });
+  }
+  const repl = new Map(), done = [];
+  for (const list of groups.values()){
+    if (list.length < 2) continue;
+    const t = list[0].tmpl, keep = list.find(x => t && x.a.code === t) || list.slice().sort((x, y) => (lines.get(y.a.id) || 0) - (lines.get(x.a.id) || 0) || (x.a.code < y.a.code ? -1 : 1))[0];
+    for (const x of list) if (x !== keep){ if (isCashAccount(x.a) && (lines.get(x.a.id) || 0) > 0) continue; if (od.has(x.a.code) && od.has(keep.a.code) && accNorm(od.get(x.a.code)[1]) !== accNorm(od.get(keep.a.code)[1])) continue; repl.set(x.a.id, keep.a.id); done.push(`${x.a.code} ${x.a.nameEn} → ${keep.a.code}`); if (x.a.active && !keep.a.active) keep.a.active = true; }
+  }
+  if (!repl.size) return [];
+  const walk = o => { if (Array.isArray(o)){ for (let i = 0; i < o.length; i++){ const v = o[i]; if (typeof v === 'string' && repl.has(v)) o[i] = repl.get(v); else if (v && typeof v === 'object') walk(v); } return; }
+    for (const k of Object.keys(o)){ const v = o[k]; if (typeof v === 'string' && repl.has(v)) o[k] = repl.get(v); else if (v && typeof v === 'object') walk(v); } };
+  for (const k of Object.keys(S)) if (k !== 'accounts' && k !== 'audit' && S[k] && typeof S[k] === 'object') walk(S[k]);
+  S.accounts = S.accounts.filter(a => !repl.has(a.id));
+  for (const a of S.accounts) if (repl.has(a.parentId)) a.parentId = repl.get(a.parentId);
+  /* identical expense categories left behind by the merge */
+  const seen = new Set(); S.expenseCats = (S.expenseCats || []).filter(c => { const k = accNorm(c.name) + '|' + c.accountId; if (seen.has(k)) return false; seen.add(k); return true; });
+  log('coa_merge', 'coa', null, null, { merged: done }, 'Duplicate accounts merged by data update');
+  return [`Duplicate accounts merged: ${done.length} (${done.slice(0, 6).join('; ')}${done.length > 6 ? '…' : ''})`];
+}
+function ensureDefaultAssetCats(){
+  S.assetCats = S.assetCats || []; let n = 0;
+  for (const [name, ac, ad, ae, life, rate] of DEFAULT_ASSET_CATS){
+    const A1 = S.accounts.find(a => a.code === ac), A2 = S.accounts.find(a => a.code === ad), A3 = S.accounts.find(a => a.code === ae);
+    if (!A1 || !A2 || !A3 || S.assetCats.some(c => c.assetAccountId === A1.id)) continue;
+    S.assetCats.push({ id: uid('fc'), name, assetAccountId: A1.id, accumAccountId: A2.id, expenseAccountId: A3.id, lifeMonths: life, method: 'straight', ratePct: String(rate), active: true, createdAt: nowISO(), addedBy: 'data_update' }); n++;
+  }
+  return n;
+}
 function updateData(opts = {}){
   const changes0 = [];
   if (S.company && !opts.noChart){
@@ -14570,6 +14675,8 @@ function updateData(opts = {}){
       if (a && !a.isGroup){ S.mappings[key] = a.id; fixed++; }
     }
     note('Account mappings set', fixed);
+    changes.push(...mergeDuplicateAccounts());
+    note('Fixed-asset classes added (with depreciation rates)', ensureDefaultAssetCats());
   }
   /* 3. defaults that later versions added */
   let n = 0; for (const j of DEFAULT_JOURNALS) if (!S.journals.some(x => x.code === j.code)){ S.journals.push(clone(j)); n++; } note('Journals added', n);
@@ -14678,7 +14785,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261107-155734';
+const APP_BUILD = 'build-20261107-160126';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
