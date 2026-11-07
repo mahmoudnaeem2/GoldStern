@@ -2374,6 +2374,13 @@ html[dir=rtl] .pr-month .btn .ic{transform:scaleX(-1)}html[dir=rtl] .pr-next .ic
 .fs-tbl tr[data-act]:focus-visible,.fs-tbl tr[data-href]:focus-visible{outline:2px solid var(--info);outline-offset:-2px}
 
 .dep-chip{display:inline-flex;align-items:center;margin-inline-start:6px;font-size:11.5px;font-weight:600;color:#7a5a10;background:#fbf4e2;border:1px solid rgba(197,155,39,.25);border-radius:999px;padding:1px 8px;white-space:nowrap;vertical-align:1px}
+
+.pf-dz{cursor:pointer}.pf-dz:hover{color:#1d4ed8;text-decoration:underline;text-underline-offset:3px}
+.pf-ln{cursor:pointer}.pf-ln:hover td{background:#f5f8ff}
+.pf-focus{border-color:#e4d3a6!important;box-shadow:0 0 0 4px rgba(197,155,39,.18),0 10px 28px -10px rgba(197,155,39,.28)!important;transition:box-shadow .3s}
+.xv-lines td.neg{color:#c62828}
+.co-sum .pf-m{margin-inline-start:6px}
+.co-s-tot b.neg{color:#fca5a5}
 </style>
 
 <!-- Journal Entry Right Side Drawer CSS & JS -->
@@ -9598,9 +9605,11 @@ function pageProfit(){
   const head = `<tr><th>${byV ? 'Car' : 'Group'}</th>${byV ? '<th class="num">Cost</th>' : '<th class="num">Cars</th>'}<th class="num">Net revenue</th><th class="num">Cost of sale</th><th class="num">Gross profit</th><th class="num">Margin</th><th class="num">Direct expenses</th><th class="num">Contribution</th></tr>`;
   const row = r => { const isSold = sold(r), rev = `gross ${money(r.gross)} − discounts ${money(r.disc)} − returns ${money(r.ret)}${r.tax.eq(0) ? '' : ` · sales tax ${money(r.tax)} (not revenue)`}`;
     const who = byV ? `<div class="pg-who"><span class="pg-av ${isSold ? 'ar' : 'st'}">${ic('cars', 15)}</span><div><b>${esc(makeName(r.vehicle.makeId))} ${esc(modelName(r.vehicle.makeId, r.vehicle.modelId))}${r.vehicle.year ? ' ' + r.vehicle.year : ''}</b><span>${esc(r.vehicle.code)}${r.vehicle.vin ? ' · ' + esc(r.vehicle.vin) : ''}</span></div>${isSold ? `<em class="pf-chip sold">Sold${r.saleDate ? ' ' + r.saleDate : ''}</em>` : '<em class="pf-chip stock">In stock</em>'}</div>` : `<b>${esc(r.label)}</b>`;
-    return `<tr${byV ? ` data-href="#/veh/view?id=${r.vehicle.id}" class="pf-row" tabindex="0"` : ''}><td>${who}</td>${byV ? cell(r.landed.gt(0) ? r.landed : r.purchase) : `<td class="num">${r.count}</td>`}
-      <td class="num" title="${esc(rev)}">${r.net.eq(0) ? '<span class="zero">—</span>' : money(r.net)}</td>${cell(r.cogs)}${isSold ? cell(r.gp, 1) : '<td class="num"><span class="zero">—</span></td>'}
-      <td class="num">${r.margin == null ? '<span class="zero">—</span>' : `<span class="pf-m ${r.margin.lt(0) ? 'bad' : r.margin.lt(5) ? 'warn' : 'ok'}">${r.margin.toFixed(1)}%</span>`}</td>${cell(r.direct)}${isSold || !r.direct.eq(0) ? cell(r.contribution, 1) : '<td class="num"><span class="zero">—</span></td>'}</tr>`; };
+    const dz = f => byV ? ` data-act="pf-view" data-id="${r.vehicle.id}" data-f="${f}"` : '';
+    const dcell = (v, b, f) => cell(v, b).replace('<td class="num', `<td${dz(f)} class="num pf-dz`);
+    return `<tr${byV ? ` data-act="pf-view" data-id="${r.vehicle.id}" data-f="all" class="pf-row" tabindex="0" title="Open this car’s profit breakdown"` : ''}><td>${who}</td>${byV ? dcell(r.landed.gt(0) ? r.landed : r.purchase, 0, 'cost') : `<td class="num">${r.count}</td>`}
+      <td class="num${byV ? ' pf-dz' : ''}"${dz('rev')} title="${esc(rev)}">${r.net.eq(0) ? '<span class="zero">—</span>' : money(r.net)}</td>${dcell(r.cogs, 0, 'cogs')}${isSold ? dcell(r.gp, 1, 'all') : '<td class="num"><span class="zero">—</span></td>'}
+      <td class="num">${r.margin == null ? '<span class="zero">—</span>' : `<span class="pf-m ${r.margin.lt(0) ? 'bad' : r.margin.lt(5) ? 'warn' : 'ok'}">${r.margin.toFixed(1)}%</span>`}</td>${dcell(r.direct, 0, 'direct')}${isSold || !r.direct.eq(0) ? dcell(r.contribution, 1, 'all') : '<td class="num"><span class="zero">—</span></td>'}</tr>`; };
   return H(t('profitability'), 'Gross profit = net sales revenue − cost of the car sold. Contribution = gross profit − expenses posted against that car (commissions, preparation…). Sales tax is never revenue.',
     can('analytics', 'export') ? `<button type="button" class="btn" data-act="profit-csv">${ic('file', 14)} Export Excel</button>` : '') + `
     <form class="card pg-tools" data-form="profit"><div class="pg-tr fs-form">
@@ -9621,6 +9630,51 @@ function pageProfit(){
     </tbody><tfoot><tr class="pg-tot"><td>Total${byV && show !== 'all' ? ` <em>${rows.length} shown · totals cover all ${all.length}</em>` : ''}</td>${byV ? cell(tot.landed) : `<td class="num">${vAll.length}</td>`}${cell(tot.net, 1)}${cell(tot.cogs, 1)}${cell(tot.gp, 1)}<td class="num">${pct(tot.gp, tot.net)}</td>${cell(tot.direct, 1)}${cell(tot.contribution, 1)}</tr></tfoot></table></div></div>
     <p class="pg-note">Running costs (rent, salaries…) are not split across cars — they are in the income statement. Hover a revenue figure to see discounts, returns and sales tax.</p>`;
 }
+/* One car's profit & loss, line by line (drill-down from Car profitability) */
+function carProfitView(vid, focus){
+  const v = vehById(vid); if (!v) return; const P0 = UI.profit || { from: '0001-01-01', to: todayCairo() }, ids = profitIds(), r = vehicleProfit(v, P0.from, P0.to, ids);
+  const B = { rev: [], cogs: [], direct: [], other: [] };
+  for (const { e, l } of vehicleLines(v.id)){
+    if (e.accountingDate < P0.from || e.accountingDate > P0.to) continue; const a = acc(l.accountId); if (!a) continue;
+    const cr = D(l.egpCredit).minus(l.egpDebit), dr = cr.negated(), row = { e, l, a };
+    if (l.accountId === ids.rev) B.rev.push({ ...row, v: cr, k: 'Sale' });
+    else if (l.accountId === ids.disc) B.rev.push({ ...row, v: cr, k: 'Discount' });
+    else if (l.accountId === ids.ret) B.rev.push({ ...row, v: cr, k: 'Return' });
+    else if (l.accountId === ids.cogs) B.cogs.push({ ...row, v: dr });
+    else if (l.accountId === ids.tax || ids.fx.includes(l.accountId) || ids.inv.includes(l.accountId)) continue;
+    else if (l.accountId === ids.wd || l.accountId === ids.adj || l.accountId === ids.imp) B.other.push({ ...row, v: dr });
+    else if (a.type === 'revenue') B.other.push({ ...row, v: cr.negated() });
+    else if (a.type === 'cogs' || a.type === 'expense') B.direct.push({ ...row, v: dr });
+  }
+  const sec = (key, n, icon, title, sub, list, total) => `<section class="co-card${focus === key ? ' pf-focus' : ''}" id="pf-sec-${key}"><header><span class="co-step">${ic(icon, 18)}</span><div class="co-ht"><h3>${title}</h3><p>${sub}</p></div><b class="co-no">${n}</b></header>
+    <div class="xv-lines"><table><thead><tr><th>Date</th><th>Entry</th><th>Account</th><th class="num">Amount EGP</th></tr></thead><tbody>
+    ${list.map(x => `<tr data-act="je-view" data-id="${x.e.id}" class="pf-ln" title="Open journal entry"><td>${x.e.accountingDate}</td><td><b>${esc(entryRef(x.e))}</b><span>${esc(x.k ? x.k + ' · ' : '')}${esc(x.l.description || x.e.description || '')}</span></td><td><span class="mono">${esc(x.a.code)}</span> ${esc(accName(x.a))}</td><td class="num${x.v.lt(0) ? ' neg' : ''}">${money(x.v)}</td></tr>`).join('')
+      || `<tr><td colspan="4" class="muted" style="text-align:center;padding:18px">Nothing posted for this car in the period.</td></tr>`}
+    </tbody><tfoot><tr><td colspan="3">Total</td><td class="num">${money(total)}</td></tr></tfoot></table></div></section>`;
+  const sold = !r.gross.eq(0) || !r.cogs.eq(0), title = `${makeName(v.makeId)} ${modelName(v.makeId, v.modelId)}${v.year ? ' ' + v.year : ''}`;
+  openModal({ title: 'Car profit ' + v.code, xwide: true, body: `<div class="co-ed xv"><div class="co-body"><div class="co-main">
+      ${sec('rev', '01', 'sales', 'Revenue', 'Sales less discounts and returns (sales tax excluded)', B.rev, r.net)}
+      ${sec('cogs', '02', 'cars', 'Cost of sale', 'The car’s full landed cost, moved to cost of sales when invoiced', B.cogs, r.cogs)}
+      ${sec('direct', '03', 'expenses', 'Direct expenses', 'Expenses posted against this car (commissions, preparation, delivery…)', B.direct, r.direct)}
+      ${B.other.length ? sec('other', '04', 'coins', 'Other car items', 'Write-downs, adjustments and expensed import costs (not in contribution)', B.other, B.other.reduce((t, x) => t.plus(x.v), D0())) : ''}
+    </div>
+    <aside class="co-sum">
+      <div class="co-sum-top"><span class="co-sum-ic">${ic('cars', 20)}</span><span class="co-sum-tag">${sold ? 'Sold' + (r.saleDate ? ' ' + r.saleDate : '') : 'In stock'}</span></div>
+      <h3>${esc(title)}</h3><p class="co-s-vin">${esc(v.code)} · ${esc(v.vin || '')}</p>
+      <dl>
+        <div><dt>Net revenue</dt><dd><a href="#pf-sec-rev" class="xv-je pf-jump" data-s="rev">${money(r.net)}</a></dd></div>
+        <div><dt>Cost of sale</dt><dd><a href="#pf-sec-cogs" class="xv-je pf-jump" data-s="cogs">− ${money(r.cogs)}</a></dd></div>
+        <div><dt>Gross profit</dt><dd>${money(r.gp)}${r.margin ? ` <span class="pf-m ${r.margin.lt(0) ? 'bad' : r.margin.lt(5) ? 'warn' : 'ok'}">${r.margin.toFixed(1)}%</span>` : ''}</dd></div>
+        <div><dt>Direct expenses</dt><dd><a href="#pf-sec-direct" class="xv-je pf-jump" data-s="direct">− ${money(r.direct)}</a></dd></div>
+      </dl>
+      <div class="co-s-tot"><span>Contribution</span><b class="${r.contribution.lt(0) ? 'neg' : ''}">${money(r.contribution)} EGP</b></div>
+      <a class="btn xv-btn" href="#/veh/view?id=${v.id}" data-act="modal-close" onclick="setTimeout(()=>location.hash='#/veh/view?id=${v.id}',0)">${ic('cars', 15)} Open car record</a>
+      <p class="co-s-note">${P0.from === '0001-01-01' ? 'All dates' : P0.from} to ${P0.to}. Click any line to open its journal entry.</p>
+    </aside></div></div>` });
+  if (focus && focus !== 'all' && focus !== 'cost'){ const el = document.getElementById('pf-sec-' + focus); if (el) setTimeout(() => el.scrollIntoView({ block: 'start', behavior: 'smooth' }), 30); }
+  if (focus === 'cost') setTimeout(() => { location.hash = '#/veh/view?id=' + v.id; }, 0);
+}
+document.addEventListener('click', e => { const j = e.target.closest && e.target.closest('.pf-jump'); if (!j) return; e.preventDefault(); const el = document.getElementById('pf-sec-' + j.dataset.s); if (el){ el.scrollIntoView({ block: 'start', behavior: 'smooth' }); el.classList.remove('pf-focus'); void el.offsetWidth; el.classList.add('pf-focus'); } });
 function pageAnalyticAccounts(){
   const ids = profitIds(), idx = vehicleIndex();
   return H(t('analytic_accounts'), 'One analytic account per vehicle, opened at registration and closed when the vehicle leaves inventory.') + `
@@ -9630,7 +9684,7 @@ function pageAnalyticAccounts(){
     </tbody></table></div></div>`;
 }
 const P8_FORMS = { profit(f){ UI.profit = { from: isISODate(f.from) ? f.from : '0001-01-01', to: isISODate(f.to) ? f.to : todayCairo(), by: f.by }; render(); } };
-const P8_CLICKS = { 'profit-csv'(){ finExport(['profit']); }, 'profit-show'(el){ UI.profitShow = el.dataset.v; render(); } };
+const P8_CLICKS = { 'profit-csv'(){ finExport(['profit']); }, 'pf-view'(el){ if (el.dataset.f === 'cost'){ location.hash = '#/veh/view?id=' + el.dataset.id; return; } carProfitView(el.dataset.id, el.dataset.f); }, 'profit-show'(el){ UI.profitShow = el.dataset.v; render(); } };
 
 /* =========================================================================
    PHASE 9 PAGES
@@ -14785,7 +14839,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261107-160126';
+const APP_BUILD = 'build-20261107-160517';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
