@@ -2180,6 +2180,108 @@ html[dir=rtl] .modal-h .back:hover{transform:translateX(2px)}
 .mh-type{color:var(--text);font-weight:650}
 .mh-no{display:inline-flex;align-items:center;height:26px;padding:0 10px;border-radius:8px;background:#fbf4e2;color:#7a5a10;font-size:13px;font-weight:650;letter-spacing:.02em;font-variant-numeric:tabular-nums;box-shadow:inset 0 0 0 1px rgba(197,155,39,.25)}
 @media (max-width:760px){.modal-h{padding:0 12px!important}.mh-parent,.mh-sep{display:none}}
+
+/* ==== General expenses page ==== */
+.xp-kpis{display:grid;grid-template-columns:1.35fr repeat(3,minmax(0,1fr));gap:14px;margin-bottom:18px}
+.xp-hero{position:relative;overflow:hidden;color:#e7ebf1;background:radial-gradient(120% 90% at 100% 0%,rgba(197,155,39,.25),transparent 60%),linear-gradient(160deg,#1b2537,#111827);border-radius:16px;padding:18px 20px;box-shadow:0 14px 32px -18px rgba(15,23,42,.55);display:flex;flex-direction:column;gap:2px}
+.xp-hero-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.xp-hero .xp-kic{background:rgba(255,255,255,.08);color:#f1d48a;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.xp-tag{font-size:11.5px;font-weight:600;color:#f1d48a;background:rgba(197,155,39,.14);border:1px solid rgba(197,155,39,.3);padding:3px 10px;border-radius:999px}
+.xp-hero .xp-kl{color:#9aa6b8}.xp-hero b{font-size:28px;color:#f1d48a}.xp-hero b small{color:#9aa6b8}.xp-hero em{color:#9aa6b8}
+.xp-k{display:flex;gap:14px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;box-shadow:0 1px 2px rgba(16,24,40,.04),0 4px 14px -6px rgba(16,24,40,.06)}
+.xp-k > div{display:flex;flex-direction:column;gap:2px;min-width:0}
+.xp-kic{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;flex:none}
+.xp-k.ok .xp-kic{background:#e8f6f0;color:#047857}.xp-k.info .xp-kic{background:#eaf1ff;color:#1d4ed8}.xp-k.gold .xp-kic{background:linear-gradient(135deg,#fbf4e2,#f3e5bd);color:#8a6512}
+.xp-kl{font-size:12.5px;font-weight:600;color:var(--muted)}
+.xp-k b,.xp-hero b{font-size:22px;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums;white-space:nowrap}
+.xp-k b small,.xp-hero b small{font-size:12px;font-weight:500;color:var(--muted)}
+.xp-k em,.xp-hero em{font-style:normal;font-size:12.5px;color:var(--muted)}
+.xp-body{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px;align-items:start}
+.xp-list{padding:0;overflow:hidden}
+.xp-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 16px;border-bottom:1px solid var(--border)}
+.xp-seg{display:inline-flex;gap:2px;padding:3px;background:#f1f3f6;border-radius:11px}
+.xp-seg button{border:0;background:transparent;font:inherit;font-size:13px;font-weight:500;color:var(--muted);padding:6px 12px;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.xp-seg button span{font-size:11.5px;font-weight:600;color:#8b95a3;background:#e6e9ee;border-radius:999px;padding:0 7px;line-height:18px}
+.xp-seg button:hover{color:var(--text)}
+.xp-seg button.on{background:#fff;color:var(--text);font-weight:600;box-shadow:0 1px 2px rgba(16,24,40,.08),0 1px 3px rgba(16,24,40,.06)}
+.xp-seg button.on span{background:#fbf4e2;color:#8a6512}
+.xp-search{position:relative;margin-inline-start:auto;flex:1 1 200px;max-width:300px;display:flex;align-items:center;color:#9aa3af}
+.xp-search .ic{position:absolute;inset-inline-start:12px;pointer-events:none}
+.xp-search .input{width:100%;height:38px;padding-inline-start:34px!important}
+.xp-tbl{min-width:0!important;width:100%;table-layout:auto}.xp-tbl th,.xp-tbl td{padding-inline:14px!important}.xp-tbl th{white-space:nowrap}.xp-tbl th:last-child,.xp-tbl td:last-child{padding-inline-end:20px!important}
+.xp-tbl td{vertical-align:middle;padding-top:12px!important;padding-bottom:12px!important}
+.xp-tbl tbody tr{cursor:pointer;transition:background .12s}
+.xp-tbl tbody tr:hover{background:#fafbfc}
+.xp-tbl tbody tr:focus-visible{outline:2px solid var(--info);outline-offset:-2px}
+.xp-no{font-weight:650;white-space:nowrap}
+.xp-sub{display:block;font-size:12px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px}
+.xp-cat b{font-weight:600;white-space:nowrap;display:block;overflow:hidden;text-overflow:ellipsis;max-width:200px}.xp-cat i{font-style:normal;font-size:11.5px;font-weight:600;color:#8a6512;background:#fbf4e2;border-radius:999px;padding:0 6px;margin-inline-start:4px}
+.xp-m{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:500;padding:4px 10px;border-radius:999px;white-space:nowrap}
+.xp-m.bank{background:#e8f6f0;color:#065f46}.xp-m.sup{background:#eaf1ff;color:#1e40af}.xp-m.emp{background:#fbf4e2;color:#7a5a10}
+.xp-tbl td.num{white-space:nowrap}
+.xp-empty{display:flex;flex-direction:column;align-items:center;gap:6px;padding:36px 12px;text-align:center;color:var(--muted)}.xp-empty b{color:var(--text);font-size:14.5px}.xp-empty .btn{margin-top:8px}
+.xp-side{padding:18px 20px}
+.xp-side header{display:flex;flex-direction:column;gap:2px;margin-bottom:16px}.xp-side h3{margin:0;font-size:15px;font-weight:650}.xp-side header span{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.xp-cats{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.xp-cats li{display:flex;flex-direction:column;gap:6px}
+.xp-cats li > div:first-child{display:flex;justify-content:space-between;gap:8px;font-size:13px}
+.xp-cb{display:flex!important;flex-direction:row!important;align-items:center;gap:10px}.xp-cb i{flex:1 1 auto!important;width:auto!important;min-width:0}.xp-cb small{display:inline-block!important;flex:none}
+.xp-cats li > div:first-child span{color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.xp-cats li > div:first-child b{font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.xp-cats i{display:block;height:6px;border-radius:999px;background:#eef1f5;overflow:hidden}.xp-cats i b{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#b8901f,#e4c25f)}
+.xp-cats small{font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums;min-width:30px;text-align:end}
+.xp-none{margin:0;font-size:13px;color:var(--muted)}
+.xp-cfg{margin-top:18px;border-top:1px solid var(--border);padding-top:12px}
+.xp-cfg summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--text-2);list-style:none;display:flex;align-items:center;gap:6px}
+.xp-cfg summary::before{content:"";width:6px;height:6px;border-inline-end:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(-45deg);transition:transform .15s}
+.xp-cfg[open] summary::before{transform:rotate(45deg)}
+.xp-cfg ul{list-style:none;margin:10px 0;padding:0;display:flex;flex-direction:column;gap:2px;max-height:260px;overflow:auto}
+.xp-cfg li{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;padding:5px 0;border-bottom:1px dashed #eef1f5}.xp-cfg li span{color:var(--text-2)}.xp-cfg code{font-size:11.5px;color:var(--muted)}
+@media (max-width:1200px){.xp-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.xp-body{grid-template-columns:1fr}}
+@media (max-width:640px){.xp-kpis{grid-template-columns:1fr}.xp-search{flex-basis:100%}}
+
+/* ==== Partner ledger — redesign ==== */
+.pg-tools{padding:12px 14px!important;display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
+.pg-tr{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.pg-range{display:flex;align-items:center;gap:8px}.pg-range .input{height:36px;width:160px}
+.pg-tools .xp-search{margin-inline-start:0;flex:1 1 240px;max-width:340px}
+.pg-tools .pled-clear-btn{position:absolute;inset-inline-end:8px;border:0;background:#e6e9ee;color:var(--muted);width:22px;height:22px;border-radius:50%;cursor:pointer;line-height:1}
+.pg-chk{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--text-2);cursor:pointer;user-select:none;white-space:nowrap}
+.pg-chk input{width:16px;height:16px;accent-color:#1f2a3c}
+.pg-fold{margin-inline-start:auto;display:inline-flex;gap:6px}
+.xp-k.bad .xp-kic{background:#fdecec;color:#c62828}
+.pg-mv{font-size:20px!important}
+.pg-card{padding:0!important;overflow:hidden}
+.pg-tbl{width:100%;border-collapse:collapse;font-size:13px}
+.pg-tbl thead th{position:sticky;top:0;z-index:1;background:#f8fafc;font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);text-align:start;padding:11px 14px;border-bottom:1px solid var(--border);white-space:nowrap}
+.pg-tbl th.num,.pg-tbl td.num{text-align:end;white-space:nowrap;font-variant-numeric:tabular-nums}
+.pg-tbl td{padding:10px 14px;border-bottom:1px solid #f0f2f5;vertical-align:middle}
+.pg-tbl td.neg{color:#c62828}.pg-tbl td.b{font-weight:650}.pg-tbl .zero{color:#b6bec9}
+.pg-side td{background:#fbfcfd;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-2);padding-top:12px!important;padding-bottom:12px!important;border-bottom:1px solid var(--border)!important}
+.pg-side em{font-style:normal;font-weight:600;color:var(--muted);background:#eef1f5;border-radius:999px;padding:1px 8px;margin-inline-start:6px;letter-spacing:0}
+.pg-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-inline-end:8px;background:#047857}.pg-side.ap .pg-dot{background:#c62828}
+.pg-row{cursor:pointer;transition:background .12s}.pg-row:hover{background:#fafbfc}.pg-row.open{background:#fdfaf2}
+.pg-row:focus-visible{outline:2px solid var(--info);outline-offset:-2px}
+.pg-who{display:flex;align-items:center;gap:12px;min-width:0}
+.pg-who > div{display:flex;flex-direction:column;min-width:0}.pg-who b{font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pg-who span{font-size:12px;color:var(--muted)}
+.pg-car{display:inline-flex;color:#9aa3af;transform:rotate(-90deg);transition:transform .15s}.pg-row.open .pg-car{transform:none;color:#8a6512}
+html[dir=rtl] .pg-car{transform:rotate(90deg)}
+.pg-av{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;flex:none;font-size:12.5px;font-weight:700;letter-spacing:.02em}
+.pg-av.ar{background:#e8f6f0;color:#047857}.pg-av.ap{background:#fdecec;color:#b42318}
+.pg-init td{color:var(--muted);font-style:italic;background:#fdfaf2}.pg-init td:first-child{padding-inline-start:74px}
+.pg-line{cursor:pointer;background:#fdfdfb}.pg-line:hover{background:#f5f8ff}
+.pg-line td{padding-top:8px;padding-bottom:8px}
+.pg-date{padding-inline-start:74px!important;white-space:nowrap;color:var(--text-2)}
+.pg-ent{display:flex;align-items:center;gap:10px;min-width:0;max-width:520px}
+.pg-ent > div{display:flex;flex-direction:column;min-width:0}.pg-ent b{font-weight:600;white-space:nowrap}
+.pg-ent span{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pg-ent i{font-style:normal;color:#9aa3af;font-variant-numeric:tabular-nums}
+.pg-due{white-space:nowrap}.pg-due.od{color:#c62828;font-weight:600}
+.pg-fc{color:var(--muted);font-size:12.5px}
+.pg-more td{padding:6px 14px 12px 74px;background:#fdfdfb}
+.pg-more a{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:#8a6512;text-decoration:none}.pg-more a:hover{text-decoration:underline}
+.pg-tot td{background:#f8fafc;font-weight:650;border-top:1px solid var(--border);border-bottom:0;padding-top:13px;padding-bottom:13px}
+.pg-tot em{font-style:normal;font-weight:500;font-size:12px;color:var(--muted);margin-inline-start:6px}
+.pg-note{margin:10px 2px 0;font-size:12.5px;color:var(--muted)}
+@media (max-width:900px){.pg-date,.pg-init td:first-child,.pg-more td{padding-inline-start:14px!important}.pg-fold{margin-inline-start:0}}
 </style>
 
 <!-- Journal Entry Right Side Drawer CSS & JS -->
@@ -9451,103 +9553,68 @@ function pageExpenses(){
   const F = UI.filters, q = String(F.ex_q || '').trim().toLowerCase(), stf = F.ex_s || '';
   const OPEX = S.expenses.filter(x => !x.carExp);
   let list = [...OPEX].reverse();
-  const totalSpent = list.reduce((t, x) => t.plus(x.total || 0), D0());
-  const bankSpent = list.filter(x => x.method === 'bank').reduce((t, x) => t.plus(x.total || 0), D0());
-  const suppSpent = list.filter(x => x.method === 'supplier').reduce((t, x) => t.plus(x.total || 0), D0());
-  const empSpent = list.filter(x => x.method === 'employee').reduce((t, x) => t.plus(x.total || 0), D0());
+  const sum = arr => arr.reduce((t, x) => t.plus(x.total || 0), D0());
+  const totalSpent = sum(list), bankSpent = sum(list.filter(x => x.method === 'bank')), suppSpent = sum(list.filter(x => x.method === 'supplier')), empSpent = sum(list.filter(x => x.method === 'employee'));
+  const ym = todayCairo().slice(0, 7), monthSpent = sum(list.filter(x => String(x.date || '').startsWith(ym)));
+  const egpOf = x => { const e = S.entries.find(y => y.id === x.entryId); return x.currency === 'EGP' || !e || !Number(x.total) ? D(1) : D(e.totals.egpDebit).div(x.total); };
+  const byCat = new Map(); OPEX.forEach(x => { const f = egpOf(x); (x.lines || []).forEach(l => { const k = l.category || 'Other'; byCat.set(k, (byCat.get(k) || D0()).plus(D(l.amount || 0).mul(f))); }); });
+  const cats = [...byCat.entries()].sort((a, b) => Number(b[1]) - Number(a[1])), catMax = cats.length ? cats[0][1] : D(1), catTot = cats.reduce((t, c) => t.plus(c[1]), D0());
 
   if (q) list = list.filter(x => (x.number + ' ' + (x.payee || '') + ' ' + (x.ref || '') + ' ' + (x.method || '') + ' ' + ((x.lines || []).map(l => l.category + ' ' + l.description).join(' '))).toLowerCase().includes(q));
   if (stf) list = list.filter(x => x.method === stf);
 
-  const tabs = [['', 'All Methods'], ['bank', 'Cash & Bank'], ['supplier', 'Supplier Bills'], ['employee', 'Employee Reimbursements']];
+  const tabs = [['', 'All'], ['bank', 'Cash & bank'], ['supplier', 'Supplier bills'], ['employee', 'Employee claims']];
+  const plus = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-inline-end:4px"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>';
+  const tile = (icon, cls, label, val, sub) => `<div class="xp-k ${cls}"><span class="xp-kic">${ic(icon, 18)}</span><div><span class="xp-kl">${label}</span><b>${money(val)} <small>EGP</small></b><em>${sub}</em></div></div>`;
+  const methodTag = x => { const b = x.bankId ? bankById(x.bankId) : null;
+    return x.method === 'bank' ? `<span class="xp-m bank">${ic('banking', 13)}${esc(b ? b.name || bankLabel(b) : 'Cash / bank')}</span>` : x.method === 'supplier' ? `<span class="xp-m sup">${ic('truck', 13)}Supplier bill</span>` : `<span class="xp-m emp">${ic('users', 13)}Employee claim</span>`; };
 
-  return H(t('expense_docs'), 'Operating and administrative expenses (OPEX & G&A) — showroom rent, utilities, marketing, salaries, office supplies. Costs of a specific car (shipping, customs…) are under Purchases → Car expenses and go into that car\'s cost.',
-    (ed ? '<button type="button" class="btn" data-act="ec-new"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-inline-end:4px"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> New Category</button>' : '') +
-    (can('expenses', 'create') ? '<button type="button" class="btn primary" data-act="ex-new"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-inline-end:4px"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> New Expense</button>' : '')) +
-    `<div class="grid g4" style="margin-bottom:16px">
-      <div class="card stat-card" style="padding:14px 18px">
-        <div class="muted" style="font-size:12px;font-weight:600;text-transform:uppercase">Total OPEX & G&A</div>
-        <div class="val" style="font-size:22px;font-weight:700;margin-top:4px">${money(totalSpent)} <small style="font-size:13px;font-weight:400;color:var(--muted)">EGP</small></div>
-        <div class="sub" style="font-size:12px;color:var(--muted);margin-top:2px">${OPEX.length} recorded voucher${OPEX.length === 1 ? '' : 's'}</div>
-      </div>
-      <div class="card stat-card" style="padding:14px 18px">
-        <div class="muted" style="font-size:12px;font-weight:600;text-transform:uppercase">Paid via Cash / Bank</div>
-        <div class="val" style="font-size:22px;font-weight:700;color:var(--primary,#008784);margin-top:4px">${money(bankSpent)} <small style="font-size:13px;font-weight:400;color:var(--muted)">EGP</small></div>
-        <div class="sub" style="font-size:12px;color:var(--muted);margin-top:2px">Direct settlement</div>
-      </div>
-      <div class="card stat-card" style="padding:14px 18px">
-        <div class="muted" style="font-size:12px;font-weight:600;text-transform:uppercase">Supplier Payables</div>
-        <div class="val" style="font-size:22px;font-weight:700;margin-top:4px">${money(suppSpent)} <small style="font-size:13px;font-weight:400;color:var(--muted)">EGP</small></div>
-        <div class="sub" style="font-size:12px;color:var(--muted);margin-top:2px">Vendor bills</div>
-      </div>
-      <div class="card stat-card" style="padding:14px 18px">
-        <div class="muted" style="font-size:12px;font-weight:600;text-transform:uppercase">Employee Claims</div>
-        <div class="val" style="font-size:22px;font-weight:700;color:var(--gold-text,#8a6512);margin-top:4px">${money(empSpent)} <small style="font-size:13px;font-weight:400;color:var(--muted)">EGP</small></div>
-        <div class="sub" style="font-size:12px;color:var(--muted);margin-top:2px">Reimbursements due</div>
-      </div>
+  return H(t('expense_docs'), 'Running costs of the business — rent, utilities, salaries, marketing, office. Costs of a specific car are under Car expenses and go into that car’s cost.',
+    (ed ? `<button type="button" class="btn" data-act="ec-new">${plus} New category</button>` : '') +
+    (can('expenses', 'create') ? `<button type="button" class="btn primary" data-act="ex-new">${plus} New expense</button>` : '')) +
+    `<div class="xp-kpis">
+      <div class="xp-hero"><div class="xp-hero-top"><span class="xp-kic">${ic('expenses', 20)}</span><span class="xp-tag">${OPEX.length} voucher${OPEX.length === 1 ? '' : 's'}</span></div>
+        <span class="xp-kl">Total operating expenses</span><b>${money(totalSpent)} <small>EGP</small></b><em>This month: ${money(monthSpent)} EGP</em></div>
+      ${tile('banking', 'ok', 'Paid from cash & bank', bankSpent, 'Settled directly')}
+      ${tile('truck', 'info', 'On supplier bills', suppSpent, 'Owed to vendors')}
+      ${tile('users', 'gold', 'Employee claims', empSpent, 'To reimburse')}
     </div>
-    <div class="card">
-      <div class="o-pills">${tabs.map(([k, l]) => `<button type="button" class="o-pill ${stf === k ? 'on' : ''}" data-act="set-filter" data-k="ex_s" data-v="${k}">${l} <span>${k ? OPEX.filter(x => x.method === k).length : OPEX.length}</span></button>`).join('')}</div>
-      <div class="filters">
-        <input class="input" data-filter="ex_q" placeholder="Search number, payee, reference, description…" value="${esc(F.ex_q || '')}" style="min-width:320px">
-        <span class="muted" style="align-self:center;font-size:12.5px;margin-inline-start:auto">${list.length} expense voucher${list.length === 1 ? '' : 's'}</span>
-      </div>
-      <div class="tbl-wrap">
-        <table class="o-list">
-          <thead>
-            <tr>
-              <th>Voucher</th>
-              <th>Date</th>
-              <th>Paid Via</th>
-              <th>Payee / Vendor</th>
-              <th>Reference</th>
-              <th>Description / Category</th>
-              <th class="num">Amount</th>
-              <th>Journal Entry</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            ${list.map(x => {
-              const e = S.entries.find(y => y.id === x.entryId);
-              const b = x.bankId ? bankById(x.bankId) : null;
-              const catNames = (x.lines && x.lines.length) ? [...new Set(x.lines.map(l => l.category).filter(Boolean))].join(', ') : 'Operating Expense';
-              const methodPill = x.method === 'bank' ? `<span class="pill ok">${esc(b ? bankLabel(b) : 'Cash / Bank')}</span>` : (x.method === 'supplier' ? '<span class="pill info">Supplier Bill</span>' : '<span class="pill gold">Employee Claim</span>');
-              return `<tr data-act="ex-view" data-id="${x.id}" style="cursor:pointer">
-                <td><b>${esc(x.number)}</b></td>
-                <td style="white-space:nowrap">${esc(x.date)}</td>
-                <td>${methodPill}</td>
-                <td>${esc(x.payee || '—')}</td>
-                <td><span class="mono" style="font-size:12px">${esc(x.ref || '—')}</span></td>
-                <td class="wrap"><div style="font-weight:600">${esc(catNames)}</div>${(x.lines && x.lines[0] && x.lines[0].description) ? `<div class="muted" style="font-size:11.5px">${esc(x.lines[0].description)}</div>` : ''}</td>
-                <td class="num"><b>${money(x.total)}</b> <span class="muted">${x.currency}</span></td>
-                <td>${e ? entryLink(e) + ' ' + badge(e.status) : '<span class="muted">—</span>'}</td>
-                <td style="text-align:end"><button type="button" class="btn sm" data-act="ex-view" data-id="${x.id}">View</button></td>
-              </tr>`;
-            }).join('') || '<tr><td colspan="9" class="empty">' + (q || stf ? 'No expenses match the filter.' : 'No expenses recorded yet. Click "+ New Expense" to record operating or administrative costs.') + '</td></tr>'}
-          </tbody>
-        </table>
-      </div>
-    </div>
-    <div class="card" style="margin-top:16px">
-      <div class="card-h" style="display:flex;justify-content:space-between;align-items:center">
-        <h2>Expense Categories & GL Accounts</h2>
-        ${ed ? '<button type="button" class="btn sm" data-act="ec-new">+ Add Category</button>' : ''}
-      </div>
-      <div class="card-b">
-        <div class="grid g3">
-          ${S.expenseCats.map(c => `<div style="padding:10px 14px;background:var(--surface-2);border-radius:6px;border:1px solid var(--border)">
-            <div style="font-weight:700;font-size:13.5px;color:var(--text)">${esc(c.name)}</div>
-            <div style="font-size:12px;color:var(--muted);margin-top:2px">GL: <span class="mono">${esc(accLabel(acc(c.accountId)))}</span></div>
-            <div style="font-size:11.5px;color:var(--muted);margin-top:2px">Cost Center: <b>${esc(c.costCenter || 'All Showroom')}</b></div>
-          </div>`).join('') || '<span class="muted">No categories configured.</span>'}
+    <div class="xp-body">
+      <div class="card xp-list">
+        <div class="xp-bar">
+          <div class="xp-seg" role="tablist">${tabs.map(([k, l]) => `<button type="button" role="tab" aria-selected="${stf === k}" class="${stf === k ? 'on' : ''}" data-act="set-filter" data-k="ex_s" data-v="${k}">${l}<span>${k ? OPEX.filter(x => x.method === k).length : OPEX.length}</span></button>`).join('')}</div>
+          <label class="xp-search">${ic('search', 15)}<input class="input" data-filter="ex_q" placeholder="Search expenses…" value="${esc(F.ex_q || '')}" aria-label="Search expenses"></label>
+        </div>
+        <div class="tbl-wrap">
+          <table class="o-list xp-tbl">
+            <thead><tr><th>Expense</th><th>Category</th><th>Paid via</th><th class="num">Amount</th><th>Status</th></tr></thead>
+            <tbody>
+              ${list.map(x => {
+                const e = S.entries.find(y => y.id === x.entryId);
+                const names = [...new Set((x.lines || []).map(l => l.category).filter(Boolean))];
+                const desc = (x.lines || []).map(l => l.description).find(Boolean) || '';
+                return `<tr data-act="ex-view" data-id="${x.id}" tabindex="0">
+                  <td><b class="xp-no">${esc(x.number)}</b><span class="xp-sub">${esc(x.date)}${x.payee ? ' · ' + esc(x.payee) : ''}${x.ref ? ' · ' + esc(x.ref) : ''}</span></td>
+                  <td class="xp-cat"><b title="${esc(names.join(', '))}">${esc(names[0] || 'Operating expense')}${names.length > 1 ? ` <i>+${names.length - 1}</i>` : ''}</b>${desc ? `<span class="xp-sub" title="${esc(desc)}">${esc(desc)}</span>` : ''}</td>
+                  <td>${methodTag(x)}</td>
+                  <td class="num"><b>${money(x.total)}</b> <span class="muted">${x.currency}</span></td>
+                  <td>${e ? badge(e.status) : '<span class="muted">—</span>'}</td>
+                </tr>`;
+              }).join('') || `<tr><td colspan="5"><div class="xp-empty">${ic('expenses', 22)}<b>${q || stf ? 'No expenses match this filter' : 'No expenses yet'}</b><span>${q || stf ? 'Try another tab or clear the search.' : 'Record rent, utilities, salaries and other running costs.'}</span>${!q && !stf && can('expenses', 'create') ? `<button type="button" class="btn primary sm" data-act="ex-new">${plus} New expense</button>` : ''}</div></td></tr>`}
+            </tbody>
+          </table>
         </div>
       </div>
+      <aside class="card xp-side">
+        <header><h3>Where the money goes</h3><span>${money(catTot)} EGP</span></header>
+        ${cats.length ? `<ul class="xp-cats">${cats.slice(0, 8).map(([n, v]) => `<li><div><span>${esc(n)}</span><b>${money(v)}</b></div><div class="xp-cb"><i><b style="width:${Math.max(3, Number(v.div(catMax).mul(100).toFixed(1)))}%"></b></i><small>${catTot.gt(0) ? v.div(catTot).mul(100).toFixed(0) : 0}%</small></div></li>`).join('')}</ul>` : '<p class="xp-none">Spending per category shows here once you record expenses.</p>'}
+        <details class="xp-cfg"><summary>${S.expenseCats.length} categories &amp; their accounts</summary>
+          <ul>${S.expenseCats.map(c => `<li><span>${esc(c.name)}</span><code>${esc((acc(c.accountId) || {}).code || '—')}</code></li>`).join('')}</ul>
+          ${ed ? `<button type="button" class="btn sm" data-act="ec-new">${plus} Add category</button>` : ''}
+        </details>
+      </aside>
     </div>`;
 }
-
-
-
 function pageSchedules(){
   return H(t('schedules'), 'Prepayments released to expense and recurring accruals, posted monthly through the adjusting journal with approval.',
     (can('expenses', 'create') ? '<button type="button" class="btn" data-act="sc-run">Generate due postings</button><button type="button" class="btn primary" data-act="sc-new">New schedule</button>' : '')) + `
@@ -10560,154 +10627,73 @@ function pagePartnerLedger(){
   const L = partnerLedger(P), ar = L.groups.filter(g => g.side === 'ar'), ap = L.groups.filter(g => g.side === 'ap');
   const unfolded = k => P.fold[k] === true;
   const amt = (v, cls = '') => `<td class="num ${cls}${v.lt(0) ? ' neg' : ''}">${v.eq(0) ? '<span class="zero">0.00</span>' : money(v)}</td>`;
-  const presets = IS_PRESETS.map(([k, l]) => `<button type="button" class="o-pill ${P.preset === k ? 'on' : ''}" data-act="pled-set" data-f="preset" data-v="${k}">${l}</button>`).join('');
-  const types = [['all','All Accounts'], ['ar','Customers (Receivable)'], ['ap','Vendors (Payable)']].map(([k, l]) => `<button type="button" class="o-pill ${P.type === k ? 'on' : ''}" data-act="pled-set" data-f="type" data-v="${k}">${l}</button>`).join('');
-
-  const jnlCls = j => {
-    const code = String(j || '').toLowerCase();
-    if (code.includes('bill') || code.includes('pur') || code.includes('ap')) return 'bill';
-    if (code.includes('inv') || code.includes('sal') || code.includes('sj') || code.includes('ar')) return 'inv';
-    if (code.includes('bnk') || code.includes('csh') || code.includes('bank') || code.includes('cash')) return 'bnk';
-    if (code.includes('gj')) return 'gj';
-    return 'def';
-  };
-
+  const seg = (f, cur, opts) => `<div class="xp-seg" role="tablist">${opts.map(([k, l]) => `<button type="button" role="tab" aria-selected="${cur === k}" class="${cur === k ? 'on' : ''}" data-act="pled-set" data-f="${f}" data-v="${k}">${l}</button>`).join('')}</div>`;
+  const jnlCls = j => { const c = String(j || '').toLowerCase();
+    return /bill|pur|pj|ap/.test(c) ? 'bill' : /inv|sal|sj|ar/.test(c) ? 'inv' : /bnk|csh|bank|cash|bj/.test(c) ? 'bnk' : /gj/.test(c) ? 'gj' : 'def'; };
+  const initials = n => String(n || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0] || '').join('').toUpperCase() || '?';
   const grp = g => {
     const open = unfolded(g.key);
-    let h = `<tr class="pl-p-row" data-act="pled-fold" data-k="${esc(g.key)}">
-      <td colspan="5">
-        <span class="is-caret" style="margin-inline-end:8px">${ic(open ? 'chev' : 'chev-right', 13)}</span>
-        <span class="pl-p-name">${esc(g.name)}</span>
-        ${g.code ? `<span class="pl-p-code">${esc(g.code)}</span>` : ''}
-        ${g.p && g.p.phone ? `<span class="pl-p-phone">${esc(g.p.phone)}</span>` : ''}
-        <span class="pl-badge-count">${g.lines.length} ${g.lines.length === 1 ? 'txn' : 'txns'}</span>
-      </td>
-      ${amt(g.debit, 'b')}${amt(g.credit, 'b')}<td></td>${amt(g.end, 'b')}
+    let h = `<tr class="pg-row${open ? ' open' : ''}" data-act="pled-fold" data-k="${esc(g.key)}" tabindex="0" aria-expanded="${open}">
+      <td colspan="3"><div class="pg-who"><span class="pg-car">${ic('chev', 14)}</span><span class="pg-av ${g.side}">${esc(initials(g.name))}</span>
+        <div><b>${esc(g.name)}</b><span>${[g.code, g.p && g.p.phone].filter(Boolean).map(esc).join(' · ')}${g.code || (g.p && g.p.phone) ? ' · ' : ''}${g.lines.length} ${g.lines.length === 1 ? 'entry' : 'entries'}</span></div></div></td>
+      ${amt(g.debit)}${amt(g.credit)}<td></td>${amt(g.end, 'b')}
     </tr>`;
     if (open){
-      if (!g.initial.eq(0)) {
-        h += `<tr class="pl-init"><td colspan="5" class="pl-indent-cell"><span class="pl-tree-bullet"></span>Initial balance forward</td><td></td><td></td><td></td>${amt(g.initial)}</tr>`;
-      }
+      if (!g.initial.eq(0)) h += `<tr class="pg-init"><td colspan="3">Opening balance</td><td></td><td></td><td></td>${amt(g.initial)}</tr>`;
       h += g.lines.map(z => {
-        const isOverdue = z.due && z.inv && invState(z.inv).open.gt(0) && z.due < todayCairo();
-        return `<tr class="pl-line-row" data-act="je-view" data-id="${z.e.id}" title="Click to view journal entry ${esc(z.e.number)}">
-          <td class="pl-indent-cell"><span class="pl-tree-bullet"></span>${z.date}</td>
-          <td><span class="pl-jnl-tag ${jnlCls(z.jnl)}">${esc(z.jnl)}</span></td>
-          <td class="acc mono" title="${esc(z.account)}">${esc(z.acode)}</td>
-          <td class="ref" title="${esc(z.ref)}">${esc(z.ref)}</td>
-          <td>${z.due ? `<span class="${isOverdue ? 'neg' : ''}">${z.due}${isOverdue ? ' <span class="pill bad" style="font-size:10.5px;padding:0 6px">overdue</span>' : ''}</span>` : '<span class="muted">—</span>'}</td>
+        const od = z.due && z.inv && invState(z.inv).open.gt(0) && z.due < todayCairo();
+        const label = (z.ref.split(' · ').slice(1).join(' · ')) || z.account;
+        return `<tr class="pg-line" data-act="je-view" data-id="${z.e.id}" title="Open journal entry ${esc(z.e.number)}">
+          <td class="pg-date">${z.date}</td>
+          <td class="pg-ent"><span class="pl-jnl-tag ${jnlCls(z.jnl)}">${esc(z.jnl)}</span><div><b>${esc(z.e.number || '')}</b><span title="${esc(label)}">${esc(label)} <i>${esc(z.acode)}</i></span></div></td>
+          <td>${z.due ? `<span class="pg-due${od ? ' od' : ''}">${z.due}${od ? ' · overdue' : ''}</span>` : '<span class="muted">—</span>'}</td>
           ${amt(z.debit)}${amt(z.credit)}
-          <td class="num fc mono">${z.fc ? esc(z.fc) : '<span class="muted">—</span>'}</td>
+          <td class="num pg-fc">${z.fc ? esc(z.fc) : '<span class="muted">—</span>'}</td>
           ${amt(z.bal)}
         </tr>`;
       }).join('');
-      if (g.p) {
-        h += `<tr class="pl-sub-row"><td colspan="9" class="pl-indent-cell">
-          <a class="pl-stmt-btn" href="#/partners/statement?side=${g.side}&id=${g.p.id}">
-            ${ic('file', 13)} Open complete statement for ${esc(g.name)} →
-          </a>
-        </td></tr>`;
-      }
+      if (g.p) h += `<tr class="pg-more"><td colspan="7"><a href="#/partners/statement?side=${g.side}&id=${g.p.id}">${ic('file', 13)} Full statement for ${esc(g.name)}</a></td></tr>`;
     }
     return h;
   };
-
   const sideHdr = (side, grps) => {
-    const sDebit = grps.reduce((t, g) => t.plus(g.debit), D0());
-    const sCredit = grps.reduce((t, g) => t.plus(g.credit), D0());
-    const sEnd = grps.reduce((t, g) => t.plus(g.end), D0());
-    const title = side === 'ar' ? 'Customers · Accounts Receivable' : 'Vendors · Accounts Payable';
-    return `<tr class="pl-side-hdr">
-      <td colspan="5"><b>${title}</b> <span class="pl-badge-count">${grps.length} partner${grps.length === 1 ? '' : 's'}</span></td>
-      <td class="num"><b>${money(sDebit)}</b></td>
-      <td class="num"><b>${money(sCredit)}</b></td>
-      <td></td>
-      <td class="num"><b>${money(sEnd)}</b></td>
-    </tr>`;
+    const t = k => grps.reduce((a, g) => a.plus(g[k]), D0());
+    return `<tr class="pg-side ${side}"><td colspan="3"><span class="pg-dot"></span>${side === 'ar' ? 'Customers · receivable' : 'Vendors · payable'} <em>${grps.length}</em></td>
+      ${amt(t('debit'))}${amt(t('credit'))}<td></td>${amt(t('end'), 'b')}</tr>`;
   };
+  const recv = ar.reduce((t, g) => t.plus(g.end), D0()), pay = ap.reduce((t, g) => t.plus(g.end), D0()).negated(), net = recv.minus(pay);
+  const egp = '<small>EGP</small>';
 
-  const recv = ar.reduce((t, g) => t.plus(g.end), D0());
-  const pay = ap.reduce((t, g) => t.plus(g.end), D0());
-
-  return H('Partner ledger', `${L.from} to ${L.to} · Functional Currency: <b>EGP</b> · Posted journal entries`, `<button class="btn" data-act="fin-xlsx" data-k="pl"><span style="margin-inline-end:4px">${ic('file', 14)}</span> Export Excel</button><button class="btn" onclick="window.print()"><span style="margin-inline-end:4px">${ic('printer', 14)}</span> Print / PDF</button>`) + `
-    <div class="card is-tools">
-      <div class="is-row"><span class="lbl">Period</span><div class="o-pills">${presets}</div></div>
-      ${P.preset === 'custom' ? `<form class="is-row" data-form="pled-range"><span class="lbl">Custom Dates</span><input class="input" type="date" name="from" value="${P.from || L.from}"><span class="muted">to</span><input class="input" type="date" name="to" value="${P.to || L.to}"><button class="btn sm primary">Apply Range</button></form>` : ''}
-      <div class="is-row" style="flex-wrap:wrap;gap:12px;align-items:center">
-        <span class="lbl">Accounts</span>
-        <div class="o-pills">${types}</div>
-        <div class="pled-search-wrap">
-          <span class="pled-ic">${ic('search', 15)}</span>
-          <input class="input" id="pled-q" placeholder="Search partner name, code, phone, invoice, ref..." value="${esc(P.q || '')}" autocomplete="off">
-          ${P.q ? `<button type="button" class="pled-clear-btn" data-act="pled-clear" title="Clear search">×</button>` : ''}
-        </div>
-        <label class="is-chk" style="cursor:pointer;user-select:none"><input type="checkbox" data-act="pled-tog" data-f="nonzero" ${P.nonzero ? 'checked' : ''}> Non-zero balance only</label>
-        <span class="spacer" style="flex:1"></span>
-        <button type="button" class="btn sm" data-act="pled-all" data-v="1">Unfold all</button>
-        <button type="button" class="btn sm" data-act="pled-all" data-v="0">Fold all</button>
+  return H('Partner ledger', `${L.from} to ${L.to} · amounts in EGP · posted entries`, `<button class="btn" data-act="fin-xlsx" data-k="pl"><span style="margin-inline-end:4px">${ic('file', 14)}</span> Export Excel</button><button class="btn" onclick="window.print()"><span style="margin-inline-end:4px">${ic('printer', 14)}</span> Print / PDF</button>`) + `
+    <div class="card pg-tools">
+      <div class="pg-tr">${seg('preset', P.preset, IS_PRESETS)}
+        ${P.preset === 'custom' ? `<form class="pg-range" data-form="pled-range"><input class="input" type="date" name="from" value="${P.from || L.from}" aria-label="From"><span class="muted">to</span><input class="input" type="date" name="to" value="${P.to || L.to}" aria-label="To"><button class="btn sm primary">Apply</button></form>` : ''}</div>
+      <div class="pg-tr">${seg('type', P.type, [['all', 'All'], ['ar', 'Customers'], ['ap', 'Vendors']])}
+        <label class="xp-search pled-search-wrap">${ic('search', 15)}<input class="input" id="pled-q" placeholder="Search partner, code, phone, entry…" value="${esc(P.q || '')}" autocomplete="off" aria-label="Search partners">${P.q ? `<button type="button" class="pled-clear-btn" data-act="pled-clear" title="Clear search" aria-label="Clear search">×</button>` : ''}</label>
+        <label class="pg-chk"><input type="checkbox" data-act="pled-tog" data-f="nonzero" ${P.nonzero ? 'checked' : ''}> Open balances only</label>
+        <span class="pg-fold"><button type="button" class="btn sm" data-act="pled-all" data-v="1">Expand all</button><button type="button" class="btn sm" data-act="pled-all" data-v="0">Collapse all</button></span>
       </div>
     </div>
-
-    <div class="is-kpis">
-      <div class="is-kpi ar">
-        <div class="k">Customers Owe Us (AR)</div>
-        <div class="v${recv.lt(0) ? ' neg' : ''}">${money(recv)} <small style="font-size:12px;font-weight:400;color:var(--muted)">EGP</small></div>
-        <div class="pl-kpi-sub">${ar.length} customer${ar.length === 1 ? '' : 's'} with receivable entries</div>
-      </div>
-      <div class="is-kpi ap">
-        <div class="k">We Owe Vendors (AP)</div>
-        <div class="v${pay.lt(0) ? ' neg' : ''}">${money(pay.negated())} <small style="font-size:12px;font-weight:400;color:var(--muted)">EGP</small></div>
-        <div class="pl-kpi-sub">${ap.length} vendor${ap.length === 1 ? '' : 's'} with payable entries</div>
-      </div>
-      <div class="is-kpi deb">
-        <div class="k">Total Period Debits</div>
-        <div class="v">${money(L.debit)} <small style="font-size:12px;font-weight:400;color:var(--muted)">EGP</small></div>
-        <div class="pl-kpi-sub">Sales invoices issued & payments made</div>
-      </div>
-      <div class="is-kpi crd">
-        <div class="k">Total Period Credits</div>
-        <div class="v">${money(L.credit)} <small style="font-size:12px;font-weight:400;color:var(--muted)">EGP</small></div>
-        <div class="pl-kpi-sub">Vendor bills received & cash collected</div>
-      </div>
+    <div class="xp-kpis">
+      <div class="xp-hero"><div class="xp-hero-top"><span class="xp-kic">${ic('swap', 20)}</span><span class="xp-tag">${L.groups.length} partner${L.groups.length === 1 ? '' : 's'}</span></div>
+        <span class="xp-kl">Net position (owed to us − we owe)</span><b>${money(net)} ${egp}</b><em>${net.lt(0) ? 'You owe more than you are owed' : 'You are owed more than you owe'}</em></div>
+      <div class="xp-k ok"><span class="xp-kic">${ic('users', 18)}</span><div><span class="xp-kl">Customers owe us</span><b>${money(recv)} ${egp}</b><em>${ar.length} customer${ar.length === 1 ? '' : 's'}</em></div></div>
+      <div class="xp-k bad"><span class="xp-kic">${ic('truck', 18)}</span><div><span class="xp-kl">We owe vendors</span><b>${money(pay)} ${egp}</b><em>${ap.length} vendor${ap.length === 1 ? '' : 's'}</em></div></div>
+      <div class="xp-k info"><span class="xp-kic">${ic('accounting', 18)}</span><div><span class="xp-kl">Movement this period</span><b class="pg-mv">${money(L.debit)} <small>Dr</small></b><em>${money(L.credit)} Cr</em></div></div>
     </div>
-
-    <div class="card is-card">
+    <div class="card pg-card">
       <div class="tbl-wrap">
-        <table class="is-tbl pl-tbl">
-          <thead>
-            <tr>
-              <th style="min-width:240px">Date / Partner</th>
-              <th style="width:70px">Journal</th>
-              <th style="width:75px">Account</th>
-              <th>Reference / Label</th>
-              <th style="width:105px">Due date</th>
-              <th class="num" style="width:125px">Debit</th>
-              <th class="num" style="width:125px">Credit</th>
-              <th class="num" style="width:125px">Amount Currency</th>
-              <th class="num" style="width:130px">Balance</th>
-            </tr>
-          </thead>
+        <table class="pg-tbl">
+          <thead><tr><th style="width:110px">Date</th><th>Entry</th><th style="width:120px">Due</th><th class="num">Debit</th><th class="num">Credit</th><th class="num">Foreign amount</th><th class="num">Balance</th></tr></thead>
           <tbody>
-            ${L.groups.length ? (
-              (ar.length && P.type !== 'ap' ? sideHdr('ar', ar) + ar.map(grp).join('') : '') +
-              (ap.length && P.type !== 'ar' ? sideHdr('ap', ap) + ap.map(grp).join('') : '')
-            ) : `<tr><td colspan="9" class="empty" style="padding:36px;text-align:center;color:var(--muted)">${P.q ? 'No partners or transactions match "' + esc(P.q) + '".' : 'No receivable or payable movements found for this period.'}</td></tr>`}
+            ${L.groups.length ? ((ar.length && P.type !== 'ap' ? sideHdr('ar', ar) + ar.map(grp).join('') : '') + (ap.length && P.type !== 'ar' ? sideHdr('ap', ap) + ap.map(grp).join('') : ''))
+              : `<tr><td colspan="7"><div class="xp-empty">${ic('users', 22)}<b>${P.q ? 'No match for “' + esc(P.q) + '”' : 'No receivable or payable movements'}</b><span>${P.q ? 'Try another name, code or entry number.' : 'Try a longer period.'}</span></div></td></tr>`}
           </tbody>
-          <tfoot>
-            <tr class="is-sum net">
-              <td colspan="5"><b>Grand Total</b> ${P.q ? `<span class="pl-badge-count">Filtered: ${L.groups.length}</span>` : ''}</td>
-              ${amt(L.debit, 'b')}
-              ${amt(L.credit, 'b')}
-              <td></td>
-              ${amt(L.balance, 'b')}
-            </tr>
-          </tfoot>
+          <tfoot><tr class="pg-tot"><td colspan="3">Total${P.q ? ` <em>${L.groups.length} shown</em>` : ''}</td>${amt(L.debit, 'b')}${amt(L.credit, 'b')}<td></td>${amt(L.balance, 'b')}</tr></tfoot>
         </table>
       </div>
     </div>
-    <p class="je-hint" style="margin-top:10px">
-      <b>How to read it:</b> Balance = debit − credit. Positive balance on customer = receivable (they owe you); negative balance on vendor = payable (you owe them). Click any transaction row to open its full Journal Entry.
-    </p>`;
+    <p class="pg-note">Balance = debit − credit. A positive customer balance is money they owe you; a negative vendor balance is money you owe them. Click a line to open its journal entry.</p>`;
 }
 
 const PLED_CLICKS = {
@@ -14416,7 +14402,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261107-152034';
+const APP_BUILD = 'build-20261107-152717';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
