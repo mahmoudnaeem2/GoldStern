@@ -2091,36 +2091,56 @@ th{white-space:normal}th.num{white-space:nowrap}
 .co-kind.on{border-color:var(--btn-primary,#1f2a3c);box-shadow:inset 0 0 0 1px var(--btn-primary,#1f2a3c);background:#fbfcfd}
 .co-kind.on .co-kic{background:var(--btn-primary,#1f2a3c);color:#fff}
 .co-kind:focus-visible{outline:2px solid var(--info);outline-offset:2px}
-.co-body{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px;align-items:start}
+.co-body{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:20px;align-items:start;max-width:1280px;margin:0 auto;width:100%}
 .co-main{display:flex;flex-direction:column;gap:16px;min-width:0}
-.co-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px}
-.co-card header{margin-bottom:14px}.co-card h3{margin:0;font-size:15px;font-weight:600}.co-card header p{margin:3px 0 0;font-size:12.5px;color:var(--muted)}
-.co-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px 16px}
-.co-f{display:flex;flex-direction:column;gap:6px;min-width:0;margin:0}
-.co-f > span{font-size:13px;font-weight:500;color:var(--text-2)}
+.co-card{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px 24px 24px;box-shadow:0 1px 2px rgba(16,24,40,.04),0 4px 14px -6px rgba(16,24,40,.06);transition:box-shadow .2s,border-color .2s}
+.co-card:focus-within{border-color:#e4d3a6;box-shadow:0 1px 2px rgba(16,24,40,.04),0 10px 28px -10px rgba(197,155,39,.28)}
+.co-card header{display:flex;align-items:center;gap:14px;margin-bottom:20px}
+.co-step{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;flex:none;background:linear-gradient(135deg,#fbf4e2,#f3e5bd);color:#8a6512;box-shadow:inset 0 0 0 1px rgba(197,155,39,.22)}
+.co-card:focus-within .co-step{background:linear-gradient(135deg,#d9b24a,#b8901f);color:#fff;box-shadow:0 4px 12px -4px rgba(184,144,31,.6)}
+.co-ht{flex:1;min-width:0}.co-card h3{margin:0;font-size:16px;font-weight:650;letter-spacing:-.01em;color:var(--text)}.co-card header p{margin:2px 0 0;font-size:13px;color:var(--muted)}
+.co-no{font-size:12px;font-weight:600;color:#a8b0bc;font-variant-numeric:tabular-nums;letter-spacing:.06em}
+.co-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px 18px}
+.co-f{display:flex;flex-direction:column;gap:7px;min-width:0;margin:0}
+.co-f > span{font-size:12.5px;font-weight:600;color:var(--text-2);letter-spacing:.01em}
 .co-f > span em{font-style:normal;color:var(--muted);font-weight:400;margin-inline-start:4px}
-.co-f.span2{grid-column:span 2}
-.co-f .input{height:40px}
+.co-f.span2{grid-column:span 2}.co-f.span3{grid-column:1/-1}
+.co-ed .co-f .input,.co-ed .co-f select.input{height:44px;border-radius:10px;border:1px solid #e3e7ed;background:#f8fafc;font-size:14px;transition:background .15s,border-color .15s,box-shadow .15s}
+.co-ed .co-f .input:hover{border-color:#cfd6df}
+.co-ed .co-f .input:focus{background:#fff;border-color:var(--gold,#c59b27);box-shadow:0 0 0 4px rgba(197,155,39,.14);outline:none}
+.co-ed .co-f .input::placeholder{color:#9aa3af}
 .co-f .hint:empty{display:none}
-.co-vin{position:relative}.co-vin .input{text-transform:uppercase;letter-spacing:.06em;padding-inline-end:52px}
-.co-cnt{position:absolute;inset-inline-end:12px;top:50%;transform:translateY(-50%);font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
-.co-cnt.ok{color:var(--ok);font-weight:600}
-.co-money{display:flex;align-items:stretch;border:1px solid var(--border);border-radius:8px;background:#fff;overflow:hidden;height:40px}
-.co-money:focus-within{border-color:var(--gold);box-shadow:var(--focus)}
-.co-money .input{border:0!important;box-shadow:none!important;flex:1;min-width:0;height:auto!important;text-align:end;border-radius:0}
-.co-money select,.co-money > span{border:0;border-inline-start:1px solid var(--border);background:var(--surface-2);padding:0 10px;font:inherit;font-size:13px;font-weight:600;color:var(--text-2);display:flex;align-items:center}
-.co-sum{position:sticky;top:0;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px}
-.co-sum-ic{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:var(--surface-2);color:var(--text-2);margin-bottom:12px}
-.co-sum h3{margin:0;font-size:18px;font-weight:700;letter-spacing:-.01em;word-break:break-word}
-.co-s-vin{margin:3px 0 14px;font-size:12.5px;color:var(--muted);font-family:var(--mono,ui-monospace,monospace)}
-.co-sum dl{margin:0;border-top:1px solid var(--border)}
-.co-sum dl div{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid #eef1f5;font-size:13px}
-.co-sum dt{color:var(--muted)}.co-sum dd{margin:0;text-align:end;font-weight:500;min-width:0;overflow-wrap:anywhere}
-.co-s-tot{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-top:14px;padding:12px 14px;border-radius:10px;background:var(--surface-2)}
-.co-s-tot span{font-size:13px;color:var(--text-2)}.co-s-tot b{font-size:18px;font-variant-numeric:tabular-nums}
-.co-s-note{margin:12px 0 0;font-size:12px;color:var(--muted);line-height:1.45}
+.co-vin{position:relative}
+.co-ed .co-vin .input{height:52px;font-size:17px;font-weight:600;text-transform:uppercase;letter-spacing:.14em;padding-inline:16px 64px}
+.co-ed .co-vin .input::placeholder{font-weight:400;letter-spacing:.08em;font-size:15px;text-transform:none}
+.co-cnt{position:absolute;inset-inline-end:12px;top:50%;transform:translateY(-50%);font-size:11.5px;font-weight:600;color:var(--muted);background:#eef1f5;border-radius:999px;padding:3px 8px;font-variant-numeric:tabular-nums}
+.co-cnt.ok{color:#fff;background:var(--ok)}
+.co-money{display:flex;align-items:stretch;border:1px solid #e3e7ed;border-radius:10px;background:#f8fafc;overflow:hidden;height:44px;transition:background .15s,border-color .15s,box-shadow .15s}
+.co-money:hover{border-color:#cfd6df}
+.co-money:focus-within{background:#fff;border-color:var(--gold,#c59b27);box-shadow:0 0 0 4px rgba(197,155,39,.14)}
+.co-ed .co-money .input{border:0!important;box-shadow:none!important;background:transparent!important;flex:1;min-width:0;height:auto!important;text-align:end;border-radius:0!important;font-size:16px;font-weight:600}
+.co-money select,.co-money > span{border:0;border-inline-start:1px solid #e3e7ed;background:#eef1f5;padding:0 14px;font:inherit;font-size:13px;font-weight:700;color:var(--text);display:flex;align-items:center;cursor:pointer}
+.co-sum{position:sticky;top:12px;color:#e7ebf1;background:radial-gradient(120% 70% at 100% 0%,rgba(197,155,39,.22),transparent 60%),linear-gradient(160deg,#1b2537,#111827);border-radius:18px;padding:22px;box-shadow:0 18px 40px -18px rgba(15,23,42,.55);overflow:hidden}
+.co-sum-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.co-sum-ic{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:rgba(255,255,255,.08);color:#f1d48a;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.co-sum-tag{font-size:11.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#f1d48a;background:rgba(197,155,39,.14);border:1px solid rgba(197,155,39,.3);padding:4px 10px;border-radius:999px}
+.co-sum h3{margin:0;font-size:20px;font-weight:700;letter-spacing:-.01em;color:#fff;word-break:break-word}
+.co-s-vin{margin:4px 0 16px;font-size:12.5px;color:#9aa6b8;font-family:var(--mono,ui-monospace,monospace);letter-spacing:.04em}
+.co-sum dl{margin:0;border-top:1px solid rgba(255,255,255,.09)}
+.co-sum dl div{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.07);font-size:13px}
+.co-sum dt{color:#9aa6b8}.co-sum dd{margin:0;text-align:end;font-weight:500;color:#f3f5f8;min-width:0;overflow-wrap:anywhere}
+.co-s-tot{display:flex;flex-direction:column;gap:4px;margin-top:16px;padding:14px 16px;border-radius:12px;background:rgba(255,255,255,.06);box-shadow:inset 0 0 0 1px rgba(255,255,255,.07)}
+.co-s-tot span{font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#9aa6b8}
+.co-s-tot b{font-size:24px;font-weight:700;color:#f1d48a;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.co-prog{margin-top:16px}
+.co-prog > div{display:flex;justify-content:space-between;font-size:12px;color:#9aa6b8;margin-bottom:7px}.co-prog > div b{color:#e7ebf1;font-weight:600;font-variant-numeric:tabular-nums}
+.co-prog i{display:block;height:6px;border-radius:999px;background:rgba(255,255,255,.1);overflow:hidden}
+.co-prog i b{display:block;height:100%;width:0;border-radius:inherit;background:linear-gradient(90deg,#b8901f,#e4c25f);transition:width .3s ease}
+.co-prog i b.full{background:linear-gradient(90deg,#059669,#34d399)}
+.co-s-note{margin:14px 0 0;font-size:12px;color:#8d99ab;line-height:1.5}
+@media (prefers-reduced-motion:reduce){.co-card,.co-prog i b,.co-ed .input{transition:none}}
 @media (max-width:1100px){.co-body{grid-template-columns:1fr}.co-sum{position:static}}
-@media (max-width:760px){.co-kinds{grid-template-columns:1fr}.co-grid{grid-template-columns:1fr 1fr}.co-f.span2{grid-column:1/-1}}
+@media (max-width:760px){.co-grid{grid-template-columns:1fr 1fr}.co-f.span2,.co-f.span3{grid-column:1/-1}.co-card{padding:18px}}
 </style>
 
 <!-- Journal Entry Right Side Drawer CSS & JS -->
@@ -12045,31 +12065,32 @@ function importOrderForm(kind = 'customer'){
   const last = [...S.purchaseOrders].filter(p => p.importOrder && p.kind !== 'local').sort((a, b) => a.createdAt < b.createdAt ? 1 : -1)[0];
   const lastSup = last ? partnerById('ap', last.supplierId) : null, cur = last ? last.currency : 'EUR';
   const f = (label, input, cls = '') => `<label class="co-f ${cls}"><span>${label}</span>${input}</label>`;
-  const card = (title, sub, body) => `<section class="co-card"><header><h3>${title}</h3>${sub ? `<p>${sub}</p>` : ''}</header><div class="co-grid">${body}</div></section>`;
+  let step = 0;
+  const card = (title, sub, body, icon) => `<section class="co-card"><header><span class="co-step">${ic(icon, 18)}</span><div class="co-ht"><h3>${title}</h3>${sub ? `<p>${sub}</p>` : ''}</div><b class="co-no">${String(++step).padStart(2, '0')}</b></header><div class="co-grid">${body}</div></section>`;
   const carCard = card('Car', 'Typing the chassis fills in the brand when it recognises the maker.',
     f('Brand *', combo('makeName', makeOpts(), '', 'Pick or type, e.g. BMW', 'make')) +
     f('Model *', combo('modelName', [], '', 'Pick or type, e.g. X5', 'model')) +
-    f('Chassis number (VIN) *', `<div class="co-vin"><input class="input mono" name="vin" data-vin autocomplete="off" placeholder="e.g. WBA5A31060G123456" maxlength="17"><span class="co-cnt" id="co-vin-cnt">0/17</span></div><span class="hint" id="vin-hint"></span>`, 'span2') +
     f('Model year', `<input class="input mono" name="year" value="${todayCairo().slice(0, 4)}" inputmode="numeric" maxlength="4">`) +
-    (kind === 'local' ? f('Mileage (km)', '<input class="input mono" name="mileage" inputmode="numeric">') + f('Colour', '<input class="input" name="exteriorColor">') : ''));
+    f('Chassis number (VIN) *', `<div class="co-vin"><input class="input mono" name="vin" data-vin autocomplete="off" placeholder="e.g. WBA5A31060G123456" maxlength="17"><span class="co-cnt" id="co-vin-cnt">0/17</span></div><span class="hint" id="vin-hint"></span>`, 'span3') +
+    (kind === 'local' ? f('Mileage (km)', '<input class="input mono" name="mileage" inputmode="numeric">') + f('Colour', '<input class="input" name="exteriorColor">') : ''), 'cars');
   const partyCard = kind === 'customer' ? card('Customer', 'The car is imported for this customer.',
       f('Customer *', combo('customerName', partnerOpts('ar'), '', 'Pick or type a new customer name', 'customer'), 'span2') +
-      f('Mobile', '<input class="input" name="customerPhone" inputmode="tel" placeholder="Only needed for a new customer">'))
+      f('Mobile', '<input class="input" name="customerPhone" inputmode="tel" placeholder="For a new customer">'), 'users')
     : kind === 'local' ? card('Seller', 'The customer you are buying the car from.',
       f('Seller *', combo('sellerName', partnerOpts('ap'), '', 'Pick or type the seller’s name', 'supplier'), 'span2') +
-      f('Mobile', '<input class="input" name="sellerPhone" inputmode="tel" placeholder="Only needed for a new seller">')) : '';
-  const priceCard = kind === 'local' ? card('Price', '', f('Agreed price *', '<div class="co-money"><input class="input mono" name="price" inputmode="decimal" placeholder="0.00"><span>EGP</span></div>') + f('Date', `<input class="input" type="date" name="date" value="${todayCairo()}">`))
+      f('Mobile', '<input class="input" name="sellerPhone" inputmode="tel" placeholder="For a new seller">'), 'users') : '';
+  const priceCard = kind === 'local' ? card('Price', '', f('Agreed price *', '<div class="co-money"><input class="input mono" name="price" inputmode="decimal" placeholder="0.00"><span>EGP</span></div>', 'span2') + f('Date', `<input class="input" type="date" name="date" value="${todayCairo()}">`), 'invoices')
     : card('Supplier & price', kind === 'stock' ? 'Bought for stock — you choose the buyer when you sell.' : '',
       f('Supplier *', combo('supplierName', partnerOpts('ap'), lastSup ? lastSup.legalName : '', 'Pick or type a new supplier name', 'supplier'), 'span2') +
       f('Order date', `<input class="input" type="date" name="date" value="${todayCairo()}">`) +
-      f('Purchase price *', `<div class="co-money"><input class="input mono" name="price" inputmode="decimal" placeholder="0.00"><select name="currency" aria-label="Currency">${S.companyCurrencies.filter(c => c.active).map(c => `<option ${c.code === cur ? 'selected' : ''}>${c.code}</option>`).join('')}</select></div>`) +
-      f(`Exchange rate <em data-rate-lbl>1 ${cur} = ? EGP</em>`, `<input class="input mono" name="rate" data-rate-for="currency" inputmode="decimal" autocomplete="off" placeholder="from today’s rate">`));
+      f('Purchase price *', `<div class="co-money"><input class="input mono" name="price" inputmode="decimal" placeholder="0.00"><select name="currency" aria-label="Currency">${S.companyCurrencies.filter(c => c.active).map(c => `<option ${c.code === cur ? 'selected' : ''}>${c.code}</option>`).join('')}</select></div>`, 'span2') +
+      f(`Exchange rate <em data-rate-lbl>1 ${cur} = ? EGP</em>`, `<input class="input mono" name="rate" data-rate-for="currency" inputmode="decimal" autocomplete="off" placeholder="from today’s rate">`), 'invoices');
   return `<input type="hidden" name="kind" value="${kind}">
   <div class="co-ed">
     <div class="co-body">
       <div class="co-main">${carCard}${partyCard}${priceCard}</div>
       <aside class="co-sum" aria-live="polite">
-        <div class="co-sum-ic">${ic('cars', 22)}</div>
+        <div class="co-sum-top"><span class="co-sum-ic">${ic('cars', 20)}</span><span class="co-sum-tag">${esc((ORDER_KINDS[kind] || ORDER_KINDS.customer)[0])}</span></div>
         <h3 id="co-s-car">New car</h3><p class="co-s-vin" id="co-s-vin">Chassis not entered</p>
         <dl>
           ${kind === 'customer' ? '<div><dt>Customer</dt><dd id="co-s-cust">—</dd></div>' : kind === 'local' ? '<div><dt>Seller</dt><dd id="co-s-sell">—</dd></div>' : '<div><dt>Buyer</dt><dd>chosen when you sell</dd></div>'}
@@ -12078,6 +12099,7 @@ function importOrderForm(kind = 'customer'){
           ${kind !== 'local' ? '<div><dt>Rate</dt><dd id="co-s-rate">—</dd></div>' : ''}
         </dl>
         <div class="co-s-tot"><span>Cost in EGP</span><b id="co-s-egp">—</b></div>
+        <div class="co-prog"><div><span>Required fields</span><b id="co-p-t">0 / 0</b></div><i><b id="co-p-bar"></b></i></div>
         <p class="co-s-note">${kind === 'local' ? 'The purchase is recorded when you receive the car.' : 'The supplier bill is recorded when the car arrives; deposits can be added on the order.'}</p>
       </aside>
     </div>
@@ -12095,6 +12117,10 @@ function coRecalc(){
   const num = x => /^\d+(\.\d+)?$/.test(x);
   set('co-s-price', num(price) ? `${money(price)} ${cur}` : '—'); set('co-s-rate', cur === 'EGP' ? '1.0000' : num(rate) ? `1 ${cur} = ${fmtNum(rate, 4)} EGP` : '—');
   set('co-s-egp', num(price) && (cur === 'EGP' || num(rate)) ? money(D(price).mul(cur === 'EGP' ? 1 : rate)) + ' EGP' : '—');
+  const req = [!!v('makeName'), !!v('modelName'), vin.length === 17, num(price)];
+  if (kind === 'customer') req.push(!!v('customerName')); if (kind === 'local') req.push(!!v('sellerName')); if (kind !== 'local') req.push(!!v('supplierName'));
+  const done = req.filter(Boolean).length; set('co-p-t', `${done} / ${req.length}`);
+  const bar = form.querySelector('#co-p-bar'); if (bar){ bar.style.width = (100 * done / req.length) + '%'; bar.classList.toggle('full', done === req.length); }
 }
 document.addEventListener('input', e => { if (e.target.closest && e.target.closest('.co-ed')) coRecalc(); });
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.co-ed')) setTimeout(coRecalc, 0); });
@@ -12104,7 +12130,7 @@ const poKind = po => po.kind || (po.importOrder ? 'customer' : 'stock');
 /* ---------- Rate fields that follow a currency select (purchase orders, import orders) ---------- */
 function syncRateField(form){
   form.querySelectorAll('[data-rate-for]').forEach(rt => {
-    const cs = form.querySelector(`[name="${rt.dataset.rateFor}"]`); if (!cs) return; const cur = cs.value, box = rt.closest('.field');
+    const cs = form.querySelector(`[name="${rt.dataset.rateFor}"]`); if (!cs) return; const cur = cs.value, box = rt.closest('.field, .co-f');
     if (box) box.style.display = cur === 'EGP' ? 'none' : '';
     const lbl = box && box.querySelector('[data-rate-lbl]'); if (lbl) lbl.textContent = `1 ${cur} = ? EGP`;
     if (cur === 'EGP'){ rt.value = ''; return; }
@@ -14348,7 +14374,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261107-150729';
+const APP_BUILD = 'build-20261107-151103';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
