@@ -10608,7 +10608,6 @@ function pageEmployeeLoans(){
   const tile = (icon, cls, l, v, sub) => `<div class="xp-k ${cls}"><span class="xp-kic">${ic(icon, 18)}</span><div><span class="xp-kl">${l}</span><b>${money(v)} <small>EGP</small></b><em>${sub}</em></div></div>`;
 
   return H(t('emp_loans'), 'Disburse employee loans or salary advances from any Bank or Cash account, schedule monthly installments, and automatically deduct them in Payroll each month.',
-    `<a class="btn" href="#/hr/payroll">${ic('wallet', 14)} Open Payroll</a>` +
     (ed ? `<button type="button" class="btn primary" data-act="ln-new">${ic('plus', 14)} New Loan / Advance</button>` : '')) + `
     <div class="xp-kpis">
       <div class="xp-hero"><div class="xp-hero-top"><span class="xp-kic">${ic('coins', 20)}</span><span class="xp-tag">${actLoans.length} active loan${actLoans.length === 1 ? '' : 's'}</span></div><span class="xp-kl">Outstanding Loan Balance</span><b>${money(totalRemaining)} <small>EGP</small></b><em>Remaining to deduct</em></div>
