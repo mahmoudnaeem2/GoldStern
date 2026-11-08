@@ -10569,7 +10569,7 @@ function pageEmployees(){
   list = list.slice().sort((a, b) => a.name.localeCompare(b.name));
   const tile = (icon, cls, l, v, sub) => `<div class="xp-k ${cls}"><span class="xp-kic">${ic(icon, 18)}</span><div><span class="xp-kl">${l}</span><b>${v}</b><em>${sub}</em></div></div>`;
   return H(t('employees'), 'Your team and their monthly salaries. Bonuses, deductions, and loan installments are processed in Payroll.',
-    `<a class="btn" href="#/hr/loans">${ic('coins', 14)} Loans &amp; Advances</a><a class="btn" href="#/hr/payroll">${ic('wallet', 14)} Payroll</a>` + (ed ? `<button type="button" class="btn primary" data-act="emp-new">New employee</button>` : '')) + `
+    `<a class="btn" href="#/hr/payroll">${ic('wallet', 14)} Payroll</a>` + (ed ? `<button type="button" class="btn primary" data-act="emp-new">New employee</button>` : '')) + `
     <div class="xp-kpis">
       <div class="xp-hero"><div class="xp-hero-top"><span class="xp-kic">${ic('hr', 20)}</span><span class="xp-tag">${act.length} active</span></div><span class="xp-kl">Monthly salaries</span><b>${money(monthly)} <small>EGP</small></b><em>Before bonuses and deductions</em></div>
       ${tile('users', 'ok', 'Active employees', String(act.length), `${S.employees.length - act.length} inactive`)}
@@ -10754,7 +10754,6 @@ function pagePayroll(){
 
   return H(t('payroll'), '1. Select month, enter bonuses/deductions & notes, then click Confirm payroll.  2. Post the generated Journal Entry.  3. Pay employees individually or select multiple payslips together.',
     `<a class="btn" href="#/hr/employees">${ic('hr', 14)} Employees</a>` +
-    `<a class="btn" href="#/hr/loans">${ic('coins', 14)} Loans &amp; Advances</a>` +
     (can('expenses', 'create') ? `<button type="button" class="btn" data-act="emp-new">${ic('plus', 14)} New employee</button>` : '') +
     `<button type="button" class="btn" data-act="pr-xlsx">${ic('file', 14)} Export Excel</button>`) + `
     <div class="o-bar" style="margin:0 0 14px;width:100%;max-width:none;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
