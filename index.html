@@ -2600,7 +2600,7 @@ const EN = {
   analytics:'Analytics', profitability:'Car Profitability', analytic_accounts:'Analytic Accounts',
   rep_center:'All Reports', budgets:'Budget vs Actual',
   quick_search:'Quick Search...', quick_actions:'Quick Actions', new_car_order:'New Car Order',
-  tax:'Tax', tax_codes:'Tax Codes & Rates', einvoice:'E-invoicing (ETA)', expense_docs:'General Expenses', hr:'Employees', employees:'Employees', payroll:'Payroll', schedules:'Recurring Entries', fixed_assets:'Fixed Assets'
+  tax:'Tax', tax_codes:'Tax Codes & Rates', einvoice:'E-invoicing (ETA)', expense_docs:'General Expenses', hr:'Employees', employees:'Employees', payroll:'Payroll', emp_loans:'Loans & Advances', schedules:'Recurring Entries', fixed_assets:'Fixed Assets'
 };
 const AR = {
   dashboard:'لوحة التحكم', cars:'مخزون السيارات', month_close:'إقفال الشهر', vehicles:'السيارات', inventory:'المخزون', purchases:'المشتريات', imports:'الاستيراد والشحنات',
@@ -2623,7 +2623,7 @@ const AR = {
   analytics:'التحليلات', profitability:'ربحية السيارات', analytic_accounts:'الحسابات التحليلية',
   rep_center:'مركز التقارير', budgets:'الموازنة مقابل الفعلي',
   quick_search:'بحث سريع...', quick_actions:'إجراءات سريعة', new_car_order:'طلب سيارة جديد',
-  tax:'الضرائب', tax_codes:'أكواد وأسعار الضريبة', einvoice:'جاهزية الفاتورة الإلكترونية', expense_docs:'مصروفات عامة', hr:'الموظفين', employees:'الموظفين', payroll:'المرتبات', schedules:'المستحقات والمدفوعات المقدمة', fixed_assets:'الأصول الثابتة'
+  tax:'الضرائب', tax_codes:'أكواد وأسعار الضريبة', einvoice:'جاهزية الفاتورة الإلكترونية', expense_docs:'مصروفات عامة', hr:'الموظفين', employees:'الموظفين', payroll:'المرتبات', emp_loans:'السلف والأقساط', schedules:'المستحقات والمدفوعات المقدمة', fixed_assets:'الأصول الثابتة'
 };
 const t = k => (UI.lang === 'ar' ? AR[k] : null) || EN[k] || k;
 
@@ -3291,6 +3291,7 @@ function doPost(e, me, snapshot){
   if (prAccrual && prAccrual.status !== 'posted'){
     prAccrual.status = 'posted';
     prAccrual.postedAt = e.postedAt;
+    syncLoanInstallmentsOnPost(prAccrual, e);
   }
 }
 
@@ -7143,7 +7144,7 @@ function formIcon(t){ t = String(t || '').toLowerCase();
     : /rate|currenc/.test(t) ? 'coins' : /account|journal|entry|budget|fiscal|year|tax|asset|chart/.test(t) ? 'shield' : /setting|location|categor|template/.test(t) ? 'settings' : 'invoices'; }
 function closeModal(){ if (SCREEN){ LAST_SCREEN = SCREEN; LAST_CLOSED_AT = Date.now(); SCREEN = null; } if (EDIT_CTX){ const c = EDIT_CTX; EDIT_CTX = null; if (!c.done) S = JSON.parse(c.snapOrig); } MODAL = null; document.getElementById('modal-root').innerHTML = ''; }
 /* Money fields show thousands separators while typing (909,090.00); the commas are removed before saving. */
-const MONEY_FIELD = /^(salary|pr_bonus|pr_ded|amount|price|salePrice|fee|intermediaryFee|srcAmount|dstAmount|cost|residual|total|egpTotal|applied|portion|estAmount|openingBalance|creditLimit|alloc_applied|alloc_portion|il_amount|pl_price|ex_amount|ql_price|ql_disc|so_price|so_disc|pf_price|pf_disc|lc_amount|lc_tax|l_debit|l_credit|l_rate)$/;
+const MONEY_FIELD = /^(salary|pr_bonus|pr_ded|pr_loan|inst_amount|pay_amount|amount|price|salePrice|fee|intermediaryFee|srcAmount|dstAmount|cost|residual|total|egpTotal|applied|portion|estAmount|openingBalance|creditLimit|alloc_applied|alloc_portion|il_amount|pl_price|ex_amount|ql_price|ql_disc|so_price|so_disc|pf_price|pf_disc|lc_amount|lc_tax|l_debit|l_credit|l_rate)$/;
 function groupDigits(raw){
   let v = String(raw).replace(/[^\d.\-]/g, ''); const neg = v.startsWith('-'); v = v.replace(/-/g, '');
   const dot = v.indexOf('.'); let int = dot >= 0 ? v.slice(0, dot) : v, dec = dot >= 0 ? v.slice(dot + 1).replace(/\./g, '') : null;
@@ -7227,7 +7228,7 @@ const NAV = [
     { key:'tax_codes', route:'tax/codes', phase:9, mod:'tax' }, { key:'mappings', route:'acc/mappings', phase:2, mod:'mappings' }, { key:'fiscal', route:'settings/fiscal', phase:1, mod:'fiscal' }, { key:'rates', route:'settings/rates', phase:1, mod:'exchange_rates' }, { key:'analytic_accounts', route:'ana/accounts', phase:8, mod:'analytics' }, { key:'month_close', route:'acc/close', phase:2, mod:'ledger' }, { key:'journals', route:'acc/journals', phase:2, mod:'journals' },
     { key:'fixed_assets', route:'fa/register', phase:9, mod:'assets' },
     { key:'coa', route:'acc/coa', phase:2, mod:'coa' }, { key:'gl', route:'acc/gl', phase:2, mod:'ledger' }, { key:'tb', route:'acc/tb', phase:2, mod:'ledger' }, { key:'partner_ledger', route:'acc/partner-ledger', phase:2, mod:'ledger' }, { key:'opening', route:'acc/opening', phase:2, mod:'journals' } ] },
-  { key:'hr', group:true, children:[ { key:'employees', route:'hr/employees', phase:9, mod:'expenses' }, { key:'payroll', route:'hr/payroll', phase:9, mod:'expenses' } ] },
+  { key:'hr', group:true, children:[ { key:'employees', route:'hr/employees', phase:9, mod:'expenses' }, { key:'payroll', route:'hr/payroll', phase:9, mod:'expenses' }, { key:'emp_loans', route:'hr/loans', phase:9, mod:'expenses' } ] },
   { key:'expenses', group:true, children:[ { key:'car_expenses', route:'pur/carexp', phase:6, mod:'imports' }, { key:'expense_docs', route:'exp/list', phase:9, mod:'expenses' }, { key:'schedules', route:'exp/schedules', phase:9, mod:'expenses' } ] },
   { key:'reports', group:true, children:[ { key:'fs', route:'rep/statements', phase:10, mod:'ledger' }, { key:'profitability', route:'ana/profit', phase:8, mod:'analytics' }, { key:'ar', route:'ar/aging', phase:4, mod:'ar' }, { key:'ap', route:'ap/aging', phase:4, mod:'ap' }, { key:'partner_ledger', route:'acc/partner-ledger', phase:2, mod:'ledger' },
     { key:'valuation', route:'inv/valuation', phase:5, mod:'inventory' }, { key:'costing', route:'imp/landed', phase:6, mod:'imports' }, { key:'tax_rep', route:'tax/report', phase:9, mod:'tax' }, { key:'budgets', route:'rep/budgets', phase:10, mod:'ledger' }, { key:'rep_center', route:'rep/center', phase:10, mod:'dashboard' } ] },
@@ -7423,7 +7424,7 @@ const NAV_MENUS = {
       '§Partner reports', 'acc/partner-ledger', 'ar/aging', 'ap/aging', '§Audit reports', 'acc/gl', 'acc/tb', 'tax/report', '§Management', 'ana/profit']],
     ['Configuration', ['§Accounting', 'acc/coa', 'tax/codes', 'settings/fiscal', 'settings/rates', '§Management', 'acc/mappings', 'ana/accounts']]],
   expenses: [['pur/carexp'], ['exp/list'], ['exp/schedules']],
-  hr: [['hr/employees'], ['hr/payroll']],
+  hr: [['hr/employees'], ['hr/payroll'], ['hr/loans']],
   reports: [['Financial', ['rep/statements', 'rep/budgets', 'tax/report']], ['Cars', ['ana/profit', 'imp/landed', 'inv/valuation']], ['Partners', ['acc/partner-ledger', 'ar/aging', 'ap/aging']], ['rep/center']],
   settings: [['General', ['settings/company', 'settings/users', 'settings/roles', 'settings/currencies', 'settings/fiscal']], ['Cars & tax', ['veh/settings', 'tax/codes', 'tax/einvoice']],
     ['Accounting', ['acc/mappings', 'ana/accounts', 'settings/sequences']], ['System', ['acc/integrity', 'settings/audit', 'settings/tests', 'settings/data']]]
@@ -7540,7 +7541,7 @@ function pageFor(r){
     'pur/import':['purchases', pageImportOrders], 'pur/carexp':['imports', pageCarExpenses], 'pur/requests':['purchases', pageRequests], 'pur/orders':['purchases', pageOrders], 'imp/shipments':['imports', pageShipments], 'imp/shipment':['imports', pageShipment],
     'imp/costs':['imports', pageLandedDocs], 'imp/costtypes':['imports', pageCostTypes], 'imp/landed':['imports', pageLandedReport],
     'rep/center':['dashboard', pageReportCenter], 'rep/statements':['ledger', pageStatements], 'rep/budgets':['ledger', pageBudgets],
-    'tax/codes':['tax', pageTaxCodes], 'tax/report':['tax', pageTaxReport], 'tax/einvoice':['tax', pageEInvoice], 'exp/list':['expenses', pageExpenses], 'hr/employees':['expenses', pageEmployees], 'hr/payroll':['expenses', pagePayroll], 'exp/schedules':['expenses', pageSchedules], 'fa/register':['assets', pageAssets],
+    'tax/codes':['tax', pageTaxCodes], 'tax/report':['tax', pageTaxReport], 'tax/einvoice':['tax', pageEInvoice], 'exp/list':['expenses', pageExpenses], 'hr/employees':['expenses', pageEmployees], 'hr/payroll':['expenses', pagePayroll], 'hr/loans':['expenses', pageEmployeeLoans], 'exp/schedules':['expenses', pageSchedules], 'fa/register':['assets', pageAssets],
     'ana/profit':['analytics', pageProfit], 'ana/accounts':['analytics', pageAnalyticAccounts],
     'sal/inquiries':['sales', pageInquiries], 'sal/quotes':['sales', pageQuotes], 'sal/orders':['sales', pageSOs], 'sal/proforma':['sales', pageProformas], 'sal/deliveries':['sales', pageDeliveries] };
   const m = map[r]; if (!m) return pageDashboard();
@@ -8332,13 +8333,16 @@ function jeView(e){
   const btn = (act, label, cls = '') => `<button type="button" class="btn ${cls}" data-act="${act}" data-id="${e.id}">${label}</button>`;
   const mine = e.createdBy === me.id;
   const acts = [], dref = typeof docForEntry === 'function' ? docForEntry(e) : null;
+  const prDoc = (S.payrolls || []).find(p => p.entryId === e.id), isPosted = e.status === 'posted';
   if (dref){ const b = docButtons(dref.kind, dref.doc, false); if (b) acts.push(b.replace('>Edit<', `>Edit ${esc(DOC_KINDS[dref.kind].label)}<`)); }
   if (!dref && ['draft','rejected'].includes(e.status) && can('journals', 'create') && (mine || can('journals', 'edit'))) acts.push(btn('je-edit', 'Edit'));
   if (!dref && ['draft','rejected'].includes(e.status) && can('journals', 'delete') && (mine || me.roles.includes('super_admin'))) acts.push(btn('je-del', 'Delete', 'danger'));
-  if (e.status === 'draft' && needsApproval(j) && can('journals', 'create') && (mine || can('journals', 'edit'))) acts.push(btn('je-submit', 'Submit for approval', 'primary'));
+  if (e.status === 'draft' && needsApproval(j) && !prDoc && can('journals', 'create') && (mine || can('journals', 'edit'))) acts.push(btn('je-submit', 'Submit for approval', 'primary'));
   if (e.status === 'submitted' && can('journals', 'approve')) acts.push(mine || e.submittedBy === me.id ? '<span class="muted" style="align-self:center;font-size:12px">Awaiting another approver</span>' : btn('je-approve', 'Approve', 'primary'));
   if (['submitted','approved'].includes(e.status) && can('journals', 'approve') && !mine) acts.push(btn('je-reject', 'Reject', 'danger'));
-  if (can('journals', APPROVALS ? 'post' : 'create') && (e.status === 'approved' || (!needsApproval(j) && ['draft','submitted','rejected'].includes(e.status)))) acts.push(btn('je-post', 'Post', 'gold'));
+  if (prDoc && !isPosted && can('expenses', 'create')) acts.push(btn('je-post', `${ic('check', 14)} Post`, 'primary'));
+  else if (can('journals', APPROVALS ? 'post' : 'create') && (e.status === 'approved' || (!needsApproval(j) && ['draft','submitted','rejected'].includes(e.status)))) acts.push(btn('je-post', 'Post', 'gold'));
+  if (prDoc && isPosted && can('expenses', 'create')) acts.push(`<button type="button" class="btn" data-act="pr-reset-draft" data-month="${prDoc.month}">${ic('undo', 14)} Reset to draft</button>`);
   if (e.status === 'posted' && !e.reversalOf && can('journals', 'reverse')) acts.push(btn('je-reverse', 'Reverse', 'danger'));
   openModal({ screen: { key: 'je:' + e.id, reopen: () => { const x = S.entries.find(y => y.id === e.id); if (x) jeView(x); } }, title: `Journal entry ${entryRef(e)}`, xwide: true, body: body.replace('__ACTS__', acts.join('')) });
 }
@@ -9985,7 +9989,7 @@ function ensureStandardAssetCats(){
 
 
 /* ---------- Employees & payroll (simple: name + salary; monthly bonus / deduction; post as salaries expense) ---------- */
-function hrInit(){ S.employees = S.employees || []; S.payrolls = S.payrolls || []; }
+function hrInit(){ S.employees = S.employees || []; S.payrolls = S.payrolls || []; S.empLoans = S.empLoans || []; }
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const monthLabel = m => { const [y, mm] = String(m).split('-'); return `${MONTH_NAMES[(+mm || 1) - 1]} ${y}`; };
 const monthShift = (m, d) => { let [y, mm] = String(m).split('-').map(Number); mm += d; while (mm < 1){ mm += 12; y--; } while (mm > 12){ mm -= 12; y++; } return `${y}-${String(mm).padStart(2, '0')}`; };
@@ -9993,6 +9997,15 @@ const prMonthEnd = m => { const [y, mm] = m.split('-').map(Number); return ymd(y
 const empInitials = n => String(n || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0] || '').join('').toUpperCase() || '?';
 function payrollOf(month){ hrInit(); return S.payrolls.find(p => p.month === month) || null; }
 /* sheet = saved lines (+ any active employee missing from a draft), or a fresh sheet from active employees */
+function loanAccount(){
+  const existing = (S.accounts || []).find(a => !a.isGroup && a.active && (a.code === '101450' || a.code === '1145' || /employee\s*(loan|advance)|سلف\s*الموظفين/i.test((a.nameEn || '') + ' ' + (a.nameAr || ''))));
+  if (existing) return existing;
+  const empPay = (() => { try { return getMapping('employee_payable'); } catch (e){ return null; } })();
+  if (empPay && empPay.active && !empPay.isGroup) return empPay;
+  const fallback = (S.accounts || []).find(a => !a.isGroup && a.active && (a.code === '101900' || a.code === '1190' || a.code === '201800' || a.code === '2190'));
+  if (fallback) return fallback;
+  return (S.accounts || []).find(a => a.type === 'asset' && !a.isGroup && a.active && a.allowManual);
+}
 function payrollAccounts(){
   if (!S.expenseCats || !S.expenseCats.length) ensureStandardExpenseCats();
   const cat = (S.expenseCats || []).find(c => /salar|wage|payroll/i.test(c.name)) || (S.expenseCats || [])[0];
@@ -10002,29 +10015,112 @@ function payrollAccounts(){
     || (() => { try { return getMapping('employee_payable'); } catch (e){ return null; } })()
     || (() => { try { return getMapping('accrued'); } catch (e){ return null; } })()
     || (S.accounts || []).find(a => a.type === 'liability' && !a.isGroup && a.active && a.allowManual);
+  const lnAcc = loanAccount() || payAcc;
   if (!expAcc || !payAcc) throw new AppError('Configure Salaries Expense and Payroll Payables accounts in Chart of Accounts first.');
-  return { expAcc, payAcc, costCenter: (cat && cat.costCenter) || 'ADM', catName: (cat && cat.name) || 'Salaries & Wages' };
+  return { expAcc, payAcc, lnAcc, costCenter: (cat && cat.costCenter) || 'ADM', catName: (cat && cat.name) || 'Salaries & Wages' };
+}
+function empScheduledLoanForMonth(empId, month){
+  hrInit();
+  let total = D0();
+  const items = [];
+  for (const ln of (S.empLoans || [])){
+    if (ln.empId !== empId || ln.status === 'cancelled') continue;
+    for (const inst of (ln.installments || [])){
+      if (inst.month === month && (inst.status === 'pending' || inst.status === 'deducted')){
+        total = total.plus(inst.amount || '0');
+        items.push({ loanId: ln.id, loanNumber: ln.number, instId: inst.id, amount: D(inst.amount || '0').toFixed(2), status: inst.status });
+      }
+    }
+  }
+  return { total, items };
+}
+function syncLoanInstallmentsOnPost(pr, je){
+  hrInit();
+  if (!pr) return;
+  const month = pr.month;
+  for (const l of (pr.lines || [])){
+    const loanDed = D(l.loanDed || '0');
+    if (!loanDed.gt(0)) continue;
+    let rem = loanDed;
+    for (const ln of (S.empLoans || [])){
+      if (ln.empId !== l.empId || ln.status === 'cancelled') continue;
+      for (const inst of (ln.installments || [])){
+        if (inst.month === month && inst.status === 'pending' && rem.gt(0)){
+          const amt = D(inst.amount || '0');
+          inst.status = 'deducted';
+          inst.deductedAt = nowISO();
+          inst.payrollId = pr.id;
+          inst.entryId = je ? je.id : pr.entryId;
+          inst.deductedAmount = (rem.lt(amt) ? rem : amt).toFixed(2);
+          rem = rem.minus(inst.deductedAmount);
+        }
+      }
+      updateLoanStatus(ln);
+    }
+  }
+}
+function revertLoanInstallmentsOnReset(month){
+  hrInit();
+  for (const ln of (S.empLoans || [])){
+    let changed = false;
+    for (const inst of (ln.installments || [])){
+      if (inst.month === month && inst.status === 'deducted'){
+        inst.status = 'pending';
+        delete inst.deductedAt;
+        delete inst.payrollId;
+        delete inst.entryId;
+        delete inst.deductedAmount;
+        changed = true;
+      }
+    }
+    if (changed) updateLoanStatus(ln);
+  }
+}
+function updateLoanStatus(ln){
+  if (!ln) return;
+  const insts = ln.installments || [];
+  const paidAmt = insts.filter(i => i.status === 'deducted' || i.status === 'paid').reduce((t, i) => t.plus(i.deductedAmount || i.amount || '0'), D0());
+  ln.repaid = paidAmt.toFixed(2);
+  ln.remaining = D(ln.amount || '0').minus(paidAmt).toFixed(2);
+  if (D(ln.remaining).lte(0)) ln.status = 'completed';
+  else ln.status = 'active';
 }
 function payrollSheet(month, over){
   hrInit(); const pr = payrollOf(month);
   const je = pr && pr.entryId ? entryById(pr.entryId) : null;
-  if (pr && je && je.status === 'posted' && pr.status !== 'posted') pr.status = 'posted';
+  if (pr && je && je.status === 'posted' && pr.status !== 'posted'){
+    pr.status = 'posted';
+    syncLoanInstallmentsOnPost(pr, je);
+  }
   const posted = !!(pr && pr.status === 'posted');
   const saved = !!(pr && !posted && (pr.entryId || pr.status === 'saved' || pr.status === 'draft'));
   const legacyExp = pr && pr.expenseId ? S.expenses.find(z => z.id === pr.expenseId) : null;
   let lines = pr ? pr.lines.map(l => ({ ...l })) : [];
   if (!posted){
     for (const e of S.employees.filter(e => e.active !== false && (!e.startDate || e.startDate.slice(0, 7) <= month)))
-      if (!lines.some(l => l.empId === e.id)) lines.push({ empId: e.id, salary: e.salary, bonus: '0', deduction: '0', note: '' });
+      if (!lines.some(l => l.empId === e.id)) lines.push({ empId: e.id, salary: e.salary, bonus: '0', deduction: '0', loanDed: undefined, note: '' });
     lines = lines.filter(l => { const e = S.employees.find(x => x.id === l.empId); return e && e.active !== false; });
-    for (const l of lines){ const e = S.employees.find(x => x.id === l.empId); l.salary = e.salary; }
+    for (const l of lines){
+      const e = S.employees.find(x => x.id === l.empId);
+      l.salary = e.salary;
+      const sched = empScheduledLoanForMonth(l.empId, month);
+      l.loanItems = sched.items;
+      if (l.loanDed === undefined || !pr || (D(l.loanDed || 0).eq(0) && sched.total.gt(0) && !l.loanManual)) l.loanDed = sched.total.toFixed(2);
+    }
+  } else {
+    for (const l of lines){
+      const sched = empScheduledLoanForMonth(l.empId, month);
+      l.loanItems = sched.items;
+      if (l.loanDed === undefined) l.loanDed = '0';
+    }
   }
   if (over && !posted){
-    const arr = k => [].concat(over[k] ?? []), ids = arr('pr_emp');
+    const arr = k => [].concat(over[k] ?? []), ids = arr('pr_emp'), hasLoan = over.pr_loan !== undefined;
     ids.forEach((id, i) => {
       const l = lines.find(z => z.empId === id); if (!l) return;
       l.bonus = String(arr('pr_bonus')[i] || '0').replace(/,/g, '').trim() || '0';
       l.deduction = String(arr('pr_ded')[i] || '0').replace(/,/g, '').trim() || '0';
+      if (hasLoan) l.loanDed = String(arr('pr_loan')[i] || '0').replace(/,/g, '').trim() || '0';
       l.note = String(arr('pr_note')[i] || '').trim();
     });
   }
@@ -10032,7 +10128,9 @@ function payrollSheet(month, over){
     const e = S.employees.find(x => x.id === l.empId) || {};
     l.name = l.name || e.name || '—'; l.code = e.code || ''; l.title = e.title || '';
     const num = v => /^\d+(\.\d+)?$/.test(String(v)) ? D(v) : D0();
-    l.net = num(l.salary).plus(num(l.bonus)).minus(num(l.deduction));
+    l.loanDed = num(l.loanDed).toFixed(2);
+    l.grossAfterDed = num(l.salary).plus(num(l.bonus)).minus(num(l.deduction));
+    l.net = l.grossAfterDed.minus(num(l.loanDed));
     if (posted && legacyExp && !l.paid && !pr.entryId){
       l.paid = true;
       l.paidDate = pr.paidDate || legacyExp.date;
@@ -10049,38 +10147,58 @@ function payrollSheet(month, over){
   const paidTotal = paidLines.reduce((t, l) => t.plus(l.net), D0());
   const unpaidTotal = unpaidLines.reduce((t, l) => t.plus(l.net), D0());
   const allPaid = posted && payableLines.length > 0 && unpaidLines.length === 0;
-  return { month, pr, je, posted, saved, allPaid, lines, payableLines, paidLines, unpaidLines, salary: sum('salary'), bonus: sum('bonus'), deduction: sum('deduction'), net: sum('net'), paidTotal, unpaidTotal };
+  return { month, pr, je, posted, saved, allPaid, lines, payableLines, paidLines, unpaidLines, salary: sum('salary'), bonus: sum('bonus'), deduction: sum('deduction'), loanDed: sum('loanDed'), net: sum('net'), paidTotal, unpaidTotal };
 }
 function buildPayrollEntryLines(month, lines){
-  const { expAcc, payAcc, costCenter } = payrollAccounts();
-  const pay = lines.filter(l => l.net.gt(0));
+  const { expAcc, payAcc, lnAcc, costCenter } = payrollAccounts();
   const jl = [];
-  for (const l of pay){
+  for (const l of lines){
+    const gross = D(l.salary || '0').plus(l.bonus || '0').minus(l.deduction || '0');
+    const loan = D(l.loanDed || '0');
+    const net = gross.minus(loan);
+    if (!gross.gt(0) && !net.gt(0)) continue;
     const details = [
       D(l.bonus).gt(0) ? `+${money(l.bonus)} bonus` : '',
       D(l.deduction).gt(0) ? `−${money(l.deduction)} deduction` : '',
+      loan.gt(0) ? `−${money(loan)} loan installment` : '',
       l.note ? l.note : ''
     ].filter(Boolean).join(' · ');
-    jl.push({
-      id: uid('jl'),
-      accountId: expAcc.id,
-      debit: l.net.toFixed(2),
-      credit: '',
-      costCenter,
-      partner: l.name,
-      vehicle: '',
-      description: `Salary ${monthLabel(month)} — ${l.name}${details ? ' (' + details + ')' : ''}`
-    });
-    jl.push({
-      id: uid('jl'),
-      accountId: payAcc.id,
-      debit: '',
-      credit: l.net.toFixed(2),
-      costCenter: '',
-      partner: l.name,
-      vehicle: '',
-      description: `Net salary payable — ${l.name} (${monthLabel(month)})`
-    });
+    if (gross.gt(0)){
+      jl.push({
+        id: uid('jl'),
+        accountId: expAcc.id,
+        debit: gross.toFixed(2),
+        credit: '',
+        costCenter,
+        partner: l.name,
+        vehicle: '',
+        description: `Salary ${monthLabel(month)} — ${l.name}${details ? ' (' + details + ')' : ''}`
+      });
+    }
+    if (loan.gt(0)){
+      jl.push({
+        id: uid('jl'),
+        accountId: lnAcc.id,
+        debit: '',
+        credit: loan.toFixed(2),
+        costCenter: '',
+        partner: l.name,
+        vehicle: '',
+        description: `Loan installment deduction ${monthLabel(month)} — ${l.name}`
+      });
+    }
+    if (net.gt(0)){
+      jl.push({
+        id: uid('jl'),
+        accountId: payAcc.id,
+        debit: '',
+        credit: net.toFixed(2),
+        costCenter: '',
+        partner: l.name,
+        vehicle: '',
+        description: `Net salary payable — ${l.name} (${monthLabel(month)})`
+      });
+    }
   }
   return jl;
 }
@@ -10096,16 +10214,144 @@ Object.assign(A, {
     else { const n = S.employees.reduce((m, x) => Math.max(m, +(String(x.code || '').replace(/\D/g, '')) || 0), 0) + 1; e = { id: uid('emp'), code: 'EMP-' + String(n).padStart(4, '0'), ...data, createdAt: nowISO() }; S.employees.push(e); }
     log(old ? 'employee_edit' : 'employee_create', 'expenses', e.id, old, clone(e), '', e.code); saveState(); return e;
   },
+  createEmployeeLoan(f){
+    const me = requirePerm('expenses', 'create'); hrInit();
+    const emp = S.employees.find(e => e.id === f.empId);
+    if (!emp) throw new AppError('Select the employee receiving the loan.');
+    if (!isISODate(f.date)) throw new AppError('Enter the loan disbursement date.');
+    const pc = checkPostingAllowed(f.date); if (!pc.ok) throw new AppError(pc.reason);
+    const amountStr = String(f.amount || '').replace(/,/g, '').trim();
+    if (!amtOk(amountStr, 'EGP') || !D(amountStr).gt(0)) throw new AppError('Enter a positive loan amount in EGP.');
+    const total = D(amountStr);
+    let bankId = String(f.bankId || '').trim();
+    if (/^(gl|newcash):/.test(bankId)) bankId = materializeBank(bankId);
+    const b = bankById(bankId);
+    if (!b || !b.active) throw new AppError('Select the Bank or Cash account to pay the loan from.');
+
+    const arr = k => [].concat(f[k] ?? []);
+    const instMonths = arr('inst_month').map(m => String(m || '').trim());
+    const instAmts = arr('inst_amount').map(v => String(v || '').replace(/,/g, '').trim());
+    let installments = [];
+    if (instMonths.length){
+      instMonths.forEach((m, i) => {
+        if (!/^\d{4}-\d{2}$/.test(m)) throw new AppError(`Installment #${i + 1}: select a valid month (YYYY-MM).`);
+        if (!amtOk(instAmts[i], 'EGP') || !D(instAmts[i]).gt(0)) throw new AppError(`Installment #${i + 1}: enter a positive EGP amount.`);
+        installments.push({ id: uid('lni'), num: i + 1, month: m, amount: D(instAmts[i]).toFixed(2), status: 'pending' });
+      });
+    } else {
+      const count = Math.max(1, Math.min(60, parseInt(f.months || '1', 10) || 1));
+      const startMonth = /^\d{4}-\d{2}$/.test(String(f.startMonth || '')) ? String(f.startMonth) : f.date.slice(0, 7);
+      const baseAmt = total.div(count).toDecimalPlaces(2);
+      let rem = total;
+      for (let i = 0; i < count; i++){
+        const amt = (i === count - 1) ? rem : baseAmt;
+        rem = rem.minus(amt);
+        installments.push({ id: uid('lni'), num: i + 1, month: monthShift(startMonth, i), amount: amt.toFixed(2), status: 'pending' });
+      }
+    }
+    const instSum = installments.reduce((t, i) => t.plus(i.amount), D0());
+    if (!instSum.eq(total)) throw new AppError(`Installments sum (${money(instSum)} EGP) must equal the total loan amount (${money(total)} EGP).`);
+
+    const n = (S.empLoans || []).reduce((m, x) => Math.max(m, +(String(x.number || '').replace(/\D/g, '')) || 0), 0) + 1;
+    const number = 'LN-' + String(n).padStart(4, '0');
+    const lnAcc = loanAccount();
+    if (!lnAcc) throw new AppError('Configure an Employee Loans / Advances account first.');
+    const note = String(f.note || '').trim();
+    const jl = [
+      { id: uid('jl'), accountId: lnAcc.id, debit: total.toFixed(2), credit: '', costCenter: '', partner: emp.name, vehicle: '', description: `Employee loan ${number} — ${emp.name}${note ? ' (' + note + ')' : ''}` },
+      { id: uid('jl'), accountId: b.glAccountId, debit: '', credit: total.toFixed(2), costCenter: '', partner: emp.name, vehicle: '', description: `Loan disbursement ${number} — ${emp.name}` }
+    ];
+    const je = docEntryShell(me, 'BJ', f.date, 'EGP', 'official', number, `Employee Loan ${number} — ${emp.name}`, jl, { reference: number });
+    submitDocEntry(je, me);
+
+    const loan = {
+      id: uid('ln'),
+      number,
+      empId: emp.id,
+      empName: emp.name,
+      date: f.date,
+      amount: total.toFixed(2),
+      repaid: '0.00',
+      remaining: total.toFixed(2),
+      bankId: b.id,
+      entryId: je.id,
+      months: installments.length,
+      startMonth: installments[0].month,
+      note,
+      status: 'active',
+      installments,
+      createdBy: me.id,
+      createdAt: nowISO()
+    };
+    S.empLoans.push(loan);
+    log('emp_loan_create', 'expenses', loan.id, null, clone(loan), '', loan.number);
+    saveState(); return loan;
+  },
+  settleLoanInstallment(loanId, instId, f = {}){
+    const me = requirePerm('expenses', 'create'); hrInit();
+    const ln = (S.empLoans || []).find(x => x.id === loanId); if (!ln) throw new AppError('Loan not found.');
+    const inst = (ln.installments || []).find(i => i.id === instId); if (!inst) throw new AppError('Installment not found.');
+    if (inst.status !== 'pending') throw new AppError('This installment is already settled.');
+    const date = isISODate(f.date) ? f.date : todayCairo();
+    const pc = checkPostingAllowed(date); if (!pc.ok) throw new AppError(pc.reason);
+    let bankId = String(f.bankId || '').trim();
+    if (/^(gl|newcash):/.test(bankId)) bankId = materializeBank(bankId);
+    const b = bankById(bankId); if (!b || !b.active) throw new AppError('Select the Bank or Cash account.');
+    const lnAcc = loanAccount();
+    const srcRef = `${ln.number}-INST-${inst.num}`;
+    const jl = [
+      { id: uid('jl'), accountId: b.glAccountId, debit: inst.amount, credit: '', costCenter: '', partner: ln.empName, vehicle: '', description: `Cash repayment of ${ln.number} installment #${inst.num} (${monthLabel(inst.month)}) — ${ln.empName}` },
+      { id: uid('jl'), accountId: lnAcc.id, debit: '', credit: inst.amount, costCenter: '', partner: ln.empName, vehicle: '', description: `Loan installment repayment ${ln.number} #${inst.num} — ${ln.empName}` }
+    ];
+    const je = docEntryShell(me, 'BJ', date, 'EGP', 'official', srcRef, `Loan Repayment ${ln.number} #${inst.num} — ${ln.empName}`, jl, { reference: srcRef });
+    submitDocEntry(je, me);
+    inst.status = 'paid';
+    inst.deductedAt = nowISO();
+    inst.entryId = je.id;
+    inst.deductedAmount = inst.amount;
+    updateLoanStatus(ln);
+    log('emp_loan_repay', 'expenses', ln.id, null, { loan: ln.number, inst: inst.num, amount: inst.amount }, '', srcRef);
+    saveState(); return ln;
+  },
+  rescheduleLoanInstallment(loanId, instId, newMonth){
+    requirePerm('expenses', 'create'); hrInit();
+    if (!/^\d{4}-\d{2}$/.test(String(newMonth || ''))) throw new AppError('Pick a valid month (YYYY-MM).');
+    const ln = (S.empLoans || []).find(x => x.id === loanId); if (!ln) throw new AppError('Loan not found.');
+    const inst = (ln.installments || []).find(i => i.id === instId); if (!inst) throw new AppError('Installment not found.');
+    if (inst.status !== 'pending') throw new AppError('Only pending installments can be rescheduled.');
+    const oldMonth = inst.month;
+    inst.month = newMonth;
+    log('emp_loan_reschedule', 'expenses', ln.id, { month: oldMonth }, { month: newMonth }, `Installment #${inst.num} moved to ${newMonth}`, ln.number);
+    saveState(); return ln;
+  },
+  deleteEmployeeLoan(loanId){
+    requirePerm('expenses', 'create'); hrInit();
+    const ln = (S.empLoans || []).find(x => x.id === loanId); if (!ln) throw new AppError('Loan not found.');
+    if ((ln.installments || []).some(i => i.status !== 'pending')) throw new AppError('Cannot delete a loan that already has deducted or paid installments.');
+    if (ln.entryId){
+      const e = entryById(ln.entryId);
+      if (e){
+        const pc = checkPostingAllowed(e.accountingDate); if (!pc.ok) throw new AppError('Cannot delete loan: ' + pc.reason);
+        S.entries = S.entries.filter(en => en.id !== ln.entryId);
+      }
+    }
+    S.empLoans = S.empLoans.filter(x => x.id !== loanId);
+    log('emp_loan_delete', 'expenses', ln.id, ln, null, 'Deleted employee loan', ln.number);
+    saveState(); return true;
+  },
   savePayroll(month, f){
     const me = requirePerm('expenses', 'create'); hrInit(); if (!/^\d{4}-\d{2}$/.test(month)) throw new AppError('Pick a month.');
     const sh = payrollSheet(month, f); if (sh.posted) throw new AppError(`${monthLabel(month)} payroll is already posted and can’t be changed.`);
-    for (const l of sh.lines){ for (const [k, lbl] of [['bonus', 'Bonus'], ['deduction', 'Deduction']]) if (!/^\d+(\.\d{1,2})?$/.test(String(l[k]))) throw new AppError(`${lbl} for ${l.name} must be a positive number.`);
-      if (l.net.lt(0)) throw new AppError(`Net pay for ${l.name} would be negative. Reduce the deduction.`); }
+    for (const l of sh.lines){
+      for (const [k, lbl] of [['bonus', 'Bonus'], ['deduction', 'Deduction'], ['loanDed', 'Loan installment']])
+        if (!/^\d+(\.\d{1,2})?$/.test(String(l[k] || '0'))) throw new AppError(`${lbl} for ${l.name} must be a positive number.`);
+      if (l.net.lt(0)) throw new AppError(`Net pay for ${l.name} would be negative. Reduce the deduction or loan installment.`);
+    }
     let pr = payrollOf(month); const old = pr ? clone(pr) : null;
-    const lines = sh.lines.map(l => ({ empId: l.empId, name: l.name, salary: D(l.salary).toFixed(2), bonus: D(l.bonus).toFixed(2), deduction: D(l.deduction).toFixed(2), note: l.note || '', paid: false }));
+    const lines = sh.lines.map(l => ({ empId: l.empId, name: l.name, salary: D(l.salary).toFixed(2), bonus: D(l.bonus).toFixed(2), deduction: D(l.deduction).toFixed(2), loanDed: D(l.loanDed || '0').toFixed(2), note: l.note || '', paid: false }));
     const end = prMonthEnd(month), accDate = isISODate(f && f.date) ? f.date : (end < todayCairo() ? end : todayCairo());
     let je = pr && pr.entryId ? entryById(pr.entryId) : null;
-    if (S.accounts && S.accounts.length && sh.lines.some(l => l.net.gt(0))){
+    if (S.accounts && S.accounts.length && sh.lines.some(l => l.net.gt(0) || D(l.loanDed || '0').gt(0))){
       const jl = buildPayrollEntryLines(month, sh.lines);
       if (je && je.status === 'draft'){
         je.accountingDate = accDate;
@@ -10147,6 +10393,7 @@ Object.assign(A, {
     }
     const old = clone(pr);
     Object.assign(pr, { status: 'posted', entryId: je.id, postedAt: nowISO(), accrualDate: je.accountingDate });
+    syncLoanInstallmentsOnPost(pr, je);
     log('payroll_post', 'expenses', pr.id, old, clone(pr), '', 'Payroll ' + month);
     saveState(); return { pr, je };
   },
@@ -10281,6 +10528,7 @@ Object.assign(A, {
       }
     }
     if (entryIds.size) S.entries = S.entries.filter(en => !entryIds.has(en.id));
+    revertLoanInstallmentsOnReset(month);
     (pr.lines || []).forEach(l => {
       l.paid = false;
       delete l.paidDate;
@@ -10294,10 +10542,10 @@ Object.assign(A, {
 });
 function payrollExport(month, over){
   run(() => { const sh = payrollSheet(month, over), n = v => Number(D(v || 0).toFixed(2));
-    const rows = sh.lines.map(l => ({ k: 'line', c: [l.code, l.name, l.title, n(l.salary), n(l.bonus), n(l.deduction), n(l.net), l.paid ? 'Paid' : (sh.posted ? 'To Pay' : 'Draft'), l.note || ''] }));
-    rows.push({ k: 'grand', c: ['', 'Total', `${sh.lines.length} employee${sh.lines.length === 1 ? '' : 's'}`, n(sh.salary), n(sh.bonus), n(sh.deduction), n(sh.net), '', ''] });
+    const rows = sh.lines.map(l => ({ k: 'line', c: [l.code, l.name, l.title, n(l.salary), n(l.bonus), n(l.deduction), n(l.loanDed), n(l.net), l.paid ? 'Paid' : (sh.posted ? 'To Pay' : 'Draft'), l.note || ''] }));
+    rows.push({ k: 'grand', c: ['', 'Total', `${sh.lines.length} employee${sh.lines.length === 1 ? '' : 's'}`, n(sh.salary), n(sh.bonus), n(sh.deduction), n(sh.loanDed), n(sh.net), '', ''] });
     XW.save(`payroll-${month}.xlsx`, [{ name: 'Payroll ' + month, title: `Payroll — ${monthLabel(month)}`, subtitle: `${(S.company && S.company.name) || 'Goldstern'} · EGP · ${sh.allPaid ? 'paid' : sh.posted ? 'posted' : 'draft'}`,
-      columns: [{ h: 'Code', w: 11 }, { h: 'Employee', w: 28 }, { h: 'Job title', w: 20 }, { h: 'Base salary', t: 'money', w: 15 }, { h: 'Bonus', t: 'money', w: 13 }, { h: 'Deduction', t: 'money', w: 13 }, { h: 'Net pay', t: 'money', w: 15 }, { h: 'Status', w: 12 }, { h: 'Note', w: 28 }], rows }]);
+      columns: [{ h: 'Code', w: 11 }, { h: 'Employee', w: 28 }, { h: 'Job title', w: 20 }, { h: 'Base salary', t: 'money', w: 15 }, { h: 'Bonus', t: 'money', w: 13 }, { h: 'Deduction', t: 'money', w: 13 }, { h: 'Loan Installment', t: 'money', w: 15 }, { h: 'Net pay', t: 'money', w: 15 }, { h: 'Status', w: 12 }, { h: 'Note', w: 28 }], rows }]);
     log('export', 'expenses', null, null, { payroll: month, format: 'xlsx' }, 'Payroll export'); saveState(); toast('Payroll sheet downloaded.', 'ok'); });
 }
 function employeeForm(e){
@@ -10320,8 +10568,8 @@ function pageEmployees(){
   if (q) list = list.filter(e => [e.code, e.name, e.title, e.phone].join(' ').toLowerCase().includes(q));
   list = list.slice().sort((a, b) => a.name.localeCompare(b.name));
   const tile = (icon, cls, l, v, sub) => `<div class="xp-k ${cls}"><span class="xp-kic">${ic(icon, 18)}</span><div><span class="xp-kl">${l}</span><b>${v}</b><em>${sub}</em></div></div>`;
-  return H(t('employees'), 'Your team and their monthly salaries. Bonuses and deductions are entered each month in Payroll.',
-    `<a class="btn" href="#/hr/payroll">${ic('wallet', 14)} Payroll</a>` + (ed ? `<button type="button" class="btn primary" data-act="emp-new">New employee</button>` : '')) + `
+  return H(t('employees'), 'Your team and their monthly salaries. Bonuses, deductions, and loan installments are processed in Payroll.',
+    `<a class="btn" href="#/hr/loans">${ic('coins', 14)} Loans &amp; Advances</a><a class="btn" href="#/hr/payroll">${ic('wallet', 14)} Payroll</a>` + (ed ? `<button type="button" class="btn primary" data-act="emp-new">New employee</button>` : '')) + `
     <div class="xp-kpis">
       <div class="xp-hero"><div class="xp-hero-top"><span class="xp-kic">${ic('hr', 20)}</span><span class="xp-tag">${act.length} active</span></div><span class="xp-kl">Monthly salaries</span><b>${money(monthly)} <small>EGP</small></b><em>Before bonuses and deductions</em></div>
       ${tile('users', 'ok', 'Active employees', String(act.length), `${S.employees.length - act.length} inactive`)}
@@ -10331,12 +10579,157 @@ function pageEmployees(){
     <div class="card xp-list">
       <div class="xp-bar"><div class="xp-seg" role="tablist">${[['active', 'Active'], ['inactive', 'Inactive'], ['all', 'All']].map(([k, l]) => `<button type="button" role="tab" aria-selected="${st === k}" class="${st === k ? 'on' : ''}" data-act="set-filter" data-k="emp_s" data-v="${k}">${l}<span>${k === 'all' ? S.employees.length : k === 'active' ? act.length : S.employees.length - act.length}</span></button>`).join('')}</div>
         <label class="xp-search">${ic('search', 15)}<input class="input" data-filter="emp_q" placeholder="Search name, title, phone…" value="${esc(F.emp_q || '')}" aria-label="Search employees"></label></div>
-      <div class="tbl-wrap"><table class="o-list xp-tbl"><thead><tr><th>Employee</th><th>Mobile</th><th>Start date</th><th class="num">Monthly salary</th><th>Status</th></tr></thead><tbody>
-        ${list.map(e => `<tr${ed ? ` data-act="emp-edit" data-id="${e.id}" tabindex="0"` : ''}><td><div class="pg-who"><span class="pg-av ar">${esc(empInitials(e.name))}</span><div><b>${esc(e.name)}</b><span>${esc([e.code, e.title].filter(Boolean).join(' · '))}</span></div></div></td>
+      <div class="tbl-wrap"><table class="o-list xp-tbl"><thead><tr><th>Employee</th><th>Mobile</th><th>Start date</th><th class="num">Monthly salary</th><th>Active Loans</th><th>Status</th></tr></thead><tbody>
+        ${list.map(e => {
+          const empLns = (S.empLoans || []).filter(ln => ln.empId === e.id && ln.status === 'active');
+          const empLoanBal = empLns.reduce((t, ln) => t.plus(ln.remaining || '0'), D0());
+          return `<tr${ed ? ` data-act="emp-edit" data-id="${e.id}" tabindex="0"` : ''}><td><div class="pg-who"><span class="pg-av ar">${esc(empInitials(e.name))}</span><div><b>${esc(e.name)}</b><span>${esc([e.code, e.title].filter(Boolean).join(' · '))}</span></div></div></td>
           <td>${esc(e.phone || '—')}</td><td>${esc(e.startDate || '—')}</td><td class="num"><b>${money(e.salary)}</b> <span class="muted">EGP</span></td>
-          <td>${e.active !== false ? '<span class="pill ok">Active</span>' : '<span class="pill">Inactive</span>'}</td></tr>`).join('')
-        || `<tr><td colspan="5"><div class="xp-empty">${ic('hr', 22)}<b>${q || st !== 'active' ? 'No employees match' : 'No employees yet'}</b><span>${q || st !== 'active' ? 'Try another tab or clear the search.' : 'Add each employee with their monthly salary — that’s all payroll needs.'}</span>${!q && st === 'active' && ed ? '<button type="button" class="btn primary sm" data-act="emp-new">New employee</button>' : ''}</div></td></tr>`}
+          <td>${empLoanBal.gt(0) ? `<span class="pill gold">${money(empLoanBal)} EGP (${empLns.length})</span>` : '<span class="muted">—</span>'}</td>
+          <td>${e.active !== false ? '<span class="pill ok">Active</span>' : '<span class="pill">Inactive</span>'}</td></tr>`;
+        }).join('')
+        || `<tr><td colspan="6"><div class="xp-empty">${ic('hr', 22)}<b>${q || st !== 'active' ? 'No employees match' : 'No employees yet'}</b><span>${q || st !== 'active' ? 'Try another tab or clear the search.' : 'Add each employee with their monthly salary — that’s all payroll needs.'}</span>${!q && st === 'active' && ed ? '<button type="button" class="btn primary sm" data-act="emp-new">New employee</button>' : ''}</div></td></tr>`}
       </tbody></table></div></div>`;
+}
+function pageEmployeeLoans(){
+  hrInit();
+  const F = UI.filters, q = String(F.ln_q || '').trim().toLowerCase(), st = F.ln_s || 'all', ed = can('expenses', 'create');
+  const loans = [...(S.empLoans || [])].reverse();
+  loans.forEach(updateLoanStatus);
+  const actLoans = loans.filter(l => l.status === 'active');
+  const totalDisbursed = loans.reduce((t, l) => t.plus(l.amount || '0'), D0());
+  const totalRemaining = actLoans.reduce((t, l) => t.plus(l.remaining || '0'), D0());
+  const totalRepaid = loans.reduce((t, l) => t.plus(l.repaid || '0'), D0());
+  const curMonth = todayCairo().slice(0, 7);
+  const dueThisMonth = loans.reduce((t, l) => t.plus((l.installments || []).filter(i => i.month === curMonth && i.status === 'pending').reduce((s, i) => s.plus(i.amount || '0'), D0())), D0());
+
+  let list = loans.filter(l => st === 'all' ? true : st === 'active' ? l.status === 'active' : l.status === 'completed');
+  if (q) list = list.filter(l => [l.number, l.empName, l.note, l.date].join(' ').toLowerCase().includes(q));
+  const tile = (icon, cls, l, v, sub) => `<div class="xp-k ${cls}"><span class="xp-kic">${ic(icon, 18)}</span><div><span class="xp-kl">${l}</span><b>${money(v)} <small>EGP</small></b><em>${sub}</em></div></div>`;
+
+  return H(t('emp_loans'), 'Disburse employee loans or salary advances from any Bank or Cash account, schedule monthly installments, and automatically deduct them in Payroll each month.',
+    `<a class="btn" href="#/hr/payroll">${ic('wallet', 14)} Open Payroll</a>` +
+    (ed ? `<button type="button" class="btn primary" data-act="ln-new">${ic('plus', 14)} New Loan / Advance</button>` : '')) + `
+    <div class="xp-kpis">
+      <div class="xp-hero"><div class="xp-hero-top"><span class="xp-kic">${ic('coins', 20)}</span><span class="xp-tag">${actLoans.length} active loan${actLoans.length === 1 ? '' : 's'}</span></div><span class="xp-kl">Outstanding Loan Balance</span><b>${money(totalRemaining)} <small>EGP</small></b><em>Remaining to deduct</em></div>
+      ${tile('wallet', 'info', 'Total Disbursed', totalDisbursed, `${loans.length} total loan${loans.length === 1 ? '' : 's'}`)}
+      ${tile('check', 'ok', 'Total Recovered', totalRepaid, 'Deducted in payroll or repaid')}
+      ${tile('calendar', dueThisMonth.gt(0) ? 'gold' : 'info', monthLabel(curMonth) + ' Installments', dueThisMonth, 'Auto-deducted in this month’s payroll')}
+    </div>
+    <div class="card xp-list">
+      <div class="xp-bar">
+        <div class="xp-seg" role="tablist">
+          ${[['all', 'All Loans', loans.length], ['active', 'Active', actLoans.length], ['completed', 'Completed', loans.length - actLoans.length]].map(([k, l, cnt]) => `<button type="button" role="tab" aria-selected="${st === k}" class="${st === k ? 'on' : ''}" data-act="set-filter" data-k="ln_s" data-v="${k}">${l}<span>${cnt}</span></button>`).join('')}
+        </div>
+        <label class="xp-search">${ic('search', 15)}<input class="input" data-filter="ln_q" placeholder="Search loan #, employee, note…" value="${esc(F.ln_q || '')}"></label>
+      </div>
+      <div class="tbl-wrap"><table class="o-list xp-tbl"><thead><tr>
+        <th>Loan #</th><th>Employee</th><th>Disbursed</th><th>Paid From</th><th class="num">Loan Amount</th><th>Installments</th><th class="num">Repaid</th><th class="num">Remaining</th><th>Status</th><th style="text-align:right">Actions</th>
+      </tr></thead><tbody>
+        ${list.map(ln => {
+          const b = ln.bankId ? bankById(ln.bankId) : null;
+          const je = ln.entryId ? entryById(ln.entryId) : null;
+          const insts = ln.installments || [];
+          const doneCnt = insts.filter(i => i.status === 'deducted' || i.status === 'paid').length;
+          const nextInst = insts.find(i => i.status === 'pending');
+          const pct = D(ln.amount || 0).gt(0) ? Math.min(100, Math.round(Number(D(ln.repaid || 0).mul(100).div(ln.amount)))) : 0;
+          return `<tr data-act="ln-view" data-id="${ln.id}" style="cursor:pointer">
+            <td class="mono"><b>${esc(ln.number)}</b></td>
+            <td><div class="pg-who"><span class="pg-av ar">${esc(empInitials(ln.empName))}</span><div><b>${esc(ln.empName)}</b>${ln.note ? `<span>${esc(ln.note)}</span>` : ''}</div></div></td>
+            <td>${esc(ln.date)}</td>
+            <td>${b ? `<span class="xp-m bank">${ic('banking', 12)}${esc(b.name)}</span>` : '—'}</td>
+            <td class="num mono"><b>${money(ln.amount)}</b> <small class="muted">EGP</small></td>
+            <td>
+              <div style="font-size:12.5px"><b>${doneCnt} / ${insts.length}</b> months${nextInst ? ` · <span class="muted">Next: ${monthLabel(nextInst.month)} (${money(nextInst.amount)})</span>` : ''}</div>
+              <div style="height:5px;background:#e2e8f0;border-radius:99px;overflow:hidden;margin-top:4px;max-width:140px"><div style="height:100%;width:${pct}%;background:#15803d"></div></div>
+            </td>
+            <td class="num mono" style="color:#15803d">${money(ln.repaid)}</td>
+            <td class="num mono"><b style="color:${D(ln.remaining).gt(0) ? '#b45309' : '#64748b'}">${money(ln.remaining)}</b></td>
+            <td>${ln.status === 'completed' ? '<span class="pill ok">✓ Completed</span>' : '<span class="pill gold">Active</span>'}</td>
+            <td style="text-align:right;white-space:nowrap" onclick="event.stopPropagation()">
+              <button type="button" class="btn sm" data-act="ln-view" data-id="${ln.id}">Schedule (${insts.length})</button>
+              ${je ? `<button type="button" class="btn sm" data-act="je-view" data-id="${je.id}" title="Disbursement Entry">${ic('accounting', 13)}</button>` : ''}
+            </td>
+          </tr>`;
+        }).join('') || `<tr><td colspan="10"><div class="xp-empty">${ic('coins', 22)}<b>No employee loans or advances yet</b><span>Click "New Loan / Advance" to disburse a loan or advance and schedule automatic monthly payroll deductions.</span>${ed ? '<button type="button" class="btn primary sm" data-act="ln-new">+ New Loan / Advance</button>' : ''}</div></td></tr>`}
+      </tbody></table></div>
+    </div>`;
+}
+function loanViewModal(ln){
+  if (!ln) return;
+  updateLoanStatus(ln);
+  const b = ln.bankId ? bankById(ln.bankId) : null;
+  const je = ln.entryId ? entryById(ln.entryId) : null;
+  const insts = ln.installments || [];
+  const canDelete = can('expenses', 'create') && insts.every(i => i.status === 'pending');
+  openModal({
+    screen: { key: 'ln:' + ln.id, reopen: () => { const x = (S.empLoans || []).find(y => y.id === ln.id); if (x) loanViewModal(x); } },
+    title: `Employee Loan ${ln.number} — ${ln.empName}`,
+    wide: true,
+    body: `
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:12px 14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;margin-bottom:14px">
+        <div><div style="font-size:11px;color:#64748b;text-transform:uppercase;font-weight:700">Employee</div><b style="font-size:14px">${esc(ln.empName)}</b><div class="muted" style="font-size:12px">Disbursed ${esc(ln.date)}</div></div>
+        <div><div style="font-size:11px;color:#64748b;text-transform:uppercase;font-weight:700">Loan Amount</div><b class="mono" style="font-size:15px">${money(ln.amount)} EGP</b><div class="muted" style="font-size:12px">${b ? esc(b.name) : ''}</div></div>
+        <div><div style="font-size:11px;color:#64748b;text-transform:uppercase;font-weight:700">Recovered</div><b class="mono" style="font-size:15px;color:#15803d">${money(ln.repaid)} EGP</b><div class="muted" style="font-size:12px">${insts.filter(i => i.status !== 'pending').length} of ${insts.length} installments</div></div>
+        <div><div style="font-size:11px;color:#64748b;text-transform:uppercase;font-weight:700">Remaining Balance</div><b class="mono" style="font-size:16px;color:${D(ln.remaining).gt(0) ? '#b45309' : '#15803d'}">${money(ln.remaining)} EGP</b><div><span class="pill ${ln.status === 'completed' ? 'ok' : 'gold'}">${ln.status === 'completed' ? 'Completed' : 'Active'}</span></div></div>
+      </div>
+      ${ln.note ? `<div style="margin-bottom:12px;font-size:13px;color:#334155"><b>Note / Reason:</b> ${esc(ln.note)}</div>` : ''}
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <h4 style="margin:0;font-size:14px">Monthly Installment Schedule (${insts.length})</h4>
+        <div style="display:flex;gap:8px">
+          ${je ? `<button type="button" class="btn sm" data-act="je-view" data-id="${je.id}">${ic('accounting', 13)} Disbursement Entry (${esc(entryRef(je))})</button>` : ''}
+          ${canDelete ? `<button type="button" class="btn sm danger" data-act="ln-del" data-id="${ln.id}">${ic('close', 13)} Delete Loan</button>` : ''}
+        </div>
+      </div>
+      <div class="tbl-wrap" style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden">
+        <table class="o-list" style="margin:0">
+          <thead><tr><th>#</th><th>Payroll Month</th><th class="num">Installment Amount</th><th>Status</th><th>Entry</th><th style="text-align:right">Actions</th></tr></thead>
+          <tbody>
+            ${insts.map(inst => {
+              const ije = inst.entryId ? entryById(inst.entryId) : null;
+              return `<tr>
+                <td class="mono">#${inst.num}</td>
+                <td><b>${esc(monthLabel(inst.month))}</b> <span class="muted mono">(${esc(inst.month)})</span></td>
+                <td class="num mono"><b>${money(inst.amount)} EGP</b></td>
+                <td>${inst.status === 'deducted' ? '<span class="pill ok">✓ Deducted in Payroll</span>' : inst.status === 'paid' ? '<span class="pill ok">✓ Repaid in Cash/Bank</span>' : '<span class="pill gold">Scheduled for Payroll</span>'}</td>
+                <td>${ije ? `<a href="#" data-act="je-view" data-id="${ije.id}" class="mono" style="font-weight:700;text-decoration:underline">${esc(entryRef(ije))}</a>` : '—'}</td>
+                <td style="text-align:right;white-space:nowrap">
+                  ${inst.status === 'pending' && can('expenses', 'create') ? `
+                    <button type="button" class="btn sm" data-act="ln-move-inst" data-loan="${ln.id}" data-inst="${inst.id}" title="Postpone / change month">Change month</button>
+                    <button type="button" class="btn sm" data-act="ln-pay-inst" data-loan="${ln.id}" data-inst="${inst.id}" title="Settle early via Cash or Bank">Settle now</button>
+                  ` : ''}
+                </td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+      <p class="hint" style="margin-top:10px">Scheduled installments automatically appear in the <b>Loan Installment</b> column of that month’s Payroll and are deducted from the employee’s Net Pay when the Payroll is confirmed & posted.</p>`
+  });
+}
+function rebuildLoanInstallmentsPreview(){
+  const form = document.getElementById('mform'); if (!form) return;
+  const tb = document.getElementById('ln-inst-tbody'); if (!tb) return;
+  const amtStr = String((form.querySelector('[name=amount]') || {}).value || '').replace(/,/g, '').trim();
+  const months = Math.max(1, Math.min(60, parseInt((form.querySelector('[name=months]') || {}).value || '1', 10) || 1));
+  const startMonth = String((form.querySelector('[name=startMonth]') || {}).value || todayCairo().slice(0, 7));
+  if (!/^\d+(\.\d+)?$/.test(amtStr) || !D(amtStr).gt(0) || !/^\d{4}-\d{2}$/.test(startMonth)){
+    tb.innerHTML = '<tr><td colspan="3" class="muted" style="text-align:center;padding:12px">Enter the loan amount and number of installments above to preview the monthly schedule.</td></tr>';
+    return;
+  }
+  const total = D(amtStr), base = total.div(months).toDecimalPlaces(2);
+  let rem = total, htmlRows = '';
+  for (let i = 0; i < months; i++){
+    const m = monthShift(startMonth, i);
+    const a = (i === months - 1) ? rem : base;
+    rem = rem.minus(a);
+    htmlRows += `<tr>
+      <td class="mono">#${i + 1}</td>
+      <td><input class="input" type="month" name="inst_month" value="${m}" required></td>
+      <td style="width:180px"><input class="input mono num" name="inst_amount" inputmode="decimal" value="${a.toFixed(2)}" required></td>
+    </tr>`;
+  }
+  tb.innerHTML = htmlRows;
 }
 function pagePayroll(){
   hrInit(); const month = UI.prMonth = UI.prMonth || todayCairo().slice(0, 7), sh = payrollSheet(month), ed = can('expenses', 'create') && !sh.posted;
@@ -10359,8 +10752,9 @@ function pagePayroll(){
     </div>`;
   };
 
-  return H(t('payroll'), '1. Select month, enter bonuses/deductions & notes, then click Save.  2. Post the generated Journal Entry.  3. Pay employees individually or select multiple payslips together.',
+  return H(t('payroll'), '1. Select month, enter bonuses/deductions & notes, then click Confirm payroll.  2. Post the generated Journal Entry.  3. Pay employees individually or select multiple payslips together.',
     `<a class="btn" href="#/hr/employees">${ic('hr', 14)} Employees</a>` +
+    `<a class="btn" href="#/hr/loans">${ic('coins', 14)} Loans &amp; Advances</a>` +
     (can('expenses', 'create') ? `<button type="button" class="btn" data-act="emp-new">${ic('plus', 14)} New employee</button>` : '') +
     `<button type="button" class="btn" data-act="pr-xlsx">${ic('file', 14)} Export Excel</button>`) + `
     <div class="o-bar" style="margin:0 0 14px;width:100%;max-width:none;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
@@ -10384,7 +10778,7 @@ function pagePayroll(){
     ${!sh.posted && je ? `<div class="card" style="margin-bottom:14px;padding:14px 18px;background:linear-gradient(90deg,#fffbeb,#ffffff);border:1px solid #fde68a;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
         <span class="pill gold">Draft Journal Entry Ready</span>
-        <span style="font-size:13.5px;color:#1e293b">Accrual entry <a href="#" data-act="je-view" data-id="${je.id}" style="font-weight:700;text-decoration:underline">${esc(entryRef(je))}</a> (${money(sh.net)} EGP) is prepared. Review or post it to unlock employee Payslip payments.</span>
+        <span style="font-size:13.5px;color:#1e293b">Accrual entry <a href="#" data-act="je-view" data-id="${je.id}" style="font-weight:700;text-decoration:underline">${esc(entryRef(je))}</a> (${money(sh.net)} EGP net) is prepared. Review or post it to unlock employee Payslip payments.</span>
       </div>
       <div style="display:flex;gap:8px;align-items:center">
         <button type="button" class="btn sm" data-act="je-view" data-id="${je.id}">${ic('accounting', 14)} Open Journal Entry</button>
@@ -10405,10 +10799,10 @@ function pagePayroll(){
       ${sh.posted
         ? tile('check', 'ok', 'Paid Payslips', sh.paidTotal, `${sh.paidLines.length} of ${sh.payableLines.length} employees paid`) +
           tile('coins', sh.unpaidTotal.gt(0) ? 'gold' : 'info', 'Remaining to Pay', sh.unpaidTotal, `${sh.unpaidLines.length} employee${sh.unpaidLines.length === 1 ? '' : 's'} waiting payment`) +
-          tile('hr', 'info', 'Base / +Bonus / −Ded.', sh.salary, `+${money(sh.bonus)} bonus · −${money(sh.deduction)} ded.`)
+          tile('hr', 'info', 'Loans Deducted', sh.loanDed, `+${money(sh.bonus)} bonus · −${money(sh.deduction)} ded.`)
         : tile('hr', 'info', 'Base salaries', sh.salary, 'From the employee list') +
           `<div class="xp-k ok"><span class="xp-kic">${ic('plus', 18)}</span><div><span class="xp-kl">Bonuses</span><b id="pr-k-bonus">${money(sh.bonus)} <small>EGP</small></b><em>Added this month</em></div></div>
-          <div class="xp-k bad"><span class="xp-kic">${ic('coins', 18)}</span><div><span class="xp-kl">Deductions</span><b id="pr-k-ded">${money(sh.deduction)} <small>EGP</small></b><em>Taken off this month</em></div></div>`
+          <div class="xp-k bad"><span class="xp-kic">${ic('coins', 18)}</span><div><span class="xp-kl">Deductions &amp; Loans</span><b id="pr-k-ded">${money(sh.deduction.plus(sh.loanDed))} <small>EGP</small></b><em>Ded: ${money(sh.deduction)} · Loans: ${money(sh.loanDed)}</em></div></div>`
       }
     </div>
 
@@ -10429,15 +10823,23 @@ function pagePayroll(){
 
       <div class="tbl-wrap"><table class="o-list xp-tbl pr-tbl"><thead><tr>
         ${sh.posted ? '<th style="width:38px;text-align:center"></th>' : ''}
-        <th>Employee</th><th class="num">Base salary</th><th class="num">Bonus</th><th class="num">Deduction</th><th class="num">Net pay</th><th>Notes</th>
+        <th>Employee</th><th class="num">Base salary</th><th class="num">Bonus</th><th class="num">Deduction</th><th class="num">Loan Installment</th><th class="num">Net pay</th><th>Notes</th>
         ${sh.posted ? '<th>Payment Status / Paid From</th><th style="text-align:right">Actions</th>' : ''}
       </tr></thead><tbody>
-        ${sh.lines.map(l => `<tr>
+        ${sh.lines.map(l => {
+          const lnBadges = (l.loanItems || []).map(it => `<a href="#" data-act="ln-view" data-id="${it.loanId}" class="pill gold" style="font-size:10.5px;padding:1px 6px;text-decoration:none" title="View Loan ${esc(it.loanNumber)}">${esc(it.loanNumber)}</a>`).join(' ');
+          return `<tr>
           ${sh.posted ? `<td style="text-align:center">${!l.paid && l.net.gt(0) ? `<input type="checkbox" class="pr-emp-chk" value="${l.empId}" data-emp="${l.empId}" data-net="${l.net.toFixed(2)}">` : (l.paid ? '<span style="color:#15803d;font-weight:700">✓</span>' : '')}</td>` : ''}
           <td><input type="hidden" name="pr_emp" value="${l.empId}"><div class="pg-who"><span class="pg-av ar">${esc(empInitials(l.name))}</span><div><b>${esc(l.name)}</b><span>${esc([l.code, l.title].filter(Boolean).join(' · '))}</span></div></div></td>
           <td class="num" data-sal="${D(l.salary).toFixed(2)}">${money(l.salary)}</td>
           <td class="num">${inp('pr_bonus', l.bonus)}</td>
           <td class="num">${inp('pr_ded', l.deduction)}</td>
+          <td class="num">
+            <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px">
+              ${lnBadges}
+              ${inp('pr_loan', l.loanDed)}
+            </div>
+          </td>
           <td class="num pr-net"><b>${money(l.net)}</b></td>
           <td>${ed ? `<input class="input pr-note" name="pr_note" value="${esc(l.note || '')}" placeholder="Write note (optional)…">` : esc(l.note || '—')}</td>
           ${sh.posted ? `<td>${renderPaidCell(l)}</td>
@@ -10446,22 +10848,30 @@ function pagePayroll(){
             <button type="button" class="btn sm" data-act="pr-slip" data-month="${month}" data-emp="${l.empId}" title="View Payslip">${ic('file', 13)} Payslip</button>
             ${l.paid && can('expenses', 'create') ? `<button type="button" class="btn sm" data-act="pr-unpay-one" data-month="${month}" data-emp="${l.empId}" title="Undo payment">${ic('undo', 13)}</button>` : ''}
           </td>` : ''}
-        </tr>`).join('')
-        || `<tr><td colspan="${sh.posted ? 9 : 6}"><div class="xp-empty">${ic('hr', 22)}<b>No employees on this payroll</b><span>Add employees with their salary first.</span><a class="btn primary sm" href="#/hr/employees">Go to employees</a></div></td></tr>`}
+        </tr>`;
+        }).join('')
+        || `<tr><td colspan="${sh.posted ? 10 : 7}"><div class="xp-empty">${ic('hr', 22)}<b>No employees on this payroll</b><span>Add employees with their salary first.</span><a class="btn primary sm" href="#/hr/employees">Go to employees</a></div></td></tr>`}
       </tbody>${sh.lines.length ? `<tfoot><tr class="pg-tot">
         ${sh.posted ? '<td></td>' : ''}
-        <td>Total (${sh.lines.length})</td><td class="num">${money(sh.salary)}</td><td class="num" id="pr-t-bonus">${money(sh.bonus)}</td><td class="num" id="pr-t-ded">${money(sh.deduction)}</td><td class="num" id="pr-t-net">${money(sh.net)}</td><td></td>
+        <td>Total (${sh.lines.length})</td><td class="num">${money(sh.salary)}</td><td class="num" id="pr-t-bonus">${money(sh.bonus)}</td><td class="num" id="pr-t-ded">${money(sh.deduction)}</td><td class="num" id="pr-t-loan">${money(sh.loanDed)}</td><td class="num" id="pr-t-net">${money(sh.net)}</td><td></td>
         ${sh.posted ? '<td colspan="2"></td>' : ''}
       </tr></tfoot>` : ''}</table></div>
     </form>`;
 }
 function prRecalc(){
   const form = document.getElementById('pr-form'); if (!form) return; const n = v => { const t0 = String(v || '').replace(/,/g, '').trim(); return /^\d+(\.\d+)?$/.test(t0) ? D(t0) : D0(); };
-  let tb = D0(), td = D0(), tn = D0();
-  form.querySelectorAll('tbody tr').forEach(tr => { const sal = tr.querySelector('[data-sal]'); if (!sal) return; const b = n((tr.querySelector('[name=pr_bonus]') || {}).value), d = n((tr.querySelector('[name=pr_ded]') || {}).value), net = D(sal.dataset.sal).plus(b).minus(d);
-    tb = tb.plus(b); td = td.plus(d); tn = tn.plus(net); const c = tr.querySelector('.pr-net b'); if (c){ c.textContent = money(net); c.classList.toggle('neg', net.lt(0)); } });
+  let tb = D0(), td = D0(), tl = D0(), tn = D0();
+  form.querySelectorAll('tbody tr').forEach(tr => {
+    const sal = tr.querySelector('[data-sal]'); if (!sal) return;
+    const b = n((tr.querySelector('[name=pr_bonus]') || {}).value);
+    const d = n((tr.querySelector('[name=pr_ded]') || {}).value);
+    const l = n((tr.querySelector('[name=pr_loan]') || {}).value);
+    const net = D(sal.dataset.sal).plus(b).minus(d).minus(l);
+    tb = tb.plus(b); td = td.plus(d); tl = tl.plus(l); tn = tn.plus(net);
+    const c = tr.querySelector('.pr-net b'); if (c){ c.textContent = money(net); c.classList.toggle('neg', net.lt(0)); }
+  });
   const set = (id, v, unit) => { const el = document.getElementById(id); if (el) el.innerHTML = money(v) + (unit ? ' <small>EGP</small>' : ''); };
-  set('pr-t-bonus', tb); set('pr-t-ded', td); set('pr-t-net', tn); set('pr-k-net', tn, 1); set('pr-k-bonus', tb, 1); set('pr-k-ded', td, 1);
+  set('pr-t-bonus', tb); set('pr-t-ded', td); set('pr-t-loan', tl); set('pr-t-net', tn); set('pr-k-net', tn, 1); set('pr-k-bonus', tb, 1); set('pr-k-ded', td.plus(tl), 1);
 }
 function prSelRecalc(){
   const form = document.getElementById('pr-form'); if (!form) return;
@@ -10510,7 +10920,7 @@ function openPaySlipsModal(month, empIds){
         <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;margin-bottom:8px">Payslips Included (${targets.length})</div>
         <div style="max-height:160px;overflow:auto;display:flex;flex-direction:column;gap:6px">
           ${targets.map(l => `<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:4px 0;border-bottom:1px dashed #e2e8f0">
-            <span><b>${esc(l.name)}</b> <span class="muted">${esc(l.code)}</span>${l.note ? ` · <i class="muted">${esc(l.note)}</i>` : ''}</span>
+            <span><b>${esc(l.name)}</b> <span class="muted">${esc(l.code)}</span>${D(l.loanDed || 0).gt(0) ? ` · <span style="color:#b45309">Loan ded: −${money(l.loanDed)}</span>` : ''}${l.note ? ` · <i class="muted">${esc(l.note)}</i>` : ''}</span>
             <b class="mono">${money(l.net)} EGP</b>
           </div>`).join('')}
         </div>
@@ -10556,6 +10966,7 @@ document.addEventListener('input', e => {
   if (!e.target || !e.target.closest) return;
   if (e.target.closest('#pr-form')) prRecalc();
   if (e.target.closest('#pr-pay-rows')) prPayRecalc();
+  if (e.target.closest('#ln-new-box') && ['amount', 'months', 'startMonth'].includes(e.target.name)) rebuildLoanInstallmentsPreview();
 });
 document.addEventListener('change', e => {
   if (!e.target || !e.target.closest) return;
@@ -12193,14 +12604,114 @@ Object.assign(CLICK, {
   'pr-xlsx'(){ const form = document.getElementById('pr-form'), month = UI.prMonth || todayCairo().slice(0, 7), sh = payrollSheet(month);
     if (form && !sh.posted && sh.lines.length && can('expenses', 'create')){ try { A.savePayroll(month, formData(form)); } catch (ex){ if (ex instanceof AppError){ toast(ex.message, 'bad'); return; } throw ex; } }
     payrollExport(month, null); },
-  'pr-save-top'(){
-    const form = document.getElementById('pr-form'); if (!form) return;
-    const month = form.dataset.month;
-    run(() => {
-      const pr = A.savePayroll(month, formData(form));
+  'ln-new'(){
+    hrInit();
+    const emps = (S.employees || []).filter(e => e.active !== false);
+    if (!emps.length){ toast('Add active employees first before creating a loan.', 'bad'); return; }
+    const curMonth = todayCairo().slice(0, 7);
+    openModal({
+      title: 'New Employee Loan / Advance',
+      wide: true,
+      submit: 'Disburse Loan & Schedule Installments',
+      body: `<div id="ln-new-box">
+        <div class="row">
+          <div class="field" style="flex:2"><label>Employee *</label>
+            <select class="input" name="empId" required>
+              ${emps.map(e => `<option value="${e.id}">${esc(e.name)} (${esc(e.code)} · Salary: ${money(e.salary)} EGP)</option>`).join('')}
+            </select>
+          </div>
+          <div class="field"><label>Disbursement date *</label><input class="input" type="date" name="date" value="${todayCairo()}" required></div>
+        </div>
+        <div class="row">
+          <div class="field"><label>Loan / Advance Amount (EGP) *</label><input class="input mono" name="amount" inputmode="decimal" placeholder="e.g. 6000.00" required></div>
+          <div class="field" style="flex:1.5"><label>Paid from (Bank or Cash account) *</label><select class="input" name="bankId">${bankOptions('', b => b.currency === 'EGP')}</select></div>
+        </div>
+        <div class="row">
+          <div class="field"><label>Number of Installments (Months) *</label><input class="input mono" type="number" name="months" min="1" max="60" value="3" required></div>
+          <div class="field"><label>First Deduction Month (Payroll) *</label><input class="input" type="month" name="startMonth" value="${curMonth}" required></div>
+          <div class="field" style="flex:1.5"><label>Reason / Note</label><input class="input" name="note" placeholder="e.g. Personal advance — 3 installments"></div>
+        </div>
+        <div class="field" style="margin-top:8px">
+          <label style="font-weight:700">Monthly Installment Schedule (Editable)</label>
+          <div class="tbl-wrap" style="border:1px solid #e2e8f0;border-radius:8px;max-height:220px;overflow:auto">
+            <table class="je-grid" style="margin:0">
+              <thead><tr><th style="width:60px">#</th><th>Payroll Month</th><th class="num" style="width:180px">Installment Amount (EGP)</th></tr></thead>
+              <tbody id="ln-inst-tbody">
+                <tr><td colspan="3" class="muted" style="text-align:center;padding:12px">Enter the loan amount above to generate the monthly installments schedule.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <p class="hint" style="margin-top:8px">Saving disburses the loan from the selected Bank/Cash account (posting a Journal Entry) and schedules each monthly installment to be automatically deducted in that month’s Payroll.</p>
+      </div>`,
+      onSubmit: f => {
+        const ln = A.createEmployeeLoan(f);
+        toast(`Loan ${ln.number} (${money(ln.amount)} EGP) created across ${ln.months} installment${ln.months === 1 ? '' : 's'}.`, 'ok');
+      }
+    });
+  },
+  'ln-view'(el){
+    const id = el.dataset.id || (el.closest('[data-id]') && el.closest('[data-id]').dataset.id);
+    const ln = (S.empLoans || []).find(x => x.id === id);
+    if (ln) loanViewModal(ln);
+  },
+  'ln-del'(el){
+    const ln = (S.empLoans || []).find(x => x.id === el.dataset.id); if (!ln) return;
+    if (!confirm(`Delete loan ${ln.number} for ${ln.empName}? Its disbursement journal entry will also be removed.`)) return;
+    try {
+      A.deleteEmployeeLoan(ln.id);
+      closeModal();
+      render();
+      toast(`Loan ${ln.number} deleted.`, 'ok');
+    } catch (err){ toast(err.message, 'bad'); }
+  },
+  'ln-move-inst'(el){
+    const ln = (S.empLoans || []).find(x => x.id === el.dataset.loan); if (!ln) return;
+    const inst = (ln.installments || []).find(i => i.id === el.dataset.inst); if (!inst) return;
+    openModal({
+      title: `Change Payroll Month — ${ln.number} Installment #${inst.num}`,
+      submit: 'Save Month',
+      body: `<p>Move installment <b>#${inst.num} (${money(inst.amount)} EGP)</b> for <b>${esc(ln.empName)}</b> to another Payroll month:</p>
+        <div class="field"><label>New Payroll Month *</label><input class="input" type="month" name="newMonth" value="${esc(inst.month)}" required></div>`,
+      onSubmit: f => {
+        A.rescheduleLoanInstallment(ln.id, inst.id, f.newMonth);
+        toast(`Installment #${inst.num} moved to ${monthLabel(f.newMonth)}.`, 'ok');
+        return () => loanViewModal((S.empLoans || []).find(x => x.id === ln.id));
+      }
+    });
+  },
+  'ln-pay-inst'(el){
+    const ln = (S.empLoans || []).find(x => x.id === el.dataset.loan); if (!ln) return;
+    const inst = (ln.installments || []).find(i => i.id === el.dataset.inst); if (!inst) return;
+    openModal({
+      title: `Settle Installment #${inst.num} — ${ln.empName} (${money(inst.amount)} EGP)`,
+      submit: `Receive ${money(inst.amount)} EGP`,
+      body: `<p>Record an early cash/bank repayment for <b>${esc(ln.number)} Installment #${inst.num} (${esc(monthLabel(inst.month))})</b> instead of deducting it in Payroll:</p>
+        <div class="row">
+          <div class="field"><label>Received into (Bank / Cash) *</label><select class="input" name="bankId">${bankOptions('', b => b.currency === 'EGP')}</select></div>
+          <div class="field"><label>Repayment Date *</label><input class="input" type="date" name="date" value="${todayCairo()}" required></div>
+        </div>`,
+      onSubmit: f => {
+        A.settleLoanInstallment(ln.id, inst.id, f);
+        toast(`Installment #${inst.num} settled.`, 'ok');
+        return () => loanViewModal((S.empLoans || []).find(x => x.id === ln.id));
+      }
+    });
+  },
+  'pr-save-top'(el){
+    const form = document.getElementById('pr-form');
+    const month = (form && form.dataset && form.dataset.month) || (el && el.dataset && el.dataset.month) || UI.prMonth || todayCairo().slice(0, 7);
+    const data = form ? formData(form) : null;
+    try {
+      const pr = A.savePayroll(month, data);
+      toast('Payroll confirmed — review and Post the Journal Entry.', 'ok');
+      render();
       const je = pr.entryId ? entryById(pr.entryId) : null;
-      if (je) setTimeout(() => jeView(je), 20);
-    }, 'Payroll saved — review and post the Journal Entry.');
+      if (je) jeView(je);
+    } catch (e){
+      if (e instanceof AppError){ toast(e.message, 'bad'); render(); }
+      else { console.error(e); toast('Unexpected error: ' + e.message, 'bad'); }
+    }
   },
   'pr-post-je'(el){
     const month = el.dataset.month || UI.prMonth || todayCairo().slice(0, 7);
@@ -12261,6 +12772,7 @@ Object.assign(CLICK, {
           <tr><td style="padding:6px 0;color:#64748b">Base Salary</td><td class="num mono" style="padding:6px 0;font-weight:600">${money(l.salary)} EGP</td></tr>
           <tr><td style="padding:6px 0;color:#15803d">Bonus (+)</td><td class="num mono" style="padding:6px 0;color:#15803d;font-weight:600">+${money(l.bonus)} EGP</td></tr>
           <tr><td style="padding:6px 0;color:#b91c1c">Deduction (−)</td><td class="num mono" style="padding:6px 0;color:#b91c1c;font-weight:600">−${money(l.deduction)} EGP</td></tr>
+          <tr><td style="padding:6px 0;color:#b45309">Loan Installment (−)</td><td class="num mono" style="padding:6px 0;color:#b45309;font-weight:600">−${money(l.loanDed || 0)} EGP</td></tr>
           <tr style="border-top:2px solid #0f172a"><td style="padding:10px 0;font-weight:700;font-size:15px">Net Pay</td><td class="num mono" style="padding:10px 0;font-weight:800;font-size:16px">${money(l.net)} EGP</td></tr>
         </table>
         ${l.note ? `<div style="margin-top:10px;padding:8px 12px;background:#f8fafc;border-radius:8px;font-size:12.5px"><b>Note:</b> ${esc(l.note)}</div>` : ''}
@@ -12320,11 +12832,16 @@ Object.assign(CLICK, {
 Object.assign(FORM_HANDLERS, {
   'pr-save'(f, form){
     const month = form.dataset.month;
-    run(() => {
+    try {
       const pr = A.savePayroll(month, f);
+      toast('Payroll confirmed — review and Post the Journal Entry.', 'ok');
+      render();
       const je = pr.entryId ? entryById(pr.entryId) : null;
-      if (je) setTimeout(() => jeView(je), 20);
-    }, 'Payroll saved — review and post the Journal Entry.');
+      if (je) jeView(je);
+    } catch (e){
+      if (e instanceof AppError){ toast(e.message, 'bad'); render(); }
+      else { console.error(e); toast('Unexpected error: ' + e.message, 'bad'); }
+    }
   }
 });
 Object.assign(CLICK, {
@@ -12391,10 +12908,19 @@ Object.assign(CLICK, {
   'je-submit'(el){ jeAct(el.dataset.id, () => A.submitEntry(el.dataset.id), 'Submitted for approval.'); },
   'je-approve'(el){ jeAct(el.dataset.id, () => A.approveEntry(el.dataset.id), 'Entry approved.'); },
   'je-post'(el){
-    const id = el.dataset.id, isPr = (S.payrolls || []).some(p => p.entryId === id);
-    if (isPr && location.hash === '#/hr/payroll'){
-      closeModal();
-      run(() => A.postEntry(id), 'Payroll Journal Entry posted — you can now pay the payslips.');
+    const id = el.dataset.id, prDoc = (S.payrolls || []).find(p => p.entryId === id);
+    if (prDoc){
+      try {
+        A.postPayrollEntry(prDoc.month);
+        closeModal();
+        UI.prMonth = prDoc.month;
+        location.hash = '#/hr/payroll';
+        render();
+        toast('Payroll Journal Entry posted — you can now pay the employee payslips.', 'ok');
+      } catch (e){
+        if (e instanceof AppError) toast(e.message, 'bad');
+        else { console.error(e); toast('Unexpected error: ' + e.message, 'bad'); }
+      }
       return;
     }
     jeAct(id, () => A.postEntry(id), 'Entry posted.');
