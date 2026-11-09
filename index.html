@@ -2384,6 +2384,20 @@ html[dir=rtl] .pr-month .btn .ic{transform:scaleX(-1)}html[dir=rtl] .pr-next .ic
 .xv-lines td.neg{color:#c62828}
 .co-sum .pf-m{margin-inline-start:6px}
 .co-s-tot b.neg{color:#fca5a5}
+
+/* a11y contrast fixes (review) */
+.fs-code{color:#5f6874!important}
+.pg-tbl .zero,.pf-tbl .zero,.xv-lines .zero{color:#6b7480!important}
+/* car profitability: fit 1440px */
+.pf-tbl{font-size:13px}.pf-tbl th,.pf-tbl td{padding-inline:10px!important}
+.pf-tbl .pg-who{flex-wrap:wrap;row-gap:2px}.pf-tbl .pg-who b{max-width:200px}
+.pf-tbl .pf-chip{margin-inline-start:0}
+.pf-tbl thead th{white-space:normal;line-height:1.25}
+
+/* RTL fixes (review) */
+html[dir=rtl] .pr-month .btn.pr-next .ic{transform:none!important}
+html[dir=rtl] .pr-month .btn:not(.pr-next) .ic{transform:scaleX(-1)!important}
+html[lang=ar] body :not(.mono):not(code):not(kbd){letter-spacing:normal!important}
 </style>
 
 <!-- Journal Entry Right Side Drawer CSS & JS -->
@@ -4567,7 +4581,12 @@ function partnerExposureEgp(side, partnerId){
   return t;
 }
 /* Called by reverseEntry: refuse reversing a document others depend on. */
+function bankMatchBlocker(e){
+  const pre = e.id + ':'; for (const st of S.statements || []) for (const m of st.matches || []) if ((m.bookKeys || []).some(k => String(k).startsWith(pre))) return `${e.number || 'This entry'} is matched to bank statement ${st.number}. Unmatch it in Banking → Statements first.`;
+  return '';
+}
 function reversalBlocker(e){
+  const bm = bankMatchBlocker(e); if (bm) return bm;
   const inv = S.invoices.find(i => i.entryId === e.id);
   if (inv && inv.type !== 'credit' && invState(inv).reductions.some(r => ACTIVE_ST.includes(r.status))) return `${inv.number} has receipts, payments or credit notes allocated. Reverse those first.`;
   const s = S.settlements.find(x => x.entryId === e.id);
@@ -6812,6 +6831,7 @@ Object.assign(A, {
       const e = entryById(x.entryId); if (!e) throw new AppError('Journal entry not found.');
       if (e.status === 'draft') throw new AppError(`${x.number} is already in draft status.`);
       const pc = checkPostingAllowed(e.accountingDate); if (!pc.ok) throw new AppError('Cannot reset to draft: ' + pc.reason);
+      const bm = bankMatchBlocker(e); if (bm) throw new AppError(bm);
       const prev = e.status;
       e.status = 'draft';
       e.history = (e.history || []).concat([{ at: nowISO(), by: me.id, action: 'reset to draft', note: reason || 'Reset to draft' }]);
@@ -7265,6 +7285,17 @@ function routeParam(k){ const q = (location.hash.split('?')[1] || ''); return ne
 /* =========================================================================
    Rendering
    ========================================================================= */
+/* a11y: give every input/select/textarea an accessible name when the markup has none (placeholder, table column + row, or field name) */
+function nameFields(root){
+  for (const el of (root || document).querySelectorAll('input:not([type=hidden]):not([aria-label]):not([aria-labelledby]), select:not([aria-label]):not([aria-labelledby]), textarea:not([aria-label])')){
+    if (el.id && document.querySelector(`label[for="${CSS.escape(el.id)}"]`)) continue; if (el.closest('label')) continue;
+    const fl = el.closest('.field, .fs-f, .co-f'); const lb = fl && fl.querySelector(':scope > label, :scope > span'); if (lb && lb.textContent.trim()){ el.setAttribute('aria-label', lb.textContent.replace(/\*/g, '').trim()); continue; }
+    const td = el.closest('td'), table = td && td.closest('table');
+    if (td && table){ const th = table.querySelectorAll('thead th')[td.cellIndex], row = td.parentElement.querySelector('td b, td .pg-who b'); const t = [(th && th.textContent.trim()), row && row.textContent.trim()].filter(Boolean).join(' — '); if (t){ el.setAttribute('aria-label', t); continue; } }
+    const t = el.getAttribute('placeholder') || (el.name ? el.name.replace(/^(pr|ex|il|l)_/, '').replace(/[_-]+/g, ' ') : ''); if (t) el.setAttribute('aria-label', t.replace(/[…\.]+$/, ''));
+  }
+}
+let NAME_T = null; if (typeof MutationObserver !== 'undefined') new MutationObserver(() => { clearTimeout(NAME_T); NAME_T = setTimeout(() => nameFields(document), 60); }).observe(document.documentElement, { childList: true, subtree: true });
 function render(){
   document.documentElement.lang = UI.lang; document.documentElement.dir = UI.lang === 'ar' ? 'rtl' : 'ltr';
   const app = document.getElementById('app');
@@ -12669,7 +12700,7 @@ Object.assign(CLICK, {
   },
   'ln-del'(el){
     const ln = (S.empLoans || []).find(x => x.id === el.dataset.id); if (!ln) return;
-    if (!confirm(`Delete loan ${ln.number} for ${ln.empName}? Its disbursement journal entry will also be removed.`)) return;
+    if (!confirm(`Delete loan ${ln.number} for ${ln.empName}? Its disbursement journal entry will be reversed (kept in the books with a reversing entry).`)) return;
     try {
       A.deleteEmployeeLoan(ln.id);
       closeModal();
@@ -16313,7 +16344,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261109-063631';
+const APP_BUILD = 'build-20261109-064303';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
