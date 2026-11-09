@@ -5313,7 +5313,7 @@ Object.assign(A, {
     const arr = k => [].concat(f[k] ?? []);
     const lines = arr('pl_desc').map((d, i) => ({ id: uid('pl'), description: String(d || '').trim(), price: String(arr('pl_price')[i] || '').trim().replace(/,/g, ''), vehicleId: arr('pl_vehicle')[i] || null, invoiceId: null })).filter(l => l.description || l.price);
     if (!lines.length) throw new AppError('Add at least one vehicle line.');
-    lines.forEach((l, i) => { if (!l.description) throw new AppError(`Line ${i + 1}: describe the vehicle.`); if (!amtOk(l.price, f.currency) || !D(l.price).gt(0)) throw new AppError(`Line ${i + 1}: enter a positive ${f.currency} price.`); l.price = D(l.price).toFixed(2); if (l.vehicleId) this._checkVehicleFree(l.vehicleId, null); });
+    lines.forEach((l, i) => { if (f.priceLater && (!l.price || /^0+(\.0+)?$/.test(l.price))){ l.price = '0'; l.pricePending = true; } if (!l.description) throw new AppError(`Line ${i + 1}: describe the vehicle.`); if (!l.pricePending && (!amtOk(l.price, f.currency) || !D(l.price).gt(0))) throw new AppError(`Line ${i + 1}: enter a positive ${f.currency} price.`); l.price = D(l.price).toFixed(2); if (l.vehicleId) this._checkVehicleFree(l.vehicleId, null); });
     const po = { id: uid('po'), number: nextNumber('purchase_order', f.date), supplierId: sup.id, date: f.date, currency: f.currency, rateType: f.rateType || 'official', deliveryTerms: String(f.deliveryTerms || '').trim(), paymentTerms: String(f.paymentTerms || '').trim(),
       expectedDelivery: f.expectedDelivery || '', shipping: String(f.shipping || '').trim(), requestId: req ? req.id : '', quotationId: f.quotationId || '', lines, rate: poRate, status: APPROVALS ? 'submitted' : 'approved', createdBy: me.id, createdAt: nowISO() };
     if (req){ req.status = 'ordered'; if (f.quotationId){ const q = req.quotations.find(x => x.id === f.quotationId); if (q) q.selected = true; } }
@@ -5385,6 +5385,11 @@ Object.assign(A, {
     const ref = String(f.partnerRef || '').trim(); if (!ref) throw new AppError("Enter the supplier's invoice number.");
     if (S.invoices.find(i => i.side === 'ap' && i.partnerId === po.supplierId && i.partnerRef.toLowerCase() === ref.toLowerCase() && ACTIVE_ST.includes(entryStatus(i)))) throw new AppError(`Supplier invoice ${ref} is already recorded.`);
     if (!isISODate(f.date)) throw new AppError('Invoice date is required.');
+    const bp = String(f.billPrice ?? '').trim().replace(/,/g, '');
+    if (bp){ if (sel.length !== 1) throw new AppError('Enter the purchase price per line.'); if (!amtOk(bp, po.currency) || !D(bp).gt(0)) throw new AppError(`Enter the purchase price as a positive ${po.currency} amount.`);
+      const l0 = sel[0], old = l0.price; l0.price = D(bp).toFixed(2); delete l0.pricePending; if (old !== l0.price) log('po_line_price', 'purchases', po.id, { line: l0.id, price: old }, { line: l0.id, price: l0.price }, 'Purchase price from the supplier bill', po.number); }
+    if (po.currency !== 'EGP' && !po.rate && String(f.rate || '').trim()){ po.rate = validateRateString(String(f.rate).trim()); }
+    for (const l of sel) if (l.pricePending || !D(l.price).gt(0)) throw new AppError(`Enter the purchase price from the supplier bill for "${l.description}".`);
     const dest = f.destination === 'stock' ? 'inv_vehicles' : 'inv_transit', sup = partnerById('ap', po.supplierId), pl = partnerLabel(sup);
     const total = sel.reduce((t, l) => t.plus(l.price), D0());
     const number = previewNumber(S.sequences.find(s => s.doc === 'supplier_invoice'), f.date), id = uid('iv');
@@ -7201,7 +7206,7 @@ function formIcon(t){ t = String(t || '').toLowerCase();
     : /rate|currenc/.test(t) ? 'coins' : /account|journal|entry|budget|fiscal|year|tax|asset|chart/.test(t) ? 'shield' : /setting|location|categor|template/.test(t) ? 'settings' : 'invoices'; }
 function closeModal(){ if (SCREEN){ LAST_SCREEN = SCREEN; LAST_CLOSED_AT = Date.now(); SCREEN = null; } if (EDIT_CTX){ const c = EDIT_CTX; EDIT_CTX = null; if (!c.done) S = JSON.parse(c.snapOrig); } MODAL = null; document.getElementById('modal-root').innerHTML = ''; }
 /* Money fields show thousands separators while typing (909,090.00); the commas are removed before saving. */
-const MONEY_FIELD = /^(salary|pr_bonus|pr_ded|pr_loan|inst_amount|pay_amount|amount|price|salePrice|fee|intermediaryFee|srcAmount|dstAmount|cost|residual|total|egpTotal|applied|portion|estAmount|openingBalance|creditLimit|alloc_applied|alloc_portion|il_amount|pl_price|ex_amount|ql_price|ql_disc|so_price|so_disc|pf_price|pf_disc|lc_amount|lc_tax|l_debit|l_credit|l_rate)$/;
+const MONEY_FIELD = /^(billPrice|salary|pr_bonus|pr_ded|pr_loan|inst_amount|pay_amount|amount|price|salePrice|fee|intermediaryFee|srcAmount|dstAmount|cost|residual|total|egpTotal|applied|portion|estAmount|openingBalance|creditLimit|alloc_applied|alloc_portion|il_amount|pl_price|ex_amount|ql_price|ql_disc|so_price|so_disc|pf_price|pf_disc|lc_amount|lc_tax|l_debit|l_credit|l_rate)$/;
 function groupDigits(raw){
   let v = String(raw).replace(/[^\d.\-]/g, ''); const neg = v.startsWith('-'); v = v.replace(/-/g, '');
   const dot = v.indexOf('.'); let int = dot >= 0 ? v.slice(0, dot) : v, dec = dot >= 0 ? v.slice(dot + 1).replace(/\./g, '') : null;
@@ -9912,14 +9917,17 @@ const P6_CLICKS = {
     openModal({ title: 'Link registered vehicle', body: `<div class="field"><label>Vehicle</label><select class="input" name="vid">${free.map(v => `<option value="${v.id}">${esc(vehLabel(v))}</option>`).join('')}</select><span class="hint">Register the vehicle (with VIN) in Vehicles first.</span></div>`, onSubmit: f => A.linkPOVehicle(el.dataset.id, el.dataset.line, f.vid) }); },
   'po-inv'(el){ const po = poById(el.dataset.id), fx = po.currency !== 'EGP';
     openModal({ title: po.kind === 'local' ? `Record purchase from the seller — ${po.number}` : `Supplier invoice for ${po.number}`, wide: true, submit: 'Save & post', body: `<p>Posts Dr goods in transit (per vehicle) / Cr Accounts Payable in ${po.currency}${fx ? ', converted at the rate below' : ''}. Supplier advances paid on this order are applied automatically.</p>
-      ${po.lines.filter(l => !lineInvoiceActive(l)).map(l => `<label style="display:flex;gap:8px;padding:4px 0;font-size:13px"><input type="checkbox" name="pi_line" data-multi value="${l.id}" ${l.vehicleId ? 'checked' : 'disabled'}> ${esc(l.description)} — ${money(l.price)} ${po.currency} ${l.vehicleId ? '· ' + esc(vehLabel(vehById(l.vehicleId))) : '<span class="muted">(link a vehicle first)</span>'}</label>`).join('')}
+      ${po.lines.filter(l => !lineInvoiceActive(l)).map(l => `<label style="display:flex;gap:8px;padding:4px 0;font-size:13px"><input type="checkbox" name="pi_line" data-multi value="${l.id}" ${l.vehicleId ? 'checked' : 'disabled'}> ${esc(l.description)} — ${l.pricePending ? '<span class="muted">price from the bill</span>' : money(l.price) + ' ' + po.currency} ${l.vehicleId ? '· ' + esc(vehLabel(vehById(l.vehicleId))) : '<span class="muted">(link a vehicle first)</span>'}</label>`).join('')}
+      ${po.importOrder && po.kind !== 'local' && po.lines.filter(l => !lineInvoiceActive(l)).length === 1 ? (() => { const l0 = po.lines.find(l => !lineInvoiceActive(l)); return `<div class="row"><div class="field"><label>Purchase price * <span class="muted">${po.currency}, as on the supplier bill</span></label><input class="input mono" name="billPrice" inputmode="decimal" value="${l0.pricePending || !D(l0.price).gt(0) ? '' : groupDigits(l0.price)}" placeholder="0.00" required></div></div>`; })() : ''}
       <div class="row"><div class="field"><label>Supplier invoice no. *</label><input class="input" name="partnerRef" required></div><div class="field"><label>Invoice date *</label><input class="input" type="date" name="date" value="${todayCairo()}"></div><div class="field"><label>Due date</label><input class="input" type="date" name="dueDate"></div></div>
       <div class="row"><div class="field"><label>Debit</label><select class="input" name="destination"><option value="transit">Goods in transit (imports)</option><option value="stock">Vehicle inventory (local purchase, already received)</option></select></div>
-        ${fx ? `<div class="field"><label>Exchange rate * <span class="muted">1 ${po.currency} = ? EGP</span></label><input class="input mono" name="rate" value="${esc(po.rate || '')}" required><span class="hint">${po.rate ? `Rate recorded on ${esc(po.number)}` : 'No rate on the order yet'}</span></div>` : ''}</div>`,
+        ${fx ? (() => { const tr = poTransferRate(po), r0 = tr ? tr.rate.toDecimalPlaces(4).toString() : (po.rate || '');
+          const hint = tr ? `Weighted average of ${tr.list.length} transfer${tr.list.length === 1 ? '' : 's'} to the supplier: ${tr.list.map(x => `${money(x.amount)} ${po.currency} @ ${fmtNum(x.rate, 4)}`).join(' + ')} = ${money(tr.egp)} EGP ÷ ${money(tr.amount)} ${po.currency}` : po.rate ? `Rate recorded on ${esc(po.number)} — no transfers to the supplier yet` : 'No transfers to the supplier yet — enter the bill rate';
+          return `<div class="field"><label>Exchange rate * <span class="muted">1 ${po.currency} = ? EGP</span></label><input class="input mono" name="rate" value="${esc(r0)}" required><span class="hint">${hint}</span></div>`; })() : ''}</div>`,
       onSubmit: f => { if (po.importOrder){ const r = A.billImportOrder(po.id, f); toast(`${r.inv.number} posted; car received into stock${r.applied.length ? '; supplier advance applied' : ''}.`, 'ok'); return () => poView(poById(po.id)); }
         const inv = A.invoicePO(po.id, f); let msg = ''; try { const r = A.applyOrderAdvances(po.id, 'ap', inv.id); if (r.length) msg = ` ${r.length} supplier advance(s) applied.`; } catch (x){ msg = ' Advances not applied: ' + x.message; } toast(`${inv.number} saved and posted.${msg}`, 'ok'); return () => jeView(S.entries.find(e => e.id === S.invoices.find(i => i.id === inv.id).entryId)); } });
       if (po.kind === 'local'){ const r0 = document.querySelector('#mform [name=partnerRef]'); if (r0){ r0.value = po.number; r0.closest('.field').querySelector('label').textContent = 'Contract / receipt no. *'; } }
-      if (po.importOrder){ const d = document.querySelector('#mform [name=destination]'); if (d) d.closest('.field').style.display = 'none'; const p0 = document.querySelector('#mform p'); if (p0) p0.textContent = 'Posts Dr vehicle inventory / Cr supplier, converted at the order rate. Supplier advances on this order are applied and the car is received into stock automatically.'; } },
+      if (po.importOrder){ const d = document.querySelector('#mform [name=destination]'); if (d) d.closest('.field').style.display = 'none'; const p0 = document.querySelector('#mform .modal-b > p'); if (p0) p0.textContent = 'Posts Dr vehicle inventory / Cr supplier, converted at the order rate. Supplier advances on this order are applied and the car is received into stock automatically.'; } },
   'sh-new'(){ const prov = c => supOpts('', c); openModal({ title: 'New shipment', wide: true, body: `<div class="row"><div class="field"><label>Shipping company</label><select class="input" name="carrierId"><option value="">—</option>${prov(['Shipping company'])}</select></div><div class="field"><label>Freight forwarder</label><select class="input" name="forwarderId"><option value="">—</option>${prov(['Freight forwarder'])}</select></div><div class="field"><label>Vehicle supplier</label><select class="input" name="supplierId"><option value="">—</option>${prov(['Vehicle supplier'])}</select></div></div>
     <div class="row"><div class="field"><label>Origin</label><input class="input" name="origin" value="Germany"></div><div class="field"><label>Destination port *</label><input class="input" name="port" value="Alexandria" required></div><div class="field"><label>Ship date</label><input class="input" type="date" name="shipDate"></div><div class="field"><label>ETA</label><input class="input" type="date" name="eta"></div></div>
     <div class="row"><div class="field"><label>Bill of lading</label><input class="input mono" name="bl"></div><div class="field"><label>Container</label><input class="input mono" name="container"></div><div class="field"><label>Reference</label><input class="input" name="ref"></div></div>`,
@@ -13262,7 +13270,7 @@ const DOC_KINDS = {
   po: { label: 'purchase order', coll: () => S.purchaseOrders, fn: 'createPO', mod: () => 'purchases', call: f => A.createPO(f), noEntry: true,
     open: d => CLICK['po-new']({ dataset: {} }, { requestId: d.requestId, quotationId: d.quotationId, supplierId: d.supplierId, currency: d.currency, rate: d.rate }),
     toForm: d => ({ ...pickStr(d, ['supplierId','date','currency','rateType','rate','deliveryTerms','paymentTerms','expectedDelivery','shipping','requestId','quotationId']),
-      pl_desc: d.lines.map(l => l.description), pl_price: d.lines.map(l => l.price), pl_vehicle: d.lines.map(l => l.vehicleId || '') }),
+      pl_desc: d.lines.map(l => l.description), pl_price: d.lines.map(l => l.pricePending ? '' : l.price), pl_vehicle: d.lines.map(l => l.vehicleId || ''), priceLater: d.lines.some(l => l.pricePending) }),
     block: d => !['submitted','approved'].includes(d.status) ? `${d.number} is ${d.status}.` : d.lines.some(lineInvoiceActive) ? `${d.number} is already invoiced. Correct the supplier invoice instead.` : '',
     prep: d => { const r = d.requestId && S.purchaseRequests.find(x => x.id === d.requestId); if (r){ r.status = 'approved'; for (const q of r.quotations || []) q.selected = false; } },
     carry: (o, n) => { n.importOrder = o.importOrder; n.customerId = o.customerId; n.kind = o.kind; n.commission = o.commission; },
@@ -14013,9 +14021,11 @@ Object.assign(A, {
     const me = requirePerm('purchases', 'create'); requirePerm('vehicles', 'create');
     const txt = (name, id, newName) => f[name] !== undefined ? f[name] : (f[id] && f[id] !== '__new' ? f[id] : f[newName]);
     const vin = String(f.vin || '').toUpperCase().replace(/[\s-]/g, ''); if (!vin) throw new AppError('Enter the chassis number.');
-    const price = String(f.price || '').trim().replace(/,/g, ''); if (!price) throw new AppError('Enter the purchase price.');
-    const salePrice = String(f.salePrice || '').trim().replace(/,/g, ''), saleCur = f.saleCurrency || 'EGP';
-    if (salePrice && (!amtOk(salePrice, saleCur) || !D(salePrice).gt(0))) throw new AppError('Selling price must be a positive amount.');
+    const kind0 = ['stock', 'local'].includes(f.kind) ? f.kind : 'customer';
+    const price = String(f.price || '').trim().replace(/,/g, ''); if (!price && kind0 !== 'customer') throw new AppError('Enter the purchase price.');
+    const salePrice = String(f.salePrice || '').trim().replace(/,/g, ''), saleCur = isActiveCurrency(f.saleCurrency) ? f.saleCurrency : 'EGP';
+    if (kind0 === 'customer' && !salePrice && !price) throw new AppError('Enter the contracted price agreed with the customer.');
+    if (salePrice && (!amtOk(salePrice, saleCur) || !D(salePrice).gt(0))) throw new AppError('The contracted price must be a positive amount.');
     const snap = JSON.stringify(S);
     try {
       const { makeId, modelId } = pickMakeModel(txt('makeName', 'makeId', 'newMake'), txt('modelName', 'modelId', 'newModel'));
@@ -14029,7 +14039,7 @@ Object.assign(A, {
       const v = A.saveVehicle(null, { vin, nonStandardVin: f.nonStandardVin || (/^[A-HJ-NPR-Z0-9]{17}$/.test(vin) ? 'no' : 'yes'), makeId, modelId, year: f.year || todayCairo().slice(0, 4), trim: f.trim, exteriorColor: f.exteriorColor, interiorColor: f.interiorColor,
         fuel: f.fuel, transmission: f.transmission, origin: f.origin || (kind === 'local' ? 'Egypt' : 'Germany'), supplierId: sup.id, customerId: cust ? cust.id : '', status: 'requested', notes: f.carNotes || '', mileage: f.mileage || '' });
       const po = A.createPO({ supplierId: sup.id, date: f.date || todayCairo(), currency: f.currency || 'EUR', rateType: f.rateType || 'official', deliveryTerms: f.deliveryTerms, paymentTerms: f.paymentTerms, expectedDelivery: f.expectedDelivery, shipping: f.shipping,
-        pl_desc: `${makeName(makeId)} ${modelName(makeId, modelId)} ${v.year} · Chassis ${v.vin}`, pl_price: price, pl_vehicle: v.id, rate: f.rate });
+        pl_desc: `${makeName(makeId)} ${modelName(makeId, modelId)} ${v.year} · Chassis ${v.vin}`, pl_price: price, pl_vehicle: v.id, rate: f.rate, priceLater: !price });
       po.customerId = cust ? cust.id : ''; po.importOrder = true; po.kind = kind; po.commission = comm ? D(comm).toFixed(2) : ''; po.customerRef = String(f.customerRef || '').trim(); po.salePrice = salePrice ? D(salePrice).toFixed(2) : ''; po.saleCurrency = saleCur;
       log('import_order_create', 'purchases', po.id, null, { po: po.number, kind, vehicle: v.code, vin: v.vin, customer: cust ? cust.code : '', supplier: sup.code }, '', po.number);
       saveState(); return po;
@@ -14054,6 +14064,14 @@ function advSummary(list){
   return Object.entries(by).map(([k, v]) => `<span class="mono">${money(v)}</span> ${esc(k.split(' ')[0])}${k.includes('pending') ? ' <span class="badge b-warn">pending</span>' : ''}`).join('<br>') || '<span class="muted">—</span>';
 }
 const poVehicle = po => vehById((po.lines.find(l => l.vehicleId) || {}).vehicleId);
+/* weighted average rate of the money actually transferred to the supplier on this order (posted advances in the order currency) */
+function poTransferRate(po){
+  if (!po || po.currency === 'EGP') return null;
+  const list = poAdvances(po, 'ap').filter(x => entryStatus(x) === 'posted' && x.currency === po.currency && D(x.amount || 0).gt(0) && D(x.rate || 0).gt(0));
+  if (!list.length) return null;
+  const amt = list.reduce((t, x) => t.plus(x.amount), D0()), egp = list.reduce((t, x) => t.plus(D(x.amount).mul(x.rate)), D0());
+  return { rate: egp.div(amt), amount: amt, egp, list };
+}
 function advButtons(po, sm = true){
   const c = sm ? 'btn sm' : 'btn', out = [];
   if (po.status === 'cancelled') return '';
@@ -14077,13 +14095,19 @@ function importOrderForm(kind = 'customer'){
     f('Model year', `<input class="input mono" name="year" value="${todayCairo().slice(0, 4)}" inputmode="numeric" maxlength="4">`) +
     f('Chassis number (VIN) *', `<div class="co-vin"><input class="input mono" name="vin" data-vin autocomplete="off" placeholder="e.g. WBA5A31060G123456" maxlength="17"><span class="co-cnt" id="co-vin-cnt">0/17</span></div><span class="hint" id="vin-hint"></span>`, 'span3') +
     (kind === 'local' ? f('Mileage (km)', '<input class="input mono" name="mileage" inputmode="numeric">') + f('Colour', '<input class="input" name="exteriorColor">') : ''), 'cars');
-  const partyCard = kind === 'customer' ? card('Customer', 'The car is imported for this customer.',
+  const curOpts = sel => S.companyCurrencies.filter(c => c.active).map(c => `<option ${c.code === sel ? 'selected' : ''}>${c.code}</option>`).join('');
+  const partyCard = kind === 'customer' ? card('Customer & contract', 'The car is imported for this customer at the price agreed with them.',
       f('Customer *', combo('customerName', partnerOpts('ar'), '', 'Pick or type a new customer name', 'customer'), 'span2') +
-      f('Mobile', '<input class="input" name="customerPhone" inputmode="tel" placeholder="For a new customer">'), 'users')
+      f('Mobile', '<input class="input" name="customerPhone" inputmode="tel" placeholder="For a new customer">') +
+      f('Contracted price *', `<div class="co-money"><input class="input mono" name="salePrice" inputmode="decimal" placeholder="0.00"><select name="saleCurrency" aria-label="Contract currency">${curOpts('EGP')}</select></div>`, 'span2'), 'users')
     : kind === 'local' ? card('Seller', 'The customer you are buying the car from.',
       f('Seller *', combo('sellerName', partnerOpts('ap'), '', 'Pick or type the seller’s name', 'supplier'), 'span2') +
       f('Mobile', '<input class="input" name="sellerPhone" inputmode="tel" placeholder="For a new seller">'), 'users') : '';
   const priceCard = kind === 'local' ? card('Price', '', f('Agreed price *', '<div class="co-money"><input class="input mono" name="price" inputmode="decimal" placeholder="0.00"><span>EGP</span></div>', 'span2') + f('Date', `<input class="input" type="date" name="date" value="${todayCairo()}">`), 'invoices')
+    : kind === 'customer' ? card('Supplier', 'The purchase price is entered later, on the supplier bill.',
+      f('Supplier *', combo('supplierName', partnerOpts('ap'), lastSup ? lastSup.legalName : '', 'Pick or type a new supplier name', 'supplier'), 'span2') +
+      f('Order date', `<input class="input" type="date" name="date" value="${todayCairo()}">`) +
+      f('Supplier currency', `<select class="input" name="currency">${curOpts(cur)}</select>`), 'invoices')
     : card('Supplier & price', kind === 'stock' ? 'Bought for stock — you choose the buyer when you sell.' : '',
       f('Supplier *', combo('supplierName', partnerOpts('ap'), lastSup ? lastSup.legalName : '', 'Pick or type a new supplier name', 'supplier'), 'span2') +
       f('Order date', `<input class="input" type="date" name="date" value="${todayCairo()}">`) +
@@ -14099,12 +14123,11 @@ function importOrderForm(kind = 'customer'){
         <dl>
           ${kind === 'customer' ? '<div><dt>Customer</dt><dd id="co-s-cust">—</dd></div>' : kind === 'local' ? '<div><dt>Seller</dt><dd id="co-s-sell">—</dd></div>' : '<div><dt>Buyer</dt><dd>chosen when you sell</dd></div>'}
           ${kind !== 'local' ? '<div><dt>Supplier</dt><dd id="co-s-sup">—</dd></div>' : ''}
-          <div><dt>Price</dt><dd id="co-s-price">—</dd></div>
-          ${kind !== 'local' ? '<div><dt>Rate</dt><dd id="co-s-rate">—</dd></div>' : ''}
+          ${kind === 'customer' ? '<div><dt>Purchase price</dt><dd>on the supplier bill</dd></div>' : `<div><dt>Price</dt><dd id="co-s-price">—</dd></div>${kind !== 'local' ? '<div><dt>Rate</dt><dd id="co-s-rate">—</dd></div>' : ''}`}
         </dl>
-        <div class="co-s-tot"><span>Cost in EGP</span><b id="co-s-egp">—</b></div>
+        <div class="co-s-tot"><span>${kind === 'customer' ? 'Contracted price' : 'Cost in EGP'}</span><b id="co-s-egp">—</b></div>
         <div class="co-prog"><div><span>Required fields</span><b id="co-p-t">0 / 0</b></div><i><b id="co-p-bar"></b></i></div>
-        <p class="co-s-note">${kind === 'local' ? 'The purchase is recorded when you receive the car.' : 'The supplier bill is recorded when the car arrives; deposits can be added on the order.'}</p>
+        <p class="co-s-note">${kind === 'local' ? 'The purchase is recorded when you receive the car.' : kind === 'customer' ? 'Enter the purchase price and rate on the supplier bill when the car arrives. Customer deposits can be added on the order.' : 'The supplier bill is recorded when the car arrives; deposits can be added on the order.'}</p>
       </aside>
     </div>
   </div>`;
@@ -14120,8 +14143,9 @@ function coRecalc(){
   const kind = v('kind'), cur = kind === 'local' ? 'EGP' : (v('currency') || 'EGP'), price = v('price').replace(/,/g, ''), rate = v('rate').replace(/,/g, '');
   const num = x => /^\d+(\.\d+)?$/.test(x);
   set('co-s-price', num(price) ? `${money(price)} ${cur}` : '—'); set('co-s-rate', cur === 'EGP' ? '1.0000' : num(rate) ? `1 ${cur} = ${fmtNum(rate, 4)} EGP` : '—');
-  set('co-s-egp', num(price) && (cur === 'EGP' || num(rate)) ? money(D(price).mul(cur === 'EGP' ? 1 : rate)) + ' EGP' : '—');
-  const req = [!!v('makeName'), !!v('modelName'), vin.length === 17, num(price)];
+  const sp = v('salePrice').replace(/,/g, '');
+  set('co-s-egp', kind === 'customer' ? (num(sp) ? `${money(sp)} ${v('saleCurrency') || 'EGP'}` : '—') : num(price) && (cur === 'EGP' || num(rate)) ? money(D(price).mul(cur === 'EGP' ? 1 : rate)) + ' EGP' : '—');
+  const req = [!!v('makeName'), !!v('modelName'), vin.length === 17, kind === 'customer' ? num(sp) : num(price)];
   if (kind === 'customer') req.push(!!v('customerName')); if (kind === 'local') req.push(!!v('sellerName')); if (kind !== 'local') req.push(!!v('supplierName'));
   const done = req.filter(Boolean).length; set('co-p-t', `${done} / ${req.length}`);
   const bar = form.querySelector('#co-p-bar'); if (bar){ bar.style.width = (100 * done / req.length) + '%'; bar.classList.toggle('full', done === req.length); }
@@ -15204,8 +15228,9 @@ function poView(po){
               <tbody>
                 <tr>
                   <td class="lbl">Purchase Price</td>
-                  <td class="val"><b class="mono" style="font-size:14.5px;color:#0f172a">${money(total)} ${po.currency}</b>${po.currency !== 'EGP' && po.rate ? ` <span class="muted" style="font-size:12px;font-weight:normal">(≈ ${money(sm.priceEgp || total.mul(po.rate))} EGP)</span>` : ''}</td>
+                  <td class="val">${po.lines.some(l => l.pricePending) ? `<span class="muted">Entered on the supplier bill</span>` : `<b class="mono" style="font-size:14.5px;color:#0f172a">${money(total)} ${po.currency}</b>${po.currency !== 'EGP' && po.rate ? ` <span class="muted" style="font-size:12px;font-weight:normal">(≈ ${money(sm.priceEgp || total.mul(po.rate))} EGP)</span>` : ''}`}</td>
                 </tr>
+                ${po.salePrice ? `<tr><td class="lbl">Contracted Price</td><td class="val"><b class="mono" style="font-size:14.5px;color:#047857">${money(po.salePrice)} ${esc(po.saleCurrency || 'EGP')}</b> <span class="muted" style="font-size:12px">agreed with the customer</span></td></tr>` : ''}
                 <tr>
                   <td class="lbl">Currency &amp; Rate</td>
                   <td class="val"><span class="mono">${po.currency}${po.currency !== 'EGP' ? ` · 1 ${po.currency} = ${po.rate ? fmtNum(po.rate, 4) : '—'} EGP` : ''}</span> ${can('purchases', 'edit') && po.status !== 'cancelled' && !closed && !shut ? `<button type="button" class="lnk0" data-act="po-rate" data-id="${po.id}" style="font-size:12px;margin-inline-start:6px">Change</button>` : ''}</td>
@@ -15472,12 +15497,12 @@ function openPoAdvance(po, side){
     const form = document.getElementById('mform'); if (!form) return;
     form.insertAdjacentHTML('afterbegin', `<input type="hidden" name="poId" value="${po.id}"><input type="hidden" name="vehicleId" value="${v ? v.id : ''}">`);
     const ps = form.querySelector('[name=partnerId]'); ps.innerHTML = `<option value="${p.id}">${esc(partnerLabel(p))}</option>`; ps.value = p.id; ps.dispatchEvent(new Event('change', { bubbles: true }));
-    const cs = form.querySelector('[name=currency]');
-    if (cs && po.currency && po.currency !== 'EGP'){ cs.value = po.currency; cs.dispatchEvent(new Event('change', { bubbles: true }));
-      const rt = form.querySelector('[name=rate]'); if (rt && po.rate){ rt.value = po.rate; delete rt.dataset.auto; rt.dispatchEvent(new Event('input', { bubbles: true })); } }
+    const cs = form.querySelector('[name=currency]'), dCur = side === 'ar' ? (po.saleCurrency || 'EGP') : po.currency;
+    if (cs && dCur && dCur !== 'EGP'){ cs.value = dCur; cs.dispatchEvent(new Event('change', { bubbles: true }));
+      const rt = form.querySelector('[name=rate]'); if (rt && po.rate && side === 'ap'){ rt.value = po.rate; delete rt.dataset.auto; rt.dispatchEvent(new Event('input', { bubbles: true })); } }
 
-    const orderVal = po.lines.reduce((t, l) => t.plus(l.price), D0());
-    const prior = poAdvances(po, side).filter(x => ACTIVE_ST.includes(entryStatus(x)));
+    const orderVal = side === 'ar' ? D(po.salePrice || 0) : po.lines.reduce((t, l) => t.plus(l.price), D0());
+    const prior = poAdvances(po, side).filter(x => ACTIVE_ST.includes(entryStatus(x)) && (side !== 'ar' || x.currency === (po.saleCurrency || 'EGP')));
     const priorPaidTotal = prior.reduce((t, x) => t.plus(x.amount), D0());
     const fullRem = orderVal.minus(priorPaidTotal);
     const fullRemVal = fullRem.gt(0) ? fullRem : D0();
@@ -16442,7 +16467,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261109-065853';
+const APP_BUILD = 'build-20261109-162440';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
