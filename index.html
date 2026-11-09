@@ -2398,6 +2398,25 @@ html[dir=rtl] .pr-month .btn .ic{transform:scaleX(-1)}html[dir=rtl] .pr-next .ic
 html[dir=rtl] .pr-month .btn.pr-next .ic{transform:none!important}
 html[dir=rtl] .pr-month .btn:not(.pr-next) .ic{transform:scaleX(-1)!important}
 html[lang=ar] body :not(.mono):not(code):not(kbd){letter-spacing:normal!important}
+
+/* ==== TB & aging ==== */
+.tb-tbl td:first-child{white-space:nowrap}
+form[data-form=tb] select.input{min-width:230px}
+.ag-bar{padding:16px 18px!important;margin-bottom:16px}
+.ag-stack{display:flex;height:12px;border-radius:999px;overflow:hidden;background:#eef1f5;gap:2px}
+.ag-stack i{display:block;min-width:4px}
+.ag-leg{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:12px;font-size:12.5px;color:var(--text-2)}
+.ag-leg span{display:inline-flex;align-items:center;gap:7px}.ag-leg i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.ag-leg b{font-weight:600;font-variant-numeric:tabular-nums}.ag-leg em{font-style:normal;color:var(--muted)}
+.ag-tbl details summary{font-size:12px;color:var(--muted);cursor:pointer;margin-top:2px}
+.ag-tbl td a{font-weight:600}
+
+/* ==== UX pass (review): empty states, codes, emphasis ==== */
+main.content td.empty,main.content .card > .empty{padding:34px 16px!important;text-align:center;color:var(--muted);font-size:13.5px}
+main.content td.empty::before,main.content .card > .empty::before{content:"";display:block;width:40px;height:40px;margin:0 auto 10px;border-radius:12px;background:#f1f3f6 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%239aa3af' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 12h-6l-2 3h-4l-2-3H2'/%3E%3Cpath d='M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z'/%3E%3C/svg%3E") center no-repeat}
+.empty-cta{display:flex!important;margin:12px auto 0!important;width:max-content}
+.nowrap-code{white-space:nowrap!important}
+main.content table thead th{font-weight:550!important}
 </style>
 
 <!-- Journal Entry Right Side Drawer CSS & JS -->
@@ -7295,7 +7314,19 @@ function nameFields(root){
     const t = el.getAttribute('placeholder') || (el.name ? el.name.replace(/^(pr|ex|il|l)_/, '').replace(/[_-]+/g, ' ') : ''); if (t) el.setAttribute('aria-label', t.replace(/[…\.]+$/, ''));
   }
 }
-let NAME_T = null; if (typeof MutationObserver !== 'undefined') new MutationObserver(() => { clearTimeout(NAME_T); NAME_T = setTimeout(() => nameFields(document), 60); }).observe(document.documentElement, { childList: true, subtree: true });
+/* UX pass after each render: empty states get an icon + the page's main action; document codes never wrap mid-code */
+const CODE_RX = /^[A-Z]{2,6}(-[A-Z]{1,6})*-\d{2,}[A-Z0-9-]*$/;
+function enhanceUI(root){
+  const main = (root || document).querySelector('main.content'); if (!main) return;
+  for (const td of main.querySelectorAll('td.empty:not([data-ux]), .empty:not(td):not([data-ux])')){
+    td.dataset.ux = '1'; if (td.closest('.xp-empty, .co-ed')) continue;
+    const pa = main.querySelector('.page-h .actions .btn.primary') || main.querySelector('.page-h .actions button.btn[data-act$="-new"], .page-h .actions button.btn[data-act^="new"]');
+    if (pa && !td.querySelector('.btn') && td.closest('.card') && !/match|found|filter|result/i.test(td.textContent)){
+      const b = pa.cloneNode(true); b.classList.add('sm', 'empty-cta'); b.classList.add('primary'); td.appendChild(b); }
+  }
+  for (const c of main.querySelectorAll('td:not([data-ux]), td a:not([data-ux])')){ c.dataset.ux = '1'; const t0 = c.textContent.trim(); if (t0.length <= 24 && CODE_RX.test(t0)) c.classList.add('nowrap-code'); }
+}
+let NAME_T = null; if (typeof MutationObserver !== 'undefined') new MutationObserver(() => { clearTimeout(NAME_T); NAME_T = setTimeout(() => { nameFields(document); enhanceUI(document); }, 60); }).observe(document.documentElement, { childList: true, subtree: true });
 function render(){
   document.documentElement.lang = UI.lang; document.documentElement.dir = UI.lang === 'ar' ? 'rtl' : 'ltr';
   const app = document.getElementById('app');
@@ -8422,7 +8453,7 @@ function pageGL(){
       <select class="input" name="currency"><option value="">All currencies</option>${S.currencies.map(c => `<option ${G.currency === c.code ? 'selected' : ''}>${c.code}</option>`).join('')}</select>
       <select class="input" name="cc"><option value="">All cost centers</option>${S.costCenters.map(c => `<option value="${c.code}" ${G.cc === c.code ? 'selected' : ''}>${c.code}</option>`).join('')}</select>
       <input class="input" name="partner" placeholder="Partner / vehicle" value="${esc(G.partner || '')}">
-      <button class="btn">Apply</button>${can('ledger', 'export') ? '<button type="button" class="btn sm" data-act="gl-csv">Export Excel</button>' : ''}</div>
+      <button class="btn primary">Apply</button>${can('ledger', 'export') ? '<button type="button" class="btn sm" data-act="gl-csv">Export Excel</button>' : ''}</div>
       ${data.some(b => b.filtered) ? '<div class="card-b muted" style="font-size:12.5px">Journal / currency / cost center / partner filters hide lines, so running balances are not shown.</div>' : ''}</form>
     ${blocks || '<div class="card"><div class="empty">No posted activity for these filters.</div></div>'}`;
 }
@@ -8439,16 +8470,24 @@ function pageTB(){
   const all = [...tb.rows, ...extra.map(r => ({ account: r.account, ...zero, net: D0() }))].sort((a, b) => a.account.code < b.account.code ? -1 : 1);
   const n = v => D(v).eq(0) ? '' : money(v);
   const tt = tb.totals;
-  return H(t('tb'), 'From posted entries. Opening = all postings before the start date.') + needChart() + `
-    <form class="card" data-form="tb"><div class="filters">
-      <label class="muted" style="align-self:center">From</label><input class="input" type="date" name="from" value="${T0.from}"><label class="muted" style="align-self:center">To</label><input class="input" type="date" name="to" value="${T0.to}">
-      <select class="input" name="mode">${[['unadjusted','Unadjusted (excl. ADJ & closing)'], ['adjusted','Adjusted (excl. closing)'], ['postclosing','Post-closing (all)']].map(([v, l]) => `<option value="${v}" ${T0.mode === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
-      <label class="muted" style="align-self:center">Compare</label><input class="input" type="date" name="cfrom" value="${T0.cfrom}" title="Comparative from"><input class="input" type="date" name="cto" value="${T0.cto}" title="Comparative to">
-      <button class="btn">Run</button>${can('ledger', 'export') ? '<button type="button" class="btn sm" data-act="tb-csv">Export Excel</button>' : ''}</div></form>
-    <div class="note ${tb.balanced ? '' : 'bad'}">${tb.balanced ? '✓ Balanced: opening, period and closing debits equal credits.' : '✕ Out of balance — see Integrity Checks.'}</div>
-    <div class="card"><div class="tbl-wrap"><table><thead><tr><th>Code</th><th>Account</th><th class="num">Opening Dr</th><th class="num">Opening Cr</th><th class="num">Period Dr</th><th class="num">Period Cr</th><th class="num">Closing Dr</th><th class="num">Closing Cr</th>${comp ? '<th class="num">Comparative</th>' : ''}</tr></thead><tbody>
+  const egp = '<small>EGP</small>', tile = (icon, cls, l, v, sub) => `<div class="xp-k ${cls}"><span class="xp-kic">${ic(icon, 18)}</span><div><span class="xp-kl">${l}</span><b>${v}</b><em>${sub}</em></div></div>`;
+  return H(t('tb'), 'From posted entries. Opening = all postings before the start date. Click a code to open its ledger.', can('ledger', 'export') ? `<button type="button" class="btn" data-act="tb-csv">${ic('file', 14)} Export Excel</button>` : '') + needChart() + `
+    <form class="card pg-tools" data-form="tb"><div class="pg-tr fs-form">
+      <label class="fs-f"><span>From</span><input class="input" type="date" name="from" value="${T0.from}"></label>
+      <label class="fs-f"><span>To</span><input class="input" type="date" name="to" value="${T0.to}"></label>
+      <label class="fs-f"><span>Mode</span><select class="input" name="mode">${[['unadjusted','Unadjusted (excl. ADJ & closing)'], ['adjusted','Adjusted (excl. closing)'], ['postclosing','Post-closing (all)']].map(([v, l]) => `<option value="${v}" ${T0.mode === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
+      <label class="fs-f"><span>Compare from</span><input class="input" type="date" name="cfrom" value="${T0.cfrom}"></label>
+      <label class="fs-f"><span>Compare to</span><input class="input" type="date" name="cto" value="${T0.cto}"></label>
+      <button class="btn primary fs-go">Update</button><span class="fs-chk ${tb.balanced ? 'ok' : 'bad'}">${tb.balanced ? '✓ Balanced' : '✕ Out of balance'}</span></div></form>
+    <div class="xp-kpis">
+      <div class="xp-hero"><div class="xp-hero-top"><span class="xp-kic">${ic('accounting', 20)}</span><span class="xp-tag">${tb.balanced ? 'Debits = credits' : 'Check integrity'}</span></div><span class="xp-kl">Closing balances</span><b>${money(tt.closeD)} ${egp}</b><em>Credits ${money(tt.closeC)} EGP</em></div>
+      ${tile('swap', 'info', 'Period movement', money(tt.perD) + ' ' + egp, `${T0.from} to ${T0.to}`)}
+      ${tile('wallet', 'gold', 'Opening balances', money(tt.openD) + ' ' + egp, 'Before ' + T0.from)}
+      ${tile('reports', 'ok', 'Accounts with activity', String(tb.rows.length), T0.mode === 'postclosing' ? 'Post-closing' : T0.mode === 'unadjusted' ? 'Unadjusted' : 'Adjusted')}
+    </div>
+    <div class="card pg-card"><div class="tbl-wrap"><table class="pg-tbl tb-tbl"><thead><tr><th>Code</th><th>Account</th><th class="num">Opening Dr</th><th class="num">Opening Cr</th><th class="num">Period Dr</th><th class="num">Period Cr</th><th class="num">Closing Dr</th><th class="num">Closing Cr</th>${comp ? '<th class="num">Comparative</th>' : ''}</tr></thead><tbody>
       ${all.map(r => `<tr><td class="mono"><a href="#/acc/gl?account=${r.account.id}">${esc(r.account.code)}</a></td><td>${esc(accName(r.account))}</td><td class="num">${n(r.openD)}</td><td class="num">${n(r.openC)}</td><td class="num">${n(r.perD)}</td><td class="num">${n(r.perC)}</td><td class="num">${n(r.closeD)}</td><td class="num">${n(r.closeC)}</td>${comp ? `<td class="num">${drcr(compMap.get(r.account.id) || D0())}</td>` : ''}</tr>`).join('') || `<tr><td colspan="${comp ? 9 : 8}" class="empty">No posted balances.</td></tr>`}
-      <tr style="font-weight:700;background:var(--surface-2)"><td></td><td>Totals</td><td class="num">${money(tt.openD)}</td><td class="num">${money(tt.openC)}</td><td class="num">${money(tt.perD)}</td><td class="num">${money(tt.perC)}</td><td class="num">${money(tt.closeD)}</td><td class="num">${money(tt.closeC)}</td>${comp ? `<td class="num">${comp.balanced ? 'balanced' : 'UNBALANCED'}</td>` : ''}</tr>
+      <tr class="pg-tot"><td></td><td>Totals</td><td class="num">${money(tt.openD)}</td><td class="num">${money(tt.openC)}</td><td class="num">${money(tt.perD)}</td><td class="num">${money(tt.perC)}</td><td class="num">${money(tt.closeD)}</td><td class="num">${money(tt.closeC)}</td>${comp ? `<td class="num">${comp.balanced ? 'balanced' : 'UNBALANCED'}</td>` : ''}</tr>
     </tbody></table></div></div>`;
 }
 
@@ -8650,7 +8689,7 @@ function pageReval(){
       <label class="muted" style="align-self:center">As at</label><input class="input" type="date" name="date" value="${R0.date}">
       <select class="input" name="type">${S.rateTypes.filter(r => r.active).map(r => `<option value="${r.code}" ${R0.type === r.code ? 'selected' : ''}>${esc(r.name)}</option>`).join('')}</select>
       <select class="input" name="auto"><option value="yes">Auto-reverse at start of next period</option><option value="no" ${R0.auto === 'no' ? 'selected' : ''}>No auto-reversal</option></select>
-      <button class="btn">Preview</button></div></form>
+      <button class="btn primary">Preview</button></div></form>
     ${pv.errors.length ? `<div class="note bad">Missing approved rates: ${esc(pv.errors.join('; '))}</div>` : ''}
     <div class="card"><div class="card-h"><h2>Preview at ${R0.date}</h2><span class="sub">net ${tot.gte(0) ? 'gain' : 'loss'} ${money(tot.abs())} EGP</span>
       <div class="actions">${can('fx_reval', 'create') && pv.rows.some(r => !r.diff.eq(0)) && !pv.errors.length ? '<button class="btn primary" data-act="reval-create">Prepare revaluation entry</button>' : ''}</div></div>
@@ -9095,14 +9134,25 @@ function pageAging(side){
   const SD = SIDES[side]; UI.aging = UI.aging || {}; const asOf = UI.aging[side] || todayCairo();
   const ag = aging(side, asOf), gl = glControl(SD.ctl, asOf);
   const glv = gl ? (side === 'ar' ? gl.bal : gl.bal.negated()) : null;
-  return H(t(side), `Aging by days past due at ${asOf}, from posted documents only, in EGP carrying value.`) + `
-    <form class="card" data-form="aging" data-side="${side}"><div class="filters"><label class="muted" style="align-self:center">As at</label><input class="input" type="date" name="asOf" value="${asOf}"><button class="btn">Run</button>
-      ${can(SD.mod, 'export') ? `<button type="button" class="btn sm" data-act="aging-csv" data-side="${side}">Export Excel</button>` : ''}</div></form>
-    ${gl ? `<div class="note ${glv.eq(ag.total) ? '' : 'bad'}">${glv.eq(ag.total) ? '✓' : '✕'} Aging total ${money(ag.total)} EGP vs GL ${esc(gl.account.code)} ${money(glv)} EGP (excluding open revaluation adjustments).</div>` : ''}
-    <div class="card"><div class="tbl-wrap"><table><thead><tr><th>${SD.partner}</th>${BUCKETS.map(b => `<th class="num">${b}</th>`).join('')}<th class="num">Total</th></tr></thead><tbody>
+  const egp = '<small>EGP</small>', T = ag.total, pct = v => T.gt(0) ? Number(D(v).div(T).mul(100).toFixed(1)) : 0;
+  const overdue = ag.tot.slice(1).reduce((t, v) => t.plus(v), D0()), over90 = ag.tot[ag.tot.length - 1];
+  const tile = (icon, cls, l, v, sub) => `<div class="xp-k ${cls}"><span class="xp-kic">${ic(icon, 18)}</span><div><span class="xp-kl">${l}</span><b>${money(v)} ${egp}</b><em>${sub}</em></div></div>`;
+  const AG_COL = ['#047857', '#d4a72c', '#e07b39', '#d1495b', '#9b1c31'];
+  return H(t(side), `Days past due at ${asOf}, from posted documents only, in EGP carrying value.`, can(SD.mod, 'export') ? `<button type="button" class="btn" data-act="aging-csv" data-side="${side}">${ic('file', 14)} Export Excel</button>` : '') + `
+    <form class="card pg-tools" data-form="aging" data-side="${side}"><div class="pg-tr fs-form"><label class="fs-f"><span>As at</span><input class="input" type="date" name="asOf" value="${asOf}"></label><button class="btn primary fs-go">Update</button>
+      ${gl ? `<span class="fs-chk ${glv.eq(ag.total) ? 'ok' : 'bad'}" title="Aging total vs GL ${esc(gl.account.code)} (excluding open revaluation adjustments)">${glv.eq(ag.total) ? '✓ Ties to GL ' + esc(gl.account.code) : '✕ Differs from GL ' + esc(gl.account.code) + ' by ' + money(glv.minus(ag.total))}</span>` : ''}</div></form>
+    <div class="xp-kpis">
+      <div class="xp-hero"><div class="xp-hero-top"><span class="xp-kic">${ic(side === 'ar' ? 'users' : 'truck', 20)}</span><span class="xp-tag">${ag.list.length} ${side === 'ar' ? 'customer' : 'vendor'}${ag.list.length === 1 ? '' : 's'}</span></div><span class="xp-kl">${side === 'ar' ? 'Customers owe you' : 'You owe vendors'}</span><b>${money(T)} ${egp}</b><em>as at ${asOf}</em></div>
+      ${tile('calendar', 'ok', 'Not yet due', ag.tot[0], pct(ag.tot[0]) + '% of the total')}
+      ${tile('expenses', 'gold', 'Overdue', overdue, pct(overdue) + '% of the total')}
+      ${tile('coins', 'bad', 'Over 90 days', over90, over90.gt(0) ? 'Follow up first' : 'Nothing that old')}
+    </div>
+    ${T.gt(0) ? `<div class="card ag-bar"><div class="ag-stack" role="img" aria-label="Aging split">${ag.tot.map((v, k) => v.gt(0) ? `<i style="flex:${pct(v)};background:${AG_COL[k]}" title="${BUCKETS[k]}: ${money(v)} EGP (${pct(v)}%)"></i>` : '').join('')}</div>
+      <div class="ag-leg">${ag.tot.map((v, k) => `<span><i style="background:${AG_COL[k]}"></i>${BUCKETS[k]} <b>${money(v)}</b> <em>${pct(v)}%</em></span>`).join('')}</div></div>` : ''}
+    <div class="card pg-card"><div class="tbl-wrap"><table class="pg-tbl ag-tbl"><thead><tr><th>${SD.partner}</th>${BUCKETS.map(b => `<th class="num">${b}</th>`).join('')}<th class="num">Total</th></tr></thead><tbody>
       ${ag.list.map(r => `<tr><td><a href="#/partners/statement?side=${side}&id=${r.partner.id}">${esc(partnerLabel(r.partner))}</a><details><summary>${r.docs.length} document(s)</summary>${r.docs.map(d => `<div style="font-size:12px">${esc(d.inv.number)} · due ${d.inv.dueDate} (${d.days > 0 ? d.days + 'd overdue' : 'not due'}) · ${money(d.open)} ${d.inv.currency}</div>`).join('')}</details></td>
-        ${r.b.map(v => `<td class="num">${v.eq(0) ? '' : money(v)}</td>`).join('')}<td class="num"><b>${money(r.total)}</b></td></tr>`).join('') || `<tr><td colspan="7" class="empty">Nothing outstanding.</td></tr>`}
-      <tr style="font-weight:700;background:var(--surface-2)"><td>Total</td>${ag.tot.map(v => `<td class="num">${money(v)}</td>`).join('')}<td class="num">${money(ag.total)}</td></tr>
+        ${r.b.map((v, k) => `<td class="num${k === r.b.length - 1 && v.gt(0) ? ' neg' : ''}">${v.eq(0) ? '<span class="zero">—</span>' : money(v)}</td>`).join('')}<td class="num">${money(r.total)}</td></tr>`).join('') || `<tr><td colspan="7" class="empty">Nothing outstanding — every ${side === 'ar' ? 'customer' : 'vendor'} balance is settled.</td></tr>`}
+      <tr class="pg-tot"><td>Total</td>${ag.tot.map(v => `<td class="num">${money(v)}</td>`).join('')}<td class="num">${money(ag.total)}</td></tr>
     </tbody></table></div></div>`;
 }
 
@@ -9170,7 +9220,7 @@ function pagePartnerStatement(){
         <input class="input" type="date" name="from" value="${R0.from}">
         <label class="muted" style="align-self:center">To</label>
         <input class="input" type="date" name="to" value="${R0.to}">
-        <button class="btn">Show</button>
+        <button class="btn primary">Show</button>
       </div>
     </form>
 
@@ -9586,7 +9636,7 @@ function pageValuation(){
   let gl = D0(); for (const { e, l } of ledgerLines()) if (e.accountingDate <= asOf && Object.values(ids).includes(l.accountId)) gl = gl.plus(l.egpDebit).minus(l.egpCredit);
   const tot = rows.reduce((t, r) => t.plus(r.c.total), D0());
   return H(t('valuation'), `Specific identification: each vehicle at its own historical EGP cost, as at ${asOf}. Inventory is not revalued for exchange-rate changes.`) + `
-    <form class="card" data-form="valuation"><div class="filters"><label class="muted" style="align-self:center">As at</label><input class="input" type="date" name="asOf" value="${asOf}"><button class="btn">Run</button></div></form>
+    <form class="card" data-form="valuation"><div class="filters"><label class="muted" style="align-self:center">As at</label><input class="input" type="date" name="asOf" value="${asOf}"><button class="btn primary">Run</button></div></form>
     <div class="note ${tot.eq(gl) ? '' : 'bad'}">${tot.eq(gl) ? '✓' : '✕'} Vehicle subledger ${money(tot)} EGP vs inventory GL accounts ${money(gl)} EGP.</div>
     <div class="card"><div class="tbl-wrap"><table><thead><tr><th>Vehicle</th><th>Status</th><th>Location</th><th class="num">Goods in transit</th><th class="num">Import costs</th><th class="num">Vehicle inventory</th><th class="num">Total cost</th></tr></thead><tbody>
       ${rows.map(r => `<tr><td><a href="#/veh/view?id=${r.v.id}">${esc(vehLabel(r.v))}</a></td><td>${vBadge(r.v.status)}</td><td>${esc(locName(r.v.location))}</td>
@@ -9964,7 +10014,7 @@ function pageTaxReport(){
   const yr = todayCairo().slice(0, 7), T0 = UI.taxr = UI.taxr || { from: yr + '-01', to: monthEnd(yr) };
   const r = taxReport(T0.from, T0.to), ok = r.taxTotal.eq(r.gl);
   return H(t('tax_rep'), 'Output tax by code from posted documents (EGP), with credit-note reversals, reconciled to the output tax GL account.') + `
-    <form class="card" data-form="taxr"><div class="filters"><label class="muted" style="align-self:center">From</label><input class="input" type="date" name="from" value="${T0.from}"><label class="muted" style="align-self:center">To</label><input class="input" type="date" name="to" value="${T0.to}"><button class="btn">Run</button></div></form>
+    <form class="card" data-form="taxr"><div class="filters"><label class="muted" style="align-self:center">From</label><input class="input" type="date" name="from" value="${T0.from}"><label class="muted" style="align-self:center">To</label><input class="input" type="date" name="to" value="${T0.to}"><button class="btn primary">Run</button></div></form>
     <div class="note ${ok ? '' : 'bad'}">${ok ? '✓' : '✕'} Tax by code ${money(r.taxTotal)} EGP vs output tax GL movement ${money(r.gl)} EGP${r.untagged ? ` — ${r.untagged} GL line(s) without a tax code` : ''}.</div>
     <div class="card"><div class="tbl-wrap"><table><thead><tr><th>Tax code</th><th>Kind</th><th class="num">Taxable base EGP</th><th class="num">Tax EGP</th></tr></thead><tbody>
       ${r.rows.map(x => `<tr><td class="mono">${esc(x.code)}</td><td>${esc((S.taxCodes.find(t => t.code === x.code) || {}).kind || '')}</td><td class="num">${money(x.base)}</td><td class="num">${money(x.tax)}</td></tr>`).join('') || '<tr><td colspan="4" class="empty">No taxed documents in this period.</td></tr>'}
@@ -11757,7 +11807,7 @@ function pageExecutive(){
       <a class="dash-act-btn" href="#/bank/transfers">${ic('wallet', 14)} ${esc(t('transfers'))}</a>
       <a class="dash-act-btn" href="#/rep/statements">${ic('reports', 14)} ${esc(t('fs'))}</a>
     </div>
-    <form class="card" data-form="dash"><div class="filters"><label class="muted" style="align-self:center">From</label><input class="input" type="date" name="from" value="${D0_.from}"><label class="muted" style="align-self:center">To</label><input class="input" type="date" name="to" value="${D0_.to}"><button class="btn">Apply</button></div></form>
+    <form class="card" data-form="dash"><div class="filters"><label class="muted" style="align-self:center">From</label><input class="input" type="date" name="from" value="${D0_.from}"><label class="muted" style="align-self:center">To</label><input class="input" type="date" name="to" value="${D0_.to}"><button class="btn primary">Apply</button></div></form>
     <div class="inv-cards">${todo.map(x => `<a class="inv-card" href="${x.href}" style="--ic:${x.c};text-decoration:none;color:inherit"><div class="t">${ic(x.i || 'file', 18)}${x.t}</div><div class="s">${x.s}</div><div class="big">${x.n}</div></a>`).join('')}</div>
     ${fin ? `<div class="grid g4" style="margin-top:16px">
       ${card('Revenue', money(k.revenue), `${k.soldCount} car${k.soldCount === 1 ? '' : 's'} sold`, '#/rep/statements?s=is')}
@@ -11916,7 +11966,7 @@ function pageIncomeStatement(){
   return H('Income statement', `${P.from} to ${P.to} · EGP · posted entries only`, `<a class="btn" href="#/ana/profit">Profit by car</a><button class="btn" data-act="fs-xlsx" data-k="is">Export Excel</button><button class="btn" onclick="window.print()">Print / PDF</button>`) + `
     <div class="card is-tools"><div class="is-tabs">${stmtTabs('is')}</div>
       <div class="is-row"><span class="lbl">Period</span><div class="o-pills">${presetBtns}</div></div>
-      ${P.preset === 'custom' ? `<form class="is-row" data-form="is-range"><span class="lbl">Dates</span><input class="input" type="date" name="from" value="${P.from}"><span class="muted">to</span><input class="input" type="date" name="to" value="${P.to}"><button class="btn sm">Apply</button></form>` : ''}
+      ${P.preset === 'custom' ? `<form class="is-row" data-form="is-range"><span class="lbl">Dates</span><input class="input" type="date" name="from" value="${P.from}"><span class="muted">to</span><input class="input" type="date" name="to" value="${P.to}"><button class="btn primary">Apply</button></form>` : ''}
       <div class="is-row"><span class="lbl">Compare</span>${cmpSel}
         <label class="is-chk"><input type="checkbox" data-act="is-tog" data-f="pct" ${P.pct ? 'checked' : ''} ${cols.length > 1 ? 'disabled' : ''}> % of revenue</label>
         <label class="is-chk"><input type="checkbox" data-act="is-tog" data-f="zero" ${P.zero ? 'checked' : ''}> Show zero lines</label>
@@ -12318,7 +12368,7 @@ function pageBudgets(){
   const yr = UI.budYear || todayCairo().slice(0, 4), toM = yr === todayCairo().slice(0, 4) ? +todayCairo().slice(5, 7) : 12;
   const rows = budgetVsActual(yr, 1, toM);
   return H(t('budgets'), `Year ${yr}, January to month ${toM}. Favourable variance is positive (revenue above budget, expense below).`, can('coa', 'edit') ? '<button class="btn primary" data-act="bud-new">Set / revise budget</button>' : '') + `
-    <form class="card" data-form="bud"><div class="filters"><label class="muted" style="align-self:center">Year</label><input class="input" name="year" value="${yr}" style="width:100px"><button class="btn">Show</button></div></form>
+    <form class="card" data-form="bud"><div class="filters"><label class="muted" style="align-self:center">Year</label><input class="input" name="year" value="${yr}" style="width:100px"><button class="btn primary">Show</button></div></form>
     <div class="card"><div class="tbl-wrap"><table><thead><tr><th>Account</th><th class="num">Budget</th><th class="num">Actual</th><th class="num">Variance</th><th class="num">Actual / budget</th></tr></thead><tbody>
       ${rows.map(r => `<tr><td>${esc(accLabel(r.account))}</td><td class="num">${money(r.budget)}</td><td class="num">${money(r.actual)}</td><td class="num" style="color:${r.variance.lt(0) ? 'var(--bad)' : 'var(--ok)'}">${money(r.variance)}</td><td class="num">${r.pct ? r.pct.toFixed(1) + '%' : '—'}</td></tr>`).join('') || '<tr><td colspan="5" class="empty">No budgets for this year.</td></tr>'}
     </tbody></table></div></div>`;
@@ -16344,7 +16394,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261109-064303';
+const APP_BUILD = 'build-20261109-065240';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
