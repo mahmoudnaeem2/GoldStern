@@ -14865,7 +14865,11 @@ function printCarReport(po){
   const expected = !!(!cy.invoiced && po.rate && pAmt.gt(0));
   const costEgp = cy.sold && vp ? vp.cogs : expected ? r2(pAmt.mul(po.rate)).plus(vc.total) : vc.total;
   const net = vp ? vp.net : D0(), result = vp ? net.minus(vp.cogs).minus(vp.direct).minus(vp.importExp).minus(vp.losses).plus(vp.otherInc).plus(vp.fx) : D0();
-  const margin = net.gt(0) ? result.div(net).mul(100).toFixed(1) + '%' : '—';
+  const ctr = D(String(po.salePrice || '0').replace(/,/g, '')).gt(0) ? { amt: D(String(po.salePrice).replace(/,/g, '')), cur: po.saleCurrency || 'EGP' } : null;
+  const ctrTxt = ctr ? `${money(ctr.amt)} ${esc(ctr.cur)}` : '';
+  const est = !cy.sold && ctr && ctr.cur === 'EGP' && !po.lines.some(l => l.pricePending); // not invoiced yet: show the contracted price and the expected profit
+  const shownNet = est ? ctr.amt : net, shownRes = est ? ctr.amt.minus(costEgp) : result;
+  const margin = shownNet.gt(0) ? shownRes.div(shownNet).mul(100).toFixed(1) + '%' : '—';
   const cxRows = v ? carExpensesOf(v.id) : [];
   const supInv = cy.supInv, sale = cy.sale;
   /* cost lines from the car's own journal entries, so they match the car page and the ledger */
@@ -14966,9 +14970,9 @@ function printCarReport(po){
     <div class="meta">${v ? `Chassis <b>${esc(v.vin)}</b> · ${esc(v.code)}${v.exteriorColor ? ' · ' + esc(v.exteriorColor) : ''}` : ''}</div></div>
     <span class="chip ${carClosed(v || {}) ? 'g' : cy.sold ? '' : 'w'}">${esc(statusTxt)}</span></div>
   <div class="kpis">
-    <div class="kpi"><div class="k">Selling price</div><div class="v">${cy.sold ? money(net) : '—'} <span class="u">EGP</span></div></div>
+    <div class="kpi"><div class="k">Selling price${!cy.sold && ctr ? ' (contracted)' : ''}</div><div class="v">${cy.sold || est ? money(shownNet) + ' <span class="u">EGP</span>' : ctr ? ctrTxt : '— <span class="u">EGP</span>'}</div>${cy.sold && ctr ? `<div class="u" style="margin-top:3px">Contracted ${ctrTxt}</div>` : ''}</div>
     <div class="kpi"><div class="k">Total cost</div><div class="v">${money(costEgp)} <span class="u">EGP</span></div></div>
-    <div class="kpi hi"><div class="k">${cy.sold ? 'Profit' : 'Result so far'}</div><div class="v ${neg(result) ? 'neg' : 'pos'}">${money(result)} <span class="u">EGP</span></div></div>
+    <div class="kpi hi"><div class="k">${cy.sold ? 'Profit' : est ? 'Expected profit' : 'Result so far'}</div><div class="v ${neg(shownRes) ? 'neg' : 'pos'}">${money(shownRes)} <span class="u">EGP</span></div></div>
     <div class="kpi"><div class="k">Margin</div><div class="v">${margin}</div></div>
   </div>
   <div class="parties">
@@ -14983,14 +14987,15 @@ function printCarReport(po){
   ${!po.rate && pCur !== 'EGP' && !cy.invoiced ? '<p class="note">The order has no exchange rate yet, so the cost is shown only once the supplier bill is recorded.</p>' : ''}
   <section class="blk"><h2>Profit</h2>
     <table class="pl"><tbody>
-      <tr><td>Selling price${sale ? ` <span class="m">· ${esc(sale.number)}${sale.currency !== 'EGP' ? ` · ${money(sale.total)} ${sale.currency}` : ''}</span>` : ''}</td><td class="n pos-blue">${cy.sold ? money(net) : '—'}</td></tr>
+      ${ctr ? `<tr><td>Contracted price <span class="m">· agreed with the customer${cy.sold ? '' : ', not invoiced yet'}</span></td><td class="n ${cy.sold ? '' : 'pos-blue'}">${ctr.cur === 'EGP' ? money(ctr.amt) : ctrTxt}</td></tr>` : ''}
+      ${cy.sold || !ctr ? `<tr><td>Selling price${sale ? ` <span class="m">· ${esc(sale.number)}${sale.currency !== 'EGP' ? ` · ${money(sale.total)} ${sale.currency}` : ''}</span>` : ''}</td><td class="n pos-blue">${cy.sold ? money(net) : '—'}</td></tr>` : ''}
       <tr><td>Cost of the car</td><td class="n neg-coral">− ${money(cy.sold && vp ? vp.cogs : costEgp)}</td></tr>
       ${vp && vp.otherInc.gt(0) ? `<tr><td>Commission &amp; other income</td><td class="n pos-blue">+ ${money(vp.otherInc)}</td></tr>` : ''}
       ${vp && vp.importExp.gt(0) ? `<tr><td>Import costs expensed</td><td class="n neg-coral">− ${money(vp.importExp)}</td></tr>` : ''}
       ${vp && vp.direct.gt(0) ? `<tr><td>Other expenses on this car</td><td class="n neg-coral">− ${money(vp.direct)}</td></tr>` : ''}
       ${vp && vp.losses.gt(0) ? `<tr><td>Write-downs</td><td class="n neg-coral">− ${money(vp.losses)}</td></tr>` : ''}
       ${vp && !vp.fx.eq(0) ? `<tr><td>Exchange differences</td><td class="n ${vp.fx.lt(0) ? 'neg-coral' : 'pos-blue'}">${vp.fx.lt(0) ? '− ' : '+ '}${money(vp.fx.abs())}</td></tr>` : ''}
-      <tr class="res ${neg(result) ? 'loss-badge' : 'profit-badge'}"><td>${cy.sold ? 'Profit on this car' : 'Result so far'} <span class="m">· margin ${margin}</span></td><td class="n ${neg(result) ? 'neg-coral' : 'pos-green'}">${money(result)} EGP</td></tr>
+      <tr class="res ${neg(shownRes) ? 'loss-badge' : 'profit-badge'}"><td>${cy.sold ? 'Profit on this car' : est ? 'Expected profit (contracted price − cost)' : 'Result so far'} <span class="m">· margin ${margin}</span></td><td class="n ${neg(shownRes) ? 'neg-coral' : 'pos-green'}">${money(shownRes)} EGP</td></tr>
     </tbody></table>
   </section>
   <div class="two">
@@ -16467,7 +16472,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261109-162440';
+const APP_BUILD = 'build-20261109-163806';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
