@@ -2992,6 +2992,7 @@ const ODOO_COA_TEMPLATE = [
   ['101230','Bank — USD Account','البنك — حساب بالدولار','asset','101200','rec rv cur=USD'],
   ['101300','Accounts Receivable (Debtors)','العملاء (المدينون)','asset','101000','s m0 rec rv'],
   ['101400','Supplier Advances (Prepayments)','دفعات مقدمة للموردين','asset','101000','s m0'],
+  ['101450','Employee Loans & Advances','سلف وقروض الموظفين','asset','101000',''],
   ['101500','Inventory','المخزون','asset','101000','g'],
   ['101510','Inventory — Vehicles','مخزون السيارات','asset','101500','s m0'],
   ['101520','Inventory — Import Costs','مخزون — تكاليف الاستيراد','asset','101500','s m0'],
@@ -9998,13 +9999,27 @@ const empInitials = n => String(n || '?').trim().split(/\s+/).slice(0, 2).map(w 
 function payrollOf(month){ hrInit(); return S.payrolls.find(p => p.month === month) || null; }
 /* sheet = saved lines (+ any active employee missing from a draft), or a fresh sheet from active employees */
 function loanAccount(){
-  const existing = (S.accounts || []).find(a => !a.isGroup && a.active && (a.code === '101450' || a.code === '1145' || /employee\s*(loan|advance)|سلف\s*الموظفين/i.test((a.nameEn || '') + ' ' + (a.nameAr || ''))));
-  if (existing) return existing;
-  const empPay = (() => { try { return getMapping('employee_payable'); } catch (e){ return null; } })();
-  if (empPay && empPay.active && !empPay.isGroup) return empPay;
-  const fallback = (S.accounts || []).find(a => !a.isGroup && a.active && (a.code === '101900' || a.code === '1190' || a.code === '201800' || a.code === '2190'));
-  if (fallback) return fallback;
-  return (S.accounts || []).find(a => a.type === 'asset' && !a.isGroup && a.active && a.allowManual);
+  /* money lent to employees is a receivable — an ASSET. Never fall back to a liability. */
+  const A0 = (S.accounts || []).filter(a => !a.isGroup && a.active && a.type === 'asset');
+  return A0.find(a => a.code === '101450' || a.code === '1145') || A0.find(a => /employee\s*(loan|advance)|سلف\s*(و\s*قروض\s*)?الموظفين/i.test((a.nameEn || '') + ' ' + (a.nameAr || '')))
+    || A0.find(a => a.code === '101900' || a.code === '1190') || null;
+}
+/* the account a given loan was actually booked to (older loans may sit on another account) — repayments must hit the same one */
+function loanAccOf(ln){
+  if (ln && ln.accountId && acc(ln.accountId)) return acc(ln.accountId);
+  const e = ln && ln.entryId ? entryById(ln.entryId) : null, l = e && e.lines.find(x => D(x.debit || 0).gt(0) || D(x.egpDebit || 0).gt(0));
+  return (l && acc(l.accountId)) || loanAccount();
+}
+/* undo a document's journal entry the accountant's way: a posted entry is REVERSED (history and numbering kept); a draft is simply removed */
+function voidDocEntry(e, reason, me){
+  if (!e || e.status === 'reversed') return null;
+  if (e.status === 'posted'){
+    const block = typeof reversalBlocker === 'function' ? reversalBlocker(e) : ''; if (block) throw new AppError(block);
+    let d = e.accountingDate; if (!checkPostingAllowed(d).ok) d = todayCairo();
+    const pc = checkPostingAllowed(d); if (!pc.ok) throw new AppError(`Can’t reverse ${e.number}: ${pc.reason}`);
+    const r = reverseCore(e, d, reason, me || currentUser()); if (typeof onEntryReversed === 'function') onEntryReversed(e, r); return r;
+  }
+  S.entries = S.entries.filter(x => x.id !== e.id); return null;
 }
 function payrollAccounts(){
   if (!S.expenseCats || !S.expenseCats.length) ensureStandardExpenseCats();
@@ -10176,11 +10191,15 @@ function buildPayrollEntryLines(month, lines){
       });
     }
     if (loan.gt(0)){
-      jl.push({
+      /* split the deduction across the employee's loans so each is credited on the account it was booked to */
+      const parts = new Map(); let left = loan;
+      for (const it of empScheduledLoanForMonth(l.empId, month).items){ if (!left.gt(0)) break; const ln0 = (S.empLoans || []).find(x => x.id === it.loanId), a0 = loanAccOf(ln0) || lnAcc, take = D(it.amount).lt(left) ? D(it.amount) : left; parts.set(a0.id, (parts.get(a0.id) || D0()).plus(take)); left = left.minus(take); }
+      if (left.gt(0)){ const a0 = lnAcc; parts.set(a0.id, (parts.get(a0.id) || D0()).plus(left)); }
+      for (const [aid, amt] of parts) jl.push({
         id: uid('jl'),
-        accountId: lnAcc.id,
+        accountId: aid,
         debit: '',
-        credit: loan.toFixed(2),
+        credit: amt.toFixed(2),
         costCenter: '',
         partner: l.name,
         vehicle: '',
@@ -10274,6 +10293,7 @@ Object.assign(A, {
       repaid: '0.00',
       remaining: total.toFixed(2),
       bankId: b.id,
+      accountId: lnAcc.id,
       entryId: je.id,
       months: installments.length,
       startMonth: installments[0].month,
@@ -10297,7 +10317,7 @@ Object.assign(A, {
     let bankId = String(f.bankId || '').trim();
     if (/^(gl|newcash):/.test(bankId)) bankId = materializeBank(bankId);
     const b = bankById(bankId); if (!b || !b.active) throw new AppError('Select the Bank or Cash account.');
-    const lnAcc = loanAccount();
+    const lnAcc = loanAccOf(ln); if (!lnAcc) throw new AppError('Configure an Employee Loans & Advances account first.');
     const srcRef = `${ln.number}-INST-${inst.num}`;
     const jl = [
       { id: uid('jl'), accountId: b.glAccountId, debit: inst.amount, credit: '', costCenter: '', partner: ln.empName, vehicle: '', description: `Cash repayment of ${ln.number} installment #${inst.num} (${monthLabel(inst.month)}) — ${ln.empName}` },
@@ -10328,13 +10348,7 @@ Object.assign(A, {
     requirePerm('expenses', 'create'); hrInit();
     const ln = (S.empLoans || []).find(x => x.id === loanId); if (!ln) throw new AppError('Loan not found.');
     if ((ln.installments || []).some(i => i.status !== 'pending')) throw new AppError('Cannot delete a loan that already has deducted or paid installments.');
-    if (ln.entryId){
-      const e = entryById(ln.entryId);
-      if (e){
-        const pc = checkPostingAllowed(e.accountingDate); if (!pc.ok) throw new AppError('Cannot delete loan: ' + pc.reason);
-        S.entries = S.entries.filter(en => en.id !== ln.entryId);
-      }
-    }
+    if (ln.entryId) voidDocEntry(entryById(ln.entryId), `Loan ${ln.number} cancelled`);
     S.empLoans = S.empLoans.filter(x => x.id !== loanId);
     log('emp_loan_delete', 'expenses', ln.id, ln, null, 'Deleted employee loan', ln.number);
     saveState(); return true;
@@ -10478,8 +10492,8 @@ Object.assign(A, {
     if (entryId){
       const e = entryById(entryId);
       if (e){
-        const pc = checkPostingAllowed(e.accountingDate); if (!pc.ok) throw new AppError('Cannot undo payment: ' + pc.reason);
-        S.entries = S.entries.filter(en => en.id !== entryId);
+        /* a payment entry can cover several payslips: reverse it once, then re-pay the others if needed */
+        voidDocEntry(e, `Payslip payment undone (${monthLabel(month)})`);
       }
       for (const l of pr.lines){
         if (l.paidEntryId === entryId){
@@ -10527,7 +10541,7 @@ Object.assign(A, {
         const pc = checkPostingAllowed(e.accountingDate); if (!pc.ok) throw new AppError('Cannot reset payroll to draft: ' + pc.reason);
       }
     }
-    if (entryIds.size) S.entries = S.entries.filter(en => !entryIds.has(en.id));
+    for (const eid of entryIds) voidDocEntry(entryById(eid), reason || `Payroll ${monthLabel(month)} reset to draft`);
     revertLoanInstallmentsOnReset(month);
     (pr.lines || []).forEach(l => {
       l.paid = false;
@@ -16299,7 +16313,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261107-161048';
+const APP_BUILD = 'build-20261109-063631';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
