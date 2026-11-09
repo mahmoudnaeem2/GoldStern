@@ -2417,6 +2417,23 @@ main.content td.empty::before,main.content .card > .empty::before{content:"";dis
 .empty-cta{display:flex!important;margin:12px auto 0!important;width:max-content}
 .nowrap-code{white-space:nowrap!important}
 main.content table thead th{font-weight:550!important}
+
+/* ==== row "⋯" menu ==== */
+.rm-cell{width:48px;text-align:end}
+.rm{position:relative;display:inline-block}
+.rm-btn{width:32px;height:32px;border-radius:8px;border:1px solid transparent;background:transparent;color:var(--muted);font-size:18px;line-height:1;cursor:pointer;display:grid;place-items:center;letter-spacing:1px}
+.rm-btn:hover,.rm.open .rm-btn{background:#f1f3f6;border-color:var(--border);color:var(--text)}
+.rm-btn:focus-visible{outline:2px solid var(--info);outline-offset:1px}
+.rm-pop{display:none;position:fixed;z-index:80;min-width:180px;padding:6px;background:#fff;border:1px solid var(--border);border-radius:10px;box-shadow:0 12px 28px rgba(15,23,42,.14)}
+.rm.open .rm-pop{display:block}
+.rm-pop [role=menuitem]{display:flex;align-items:center;gap:8px;width:100%;padding:8px 10px;border:0;background:transparent;border-radius:6px;font:inherit;font-size:13.5px;color:var(--text-2);text-align:start;cursor:pointer}
+.rm-pop [role=menuitem]:hover,.rm-pop [role=menuitem]:focus{background:var(--surface-2);color:var(--text);outline:none}
+.rm-pop .rm-danger{color:#c62828}.rm-pop .rm-danger:hover{background:#fdecec;color:#b42318}
+/* ==== car costing / analytic ==== */
+.lc-parts b{font-weight:600}.lc-parts > div{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.lc-parts > div span{font-size:11.5px;color:var(--text-2);background:#f1f3f6;border-radius:999px;padding:1px 8px;white-space:nowrap}.lc-parts em{font-style:normal;color:var(--muted);font-variant-numeric:tabular-nums}
+.lc-tbl .pg-who{flex-wrap:wrap;row-gap:3px}.lc-tbl .pg-who > div{min-width:0}
+.an-tbl .pg-who b{white-space:nowrap}.an-per{white-space:nowrap;font-size:12.5px}
 </style>
 
 <!-- Journal Entry Right Side Drawer CSS & JS -->
@@ -8722,6 +8739,14 @@ function pageFxReport(){
    PHASE 4 PAGES — Customers, suppliers, AR & AP
    ========================================================================= */
 const stBadge = d => { const s = entryStatus(d); return s === 'posted' && d.type === 'opening' ? '<span class="badge b-mute">opening</span>' : badge(s); };
+/* compact "⋯" row-actions menu (positioned fixed so table scrolling never clips it) */
+function rowMenu(label, items){ return `<div class="rm"><button type="button" class="rm-btn" data-act="rm-toggle" aria-haspopup="menu" aria-expanded="false" aria-label="${esc(label)}">⋯</button><div class="rm-pop" role="menu" data-act="rm-noop">${items.join('')}</div></div>`; }
+function rmCloseAll(except){ document.querySelectorAll('.rm.open').forEach(m => { if (m !== except){ m.classList.remove('open'); const b = m.querySelector('.rm-btn'); if (b) b.setAttribute('aria-expanded', 'false'); } }); }
+if (typeof document !== 'undefined'){
+  document.addEventListener('click', e => { if (!e.target.closest || !e.target.closest('.rm')) rmCloseAll(); }, true);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') rmCloseAll(); });
+  window.addEventListener('scroll', () => rmCloseAll(), true);
+}
 function pagePartners(side){
   const SD = SIDES[side], F = UI.filters, k = 'p_' + side;
   let list = [...partnersOf(side)];
@@ -8735,11 +8760,11 @@ function pagePartners(side){
       <select class="input" data-filter="${k}cat"><option value="">All categories</option>${cats.map(c => `<option ${F[k + 'cat'] === c ? 'selected' : ''}>${esc(c)}</option>`).join('')}</select>
       <span class="muted" style="align-self:center;font-size:12.5px">${list.length} shown</span></div>
     <div class="tbl-wrap"><table><thead><tr><th>Code</th><th>Name</th><th>${side === 'ar' ? 'Type' : 'Category'}</th><th>Tax / ID no.</th><th class="num">Terms</th><th>Cur</th><th class="num">Open (EGP)</th>${side === 'ar' ? '<th class="num">Credit limit</th>' : ''}<th>Status</th><th></th></tr></thead><tbody>
-    ${list.map(p => { const exp = partnerExposureEgp(side, p.id); const over = side === 'ar' && D(p.creditLimit || 0).gt(0) && exp.gt(p.creditLimit); return `<tr style="${p.active ? '' : 'opacity:.55'}">
+    ${list.map(p => { const exp = partnerExposureEgp(side, p.id); const over = side === 'ar' && D(p.creditLimit || 0).gt(0) && exp.gt(p.creditLimit); const ed = can(SD.pmod, 'edit'); return `<tr class="pf-row" style="${p.active ? '' : 'opacity:.55'}" ${ed ? `data-act="partner-edit" data-side="${side}" data-id="${p.id}" title="Open ${esc(p.legalName)}"` : `onclick="location.hash='#/partners/statement?side=${side}&id=${p.id}'"`} tabindex="0">
       <td class="mono">${esc(p.code)}</td><td><b>${esc(p.legalName)}</b>${p.commercialName ? `<div class="muted" style="font-size:12px">${esc(p.commercialName)}</div>` : ''}</td><td>${esc(side === 'ar' ? p.kind : p.category)}</td><td class="mono" style="font-size:12px">${esc(p.taxNo)}</td>
       <td class="num">${p.paymentTerms}d</td><td class="mono">${p.preferredCurrency}</td><td class="num" style="color:${over ? 'var(--bad)' : 'inherit'}">${money(exp)}</td>${side === 'ar' ? `<td class="num">${D(p.creditLimit || 0).gt(0) ? money(p.creditLimit) : '<span class="muted">none</span>'}</td>` : ''}
       <td>${badge(p.active ? 'active' : 'inactive')}</td>
-      <td style="white-space:nowrap"><a class="btn sm" href="#/partners/statement?side=${side}&id=${p.id}">Statement</a>${can(SD.pmod, 'edit') ? ` <button class="btn sm" data-act="partner-edit" data-side="${side}" data-id="${p.id}">Edit</button> <button class="btn sm" data-act="partner-active" data-side="${side}" data-id="${p.id}">${p.active ? 'Deactivate' : 'Activate'}</button>` : ''}</td></tr>`; }).join('') || `<tr><td colspan="10" class="empty">No ${SD.list} yet.</td></tr>`}
+      <td class="rm-cell">${rowMenu(`Actions for ${p.legalName}`, [`<button type="button" role="menuitem" data-act="rm-go" data-href="#/partners/statement?side=${side}&id=${p.id}">${ic('file', 14)} Statement</button>`].concat(ed ? [`<button type="button" role="menuitem" data-act="partner-edit" data-side="${side}" data-id="${p.id}">${ic('edit', 14)} Edit</button>`, `<button type="button" role="menuitem" class="${p.active ? 'rm-danger' : ''}" data-act="partner-active" data-side="${side}" data-id="${p.id}">${ic(p.active ? 'close' : 'check', 14)} ${p.active ? 'Deactivate' : 'Activate'}</button>`] : []))}</td></tr>`; }).join('') || `<tr><td colspan="10" class="empty">No ${SD.list} yet.</td></tr>`}
     </tbody></table></div></div>`;
 }
 function partnerForm(side, p = {}){
@@ -9838,11 +9863,25 @@ function pageLandedReport(){
   const shipRec = S.shipments.map(s => { const docs = S.invoices.filter(i => i.landed && i.landed.shipmentId === s.id && entryStatus(i) === 'posted'); let src = D0(), alloc = D0();
     for (const d of docs){ const e = S.entries.find(x => x.id === d.entryId); for (const l of e.lines) if (l.vehicleId) alloc = alloc.plus(l.egpDebit); src = src.plus(D(e.totals.egpCredit)).minus(e.lines.filter(l => !l.vehicleId && !l.ctl).reduce((t, l) => t.plus(l.egpDebit), D0())); }
     return { s, docs: docs.length, src, alloc }; }).filter(r => r.docs);
-  return H(t('costing'), 'Landed cost per vehicle by component, from posted entries (EGP). Each vehicle\'s cost is traceable to its source documents on its cost ledger.') + `
-    <div class="card"><div class="tbl-wrap"><table><thead><tr><th>Vehicle</th><th>Status</th>${types.map(c => `<th class="num">${esc(costTypeName(c))}</th>`).join('')}<th class="num">Landed cost</th><th class="num">Expensed import costs</th></tr></thead><tbody>
-      ${vs.map(v => { const r = lr.get(v.id); return `<tr><td><a href="#/veh/view?id=${v.id}">${esc(v.code)}</a> <span class="muted" style="font-size:12px">${esc(makeName(v.makeId))} ${esc(modelName(v.makeId, v.modelId))}</span></td><td>${vBadge(v.status)}</td>
-        ${types.map(c => `<td class="num">${r.cap[c] && !r.cap[c].eq(0) ? money(r.cap[c]) : ''}</td>`).join('')}<td class="num"><b>${money(r.capTotal)}</b></td><td class="num">${r.expTotal.eq(0) ? '' : money(r.expTotal)}</td></tr>`; }).join('') || `<tr><td colspan="${types.length + 4}" class="empty">No vehicle costs posted yet.</td></tr>`}
-    </tbody></table></div></div>
+  const egp = '<small>EGP</small>', imp = types.filter(c => c !== 'purchase');
+  const rows = vs.map(v => { const r = lr.get(v.id), pur = r.cap.purchase || D0(), ic0 = imp.reduce((t, c) => t.plus(r.cap[c] || D0()), D0()); return { v, r, pur, imp: ic0, parts: imp.filter(c => r.cap[c] && !r.cap[c].eq(0)).map(c => [c, r.cap[c]]) }; });
+  const T = k => rows.reduce((t, x) => t.plus(k === 'land' ? x.r.capTotal : k === 'exp' ? x.r.expTotal : x[k]), D0()), tLand = T('land'), tPur = T('pur'), tImp = T('imp'), tExp = T('exp');
+  const pc = (a, b) => D(b).gt(0) ? D(a).div(b).mul(100).toFixed(1) + '%' : '—';
+  const tile = (icon, cls, l, v, sub) => `<div class="xp-k ${cls}"><span class="xp-kic">${ic(icon, 18)}</span><div><span class="xp-kl">${l}</span><b>${money(v)} ${egp}</b><em>${sub}</em></div></div>`;
+  return H(t('costing'), 'Landed cost per car from posted entries (EGP). Click a car to open its cost ledger.') + `
+    <div class="xp-kpis">
+      <div class="xp-hero"><div class="xp-hero-top"><span class="xp-kic">${ic('cars', 20)}</span><span class="xp-tag">${rows.length} car${rows.length === 1 ? '' : 's'}</span></div><span class="xp-kl">Total landed cost</span><b>${money(tLand)} ${egp}</b><em>Purchase + capitalised import costs</em></div>
+      ${tile('invoices', 'info', 'Purchase price', tPur, pc(tPur, tLand) + ' of landed cost')}
+      ${tile('truck', 'gold', 'Import costs', tImp, pc(tImp, tPur) + ' on top of purchase')}
+      ${tile('expenses', 'bad', 'Expensed import costs', tExp, 'Not capitalised into cars')}
+    </div>
+    <div class="card pg-card"><div class="tbl-wrap"><table class="pg-tbl lc-tbl"><thead><tr><th>Car</th><th class="num">Purchase</th><th>Import costs</th><th class="num">Landed cost</th><th class="num">Import %</th><th class="num">Expensed</th></tr></thead><tbody>
+      ${rows.map(x => `<tr class="pf-row" onclick="location.hash='#/veh/view?id=${x.v.id}'" tabindex="0" title="Open the car record"><td><div class="pg-who"><span class="pg-av st">${ic('cars', 15)}</span><div><b>${esc(makeName(x.v.makeId))} ${esc(modelName(x.v.makeId, x.v.modelId))}${x.v.year ? ' ' + x.v.year : ''}</b><span>${esc(x.v.code)}${x.v.vin ? ' · ' + esc(x.v.vin) : ''}</span></div>${vBadge(x.v.status)}</div></td>
+        <td class="num">${x.pur.eq(0) ? '<span class="zero">—</span>' : money(x.pur)}</td>
+        <td class="lc-parts"><b>${x.imp.eq(0) ? '<span class="zero">—</span>' : money(x.imp)}</b>${x.parts.length ? `<div>${x.parts.map(([c, v]) => `<span title="${esc(costTypeName(c))}">${esc(costTypeName(c))} <em>${money(v)}</em></span>`).join('')}</div>` : ''}</td>
+        <td class="num"><b>${money(x.r.capTotal)}</b></td><td class="num">${x.pur.gt(0) ? `<span class="pf-m ${x.imp.div(x.pur).gt(0.3) ? 'warn' : 'ok'}">${pc(x.imp, x.pur)}</span>` : '<span class="zero">—</span>'}</td>
+        <td class="num">${x.r.expTotal.eq(0) ? '<span class="zero">—</span>' : money(x.r.expTotal)}</td></tr>`).join('') || `<tr><td colspan="6" class="empty">No car costs posted yet.</td></tr>`}
+    </tbody>${rows.length ? `<tfoot><tr class="pg-tot"><td>Total</td><td class="num">${money(tPur)}</td><td>${money(tImp)}</td><td class="num">${money(tLand)}</td><td class="num">${pc(tImp, tPur)}</td><td class="num">${money(tExp)}</td></tr></tfoot>` : ''}</table></div></div>
     <div class="card"><div class="card-h"><h2>Shipment cost reconciliation</h2></div><div class="tbl-wrap"><table><thead><tr><th>Shipment</th><th class="num">Documents</th><th class="num">Allocatable cost EGP</th><th class="num">Allocated to vehicles EGP</th><th>Result</th></tr></thead><tbody>
       ${shipRec.map(r => `<tr><td><a href="#/imp/shipment?id=${r.s.id}">${esc(r.s.number)}</a></td><td class="num">${r.docs}</td><td class="num">${money(r.src)}</td><td class="num">${money(r.alloc)}</td><td>${badge(r.src.eq(r.alloc) ? 'OK' : 'ISSUE')}</td></tr>`).join('') || '<tr><td colspan="5" class="empty">No posted shipment costs.</td></tr>'}
     </tbody></table></div></div>`;
@@ -9986,10 +10025,14 @@ function carProfitView(vid, focus){
 document.addEventListener('click', e => { const j = e.target.closest && e.target.closest('.pf-jump'); if (!j) return; e.preventDefault(); const el = document.getElementById('pf-sec-' + j.dataset.s); if (el){ el.scrollIntoView({ block: 'start', behavior: 'smooth' }); el.classList.remove('pf-focus'); void el.offsetWidth; el.classList.add('pf-focus'); } });
 function pageAnalyticAccounts(){
   const ids = profitIds(), idx = vehicleIndex();
-  return H(t('analytic_accounts'), 'One analytic account per vehicle, opened at registration and closed when the vehicle leaves inventory.') + `
-    <div class="card"><div class="tbl-wrap"><table><thead><tr><th>Analytic code</th><th>Vehicle</th><th>Status</th><th>Start</th><th>End</th><th class="num">Net revenue</th><th class="num">Gross profit</th><th class="num">Contribution</th></tr></thead><tbody>
-    ${[...S.analyticAccounts].sort((a, b) => a.code < b.code ? -1 : 1).map(a => { const v = vehById(a.vehicleId), r = v ? vehicleProfit(v, undefined, undefined, ids, idx) : null; return `<tr><td class="mono">${esc(a.code)}</td><td>${v ? `<a href="#/veh/view?id=${v.id}">${esc(vehLabel(v))}</a>` : '?'}</td><td>${badge(a.status === 'open' ? 'open' : 'closed')}</td><td>${a.start || ''}</td><td>${a.end || ''}</td>
-      <td class="num">${r ? money(r.net) : ''}</td><td class="num">${r ? money(r.gp) : ''}</td><td class="num">${r ? money(r.contribution) : ''}</td></tr>`; }).join('') || '<tr><td colspan="8" class="empty">No analytic accounts yet — they are created automatically with each vehicle.</td></tr>'}
+  const list = [...S.analyticAccounts].sort((a, b) => a.code < b.code ? -1 : 1).map(a => { const v = vehById(a.vehicleId); return { a, v, r: v ? vehicleProfit(v, undefined, undefined, ids, idx) : null }; });
+  const cell = (v, b) => !v ? '<td class="num"><span class="zero">—</span></td>' : `<td class="num${v.lt(0) ? ' neg' : ''}">${v.eq(0) ? '<span class="zero">—</span>' : (b ? `<b>${money(v)}</b>` : money(v))}</td>`;
+  return H(t('analytic_accounts'), 'One analytic account per car, opened at registration and closed when the car leaves inventory. Click a row for the car’s profit breakdown.') + `
+    <div class="card pg-card"><div class="tbl-wrap"><table class="pg-tbl an-tbl"><thead><tr><th>Analytic code</th><th>Car</th><th>Status</th><th>Period</th><th class="num">Net revenue</th><th class="num">Gross profit</th><th class="num">Contribution</th></tr></thead><tbody>
+    ${list.map(({ a, v, r }) => `<tr${v ? ` data-act="pf-view" data-id="${v.id}" data-f="all" class="pf-row" tabindex="0"` : ''}><td class="nowrap-code mono">${esc(a.code)}</td>
+      <td>${v ? `<div class="pg-who"><div><b>${esc(makeName(v.makeId))} ${esc(modelName(v.makeId, v.modelId))}${v.year ? ' ' + v.year : ''}</b><span>${esc(v.code)}${v.vin ? ' · ' + esc(v.vin) : ''}</span></div></div>` : '?'}</td>
+      <td>${badge(a.status === 'closed' ? 'closed' : 'open')}</td><td class="an-per">${esc(a.start || a.startDate || '')}${(a.end || a.endDate) ? ` <span class="muted">→</span> ${esc(a.end || a.endDate)}` : ' <span class="muted">→ open</span>'}</td>
+      ${cell(r && r.net)}${cell(r && r.gp, 1)}${cell(r && r.contribution, 1)}</tr>`).join('') || '<tr><td colspan="7" class="empty">No analytic accounts yet — they are created automatically with each car.</td></tr>'}
     </tbody></table></div></div>`;
 }
 const P8_FORMS = { profit(f){ UI.profit = { from: isISODate(f.from) ? f.from : '0001-01-01', to: isISODate(f.to) ? f.to : todayCairo(), by: f.by }; render(); } };
@@ -12690,6 +12733,11 @@ document.addEventListener('click', e => {
 });
 
 Object.assign(CLICK, {
+  'rm-noop'(){},
+  'rm-go'(el){ rmCloseAll(); location.hash = el.dataset.href; },
+  'rm-toggle'(el){ const m = el.closest('.rm'), open = !m.classList.contains('open'); rmCloseAll(m); m.classList.toggle('open', open); el.setAttribute('aria-expanded', String(open));
+    if (open){ const pop = m.querySelector('.rm-pop'), r = el.getBoundingClientRect(), w = Math.max(180, pop.offsetWidth), h = pop.offsetHeight, rtl = document.documentElement.dir === 'rtl';
+      pop.style.top = (r.bottom + 4 + h > innerHeight ? r.top - h - 4 : r.bottom + 4) + 'px'; pop.style.left = (rtl ? r.left : Math.max(8, r.right - w)) + 'px'; const f = pop.querySelector('[role=menuitem]'); if (f) f.focus(); } },
   'emp-new'(){ employeeForm(null); },
   'emp-edit'(el){ const e = (S.employees || []).find(x => x.id === el.dataset.id); if (e) employeeForm(e); },
   'pr-month'(el){ const v = +el.dataset.v, form = document.getElementById('pr-form');
@@ -16394,7 +16442,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261109-065240';
+const APP_BUILD = 'build-20261109-065853';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
