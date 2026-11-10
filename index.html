@@ -4036,6 +4036,7 @@ Object.assign(A, {
   postDraftInvoice(invId){
     const me = requirePerm('journals', APPROVALS ? 'post' : 'create');
     const inv = S.invoices.find(x => x.id === invId); if (!inv) throw new AppError('Invoice not found.');
+    if (inv.side === 'ap' && inv.poId && inv.poLineIds && !inv.landed && (entryById(inv.entryId) || {}).status === 'draft') return A.confirmPOBill(inv.id).inv;
     const e = entryById(inv.entryId); if (!e) throw new AppError('Journal entry not found.');
     if (e.status === 'posted') throw new AppError(`${inv.number} is already posted.`);
     const pc = checkPostingAllowed(e.accountingDate); if (!pc.ok) throw new AppError('Cannot post invoice: ' + pc.reason);
@@ -5387,7 +5388,7 @@ Object.assign(A, {
     if (!isISODate(f.date)) throw new AppError('Invoice date is required.');
     const bp = String(f.billPrice ?? '').trim().replace(/,/g, '');
     if (bp){ if (sel.length !== 1) throw new AppError('Enter the purchase price per line.'); if (!amtOk(bp, po.currency) || !D(bp).gt(0)) throw new AppError(`Enter the purchase price as a positive ${po.currency} amount.`);
-      const l0 = sel[0], old = l0.price; l0.price = D(bp).toFixed(2); delete l0.pricePending; if (old !== l0.price) log('po_line_price', 'purchases', po.id, { line: l0.id, price: old }, { line: l0.id, price: l0.price }, 'Purchase price from the supplier bill', po.number); }
+      const l0 = sel[0], old = l0.price; f.__priceFromBill = !!l0.pricePending; l0.price = D(bp).toFixed(2); delete l0.pricePending; if (old !== l0.price) log('po_line_price', 'purchases', po.id, { line: l0.id, price: old }, { line: l0.id, price: l0.price }, 'Purchase price from the supplier bill', po.number); }
     if (po.currency !== 'EGP' && !po.rate && String(f.rate || '').trim()){ po.rate = validateRateString(String(f.rate).trim()); }
     for (const l of sel) if (l.pricePending || !D(l.price).gt(0)) throw new AppError(`Enter the purchase price from the supplier bill for "${l.description}".`);
     const dest = f.destination === 'stock' ? 'inv_vehicles' : 'inv_transit', sup = partnerById('ap', po.supplierId), pl = partnerLabel(sup);
@@ -5397,11 +5398,14 @@ Object.assign(A, {
       ...sel.map(l => { const v = vehById(l.vehicleId); return { id: uid('jl'), accountId: getMapping(dest).id, debit: l.price, credit: '', costCenter: '', partner: pl, vehicle: v.vin, vehicleId: v.id, costType: 'purchase', description: `Purchase of ${vehLabel(v)} (${po.number})` }; })];
     const typed = String(f.rate === undefined ? (po.rate || '') : f.rate).trim(), fixed = po.currency !== 'EGP' && typed ? { rate: validateRateString(typed), method: `rate recorded on ${po.number}`, records: [] } : null;
     const e = docEntryShell(me, 'PJ', f.date, po.currency, fixed ? 'negotiated' : (f.rateType || po.rateType), number, `Vehicle purchase ${number} — ${sup.legalName} (${ref}) for ${po.number}`, jl, { reference: ref, purchaseFor: sel.map(l => l.vehicleId), ...(fixed ? { fixedRate: fixed } : {}) });
-    submitDocEntry(e, me); nextNumber('supplier_invoice', f.date);
+    if (f.draft){ validateEntry(e, true); S.entries.push(e); } // draft: saved, no journal posting until the bill is confirmed
+    else submitDocEntry(e, me);
+    nextNumber('supplier_invoice', f.date);
     const due = f.dueDate && isISODate(f.dueDate) ? f.dueDate : addDays(f.date, sup.paymentTerms || 0);
     const inv = { id, side: 'ap', type: 'invoice', number, partnerId: sup.id, date: f.date, dueDate: due, currency: po.currency, rateType: f.rateType || po.rateType, partnerRef: ref,
       lines: sel.map(l => ({ description: l.description, amount: l.price, accountId: getMapping(dest).id, vehicle: (vehById(l.vehicleId) || {}).vin })), total: total.toFixed(2), poId: po.id, poLineIds: sel.map(l => l.id), entryId: e.id, createdBy: me.id, createdAt: nowISO() };
     for (const l of sel) l.invoiceId = inv.id;
+    if (f.__priceFromBill) inv.priceFromBill = true;
     S.invoices.push(inv); log('vehicle_invoice_create', 'ap', inv.id, null, inv, '', number); saveState(); return inv;
   },
   createShipment(f){
@@ -9916,7 +9920,8 @@ const P6_CLICKS = {
   'po-link'(el){ const free = S.vehicles.filter(v => vStatus(v.status).group === 'pipeline' && !S.purchaseOrders.some(p => p.status !== 'cancelled' && p.lines.some(x => x.vehicleId === v.id)));
     openModal({ title: 'Link registered vehicle', body: `<div class="field"><label>Vehicle</label><select class="input" name="vid">${free.map(v => `<option value="${v.id}">${esc(vehLabel(v))}</option>`).join('')}</select><span class="hint">Register the vehicle (with VIN) in Vehicles first.</span></div>`, onSubmit: f => A.linkPOVehicle(el.dataset.id, el.dataset.line, f.vid) }); },
   'po-inv'(el){ const po = poById(el.dataset.id), fx = po.currency !== 'EGP';
-    openModal({ title: po.kind === 'local' ? `Record purchase from the seller — ${po.number}` : `Supplier invoice for ${po.number}`, wide: true, submit: 'Save & post', body: `<p>Posts Dr goods in transit (per vehicle) / Cr Accounts Payable in ${po.currency}${fx ? ', converted at the rate below' : ''}. Supplier advances paid on this order are applied automatically.</p>
+    const dr = poDraftBill(po); if (dr) return CLICK['po-bill-confirm']({ dataset: { id: dr.id } });
+    openModal({ title: po.kind === 'local' ? `Record purchase from the seller — ${po.number}` : `Supplier invoice for ${po.number}`, wide: true, submit: 'Save draft', body: `<p>Posts Dr goods in transit (per vehicle) / Cr Accounts Payable in ${po.currency}${fx ? ', converted at the rate below' : ''}. Supplier advances paid on this order are applied automatically.</p>
       ${po.lines.filter(l => !lineInvoiceActive(l)).map(l => `<label style="display:flex;gap:8px;padding:4px 0;font-size:13px"><input type="checkbox" name="pi_line" data-multi value="${l.id}" ${l.vehicleId ? 'checked' : 'disabled'}> ${esc(l.description)} — ${l.pricePending ? '<span class="muted">price from the bill</span>' : money(l.price) + ' ' + po.currency} ${l.vehicleId ? '· ' + esc(vehLabel(vehById(l.vehicleId))) : '<span class="muted">(link a vehicle first)</span>'}</label>`).join('')}
       ${po.importOrder && po.kind !== 'local' && po.lines.filter(l => !lineInvoiceActive(l)).length === 1 ? (() => { const l0 = po.lines.find(l => !lineInvoiceActive(l)); return `<div class="row"><div class="field"><label>Purchase price * <span class="muted">${po.currency}, as on the supplier bill</span></label><input class="input mono" name="billPrice" inputmode="decimal" value="${l0.pricePending || !D(l0.price).gt(0) ? '' : groupDigits(l0.price)}" placeholder="0.00" required></div></div>`; })() : ''}
       <div class="row"><div class="field"><label>Supplier invoice no. *</label><input class="input" name="partnerRef" required></div><div class="field"><label>Invoice date *</label><input class="input" type="date" name="date" value="${todayCairo()}"></div><div class="field"><label>Due date</label><input class="input" type="date" name="dueDate"></div></div>
@@ -9924,10 +9929,28 @@ const P6_CLICKS = {
         ${fx ? (() => { const tr = poTransferRate(po), r0 = tr ? tr.rate.toDecimalPlaces(4).toString() : (po.rate || '');
           const hint = tr ? `Weighted average of ${tr.list.length} transfer${tr.list.length === 1 ? '' : 's'} to the supplier: ${tr.list.map(x => `${money(x.amount)} ${po.currency} @ ${fmtNum(x.rate, 4)}`).join(' + ')} = ${money(tr.egp)} EGP ÷ ${money(tr.amount)} ${po.currency}` : po.rate ? `Rate recorded on ${esc(po.number)} — no transfers to the supplier yet` : 'No transfers to the supplier yet — enter the bill rate';
           return `<div class="field"><label>Exchange rate * <span class="muted">1 ${po.currency} = ? EGP</span></label><input class="input mono" name="rate" value="${esc(r0)}" required><span class="hint">${hint}</span></div>`; })() : ''}</div>`,
-      onSubmit: f => { if (po.importOrder){ const r = A.billImportOrder(po.id, f); toast(`${r.inv.number} posted; car received into stock${r.applied.length ? '; supplier advance applied' : ''}.`, 'ok'); return () => poView(poById(po.id)); }
-        const inv = A.invoicePO(po.id, f); let msg = ''; try { const r = A.applyOrderAdvances(po.id, 'ap', inv.id); if (r.length) msg = ` ${r.length} supplier advance(s) applied.`; } catch (x){ msg = ' Advances not applied: ' + x.message; } toast(`${inv.number} saved and posted.${msg}`, 'ok'); return () => jeView(S.entries.find(e => e.id === S.invoices.find(i => i.id === inv.id).entryId)); } });
+      onSubmit: f => { f.draft = true;
+        const inv = po.importOrder ? A.billImportOrder(po.id, f).inv : A.invoicePO(po.id, f);
+        toast(`${inv.number} saved as a draft — no journal entry yet. Click Confirm to post it.`, 'ok'); return () => poView(poById(po.id));
+        } });
       if (po.kind === 'local'){ const r0 = document.querySelector('#mform [name=partnerRef]'); if (r0){ r0.value = po.number; r0.closest('.field').querySelector('label').textContent = 'Contract / receipt no. *'; } }
-      if (po.importOrder){ const d = document.querySelector('#mform [name=destination]'); if (d) d.closest('.field').style.display = 'none'; const p0 = document.querySelector('#mform .modal-b > p'); if (p0) p0.textContent = 'Posts Dr vehicle inventory / Cr supplier, converted at the order rate. Supplier advances on this order are applied and the car is received into stock automatically.'; } },
+      if (po.importOrder){ const d = document.querySelector('#mform [name=destination]'); if (d) d.closest('.field').style.display = 'none'; const p0 = document.querySelector('#mform .modal-b > p'); if (p0) p0.textContent = 'Saved as a draft: nothing is posted until you click Confirm. On Confirm it posts Dr vehicle inventory / Cr supplier at the average rate of your transfers to the supplier, applies those transfers and receives the car.'; } },
+  'po-bill-confirm'(el){
+    const inv = S.invoices.find(i => i.id === el.dataset.id); if (!inv) return; const po = poById(inv.poId), fx = inv.currency !== 'EGP';
+    const e = entryById(inv.entryId), tr = fx ? poTransferRate(po) : null, r0 = tr ? tr.rate.toDecimalPlaces(4).toString() : ((e && e.fixedRate && e.fixedRate.rate) || po.rate || '');
+    const hint = tr ? `Weighted average of ${tr.list.length} transfer${tr.list.length === 1 ? '' : 's'} to the supplier: ${tr.list.map(x => `${money(x.amount)} ${inv.currency} @ ${fmtNum(x.rate, 4)}`).join(' + ')} = ${money(tr.egp)} EGP ÷ ${money(tr.amount)} ${inv.currency}` : 'No transfers to the supplier on this order yet — enter the rate.';
+    const egpOf = r => { try { return D(String(r).replace(/,/g, '')).gt(0) ? money(D(inv.total).mul(String(r).replace(/,/g, ''))) : '—'; } catch (x){ return '—'; } };
+    openModal({ title: `Confirm supplier bill ${inv.number}`, submit: 'Confirm & post', body: `
+      <p class="muted" style="margin:0 0 12px">Supplier bill <b>${esc(inv.partnerRef)}</b> · ${esc(partnerLabel(partnerById('ap', inv.partnerId)))} · ${inv.date}. Confirming posts the journal entry${po.importOrder ? ', applies the transfers paid to the supplier and receives the car' : ' and applies the supplier advances on the order'}.</p>
+      <div class="row"><div class="field"><label>Bill amount</label><input class="input mono" value="${money(inv.total)} ${inv.currency}" disabled></div>
+      ${fx ? `<div class="field"><label>Exchange rate * <span class="muted">1 ${inv.currency} = ? EGP</span></label><input class="input mono" name="rate" value="${esc(r0)}" required oninput="const o=document.getElementById('pbc-egp'); if (o) o.textContent = (${egpOf.toString()})(this.value)"><span class="hint">${hint}</span></div>` : ''}</div>
+      ${fx ? `<div class="note" style="margin-top:6px">Posts <b id="pbc-egp">${egpOf(r0)}</b> EGP to the supplier and to the car's cost.</div>` : ''}`,
+      onSubmit: f => { const r = A.confirmPOBill(inv.id, f); toast(`${inv.number} ${r.entry.status === 'posted' ? 'posted' : 'sent for approval'}${r.applied.length ? `; ${r.applied.length} supplier transfer(s) applied` : ''}.`, 'ok'); return () => poView(poById(po.id)); } });
+    setTimeout(() => { const m = document.querySelector('#mform'); if (m && !m.querySelector('.mf-actions-extra') && can('ap', 'create')){ const b = document.createElement('button'); b.type = 'button'; b.className = 'btn mf-actions-extra'; b.style.color = 'var(--bad)'; b.textContent = 'Delete draft'; b.dataset.act = 'po-bill-del'; b.dataset.id = inv.id; const sub = m.querySelector('button[type=submit]'); if (sub) sub.parentElement.insertBefore(b, sub); } }, 0);
+  },
+  'po-bill-del'(el){ const inv = S.invoices.find(i => i.id === el.dataset.id); if (!inv) return; const po = poById(inv.poId);
+    if (!confirm(`Delete draft supplier bill ${inv.number}? Nothing was posted for it.`)) return;
+    run(() => A.deletePOBillDraft(inv.id), `Draft ${inv.number} deleted.`); closeModal(); if (po) poView(poById(po.id)); },
   'sh-new'(){ const prov = c => supOpts('', c); openModal({ title: 'New shipment', wide: true, body: `<div class="row"><div class="field"><label>Shipping company</label><select class="input" name="carrierId"><option value="">—</option>${prov(['Shipping company'])}</select></div><div class="field"><label>Freight forwarder</label><select class="input" name="forwarderId"><option value="">—</option>${prov(['Freight forwarder'])}</select></div><div class="field"><label>Vehicle supplier</label><select class="input" name="supplierId"><option value="">—</option>${prov(['Vehicle supplier'])}</select></div></div>
     <div class="row"><div class="field"><label>Origin</label><input class="input" name="origin" value="Germany"></div><div class="field"><label>Destination port *</label><input class="input" name="port" value="Alexandria" required></div><div class="field"><label>Ship date</label><input class="input" type="date" name="shipDate"></div><div class="field"><label>ETA</label><input class="input" type="date" name="eta"></div></div>
     <div class="row"><div class="field"><label>Bill of lading</label><input class="input mono" name="bl"></div><div class="field"><label>Container</label><input class="input mono" name="container"></div><div class="field"><label>Reference</label><input class="input" name="ref"></div></div>`,
@@ -14065,6 +14088,7 @@ function advSummary(list){
 }
 const poVehicle = po => vehById((po.lines.find(l => l.vehicleId) || {}).vehicleId);
 /* weighted average rate of the money actually transferred to the supplier on this order (posted advances in the order currency) */
+const poDraftBill = po => po.lines.map(l => l.invoiceId && S.invoices.find(i => i.id === l.invoiceId)).find(i => i && entryStatus(i) === 'draft') || null;
 function poTransferRate(po){
   if (!po || po.currency === 'EGP') return null;
   const list = poAdvances(po, 'ap').filter(x => entryStatus(x) === 'posted' && x.currency === po.currency && D(x.amount || 0).gt(0) && D(x.rate || 0).gt(0));
@@ -14212,11 +14236,50 @@ Object.assign(A, {
     const snap = JSON.stringify(S);
     try {
       const inv = A.invoicePO(po.id, { ...f, partnerRef: String(f.partnerRef || '').trim() || (po.kind === 'local' ? po.number : ''), destination: 'stock' });
+      if (f.draft){ saveState(); return { inv: S.invoices.find(i => i.id === inv.id), applied: [], draft: true }; }
       if (po.kind === 'local' && D(po.commission || 0).gt(0)) A.createCredit('ap', inv.id, { date: f.date, amount: po.commission, reason: `Commission from the seller on ${po.number}`, accountId: commissionAccount().id, commission: true, vehicleId: (poVehicle(po) || {}).id });
       const applied = isPostedStatus((S.entries.find(e => e.id === S.invoices.find(i => i.id === inv.id).entryId) || {}).status) ? A.applyOrderAdvances(po.id, 'ap', inv.id, f.date) : [];
       const v = poVehicle(po); if (v && vStatus(v.status).group === 'transit') A.receiveImportCar(po.id, f.date);
       saveState(); return { inv: S.invoices.find(i => i.id === inv.id), applied };
     } catch (e){ S = JSON.parse(snap); throw e; }
+  },
+  /* Confirm a draft supplier bill: the rate is the weighted average of the transfers paid to the supplier (editable), then post, apply the advances and receive the car. */
+  confirmPOBill(invId, f = {}){
+    const me = requirePerm('ap', 'create'); const inv = S.invoices.find(i => i.id === invId); if (!inv) throw new AppError('Supplier bill not found.');
+    const e = entryById(inv.entryId); if (!e) throw new AppError('Journal entry not found.');
+    if (e.status !== 'draft') throw new AppError(`${inv.number} is not a draft (${e.status}).`);
+    const po = poById(inv.poId); if (!po) throw new AppError('Purchase order not found.');
+    const pc = checkPostingAllowed(e.accountingDate); if (!pc.ok) throw new AppError('Cannot confirm: ' + pc.reason);
+    const snap = JSON.stringify(S);
+    try {
+      if (po.currency !== 'EGP'){
+        const tr = poTransferRate(po); let typed = String(f.rate ?? '').trim().replace(/,/g, '');
+        if (!typed) typed = tr ? tr.rate.toDecimalPlaces(4).toString() : ((e.fixedRate && e.fixedRate.rate) || po.rate || '');
+        if (!typed) throw new AppError(`Enter the exchange rate (1 ${po.currency} = ? EGP).`);
+        const rate = validateRateString(typed), auto = tr && D(rate).eq(tr.rate.toDecimalPlaces(4));
+        e.fixedRate = { rate, method: auto ? `weighted average of ${tr.list.length} transfer(s) to the supplier on ${po.number}` : `rate confirmed on ${inv.number}`, records: [] }; e.rateType = 'negotiated'; inv.rateType = 'negotiated';
+        if (!po.rate) po.rate = rate;
+      }
+      validateEntry(e, true); e.status = 'submitted'; e.submittedBy = me.id; e.history.push({ at: nowISO(), by: me.id, action: 'confirmed' });
+      if (!APPROVALS) postCore(e, me);
+      if (inv.status === 'draft') delete inv.status;
+      log('po_bill_confirm', 'ap', inv.id, { status: 'draft' }, { status: e.status, rate: e.fixedRate ? e.fixedRate.rate : '1' }, '', inv.number);
+      let applied = [];
+      if (e.status === 'posted'){
+        if (po.kind === 'local' && D(po.commission || 0).gt(0)) A.createCredit('ap', inv.id, { date: inv.date, amount: po.commission, reason: `Commission from the seller on ${po.number}`, accountId: commissionAccount().id, commission: true, vehicleId: (poVehicle(po) || {}).id });
+        applied = A.applyOrderAdvances(po.id, 'ap', inv.id, inv.date);
+        const v = poVehicle(po); if (po.importOrder && v && vStatus(v.status).group === 'transit') A.receiveImportCar(po.id, inv.date);
+      }
+      saveState(); return { inv, applied, entry: e };
+    } catch (x){ S = JSON.parse(snap); throw x; }
+  },
+  deletePOBillDraft(invId){
+    requirePerm('ap', 'create'); const inv = S.invoices.find(i => i.id === invId); if (!inv) throw new AppError('Supplier bill not found.');
+    const e = entryById(inv.entryId); if (e && e.status !== 'draft') throw new AppError(`Only a draft bill can be deleted; ${inv.number} is ${e.status}.`);
+    const po = poById(inv.poId);
+    if (po) for (const l of po.lines) if (l.invoiceId === inv.id){ delete l.invoiceId; if (inv.priceFromBill){ l.price = '0'; l.pricePending = true; } }
+    S.entries = S.entries.filter(x => x.id !== inv.entryId); S.invoices = S.invoices.filter(x => x.id !== inv.id);
+    log('po_bill_draft_delete', 'ap', inv.id, inv, null, '', inv.number); saveState();
   },
   receiveImportCar(poId, date){
     requirePerm('vehicles', 'edit'); const po = poById(poId); const v = po && poVehicle(po); if (!v) throw new AppError('No car on this order.');
@@ -14271,7 +14334,8 @@ function smartButtons(po){
   const out = [];
   if (v) out.push(`<a class="smart" href="#/veh/view?id=${v.id}"><span class="k">Car</span><span class="v">${esc(v.code)} · ${esc(makeName(v.makeId))} ${esc(modelName(v.makeId, v.modelId))}</span><span class="s">${esc(vStatus(v.status).name)}</span></a>`);
   if (c.supInv) out.push(btn(`data-act="inv-view" data-id="${c.supInv.id}"`, 'Supplier bill', esc(c.supInv.number), `${invPayState(c.supInv)[0]} · due ${money(invState(c.supInv).open)} ${c.supInv.currency}`));
-  else if (po.status === 'approved' && can('ap', 'create')) out.push(btn(`data-act="po-inv" data-id="${po.id}"`, 'Supplier bill', '+ Create bill', 'at the order rate', true));
+  else if (poDraftBill(po)) out.push(btn(`data-act="po-bill-confirm" data-id="${poDraftBill(po).id}"`, 'Supplier bill', esc(poDraftBill(po).number), 'Draft · click to confirm', true));
+  else if (po.status === 'approved' && can('ap', 'create')) out.push(btn(`data-act="po-inv" data-id="${po.id}"`, 'Supplier bill', '+ Create bill', 'saved as a draft first', true));
   if (po.customerId){
     if (c.sale) out.push(btn(`data-act="inv-view" data-id="${c.sale.id}"`, 'Sale to customer', esc(c.sale.number), `${invPayState(c.sale)[0]} · due ${money(invState(c.sale).open)} ${c.sale.currency}`));
     else if (can('ar', 'create')) out.push(btn(`data-act="io-sell" data-id="${po.id}"`, 'Sale to customer', '+ Sell car', c.received ? 'car is in stock' : 'available once the car is received', c.received));
@@ -14287,7 +14351,7 @@ function cycleBar(po){
 function nextStepButtons(po, sm = true){
   const c = poCycle(po), cls = sm ? 'btn sm gold' : 'btn gold', out = [];
   if (po.status === 'cancelled') return '';
-  if (!c.invoiced && po.status === 'approved' && can('ap', 'create')) out.push(`<button type="button" class="${cls}" data-act="po-inv" data-id="${po.id}">${po.kind === 'local' ? 'Receive car & record purchase' : po.importOrder ? 'Supplier invoice & receive car' : 'Supplier invoice'}</button>`);
+  if (!c.invoiced && po.status === 'approved' && can('ap', 'create')) out.push(`<button type="button" class="${cls}" data-act="po-inv" data-id="${po.id}">${poDraftBill(po) ? `Confirm supplier bill ${esc(poDraftBill(po).number)}` : po.kind === 'local' ? 'Receive car & record purchase' : po.importOrder ? 'Supplier invoice & receive car' : 'Supplier invoice'}</button>`);
   else if (c.invoiced && !c.received && can('vehicles', 'edit')) out.push(`<button type="button" class="${cls}" data-act="io-recv" data-id="${po.id}">Receive car</button>`);
   else if (c.sold && !c.delivery && can('sales', 'create')) out.push(`<button type="button" class="${cls}" data-act="dn-new" data-id="${c.so.id}" data-line="${c.line.id}">Deliver car</button>`);
   else if (c.received && !c.sold && can('ar', 'create')) out.push(`<button type="button" class="${cls}" data-act="io-sell" data-id="${po.id}">Sell car</button>`);
@@ -15123,6 +15187,7 @@ Object.assign(CLICK, {
   },
   'inv-post'(el){
     const inv = S.invoices.find(i => i.id === el.dataset.id); if (!inv) return;
+    if (inv.side === 'ap' && inv.poId && inv.poLineIds && !inv.landed) return CLICK['po-bill-confirm']({ dataset: { id: inv.id } });
     A.postDraftInvoice(inv.id);
     toast(`${inv.number} posted successfully.`, 'ok');
     invoiceView(S.invoices.find(x => x.id === inv.id));
@@ -15356,9 +15421,9 @@ function poView(po){
                   <div class="rdc-icon sup">${ic('purchases', 18)}</div>
                   <div class="rdc-title-wrap">
                     <span class="rdc-kind">Purchase Bill (فاتورة المورد)</span>
-                    <b class="rdc-num">${c.supInv ? esc(c.supInv.number) : 'Not billed yet'}</b>
+                    <b class="rdc-num">${c.supInv ? esc(c.supInv.number) : poDraftBill(po) ? esc(poDraftBill(po).number) : 'Not billed yet'}</b>
                   </div>
-                  ${c.supInv ? invPill(c.supInv) : '<span class="badge b-mute">Pending</span>'}
+                  ${c.supInv ? invPill(c.supInv) : poDraftBill(po) ? '<span class="badge b-warn">Draft</span>' : '<span class="badge b-mute">Pending</span>'}
                 </div>
                 <div class="rdc-body">
                   ${c.supInv ? `
@@ -15372,7 +15437,14 @@ function poView(po){
                       <button type="button" class="btn sm" data-act="inv-print" data-id="${c.supInv.id}">${ic('printer', 14)} Print</button>
                       ${invState(c.supInv).open.gt(0) && can('ap', 'create') ? `<button type="button" class="btn sm gold" data-act="io-pay" data-side="ap" data-id="${c.supInv.id}">Pay supplier bill</button>` : ''}
                     </div>
-                  ` : `
+                  ` : poDraftBill(po) ? (() => { const d = poDraftBill(po), tr = d.currency !== 'EGP' ? poTransferRate(po) : null; return `
+                    <div class="rdc-row"><span>Supplier invoice no.</span><b>${esc(d.partnerRef)}</b></div>
+                    <div class="rdc-row"><span>Amount</span><b class="mono">${money(d.total)} ${d.currency}</b></div>
+                    ${d.currency !== 'EGP' ? `<div class="rdc-row"><span>Rate on confirm</span><b class="mono">${tr ? fmtNum(tr.rate, 4) + ' <span class="muted" style="font-weight:400">· average of ' + tr.list.length + ' transfer' + (tr.list.length === 1 ? '' : 's') + '</span>' : '<span class="muted" style="font-weight:400">enter on confirm</span>'}</b></div>` : ''}
+                    <p class="rdc-desc" style="margin-top:6px">Draft — nothing is posted yet. Confirm it to post the journal entry${po.importOrder ? ' and receive the car' : ''}.</p>
+                    <div class="rdc-actions">
+                      ${can('ap', 'create') ? `<button type="button" class="btn sm primary" data-act="po-bill-confirm" data-id="${d.id}">${ic('check', 14)} Confirm</button><button type="button" class="btn sm" data-act="inv-view" data-id="${d.id}">View draft</button>` : ''}
+                    </div>`; })() : `
                     <p class="rdc-desc">Supplier: <b>${esc(sup ? sup.legalName : '—')}</b>. Record the supplier bill to book accounts payable and capitalize the purchase cost.</p>
                     <div class="rdc-actions">
                       ${po.status === 'approved' && can('ap', 'create') ? `<button type="button" class="btn sm primary" data-act="po-inv" data-id="${po.id}">${ic('plus', 14)} Record supplier bill</button>` : `<span class="muted" style="font-size:12px">Order must be approved</span>`}
@@ -16472,7 +16544,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261109-163806';
+const APP_BUILD = 'build-20261110-065316';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
