@@ -15014,10 +15014,11 @@ function printCarReport(po){
   const profitKnown = cy.sold || est;
   const fcR = pCur !== 'EGP' ? (supInv ? invRate(supInv) : expRate) : null;
   const kpiProfit = profitKnown ? `<div class="v ${neg(shownRes) ? 'neg' : 'pos'}">${money(shownRes)} <span class="u">EGP</span></div>${fcR && D(fcR).gt(0) ? `<div class="fc">≈ ${money(r2(shownRes.div(fcR)))} ${pCur} <span class="u">at ${fmtNum(fcR, 4)}</span></div>` : ''}<div class="s">${cy.sold ? 'on this car' : 'expected · contracted price − cost'}</div>` : `<div class="v pend">Pending</div><div class="s">${pending ? 'known once the supplier bill is in' : 'known once the car is invoiced'}</div>`;
+  const fmtSigned = x => D(x).lt(0) ? '−' + money(D(x).abs()) : money(x);
   const tbl = (title, list, t, empty) => `
     <section class="blk"><h2>${title}</h2>
       ${list.length ? `<table class="t"><thead><tr><th>Document</th><th>Date</th><th>Type</th><th class="n">Amount</th><th class="n">Rate</th><th class="n">EGP</th></tr></thead><tbody>
-        ${list.map(x => `<tr><td class="doc">${esc(x.number)}</td><td>${x.date}</td><td>${x.kind}</td><td class="n">${money(x.amount)} <span class="cur">${x.currency}</span></td><td class="n">${x.currency !== 'EGP' && x.rate ? fmtNum(x.rate, 4) : '<span class="cur">—</span>'}</td><td class="n">${money(egpOf(x))}</td></tr>`).join('')}
+        ${list.map(x => `<tr><td class="doc">${esc(x.number)}</td><td>${x.date}</td><td>${x.kind}</td><td class="n">${money(x.amount)} <span class="cur">${x.currency}</span></td><td class="n">${x.currency !== 'EGP' && x.rate ? fmtNum(x.rate, 4) : '<span class="nil">—</span>'}</td><td class="n">${money(egpOf(x))}</td></tr>`).join('')}
         </tbody><tfoot><tr><td colspan="3">Total</td><td class="n">${t.fc || ''}</td><td></td><td class="n">${money(t.egp)}</td></tr></tfoot></table>` : `<p class="empty">${empty}</p>`}
     </section>`;
   const html = `<!doctype html>
@@ -15028,7 +15029,8 @@ function printCarReport(po){
   :root{--ink:#111827;--ink2:#374151;--mute:#6b7280;--faint:#9ca3af;--line:#e5e7eb;--soft:#f9fafb;--gold:#c59b27;--gold2:#8a6512;--goldbg:#fbf6e9;--ok:#047857;--okbg:#ecfdf5;--bad:#b91c1c;--badbg:#fef2f2;--warn:#b45309;--warnbg:#fffbeb}
   *{box-sizing:border-box}
   html{-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  body{margin:0;background:#eef0f3;color:var(--ink);font:12.5px/1.5 Inter,"Segoe UI",Roboto,Arial,sans-serif;font-variant-numeric:tabular-nums}
+  body{margin:0;background:#eef0f3;color:var(--ink);font:12.5px/1.5 Inter,"Segoe UI",Roboto,Arial,sans-serif}
+  .n,.kpi .v,.kpi .fc,.ac .r b,.pl td.n{font-variant-numeric:tabular-nums}
   .bar{position:sticky;top:0;z-index:5;display:flex;justify-content:space-between;align-items:center;gap:12px;background:#111827;color:#fff;padding:10px 24px}
   .bar b{font-weight:600}.bar button{font:inherit;font-weight:600;border:0;border-radius:8px;padding:8px 16px;cursor:pointer}
   .bar .p{background:var(--gold);color:#111}.bar .c{background:#1f2937;color:#e5e7eb;margin-inline-start:8px}
@@ -15070,8 +15072,8 @@ function printCarReport(po){
   table.t{width:100%;border-collapse:collapse}
   .t th{font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--mute);font-weight:600;text-align:start;padding:7px 10px;border-bottom:1px solid #d1d5db;background:var(--soft)}
   .t td{padding:8px 10px;border-bottom:1px solid #f0f1f3;vertical-align:top;white-space:nowrap}.t td:first-child{white-space:normal}
-  .t .n{text-align:end}.t .sub{display:block;font-size:11px;color:var(--faint);margin-top:1px}
-  .t .cur{color:var(--faint);font-size:11px}.t .doc{font-weight:600}
+  .t .n{text-align:end}.t .sub{display:block;font-size:11.5px;color:var(--mute);margin-top:2px}
+  .t td{color:var(--ink)}.t .cur{color:var(--mute);font-size:11px;font-weight:500}.t .nil{color:#cbd5e1}.t .doc{font-weight:600}
   .t tfoot td{font-weight:700;border-bottom:0;border-top:1px solid #d1d5db;background:var(--soft)}
   .tag{display:inline-block;font-size:10.5px;font-weight:600;padding:1px 8px;border-radius:999px}.tag.ok{background:var(--okbg);color:var(--ok)}.tag.bad{background:var(--badbg);color:var(--bad)}.tag.warn{background:var(--warnbg);color:var(--warn)}
   .pl{width:100%;border-collapse:collapse}.pl td{padding:7px 10px;border-bottom:1px solid #f0f1f3}.pl td.n{text-align:end;white-space:nowrap;width:190px;font-weight:600}
@@ -15120,7 +15122,7 @@ function printCarReport(po){
   <section class="blk"><h2>Cost of the car</h2>
     <table class="t"><thead><tr><th>Item</th><th class="n">Amount</th><th class="n">Rate</th><th class="n">EGP</th><th class="n">Status</th></tr></thead><tbody>
       ${pending ? `<tr><td>Purchase price<span class="sub">${draftBill ? `Draft bill ${esc(draftBill.number)} · ${money(draftBill.total)} ${pCur} — not confirmed yet` : estP ? `Expected ${money(estP)} ${pCur} — no rate yet (no transfers to the supplier)` : 'Awaiting the supplier bill'}${tr ? ` · ${money(tr.amount)} ${pCur} transferred so far at an average of ${fmtNum(tr.rate, 4)}` : ''}</span></td><td class="n">${draftBill ? `${money(draftBill.total)} <span class="cur">${pCur}</span>` : estP ? `${money(estP)} <span class="cur">${pCur}</span>` : '<span class="cur">—</span>'}</td><td class="n">${tr ? fmtNum(tr.rate, 4) : '<span class="cur">—</span>'}</td><td class="n"><span class="cur">pending</span></td><td class="n"><span class="tag warn">Pending</span></td></tr>` : ''}
-      ${rowsCost.map(r => `<tr><td>${esc(r.label)}${r.sub || r.share ? `<span class="sub">${esc(r.sub)}${r.share ? ` · this car's share of ${r.share} cars` : ''}</span>` : ''}</td><td class="n">${r.fc || '<span class="cur">EGP</span>'}</td><td class="n">${r.rate || '<span class="cur">—</span>'}</td><td class="n">${money(r.egp)}</td><td class="n">${r.st ? `<span class="tag ${r.st.c}">${r.st.t}</span>` : r.sub && /Expected/.test(r.sub) ? '<span class="tag warn">Expected</span>' : ''}</td></tr>`).join('')}
+      ${rowsCost.map(r => `<tr><td>${esc(r.label)}${r.sub || r.share ? `<span class="sub">${esc(r.sub)}${r.share ? ` · this car's share of ${r.share} cars` : ''}</span>` : ''}</td><td class="n">${r.fc ? r.fc.replace(/ ([A-Z]{3})$/, ' <span class="cur">$1</span>') : `${fmtSigned(r.egp)} <span class="cur">EGP</span>`}</td><td class="n">${r.rate || '<span class="nil">—</span>'}</td><td class="n">${fmtSigned(r.egp)}</td><td class="n">${r.st ? `<span class="tag ${r.st.c}">${r.st.t}</span>` : r.sub && /Expected/.test(r.sub) ? '<span class="tag warn">Expected</span>' : ''}</td></tr>`).join('')}
       ${!rowsCost.length && !pending ? '<tr><td colspan="5" class="empty">No costs recorded yet.</td></tr>' : ''}
     </tbody><tfoot><tr><td colspan="3">Total cost${pending ? ' so far' : ''}</td><td class="n">${money(costEgp)} EGP</td><td></td></tr></tfoot></table>
   </section>
@@ -16618,7 +16620,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261110-123738';
+const APP_BUILD = 'build-20261110-124426';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
