@@ -15012,7 +15012,8 @@ function printCarReport(po){
   const supDue = billed ? invState(supInv).open : null;
   const diffCtr = cy.sold && ctr && ctr.cur === 'EGP' && !net.eq(ctr.amt) ? net.minus(ctr.amt) : null;
   const profitKnown = cy.sold || est;
-  const kpiProfit = profitKnown ? `<div class="v ${neg(shownRes) ? 'neg' : 'pos'}">${money(shownRes)} <span class="u">EGP</span></div><div class="s">${cy.sold ? 'on this car' : 'expected · contracted price − cost'}</div>` : `<div class="v pend">Pending</div><div class="s">${pending ? 'known once the supplier bill is in' : 'known once the car is invoiced'}</div>`;
+  const fcR = pCur !== 'EGP' ? (supInv ? invRate(supInv) : expRate) : null;
+  const kpiProfit = profitKnown ? `<div class="v ${neg(shownRes) ? 'neg' : 'pos'}">${money(shownRes)} <span class="u">EGP</span></div>${fcR && D(fcR).gt(0) ? `<div class="fc">≈ ${money(r2(shownRes.div(fcR)))} ${pCur} <span class="u">at ${fmtNum(fcR, 4)}</span></div>` : ''}<div class="s">${cy.sold ? 'on this car' : 'expected · contracted price − cost'}</div>` : `<div class="v pend">Pending</div><div class="s">${pending ? 'known once the supplier bill is in' : 'known once the car is invoiced'}</div>`;
   const tbl = (title, list, t, empty) => `
     <section class="blk"><h2>${title}</h2>
       ${list.length ? `<table class="t"><thead><tr><th>Document</th><th>Date</th><th>Type</th><th class="n">Amount</th><th class="n">Rate</th><th class="n">EGP</th></tr></thead><tbody>
@@ -15053,7 +15054,7 @@ function printCarReport(po){
   .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:0 0 18px}
   .kpi{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:#fff}
   .kpi .k{font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--mute);font-weight:600}
-  .kpi .v{font-size:17px;font-weight:700;margin-top:4px;white-space:nowrap}.kpi .u{font-size:11px;color:var(--faint);font-weight:500}.kpi .s{font-size:11px;color:var(--mute);margin-top:2px}
+  .kpi .fc{font-size:13px;font-weight:600;color:var(--ink2);margin-top:1px;white-space:nowrap}.kpi .v{font-size:17px;font-weight:700;margin-top:4px;white-space:nowrap}.kpi .u{font-size:11px;color:var(--faint);font-weight:500}.kpi .s{font-size:11px;color:var(--mute);margin-top:2px}
   .kpi.hi{background:var(--goldbg);border-color:#ecdcae}.kpi.hi .k{color:var(--gold2)}
   .pos{color:var(--ok)}.neg{color:var(--bad)}.pend{color:var(--warn);font-size:15px!important}
   .accts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
@@ -15097,7 +15098,7 @@ function printCarReport(po){
   <div class="tl">${steps.map(([t0, d0, ref0], i) => `<div class="st ${d0 ? 'done' : i === cur ? 'cur' : ''}"><span class="dot"></span><b>${t0}</b><em>${d0 && d0 !== '✓' ? d0 : d0 ? 'done' : i === cur ? 'next' : '—'}</em>${ref0 ? `<em>${esc(ref0)}</em>` : ''}</div>`).join('')}</div>
   <div class="kpis">
     <div class="kpi"><div class="k">${cy.sold ? 'Selling price' : 'Contracted price'}</div><div class="v">${cy.sold ? money(net) + ' <span class="u">EGP</span>' : ctr ? (ctr.cur === 'EGP' ? money(ctr.amt) + ' <span class="u">EGP</span>' : ctrTxt) : '—'}</div><div class="s">${cy.sold ? (ctr ? (diffCtr ? `contract ${ctrTxt}` : 'as contracted') : esc(sale.number)) : ctr ? (ctr.cur !== 'EGP' && ctrEgp ? `≈ ${money(ctrEgp)} EGP at ${fmtNum(ctrRate, 4)}` : 'agreed with the customer') : 'no contract price'}</div></div>
-    <div class="kpi"><div class="k">Total cost</div><div class="v">${money(costEgp)} <span class="u">EGP</span></div><div class="s">${pending ? 'so far · purchase price pending' : expected ? (estP ? 'expected purchase price + costs' : dB0 ? 'draft bill × average transfer rate' : 'purchase at the order rate') : `${costLines.length} item${costLines.length === 1 ? '' : 's'}`}</div></div>
+    <div class="kpi"><div class="k">Total cost</div><div class="v">${money(costEgp)} <span class="u">EGP</span></div>${(() => { const fr = pCur !== 'EGP' ? (supInv ? invRate(supInv) : expRate) : null; return fr && D(fr).gt(0) && costEgp.gt(0) ? `<div class="fc">≈ ${money(r2(costEgp.div(fr)))} ${pCur} <span class="u">at ${fmtNum(fr, 4)}</span></div>` : ''; })()}<div class="s">${pending ? 'so far · purchase price pending' : expected ? (estP ? 'expected purchase price + costs' : dB0 ? 'draft bill × average transfer rate' : 'purchase at the order rate') : `${costLines.length} item${costLines.length === 1 ? '' : 's'}`}</div></div>
     <div class="kpi hi"><div class="k">${cy.sold ? 'Profit' : 'Expected profit'}</div>${kpiProfit}</div>
     <div class="kpi"><div class="k">Margin</div><div class="v ${profitKnown ? (neg(shownRes) ? 'neg' : '') : 'pend'}">${profitKnown ? margin : '—'}</div><div class="s">of the ${cy.sold ? 'selling' : 'contracted'} price</div></div>
   </div>
@@ -16617,7 +16618,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261110-123517';
+const APP_BUILD = 'build-20261110-123738';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
