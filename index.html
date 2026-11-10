@@ -7212,7 +7212,7 @@ function formIcon(t){ t = String(t || '').toLowerCase();
     : /rate|currenc/.test(t) ? 'coins' : /account|journal|entry|budget|fiscal|year|tax|asset|chart/.test(t) ? 'shield' : /setting|location|categor|template/.test(t) ? 'settings' : 'invoices'; }
 function closeModal(){ if (SCREEN){ LAST_SCREEN = SCREEN; LAST_CLOSED_AT = Date.now(); SCREEN = null; } if (EDIT_CTX){ const c = EDIT_CTX; EDIT_CTX = null; if (!c.done) S = JSON.parse(c.snapOrig); } MODAL = null; document.getElementById('modal-root').innerHTML = ''; }
 /* Money fields show thousands separators while typing (909,090.00); the commas are removed before saving. */
-const MONEY_FIELD = /^(billPrice|salary|pr_bonus|pr_ded|pr_loan|inst_amount|pay_amount|amount|price|salePrice|fee|intermediaryFee|srcAmount|dstAmount|cost|residual|total|egpTotal|applied|portion|estAmount|openingBalance|creditLimit|alloc_applied|alloc_portion|il_amount|pl_price|ex_amount|ql_price|ql_disc|so_price|so_disc|pf_price|pf_disc|lc_amount|lc_tax|l_debit|l_credit|l_rate)$/;
+const MONEY_FIELD = /^(estPrice|billPrice|salary|pr_bonus|pr_ded|pr_loan|inst_amount|pay_amount|amount|price|salePrice|fee|intermediaryFee|srcAmount|dstAmount|cost|residual|total|egpTotal|applied|portion|estAmount|openingBalance|creditLimit|alloc_applied|alloc_portion|il_amount|pl_price|ex_amount|ql_price|ql_disc|so_price|so_disc|pf_price|pf_disc|lc_amount|lc_tax|l_debit|l_credit|l_rate)$/;
 function groupDigits(raw){
   let v = String(raw).replace(/[^\d.\-]/g, ''); const neg = v.startsWith('-'); v = v.replace(/-/g, '');
   const dot = v.indexOf('.'); let int = dot >= 0 ? v.slice(0, dot) : v, dec = dot >= 0 ? v.slice(dot + 1).replace(/\./g, '') : null;
@@ -9924,8 +9924,8 @@ const P6_CLICKS = {
   'po-inv'(el){ const po = poById(el.dataset.id), fx = po.currency !== 'EGP';
     const dr = poDraftBill(po); if (dr) return CLICK['po-bill-confirm']({ dataset: { id: dr.id } });
     openModal({ title: po.kind === 'local' ? `Record purchase from the seller — ${po.number}` : `Supplier invoice for ${po.number}`, wide: true, submit: 'Save draft', body: `<p>Posts Dr goods in transit (per vehicle) / Cr Accounts Payable in ${po.currency}${fx ? ', converted at the rate below' : ''}. Supplier advances paid on this order are applied automatically.</p>
-      ${po.lines.filter(l => !lineInvoiceActive(l)).map(l => `<label style="display:flex;gap:8px;padding:4px 0;font-size:13px"><input type="checkbox" name="pi_line" data-multi value="${l.id}" ${l.vehicleId ? 'checked' : 'disabled'}> ${esc(l.description)} — ${l.pricePending ? '<span class="muted">price from the bill</span>' : money(l.price) + ' ' + po.currency} ${l.vehicleId ? '· ' + esc(vehLabel(vehById(l.vehicleId))) : '<span class="muted">(link a vehicle first)</span>'}</label>`).join('')}
-      ${po.importOrder && po.kind !== 'local' && po.lines.filter(l => !lineInvoiceActive(l)).length === 1 ? (() => { const l0 = po.lines.find(l => !lineInvoiceActive(l)); return `<div class="row"><div class="field"><label>Purchase price * <span class="muted">${po.currency}, as on the supplier bill</span></label><input class="input mono" name="billPrice" inputmode="decimal" value="${l0.pricePending || !D(l0.price).gt(0) ? '' : groupDigits(l0.price)}" placeholder="0.00" required></div></div>`; })() : ''}
+      ${po.lines.filter(l => !lineInvoiceActive(l)).map(l => `<label style="display:flex;gap:8px;padding:4px 0;font-size:13px"><input type="checkbox" name="pi_line" data-multi value="${l.id}" ${l.vehicleId ? 'checked' : 'disabled'}> ${esc(l.description)} — ${l.pricePending ? (D(po.estPrice || 0).gt(0) ? `<span class="muted">expected ${money(po.estPrice)} ${po.currency}</span>` : '<span class="muted">price from the bill</span>') : money(l.price) + ' ' + po.currency} ${l.vehicleId ? '· ' + esc(vehLabel(vehById(l.vehicleId))) : '<span class="muted">(link a vehicle first)</span>'}</label>`).join('')}
+      ${po.importOrder && po.kind !== 'local' && po.lines.filter(l => !lineInvoiceActive(l)).length === 1 ? (() => { const l0 = po.lines.find(l => !lineInvoiceActive(l)); return `<div class="row"><div class="field"><label>Purchase price * <span class="muted">${po.currency}, as on the supplier bill</span></label><input class="input mono" name="billPrice" inputmode="decimal" value="${l0.pricePending || !D(l0.price).gt(0) ? (D(po.estPrice || 0).gt(0) ? groupDigits(po.estPrice) : '') : groupDigits(l0.price)}" placeholder="0.00" required></div></div>`; })() : ''}
       <div class="row"><div class="field"><label>Supplier invoice no. *</label><input class="input" name="partnerRef" required></div><div class="field"><label>Invoice date *</label><input class="input" type="date" name="date" value="${todayCairo()}"></div><div class="field"><label>Due date</label><input class="input" type="date" name="dueDate"></div></div>
       <div class="row"><div class="field"><label>Debit</label><select class="input" name="destination"><option value="transit">Goods in transit (imports)</option><option value="stock">Vehicle inventory (local purchase, already received)</option></select></div>
         ${fx ? (() => { const tr = poTransferRate(po), r0 = tr ? tr.rate.toDecimalPlaces(4).toString() : (po.rate || '');
@@ -14066,12 +14066,13 @@ Object.assign(A, {
       const po = A.createPO({ supplierId: sup.id, date: f.date || todayCairo(), currency: f.currency || 'EUR', rateType: f.rateType || 'official', deliveryTerms: f.deliveryTerms, paymentTerms: f.paymentTerms, expectedDelivery: f.expectedDelivery, shipping: f.shipping,
         pl_desc: `${makeName(makeId)} ${modelName(makeId, modelId)} ${v.year} · Chassis ${v.vin}`, pl_price: price, pl_vehicle: v.id, rate: f.rate, priceLater: !price });
       po.customerId = cust ? cust.id : ''; po.importOrder = true; po.kind = kind; po.commission = comm ? D(comm).toFixed(2) : ''; po.customerRef = String(f.customerRef || '').trim(); po.salePrice = salePrice ? D(salePrice).toFixed(2) : ''; po.saleCurrency = saleCur;
+      { const ep = String(f.estPrice || '').replace(/,/g, '').trim(); if (ep){ if (!/^\d+(\.\d{1,2})?$/.test(ep) || !D(ep).gt(0)) throw new AppError('Expected purchase price must be a positive amount.'); po.estPrice = D(ep).toFixed(2); } }
       log('import_order_create', 'purchases', po.id, null, { po: po.number, kind, vehicle: v.code, vin: v.vin, customer: cust ? cust.code : '', supplier: sup.code }, '', po.number);
       saveState(); return po;
     } catch (e){ S = JSON.parse(snap); throw e; }
   }
 });
-DOC_KINDS.po.carry = (o, n) => { if (o.importOrder){ n.kind = o.kind || 'customer'; n.commission = o.commission || ''; } if (o.customerId || o.importOrder){ n.customerId = o.customerId; n.importOrder = o.importOrder; n.customerRef = o.customerRef || ''; n.salePrice = o.salePrice || ''; n.saleCurrency = o.saleCurrency || 'EGP'; } };
+DOC_KINDS.po.carry = (o, n) => { if (o.importOrder){ n.kind = o.kind || 'customer'; n.commission = o.commission || ''; } if (o.customerId || o.importOrder){ n.customerId = o.customerId; n.importOrder = o.importOrder; n.customerRef = o.customerRef || ''; n.salePrice = o.salePrice || ''; n.estPrice = o.estPrice || ''; n.saleCurrency = o.saleCurrency || 'EGP'; } };
 
 const poAdvances = (po, side) => {
   const v = poVehicle(po);
@@ -14133,7 +14134,8 @@ function importOrderForm(kind = 'customer'){
     : kind === 'customer' ? card('Supplier', 'The purchase price is entered later, on the supplier bill.',
       f('Supplier *', combo('supplierName', partnerOpts('ap'), lastSup ? lastSup.legalName : '', 'Pick or type a new supplier name', 'supplier'), 'span2') +
       f('Order date', `<input class="input" type="date" name="date" value="${todayCairo()}">`) +
-      f('Supplier currency', `<select class="input" name="currency">${curOpts(cur)}</select>`), 'invoices')
+      f('Supplier currency', `<select class="input" name="currency">${curOpts(cur)}</select>`) +
+      f('Expected purchase price <em>optional · in the supplier currency</em>', `<input class="input mono" name="estPrice" inputmode="decimal" placeholder="What you expect to pay the supplier">`), 'invoices')
     : card('Supplier & price', kind === 'stock' ? 'Bought for stock — you choose the buyer when you sell.' : '',
       f('Supplier *', combo('supplierName', partnerOpts('ap'), lastSup ? lastSup.legalName : '', 'Pick or type a new supplier name', 'supplier'), 'span2') +
       f('Order date', `<input class="input" type="date" name="date" value="${todayCairo()}">`) +
@@ -14149,7 +14151,7 @@ function importOrderForm(kind = 'customer'){
         <dl>
           ${kind === 'customer' ? '<div><dt>Customer</dt><dd id="co-s-cust">—</dd></div>' : kind === 'local' ? '<div><dt>Seller</dt><dd id="co-s-sell">—</dd></div>' : '<div><dt>Buyer</dt><dd>chosen when you sell</dd></div>'}
           ${kind !== 'local' ? '<div><dt>Supplier</dt><dd id="co-s-sup">—</dd></div>' : ''}
-          ${kind === 'customer' ? '<div><dt>Purchase price</dt><dd>on the supplier bill</dd></div>' : `<div><dt>Price</dt><dd id="co-s-price">—</dd></div>${kind !== 'local' ? '<div><dt>Rate</dt><dd id="co-s-rate">—</dd></div>' : ''}`}
+          ${kind === 'customer' ? '<div><dt>Purchase price</dt><dd id="co-s-est">on the supplier bill</dd></div>' : `<div><dt>Price</dt><dd id="co-s-price">—</dd></div>${kind !== 'local' ? '<div><dt>Rate</dt><dd id="co-s-rate">—</dd></div>' : ''}`}
         </dl>
         <div class="co-s-tot"><span>${kind === 'customer' ? 'Contracted price' : 'Cost in EGP'}</span><b id="co-s-egp">—</b></div>
         <div class="co-prog"><div><span>Required fields</span><b id="co-p-t">0 / 0</b></div><i><b id="co-p-bar"></b></i></div>
@@ -14170,6 +14172,7 @@ function coRecalc(){
   const num = x => /^\d+(\.\d+)?$/.test(x);
   set('co-s-price', num(price) ? `${money(price)} ${cur}` : '—'); set('co-s-rate', cur === 'EGP' ? '1.0000' : num(rate) ? `1 ${cur} = ${fmtNum(rate, 4)} EGP` : '—');
   const sp = v('salePrice').replace(/,/g, '');
+  if (kind === 'customer') set('co-s-est', num(v('estPrice').replace(/,/g, '')) ? `${money(String(v('estPrice')).replace(/,/g, ''))} ${v('currency') || ''} (expected)` : 'on the supplier bill');
   set('co-s-egp', kind === 'customer' ? (num(sp) ? `${money(sp)} ${v('saleCurrency') || 'EGP'}` : '—') : num(price) && (cur === 'EGP' || num(rate)) ? money(D(price).mul(cur === 'EGP' ? 1 : rate)) + ' EGP' : '—');
   const req = [!!v('makeName'), !!v('modelName'), vin.length === 17, kind === 'customer' ? num(sp) : num(price)];
   if (kind === 'customer') req.push(!!v('customerName')); if (kind === 'local') req.push(!!v('sellerName')); if (kind !== 'local') req.push(!!v('supplierName'));
@@ -14943,9 +14946,11 @@ function printCarReport(po){
   const vp = v ? vehicleProfit(v) : null, vc = v ? vehicleCost(v) : { total: D0() };
   const pCur = po.currency, pAmt = po.lines.filter(l => !v || !l.vehicleId || l.vehicleId === v.id).reduce((t, l) => t.plus(l.price), D0());
   const dB0 = poDraftBill(po), tr0 = pCur !== 'EGP' ? poTransferRate(po) : null, dE0 = dB0 ? entryById(dB0.entryId) : null;
-  const expRate = pCur === 'EGP' ? 1 : po.rate || (dB0 ? (tr0 ? tr0.rate.toDecimalPlaces(4).toString() : dE0 && dE0.fixedRate ? dE0.fixedRate.rate : '') : '');
-  const expected = !!(!cy.invoiced && expRate && pAmt.gt(0) && !po.lines.some(l => l.pricePending));
-  const costEgp = cy.sold && vp ? vp.cogs : expected ? r2(pAmt.mul(expRate)).plus(vc.total) : vc.total;
+  const pendP = po.lines.some(l => l.pricePending), estP = pendP && D(po.estPrice || 0).gt(0) ? D(po.estPrice) : null;
+  const expRate = pCur === 'EGP' ? 1 : po.rate || (tr0 ? tr0.rate.toDecimalPlaces(4).toString() : dB0 && dE0 && dE0.fixedRate ? dE0.fixedRate.rate : '');
+  const pAmtE = estP || pAmt;
+  const expected = !!(!cy.invoiced && expRate && pAmtE.gt(0) && (!pendP || estP));
+  const costEgp = cy.sold && vp ? vp.cogs : expected ? r2(pAmtE.mul(expRate)).plus(vc.total) : vc.total;
   const net = vp ? vp.net : D0(), result = vp ? net.minus(vp.cogs).minus(vp.direct).minus(vp.importExp).minus(vp.losses).plus(vp.otherInc).plus(vp.fx) : D0();
   const ctr = D(String(po.salePrice || '0').replace(/,/g, '')).gt(0) ? { amt: D(String(po.salePrice).replace(/,/g, '')), cur: po.saleCurrency || 'EGP' } : null;
   const ctrTxt = ctr ? `${money(ctr.amt)} ${esc(ctr.cur)}` : '';
@@ -14957,7 +14962,8 @@ function printCarReport(po){
   /* cost lines from the car's own journal entries, so they match the car page and the ledger */
   const bd = v ? carCostBreakdown(v) : [];
   const costLines = [];
-  if (expected) costLines.push({ label: 'Purchase price', sub: dB0 ? `Expected — draft bill ${dB0.number} not confirmed yet${!po.rate && tr0 ? ` · average rate of ${tr0.list.length} transfer${tr0.list.length === 1 ? '' : 's'}` : ''}` : 'Expected — supplier bill not recorded yet', fc: `${money(pAmt)} ${pCur}`, rate: pCur === 'EGP' ? '' : fmtNum(expRate, 4), egp: r2(pAmt.mul(expRate)) });
+  if (expected && estP) costLines.push({ label: 'Purchase price', sub: `Expected — entered on the order · ${pCur === 'EGP' ? 'final price on the supplier bill' : po.rate ? 'at the order rate' : `at the average rate of ${tr0.list.length} transfer${tr0.list.length === 1 ? '' : 's'}`}`, fc: `${money(estP)} ${pCur}`, rate: pCur === 'EGP' ? '' : fmtNum(expRate, 4), egp: r2(estP.mul(expRate)) });
+  else if (expected) costLines.push({ label: 'Purchase price', sub: dB0 ? `Expected — draft bill ${dB0.number} not confirmed yet${!po.rate && tr0 ? ` · average rate of ${tr0.list.length} transfer${tr0.list.length === 1 ? '' : 's'}` : ''}` : 'Expected — supplier bill not recorded yet', fc: `${money(pAmt)} ${pCur}`, rate: pCur === 'EGP' ? '' : fmtNum(expRate, 4), egp: r2(pAmt.mul(expRate)) });
   for (const r of bd){
     if (r.kind === 'purchase'){ const fcAmt = supInv ? D(supInv.total) : pAmt, cur = supInv ? supInv.currency : pCur;
       costLines.push({ label: 'Purchase price', sub: supInv ? `${supInv.number} · ${supInv.date}${sup ? ' · ' + sup.legalName : ''}` : '', fc: cur !== 'EGP' ? `${money(fcAmt)} ${cur}` : '', rate: cur !== 'EGP' && fcAmt.gt(0) ? fmtNum(r.egp.div(fcAmt), 4) : '', egp: r.egp }); continue; }
@@ -15085,7 +15091,7 @@ function printCarReport(po){
   <div class="tl">${steps.map(([t0, d0, ref0], i) => `<div class="st ${d0 ? 'done' : i === cur ? 'cur' : ''}"><span class="dot"></span><b>${t0}</b><em>${d0 && d0 !== '✓' ? d0 : d0 ? 'done' : i === cur ? 'next' : '—'}</em>${ref0 ? `<em>${esc(ref0)}</em>` : ''}</div>`).join('')}</div>
   <div class="kpis">
     <div class="kpi"><div class="k">${cy.sold ? 'Selling price' : 'Contracted price'}</div><div class="v">${cy.sold ? money(net) + ' <span class="u">EGP</span>' : ctr ? (ctr.cur === 'EGP' ? money(ctr.amt) + ' <span class="u">EGP</span>' : ctrTxt) : '—'}</div><div class="s">${cy.sold ? (ctr ? (diffCtr ? `contract ${ctrTxt}` : 'as contracted') : esc(sale.number)) : ctr ? 'agreed with the customer' : 'no contract price'}</div></div>
-    <div class="kpi"><div class="k">Total cost</div><div class="v">${money(costEgp)} <span class="u">EGP</span></div><div class="s">${pending ? 'so far · purchase price pending' : expected ? (dB0 ? 'draft bill × average transfer rate' : 'purchase at the order rate') : `${costLines.length} item${costLines.length === 1 ? '' : 's'}`}</div></div>
+    <div class="kpi"><div class="k">Total cost</div><div class="v">${money(costEgp)} <span class="u">EGP</span></div><div class="s">${pending ? 'so far · purchase price pending' : expected ? (estP ? 'expected purchase price + costs' : dB0 ? 'draft bill × average transfer rate' : 'purchase at the order rate') : `${costLines.length} item${costLines.length === 1 ? '' : 's'}`}</div></div>
     <div class="kpi hi"><div class="k">${cy.sold ? 'Profit' : 'Expected profit'}</div>${kpiProfit}</div>
     <div class="kpi"><div class="k">Margin</div><div class="v ${profitKnown ? (neg(shownRes) ? 'neg' : '') : 'pend'}">${profitKnown ? margin : '—'}</div><div class="s">of the ${cy.sold ? 'selling' : 'contracted'} price</div></div>
   </div>
@@ -15100,12 +15106,13 @@ function printCarReport(po){
       <div class="r"><span>Supplier bill${billed ? ` <span class="m">· ${esc(supInv.number)}</span>` : ''}</span><b>${billed ? `${money(supBillFc)} ${pCur}` : draftBill ? `<span class="tag warn">Draft ${money(draftBill.total)} ${pCur}</span>` : '<span class="tag warn">Not billed yet</span>'}</b></div>
       <div class="r"><span>Paid</span><b>${money(paidFc)} ${pCur}${pCur !== 'EGP' ? ` <span class="m">= ${money(tOut.egp)} EGP</span>` : ''}</b></div>
       ${pCur !== 'EGP' ? `<div class="r"><span>Rate</span><b>${billed && supInv.entryId && entryById(supInv.entryId) && entryById(supInv.entryId).rate ? fmtNum(entryById(supInv.entryId).rate, 4) + ' <span class="m">bill</span>' : tr ? fmtNum(tr.rate, 4) + ' <span class="m">avg of transfers</span>' : po.rate ? fmtNum(po.rate, 4) + ' <span class="m">order</span>' : '—'}</b></div>` : ''}
-      <div class="r tot"><span>Balance due</span><b class="${supDue && supDue.gt(0) ? 'bad' : billed ? 'ok' : ''}">${billed ? (supDue.gt(0) ? `${money(supDue)} ${pCur}` : 'Fully paid') : '—'}</b></div>
+      ${!billed && !draftBill && estP ? `<div class="r"><span>Expected price <span class="m">· entered on the order</span></span><b>${money(estP)} ${pCur}</b></div>` : ''}
+      <div class="r tot"><span>${billed ? 'Balance due' : 'Still to pay'}${!billed && (draftBill || estP) ? ' <span class="m">· expected</span>' : ''}</span>${billed ? `<b class="${supDue.gt(0) ? 'bad' : 'ok'}">${supDue.gt(0) ? `${money(supDue)} ${pCur}` : 'Fully paid'}</b>` : (draftBill || estP) ? (() => { const rm = D(draftBill ? draftBill.total : estP).minus(paidFc); return `<b class="${rm.gt(0) ? 'bad' : 'ok'}">${rm.gt(0) ? `${money(rm)} ${pCur}` : 'Fully covered'}</b>`; })() : '<b>—</b>'}</div>
     </div>
   </div>
   <section class="blk"><h2>Cost of the car</h2>
     <table class="t"><thead><tr><th>Item</th><th class="n">Amount</th><th class="n">Rate</th><th class="n">EGP</th><th class="n">Status</th></tr></thead><tbody>
-      ${pending ? `<tr><td>Purchase price<span class="sub">${draftBill ? `Draft bill ${esc(draftBill.number)} · ${money(draftBill.total)} ${pCur} — not confirmed yet` : 'Awaiting the supplier bill'}${tr ? ` · ${money(tr.amount)} ${pCur} transferred so far at an average of ${fmtNum(tr.rate, 4)}` : ''}</span></td><td class="n">${draftBill ? `${money(draftBill.total)} <span class="cur">${pCur}</span>` : '<span class="cur">—</span>'}</td><td class="n">${tr ? fmtNum(tr.rate, 4) : '<span class="cur">—</span>'}</td><td class="n"><span class="cur">pending</span></td><td class="n"><span class="tag warn">Pending</span></td></tr>` : ''}
+      ${pending ? `<tr><td>Purchase price<span class="sub">${draftBill ? `Draft bill ${esc(draftBill.number)} · ${money(draftBill.total)} ${pCur} — not confirmed yet` : estP ? `Expected ${money(estP)} ${pCur} — no rate yet (no transfers to the supplier)` : 'Awaiting the supplier bill'}${tr ? ` · ${money(tr.amount)} ${pCur} transferred so far at an average of ${fmtNum(tr.rate, 4)}` : ''}</span></td><td class="n">${draftBill ? `${money(draftBill.total)} <span class="cur">${pCur}</span>` : estP ? `${money(estP)} <span class="cur">${pCur}</span>` : '<span class="cur">—</span>'}</td><td class="n">${tr ? fmtNum(tr.rate, 4) : '<span class="cur">—</span>'}</td><td class="n"><span class="cur">pending</span></td><td class="n"><span class="tag warn">Pending</span></td></tr>` : ''}
       ${rowsCost.map(r => `<tr><td>${esc(r.label)}${r.sub || r.share ? `<span class="sub">${esc(r.sub)}${r.share ? ` · this car's share of ${r.share} cars` : ''}</span>` : ''}</td><td class="n">${r.fc || '<span class="cur">EGP</span>'}</td><td class="n">${r.rate || '<span class="cur">—</span>'}</td><td class="n">${money(r.egp)}</td><td class="n">${r.st ? `<span class="tag ${r.st.c}">${r.st.t}</span>` : r.sub && /Expected/.test(r.sub) ? '<span class="tag warn">Expected</span>' : ''}</td></tr>`).join('')}
       ${!rowsCost.length && !pending ? '<tr><td colspan="5" class="empty">No costs recorded yet.</td></tr>' : ''}
     </tbody><tfoot><tr><td colspan="3">Total cost${pending ? ' so far' : ''}</td><td class="n">${money(costEgp)} EGP</td><td></td></tr></tfoot></table>
@@ -15357,7 +15364,7 @@ function poView(po){
               <tbody>
                 <tr>
                   <td class="lbl">Purchase Price</td>
-                  <td class="val">${po.lines.some(l => l.pricePending) ? `<span class="muted">Entered on the supplier bill</span>` : `<b class="mono" style="font-size:14.5px;color:#0f172a">${money(total)} ${po.currency}</b>${po.currency !== 'EGP' && po.rate ? ` <span class="muted" style="font-size:12px;font-weight:normal">(≈ ${money(sm.priceEgp || total.mul(po.rate))} EGP)</span>` : ''}`}</td>
+                  <td class="val">${po.lines.some(l => l.pricePending) ? (D(po.estPrice || 0).gt(0) ? `<b class="mono" style="font-size:14.5px;color:#0f172a">${money(po.estPrice)} ${po.currency}</b> <span class="muted" style="font-size:12px">expected · final price on the supplier bill</span>` : `<span class="muted">Entered on the supplier bill</span>`) : `<b class="mono" style="font-size:14.5px;color:#0f172a">${money(total)} ${po.currency}</b>${po.currency !== 'EGP' && po.rate ? ` <span class="muted" style="font-size:12px;font-weight:normal">(≈ ${money(sm.priceEgp || total.mul(po.rate))} EGP)</span>` : ''}`}</td>
                 </tr>
                 ${po.salePrice ? `<tr><td class="lbl">Contracted Price</td><td class="val"><b class="mono" style="font-size:14.5px;color:#047857">${money(po.salePrice)} ${esc(po.saleCurrency || 'EGP')}</b> <span class="muted" style="font-size:12px">agreed with the customer</span></td></tr>` : ''}
                 <tr>
@@ -16604,7 +16611,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261110-070128';
+const APP_BUILD = 'build-20261110-122850';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
