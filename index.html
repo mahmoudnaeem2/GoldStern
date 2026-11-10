@@ -14560,6 +14560,10 @@ function invoiceView(inv){
   const side = inv.side, SD = SIDES[side], p = partnerById(side, inv.partnerId), e = entryById(inv.entryId), isC = inv.type === 'credit';
   const st = isC ? null : invState(inv), [lbl, cls] = invPayState(inv), ref = invRef(inv), live = entryStatus(inv) === 'posted';
   const po = inv.poId ? poById(inv.poId) : null, so = inv.soId ? soById(inv.soId) : null, impPo = so && so.importPoId ? poById(so.importPoId) : null, srcPo = po || impPo;
+  const isDraftBill = !!(e && e.status === 'draft' && side === 'ap' && po && inv.poLineIds), dTr = isDraftBill && inv.currency !== 'EGP' ? poTransferRate(po) : null;
+  const vRate = invRate(inv) || (dTr ? dTr.rate.toDecimalPlaces(4) : e && e.fixedRate && e.fixedRate.rate ? D(e.fixedRate.rate) : null);
+  const dPaid = isDraftBill ? poAdvances(po, 'ap').filter(x => entryStatus(x) === 'posted' && x.currency === inv.currency).reduce((t, x) => t.plus(x.amount), D0()) : null;
+  const dPaidEgp = isDraftBill ? poAdvances(po, 'ap').filter(x => entryStatus(x) === 'posted' && x.currency === inv.currency).reduce((t, x) => t.plus(x.currency === 'EGP' ? D(x.amount) : r2(D(x.amount).mul(x.rate || 0))), D0()) : null;
   const title = isC ? SD.credit : inv.landed ? 'Import cost invoice' : inv.type === 'opening' ? `Opening ${SD.doc.toLowerCase()}` : SD.doc;
   const lines = inv.lines && inv.lines.length ? inv.lines : [{ description: inv.reason || title, amount: inv.total }];
   const red = st ? st.reductions.filter(r => ACTIVE_ST.includes(r.status)) : [];
@@ -14644,6 +14648,14 @@ function invoiceView(inv){
                   <td class="lbl">VAT (${esc(inv.tax.code)} ${esc(inv.tax.rate)}%)</td>
                   <td class="val"><span class="mono">${money(inv.tax.tax)} ${inv.currency}</span></td>
                 </tr>` : ''}
+                ${isDraftBill ? (() => { const rm = D(inv.total).minus(dPaid); return `<tr>
+                  <td class="lbl">Paid to supplier</td>
+                  <td class="val">${dPaid.gt(0) ? `<b class="mono" style="color:#047857">− ${money(dPaid)} ${inv.currency}</b> <span class="muted" style="font-size:12px">transfers, applied on confirm</span>` : '<span class="muted">0.00 ' + inv.currency + '</span>'}</td>
+                </tr>
+                <tr style="background:${rm.gt(0) ? '#fff1f2' : '#f0fdf4'}">
+                  <td class="lbl" style="font-weight:700;color:${rm.gt(0) ? '#991b1b' : '#166534'}">Remaining</td>
+                  <td class="val"><b class="mono" style="font-size:15px;color:${rm.gt(0) ? '#dc2626' : '#16a34a'}">${rm.gt(0) ? money(rm) : '0.00'} ${inv.currency}</b></td>
+                </tr>`; })() : `
                 <tr>
                   <td class="lbl">Payments &amp; Deductions</td>
                   <td class="val">${paidAmt.gt(0) ? `<b class="mono" style="color:#047857">− ${money(paidAmt)} ${inv.currency}</b>` : '<span class="muted">0.00 ' + inv.currency + '</span>'}</td>
@@ -14651,7 +14663,7 @@ function invoiceView(inv){
                 <tr style="background:${st && st.open.gt(0) ? '#fff1f2' : '#f0fdf4'}">
                   <td class="lbl" style="font-weight:700;color:${st && st.open.gt(0) ? '#991b1b' : '#166534'}">Amount Due</td>
                   <td class="val"><b class="mono" style="font-size:15px;color:${st && st.open.gt(0) ? '#dc2626' : '#16a34a'}">${st ? money(st.open) : '0.00'} ${inv.currency}</b></td>
-                </tr>
+                </tr>`}
               </tbody>
             </table>
             ${credits.length > 0 ? `
@@ -14701,8 +14713,10 @@ function invoiceView(inv){
                 </tr>
                 <tr>
                   <td class="lbl">Currency &amp; Rate</td>
-                  <td class="val"><span class="mono">${inv.currency}${egp && e && e.rate ? ` · 1 ${inv.currency} = ${fmtNum(invRate(inv) || e.rate, 4)} EGP` : ''}</span></td>
+                  <td class="val"><span class="mono">${inv.currency}${egp && vRate ? ` · 1 ${inv.currency} = ${fmtNum(vRate, 4)} EGP` : ''}</span>${dTr ? ` <span class="muted" style="font-size:12px">average of ${dTr.list.length} transfer${dTr.list.length === 1 ? '' : 's'} · used on confirm</span>` : ''}</td>
                 </tr>
+                ${isDraftBill ? `<tr><td class="lbl">Paid to supplier</td><td class="val"><b class="mono">${money(dPaid)} ${inv.currency}</b>${inv.currency !== 'EGP' ? ` <span class="muted">(= ${money(dPaidEgp)} EGP)</span>` : ''}</td></tr>
+                <tr><td class="lbl">Remaining</td><td class="val"><b class="mono" style="color:${D(inv.total).minus(dPaid).gt(0) ? 'var(--bad)' : 'var(--ok)'}">${D(inv.total).minus(dPaid).gt(0) ? `${money(D(inv.total).minus(dPaid))} ${inv.currency}` : 'Nothing — fully covered by the transfers'}</b>${D(inv.total).minus(dPaid).gt(0) && vRate && inv.currency !== 'EGP' ? ` <span class="muted">(≈ ${money(r2(D(inv.total).minus(dPaid).mul(vRate)))} EGP)</span>` : ''}</td></tr>` : ''}
                 <tr>
                   <td class="lbl">Journal</td>
                   <td class="val">${e ? esc((journalOf(e.journal) || {}).name || e.journal) : '<span class="muted">—</span>'}</td>
@@ -14761,7 +14775,7 @@ function invoiceView(inv){
                       <td>${lv ? `<a href="#/veh/view?id=${lv.id}" style="color:#0369a1;font-weight:600">${esc(carName(lv))}</a><div class="muted mono" style="font-size:11.5px">Chassis ${esc(lv.vin)}</div>` : '<span class="muted">—</span>'}</td>
                       <td>${ac ? `<span class="badge b-mute">${esc(ac.code)} · ${esc(ac.name)}</span>` : '<span class="muted">—</span>'}</td>
                       <td class="num mono"><b>${money(l.amount)}</b></td>
-                      ${egp ? `<td class="num mono muted">${money(r2(D(l.amount).mul(invRate(inv) || (e ? e.rate : 1))))}</td>` : ''}
+                      ${egp ? `<td class="num mono muted">${vRate ? money(r2(D(l.amount).mul(vRate))) : '—'}</td>` : ''}
                     </tr>`;
                   }).join('')}
                 </tbody>
@@ -15485,6 +15499,7 @@ function poView(po){
                   ` : poDraftBill(po) ? (() => { const d = poDraftBill(po), tr = d.currency !== 'EGP' ? poTransferRate(po) : null; return `
                     <div class="rdc-row"><span>Supplier invoice no.</span><b>${esc(d.partnerRef)}</b></div>
                     <div class="rdc-row"><span>Amount</span><b class="mono">${money(d.total)} ${d.currency}</b></div>
+                    ${(() => { const pd = poAdvances(po, 'ap').filter(x => entryStatus(x) === 'posted' && x.currency === d.currency).reduce((t, x) => t.plus(x.amount), D0()), rm = D(d.total).minus(pd); return `<div class="rdc-row"><span>Paid to supplier</span><b class="mono" style="color:var(--ok)">${money(pd)} ${d.currency}</b></div><div class="rdc-row highlight"><span>Remaining</span><b class="mono" style="color:${rm.gt(0) ? 'var(--bad)' : 'var(--ok)'}">${rm.gt(0) ? money(rm) + ' ' + d.currency : 'Fully covered'}</b></div>`; })()}
                     ${d.currency !== 'EGP' ? `<div class="rdc-row"><span>Rate on confirm</span><b class="mono">${tr ? fmtNum(tr.rate, 4) + ' <span class="muted" style="font-weight:400">· average of ' + tr.list.length + ' transfer' + (tr.list.length === 1 ? '' : 's') + '</span>' : '<span class="muted" style="font-weight:400">enter on confirm</span>'}</b></div>` : ''}
                     <p class="rdc-desc" style="margin-top:6px">Draft — nothing is posted yet. Confirm it to post the journal entry${po.importOrder ? ' and receive the car' : ''}.</p>
                     <div class="rdc-actions">
@@ -16589,7 +16604,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261110-065715';
+const APP_BUILD = 'build-20261110-070128';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
