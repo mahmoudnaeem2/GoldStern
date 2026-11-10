@@ -14954,8 +14954,14 @@ function printCarReport(po){
   const net = vp ? vp.net : D0(), result = vp ? net.minus(vp.cogs).minus(vp.direct).minus(vp.importExp).minus(vp.losses).plus(vp.otherInc).plus(vp.fx) : D0();
   const ctr = D(String(po.salePrice || '0').replace(/,/g, '')).gt(0) ? { amt: D(String(po.salePrice).replace(/,/g, '')), cur: po.saleCurrency || 'EGP' } : null;
   const ctrTxt = ctr ? `${money(ctr.amt)} ${esc(ctr.cur)}` : '';
-  const est = !cy.sold && ctr && ctr.cur === 'EGP' && (cy.invoiced || expected); // not invoiced yet: show the contracted price and the expected profit
-  const shownNet = est ? ctr.amt : net, shownRes = est ? ctr.amt.minus(costEgp) : result;
+  // contract in a foreign currency: convert it to EGP — same currency as the supplier → the purchase rate (bill, order or transfer average); otherwise today's official rate
+  let ctrRate = null, ctrRateSrc = '';
+  if (ctr){ if (ctr.cur === 'EGP') ctrRate = D(1);
+    else if (ctr.cur === pCur && (cy.supInv ? invRate(cy.supInv) : expRate)){ ctrRate = D(cy.supInv ? invRate(cy.supInv) : expRate); ctrRateSrc = cy.supInv ? 'supplier bill rate' : po.rate ? 'order rate' : 'average transfer rate'; }
+    else { try { ctrRate = getRate(ctr.cur, 'EGP', todayCairo()).rate; ctrRateSrc = "today's official rate"; } catch (x){ ctrRate = null; } } }
+  const ctrEgp = ctr && ctrRate ? r2(ctr.amt.mul(ctrRate)) : null;
+  const est = !cy.sold && ctrEgp && (cy.invoiced || expected); // not invoiced yet: show the contracted price and the expected profit
+  const shownNet = est ? ctrEgp : net, shownRes = est ? ctrEgp.minus(costEgp) : result;
   const margin = shownNet.gt(0) ? shownRes.div(shownNet).mul(100).toFixed(1) + '%' : '—';
   const cxRows = v ? carExpensesOf(v.id) : [];
   const supInv = cy.supInv, sale = cy.sale;
@@ -14999,12 +15005,12 @@ function printCarReport(po){
   const cxOf = r => r.ref ? cxRows.find(z => z.e && z.e.id === r.ref.id) : null;
   const payState = (inv, cur0) => { if (!inv) return { t: 'Paid', c: 'ok' }; const o = invState(inv).open; return o.gt(0) ? { t: `Open ${money(o)} ${cur0 || inv.currency}`, c: 'bad' } : { t: 'Paid', c: 'ok' }; };
   const rowsCost = costLines.map(r => ({ ...r, st: r.label === 'Purchase price' && supInv && !/Expected/.test(r.sub || '') ? payState(supInv) : r.doc ? payState(r.doc.invoiceId ? S.invoices.find(q => q.id === r.doc.invoiceId) : null) : null }));
-  const contract = ctr && ctr.cur === 'EGP' ? ctr.amt : null;
+  const contract = ctrEgp;
   const recvEgp = tIn.egp;
   const custDue = sale ? invState(sale).open : contract ? contract.minus(recvEgp) : null;
   const supBillFc = billed ? D(supInv.total) : null, paidFc = adv.filter(x => x.currency === pCur).reduce((t, x) => t.plus(x.amount), D0()).plus(reds(supInv, adv).filter(x => x.kind !== 'Credit note').reduce((t, x) => t.plus(x.amount), D0()));
   const supDue = billed ? invState(supInv).open : null;
-  const diffCtr = cy.sold && contract && !net.eq(contract) ? net.minus(contract) : null;
+  const diffCtr = cy.sold && ctr && ctr.cur === 'EGP' && !net.eq(ctr.amt) ? net.minus(ctr.amt) : null;
   const profitKnown = cy.sold || est;
   const kpiProfit = profitKnown ? `<div class="v ${neg(shownRes) ? 'neg' : 'pos'}">${money(shownRes)} <span class="u">EGP</span></div><div class="s">${cy.sold ? 'on this car' : 'expected · contracted price − cost'}</div>` : `<div class="v pend">Pending</div><div class="s">${pending ? 'known once the supplier bill is in' : 'known once the car is invoiced'}</div>`;
   const tbl = (title, list, t, empty) => `
@@ -15090,7 +15096,7 @@ function printCarReport(po){
     <span class="chip ${carClosed(v || {}) ? 'mute' : cy.delivered || cy.sold ? 'ok' : 'warn'}">${esc(statusTxt)}</span></div>
   <div class="tl">${steps.map(([t0, d0, ref0], i) => `<div class="st ${d0 ? 'done' : i === cur ? 'cur' : ''}"><span class="dot"></span><b>${t0}</b><em>${d0 && d0 !== '✓' ? d0 : d0 ? 'done' : i === cur ? 'next' : '—'}</em>${ref0 ? `<em>${esc(ref0)}</em>` : ''}</div>`).join('')}</div>
   <div class="kpis">
-    <div class="kpi"><div class="k">${cy.sold ? 'Selling price' : 'Contracted price'}</div><div class="v">${cy.sold ? money(net) + ' <span class="u">EGP</span>' : ctr ? (ctr.cur === 'EGP' ? money(ctr.amt) + ' <span class="u">EGP</span>' : ctrTxt) : '—'}</div><div class="s">${cy.sold ? (ctr ? (diffCtr ? `contract ${ctrTxt}` : 'as contracted') : esc(sale.number)) : ctr ? 'agreed with the customer' : 'no contract price'}</div></div>
+    <div class="kpi"><div class="k">${cy.sold ? 'Selling price' : 'Contracted price'}</div><div class="v">${cy.sold ? money(net) + ' <span class="u">EGP</span>' : ctr ? (ctr.cur === 'EGP' ? money(ctr.amt) + ' <span class="u">EGP</span>' : ctrTxt) : '—'}</div><div class="s">${cy.sold ? (ctr ? (diffCtr ? `contract ${ctrTxt}` : 'as contracted') : esc(sale.number)) : ctr ? (ctr.cur !== 'EGP' && ctrEgp ? `≈ ${money(ctrEgp)} EGP at ${fmtNum(ctrRate, 4)}` : 'agreed with the customer') : 'no contract price'}</div></div>
     <div class="kpi"><div class="k">Total cost</div><div class="v">${money(costEgp)} <span class="u">EGP</span></div><div class="s">${pending ? 'so far · purchase price pending' : expected ? (estP ? 'expected purchase price + costs' : dB0 ? 'draft bill × average transfer rate' : 'purchase at the order rate') : `${costLines.length} item${costLines.length === 1 ? '' : 's'}`}</div></div>
     <div class="kpi hi"><div class="k">${cy.sold ? 'Profit' : 'Expected profit'}</div>${kpiProfit}</div>
     <div class="kpi"><div class="k">Margin</div><div class="v ${profitKnown ? (neg(shownRes) ? 'neg' : '') : 'pend'}">${profitKnown ? margin : '—'}</div><div class="s">of the ${cy.sold ? 'selling' : 'contracted'} price</div></div>
@@ -15100,7 +15106,7 @@ function printCarReport(po){
       ${ctr ? `<div class="r"><span>Contracted price</span><b>${ctrTxt}</b></div>` : ''}
       ${sale ? `<div class="r"><span>Invoiced <span class="m">· ${esc(sale.number)}</span></span><b>${money(sale.total)} ${sale.currency}</b></div>` : ''}
       <div class="r"><span>Received</span><b>${money(recvEgp)} EGP</b></div>
-      ${custDue !== null ? `<div class="r tot"><span>${sale ? 'Balance due' : 'Still to collect'}</span><b class="${custDue.gt(0) ? 'bad' : 'ok'}">${custDue.gt(0) ? money(custDue) + ' ' + (sale ? sale.currency : 'EGP') : 'Fully paid'}</b></div>` : '<div class="r tot"><span>Balance</span><b>—</b></div>'}
+      ${custDue !== null ? `<div class="r tot"><span>${sale ? 'Balance due' : 'Still to collect'}</span><b class="${custDue.gt(0) ? 'bad' : 'ok'}">${custDue.gt(0) ? (!sale && ctr.cur !== 'EGP' ? `${money(r2(custDue.div(ctrRate)))} ${esc(ctr.cur)} <span class="m">≈ ${money(custDue)} EGP</span>` : money(custDue) + ' ' + (sale ? sale.currency : 'EGP')) : 'Fully paid'}</b></div>` : '<div class="r tot"><span>Balance</span><b>—</b></div>'}
     </div>
     <div class="ac"><div class="hd"><div><div class="k">${poKind(po) === 'local' ? 'Bought from' : 'Supplier'}</div><div class="nm">${sup ? esc(sup.legalName) : '—'}</div></div><div class="sm">${sup ? esc(sup.code) + ' · ' + pCur : ''}</div></div>
       <div class="r"><span>Supplier bill${billed ? ` <span class="m">· ${esc(supInv.number)}</span>` : ''}</span><b>${billed ? `${money(supBillFc)} ${pCur}` : draftBill ? `<span class="tag warn">Draft ${money(draftBill.total)} ${pCur}</span>` : '<span class="tag warn">Not billed yet</span>'}</b></div>
@@ -15120,7 +15126,7 @@ function printCarReport(po){
   <section class="blk"><h2>${cy.sold ? 'Profit' : 'Expected profit'}</h2>
     <table class="pl"><tbody>
       ${cy.sold ? `<tr><td>Selling price <span class="m">· ${esc(sale.number)} · ${sale.date}${sale.currency !== 'EGP' ? ` · ${money(sale.total)} ${sale.currency}` : ''}${diffCtr ? ` · contract ${ctrTxt} (${diffCtr.gt(0) ? '+' : '−'}${money(diffCtr.abs())})` : ''}</span></td><td class="n">${money(net)}</td></tr>`
-        : `<tr><td>Contracted price <span class="m">· agreed with the customer, not invoiced yet</span></td><td class="n">${ctr ? (ctr.cur === 'EGP' ? money(ctr.amt) : ctrTxt) : '—'}</td></tr>`}
+        : `<tr><td>Contracted price <span class="m">· ${ctr && ctr.cur !== 'EGP' && ctrEgp ? `${ctrTxt} × ${fmtNum(ctrRate, 4)} (${ctrRateSrc})` : 'agreed with the customer'}, not invoiced yet</span></td><td class="n">${ctrEgp ? money(ctrEgp) : ctr ? ctrTxt : '—'}</td></tr>`}
       <tr><td>Cost of the car${pending ? ' <span class="m">· so far, purchase price pending</span>' : ''}</td><td class="n minus">− ${money(cy.sold && vp ? vp.cogs : costEgp)}</td></tr>
       ${vp && vp.otherInc.gt(0) ? `<tr><td>Commission &amp; other income</td><td class="n">+ ${money(vp.otherInc)}</td></tr>` : ''}
       ${vp && vp.importExp.gt(0) ? `<tr><td>Import costs expensed</td><td class="n minus">− ${money(vp.importExp)}</td></tr>` : ''}
@@ -16611,7 +16617,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261110-122850';
+const APP_BUILD = 'build-20261110-123517';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
