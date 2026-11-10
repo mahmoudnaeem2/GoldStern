@@ -15097,7 +15097,6 @@ function printCarReport(po){
   <div class="car"><div><h1>${v ? `${esc(makeName(v.makeId))} ${esc(modelName(v.makeId, v.modelId))}${v.year ? ' ' + v.year : ''}` : esc(po.number)}</h1>
     <div class="meta">${v ? `<div><span>Chassis</span> <b>${esc(v.vin)}</b></div><div><span>Stock no.</span> <b>${esc(v.code)}</b></div>${v.exteriorColor ? `<div><span>Color</span> <b>${esc(v.exteriorColor)}${v.interiorColor ? ' / ' + esc(v.interiorColor) : ''}</b></div>` : ''}${v.engineNo ? `<div><span>Engine</span> <b>${esc(v.engineNo)}</b></div>` : ''}` : ''}</div></div>
     <span class="chip ${carClosed(v || {}) ? 'mute' : cy.delivered || cy.sold ? 'ok' : 'warn'}">${esc(statusTxt)}</span></div>
-  <div class="tl">${steps.map(([t0, d0, ref0], i) => `<div class="st ${d0 ? 'done' : i === cur ? 'cur' : ''}"><span class="dot"></span><b>${t0}</b><em>${d0 && d0 !== '✓' ? d0 : d0 ? 'done' : i === cur ? 'next' : '—'}</em>${ref0 ? `<em>${esc(ref0)}</em>` : ''}</div>`).join('')}</div>
   <div class="kpis">
     <div class="kpi"><div class="k">${cy.sold ? 'Selling price' : 'Contracted price'}</div><div class="v">${cy.sold ? money(net) + ' <span class="u">EGP</span>' : ctr ? (ctr.cur === 'EGP' ? money(ctr.amt) + ' <span class="u">EGP</span>' : ctrTxt) : '—'}</div><div class="s">${cy.sold ? (ctr ? (diffCtr ? `contract ${ctrTxt}` : 'as contracted') : esc(sale.number)) : ctr ? (ctr.cur !== 'EGP' && ctrEgp ? `≈ ${money(ctrEgp)} EGP at ${fmtNum(ctrRate, 4)}` : 'agreed with the customer') : 'no contract price'}</div></div>
     <div class="kpi"><div class="k">Total cost</div><div class="v">${money(costEgp)} <span class="u">EGP</span></div>${(() => { const fr = pCur !== 'EGP' ? (supInv ? invRate(supInv) : expRate) : null; return fr && D(fr).gt(0) && costEgp.gt(0) ? `<div class="fc">≈ ${money(r2(costEgp.div(fr)))} ${pCur} <span class="u">at ${fmtNum(fr, 4)}</span></div>` : ''; })()}<div class="s">${pending ? 'so far · purchase price pending' : expected ? (estP ? 'expected purchase price + costs' : dB0 ? 'draft bill × average transfer rate' : 'purchase at the order rate') : `${costLines.length} item${costLines.length === 1 ? '' : 's'}`}</div></div>
@@ -16620,7 +16619,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261110-124426';
+const APP_BUILD = 'build-20261110-131221';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
