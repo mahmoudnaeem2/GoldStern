@@ -2307,15 +2307,24 @@ html[dir=rtl] .pg-car{transform:rotate(90deg)}
 .fs-grand td{font-weight:700;font-size:14.5px;background:#fdfaf2;border-top:2px solid #e4d3a6;border-bottom:1px solid #e4d3a6}
 .fs-cmp{color:var(--muted)}
 .fs-tbl.eq td.num{width:150px}
-.rc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;align-items:start}
-.rc-card{padding:18px 18px 10px!important}
-.rc-card header{display:flex;align-items:center;gap:12px;margin-bottom:10px}.rc-card h2{margin:0;font-size:15px;font-weight:650}
-.rc-card ul{list-style:none;margin:0;padding:0}
-.rc-card li a{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 10px;margin:0 -10px;border-radius:8px;font-size:13.5px;color:var(--text-2);text-decoration:none}
-.rc-card li a .ic{transform:rotate(-90deg);color:#c3c9d2;transition:transform .15s,color .15s}
+.rc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:18px;align-items:stretch}
+.rc-card{padding:20px 20px 14px!important;display:flex;flex-direction:column}
+.rc-card header{display:flex;align-items:center;gap:12px;padding-bottom:14px;margin-bottom:8px;border-bottom:1px solid var(--border)}
+.rc-card h2{margin:0;font-size:16px;font-weight:750;color:var(--text);letter-spacing:-.015em}
+.rc-card header .rc-cnt{margin-inline-start:auto;font-size:11.5px;font-weight:650;color:var(--muted);background:var(--surface-2);border:1px solid var(--border);border-radius:999px;padding:2px 9px}
+.rc-card ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.rc-card li + li{border-top:1px solid var(--border)}
+.rc-card li a{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;margin:2px -6px;border-radius:10px;color:var(--text);text-decoration:none!important;transition:all .15s ease}
+.rc-card .rc-item-txt{display:flex;flex-direction:column;gap:2px;min-width:0}
+.rc-card .rc-item-txt b{font-size:14px;font-weight:650;color:var(--text);letter-spacing:-.01em;line-height:1.3}
+.rc-card .rc-item-txt small{font-size:12px;font-weight:450;color:var(--muted);line-height:1.3}
+.rc-card li a .rc-arr{width:26px;height:26px;border-radius:7px;background:var(--surface-2);display:grid;place-items:center;flex:none;color:var(--muted);transition:all .15s ease}
+.rc-card li a .ic{transform:rotate(-90deg);transition:transform .15s,color .15s}
 html[dir=rtl] .rc-card li a .ic{transform:rotate(90deg)}
-.rc-card li a:hover{background:#fdfaf2;color:var(--text)}.rc-card li a:hover .ic{color:#8a6512}
-.rc-card li + li a{border-top:1px solid #f3f4f6}
+.rc-card li a:hover{background:var(--gold-soft,#fdfaf2);color:var(--text)}
+.rc-card li a:hover .rc-item-txt b{color:var(--gold-text,#8a6512)}
+.rc-card li a:hover .rc-arr{background:var(--gold,#c59b27);color:#fff;transform:translateX(2px)}
+html[dir=rtl] .rc-card li a:hover .rc-arr{transform:translateX(-2px)}
 @media (max-width:760px){.fs-tbl th.num,.fs-tbl td.num{width:auto}.fs-code{min-width:0}}
 
 /* Report period pills → segmented control */
@@ -11957,17 +11966,69 @@ function pageExecutive(){
       <div class="card"><div class="card-h"><h2>Bank balances by currency</h2></div><div class="card-b">${barChart(['EGP','EUR','USD'].map(c => ({ label: c, value: k.banks.filter(x => x.b.currency === c).reduce((t, x) => t.plus(x.fc), D0()) })))}<p class="hint" style="margin:0">Bars show each currency in its own units.</p></div></div></div>` : ''}`;
 }
 function pageReportCenter(){
-  const L = (r, l, m) => !m || can(m, 'read') ? `<li><a href="#/${r}"><span>${esc(l)}</span>${ic('chev', 14)}</a></li>` : '';
-  const RC_ICONS = { 'Accounting': 'accounting', 'Banking & FX': 'banking', 'Receivables': 'users', 'Payables': 'truck', 'Inventory & imports': 'cars', 'Sales & profitability': 'sales', 'Tax': 'file', 'Assets & expenses': 'expenses' };
-  const groups = [['Accounting', [['rep/statements?s=bs','Balance sheet','ledger'], ['rep/statements?s=is','Income statement','ledger'], ['rep/statements?s=cf','Cash flow statement','ledger'], ['rep/statements?s=eq','Statement of changes in equity','ledger'], ['acc/tb','Trial balance','ledger'], ['acc/gl','General ledger','ledger'], ['acc/journals','Journal report','journals'], ['acc/coa','Chart of accounts','coa'], ['acc/opening','Opening balances','journals'], ['rep/budgets','Budget vs actual','ledger'], ['acc/integrity','Financial integrity','integrity'], ['settings/fiscal','Period closing','fiscal']]],
-    ['Banking & FX', [['bank/accounts','Bank balances / bank book','banking'], ['bank/statements','Bank reconciliation','banking'], ['bank/fx','Realized & unrealized FX, exposure','banking'], ['bank/reval','FX revaluation','fx_reval']]],
-    ['Receivables', [['ar/aging','AR aging & overdue','ar'], ['ar/invoices','Customer invoices','ar'], ['ar/receipts','Collections','ar'], ['ar/advances','Customer advances','ar'], ['acc/partner-ledger','Partner ledger','ledger'], ['partners/customers','Customer statements','customers']]],
-    ['Payables', [['ap/aging','AP aging & overdue','ap'], ['ap/invoices','Supplier bills','ap'], ['ap/receipts','Payments','ap'], ['ap/advances','Supplier advances','ap'], ['partners/suppliers','Supplier statements','suppliers']]],
-    ['Inventory & imports', [['inv/valuation','Inventory valuation / goods in transit','inventory'], ['veh/list','Vehicles by status','vehicles'], ['inv/moves','Vehicle movements','inventory'], ['imp/landed','Landed cost & cost reconciliation','imports'], ['imp/costs','Import cost analysis','imports'], ['imp/shipments','Shipment register','imports']]],
-    ['Sales & profitability', [['sal/orders','Sales register','sales'], ['ana/profit','Vehicle profitability / gross margin','analytics'], ['sal/deliveries','Deliveries & sales returns','sales']]],
-    ['Tax', [['tax/report','Tax report','tax'], ['tax/einvoice','E-invoice readiness','tax']]], ['Assets & expenses', [['fa/register','Fixed asset register','assets'], ['exp/list','Expenses','expenses'], ['exp/schedules','Accruals & prepayments','expenses']]]];
-  return H(t('rep_center'), 'Every report is computed from posted data. Statements export to Excel; any page prints to PDF from the browser (Print → Save as PDF), including Arabic layouts.', `<button class="btn primary" data-act="fin-xlsx" data-k="is,bs,cf,tb,pl,ar,ap,profit" data-name="goldstern-financial-pack">Financial pack (Excel)</button>`) +
-    `<div class="rc-grid">${groups.map(([g, items]) => { const li = items.map(([r, l, m]) => L(r, l, m)).join(''); return li ? `<section class="card rc-card"><header><span class="co-step">${ic(RC_ICONS[g] || 'reports', 18)}</span><h2>${esc(g)}</h2></header><ul>${li}</ul></section>` : ''; }).join('')}</div>`;
+  const ar = UI.lang === 'ar';
+  const L = (r, l, sub, m) => !m || can(m, 'read') ? `<li><a href="#/${r}"><span class="rc-item-txt"><b>${esc(l)}</b>${sub ? `<small>${esc(sub)}</small>` : ''}</span><span class="rc-arr">${ic('chev', 14)}</span></a></li>` : '';
+  const groups = [
+    [ar ? 'القوائم المالية' : 'Financial Statements', 'reports', [
+      ['rep/statements?s=bs', ar ? 'الميزانية العمومية (Balance Sheet)' : 'Balance Sheet', ar ? 'الأصول والالتزامات وحقوق الملكية' : 'Assets, liabilities & owners’ equity', 'ledger'],
+      ['rep/statements?s=is', ar ? 'قائمة الدخل والأرباح والخسائر' : 'Income Statement (Profit & Loss)', ar ? 'الإيرادات وتكلفة المبيعات وصافي الربح' : 'Revenue, cost of sales & net profit', 'ledger'],
+      ['rep/statements?s=cf', ar ? 'قائمة التدفقات النقدية' : 'Cash Flow Statement', ar ? 'التدفقات النقدية التشغيلية والاستثمارية' : 'Operating, investing & financing cash flows', 'ledger'],
+      ['rep/statements?s=eq', ar ? 'قائمة التغير في حقوق الملكية' : 'Statement of Changes in Equity', ar ? 'حركة رأس المال والأرباح المرحلة' : 'Capital movements & retained earnings', 'ledger'],
+      ['rep/budgets', ar ? 'الموازنة التقديرية مقابل الفعلي' : 'Budget vs. Actual', ar ? 'تحليل الانحرافات الشهرية والسنوية' : 'Monthly & YTD variance analysis', 'ledger']
+    ]],
+    [ar ? 'الأستاذ العام والمراجعة' : 'General Ledger & Audit', 'accounting', [
+      ['acc/tb', ar ? 'ميزان المراجعة (Trial Balance)' : 'Trial Balance', ar ? 'أرصدة الافتتاح والحركة والختام' : 'Opening, period movements & closing balances', 'ledger'],
+      ['acc/gl', ar ? 'دفتر الأستاذ العام (General Ledger)' : 'General Ledger', ar ? 'كشف تفصيلي لحركات كل حساب' : 'Detailed transaction history by account', 'ledger'],
+      ['acc/journals', ar ? 'سجل القيود اليومية' : 'Journal Entries Register', ar ? 'جميع القيود المرحلة والمسودات' : 'All posted & draft journal entries', 'journals'],
+      ['acc/coa', ar ? 'دليل الحسابات (Chart of Accounts)' : 'Chart of Accounts', ar ? 'شجرة الحسابات والأرصدة الحالية' : 'Complete account hierarchy & live balances', 'coa'],
+      ['acc/opening', ar ? 'الأرصدة الافتتاحية' : 'Opening Balances', ar ? 'أرصدة بداية المدة للنظام' : 'Go-live & initial account balances', 'journals'],
+      ['acc/integrity', ar ? 'فحص سلامة الحسابات' : 'Financial Integrity Check', ar ? 'مراجعة توازن الأستاذ العام والفرعي' : 'Automated GL & subledger verification', 'integrity'],
+      ['settings/fiscal', ar ? 'الفترات المالية وإقفال السنة' : 'Fiscal Periods & Closing', ar ? 'إدارة الفترات وإقفال نهاية العام' : 'Period status & year-end closing', 'fiscal']
+    ]],
+    [ar ? 'البنوك والخزينة والعملات' : 'Banking & Foreign Exchange', 'banking', [
+      ['bank/accounts', ar ? 'أرصدة البنوك والخزينة' : 'Bank & Cash Balances', ar ? 'أرصدة الحسابات البنكية والنقدية' : 'Live balances across EGP, EUR & USD', 'banking'],
+      ['bank/statements', ar ? 'مطابقة كشوف الحسابات البنكية' : 'Bank Reconciliation', ar ? 'مطابقة كشف البنك مع الدفاتر' : 'Statement matching & reconciliation', 'banking'],
+      ['bank/fx', ar ? 'فروق العملة المحققة وغير المحققة' : 'FX Gain / Loss & Exposure', ar ? 'تحليل أرباح وخسائر أسعار الصرف' : 'Realized & unrealized currency exposure', 'banking'],
+      ['bank/reval', ar ? 'إعادة تقييم العملات الأجنبية' : 'FX Revaluation', ar ? 'تقييم الأرصدة الأجنبية بسعر الإقفال' : 'Month-end foreign currency revaluation', 'fx_reval']
+    ]],
+    [ar ? 'العملاء والمديونيات (AR)' : 'Receivables (Customers)', 'users', [
+      ['ar/aging', ar ? 'أعمار ديون العملاء والمتأخرات' : 'Customer Aging & Overdue (AR)', ar ? 'تحليل المديونيات حسب فترات الاستحقاق' : 'Open receivables by aging bucket', 'ar'],
+      ['ar/invoices', ar ? 'فواتير مبيعات العملاء' : 'Customer Invoices', ar ? 'سجل فواتير البيع والتحصيل' : 'Issued sales invoices & balances due', 'ar'],
+      ['ar/receipts', ar ? 'مقبوضات وتحصيلات العملاء' : 'Customer Collections & Receipts', ar ? 'سجل الدفعات المستلمة من العملاء' : 'Customer payments & settlement history', 'ar'],
+      ['ar/advances', ar ? 'دفعات مقدمة وعربون العملاء' : 'Customer Advances & Deposits', ar ? 'الأرصدة الدائنة والدفعات غير الموزعة' : 'Unapplied customer deposits & advances', 'ar'],
+      ['acc/partner-ledger', ar ? 'أستاذ مساعد العملاء والموردين' : 'Partner Ledger', ar ? 'حركة تفصيلية لكل عميل ومورد' : 'Full subledger activity per partner', 'ledger'],
+      ['partners/customers', ar ? 'كشوف حسابات العملاء' : 'Customer Account Statements', ar ? 'كشف حساب تفصيلي قابل للطباعة' : 'Printable statement of account per customer', 'customers']
+    ]],
+    [ar ? 'الموردون والمدفوعات (AP)' : 'Payables (Suppliers)', 'truck', [
+      ['ap/aging', ar ? 'أعمار ديون الموردين والمستحقات' : 'Supplier Aging & Overdue (AP)', ar ? 'تحليل مستحقات الموردين حسب الفترات' : 'Open payables by aging bucket', 'ap'],
+      ['ap/invoices', ar ? 'فواتير الموردين والمشتريات' : 'Supplier Bills', ar ? 'فواتير الشراء والاستيراد المسجلة' : 'Recorded vendor bills & open balances', 'ap'],
+      ['ap/receipts', ar ? 'مدفوعات وسداد الموردين' : 'Supplier Payments', ar ? 'سجل التحويلات والمدفوعات للموردين' : 'Outgoing vendor payments & settlements', 'ap'],
+      ['ap/advances', ar ? 'الدفعات المقدمة للموردين' : 'Supplier Advances', ar ? 'دفعات مقدمة تحت حساب أوامر الشراء' : 'Prepayments & open supplier advances', 'ap'],
+      ['partners/suppliers', ar ? 'كشوف حسابات الموردين' : 'Supplier Account Statements', ar ? 'كشف حساب مورد تفصيلي' : 'Detailed account statement per supplier', 'suppliers']
+    ]],
+    [ar ? 'المخزون والسيارات والاستيراد' : 'Inventory & Imports', 'cars', [
+      ['inv/valuation', ar ? 'تقييم المخزون وبضاعة بالطريق' : 'Inventory Valuation & In-Transit', ar ? 'القيمة الدفترية للسيارات بالمخزن والطريق' : 'Carrying value of stock & goods in transit', 'inventory'],
+      ['veh/list', ar ? 'سجل السيارات حسب الحالة' : 'Vehicles by Status', ar ? 'متابعة حالة كل سيارة بالمعرض' : 'Complete fleet & showroom status register', 'vehicles'],
+      ['inv/moves', ar ? 'سجل حركات السيارات والمخازن' : 'Vehicle Movements', ar ? 'تاريخ الاستلام والنقل والتسليم' : 'Receipts, transfers & delivery log', 'inventory'],
+      ['imp/landed', ar ? 'تكلفة الاستيراد والتكلفة النهائية' : 'Landed Cost & Reconciliation', ar ? 'إجمالي تكلفة السيارة شاملة الجمارك والشحن' : 'Full landed cost build-up per vehicle', 'imports'],
+      ['imp/costs', ar ? 'تحليل مصروفات الاستيراد والجمارك' : 'Import Cost Analysis', ar ? 'تفصيل الشحن والجمارك والتخليص' : 'Breakdown of freight, customs & clearance', 'imports'],
+      ['imp/shipments', ar ? 'سجل الشحنات والبوالص' : 'Shipment Register', ar ? 'متابعة الشحنات البحرية وتواريخ الوصول' : 'Bill of lading, containers & ETA tracking', 'imports']
+    ]],
+    [ar ? 'المبيعات والربحية' : 'Sales & Profitability', 'sales', [
+      ['ana/profit', ar ? 'ربحية السيارات وهامش الربح' : 'Vehicle Profitability & Margin', ar ? 'صافي ربح كل سيارة بعد التكلفة والمصاريف' : 'Gross profit & margin per sold car', 'analytics'],
+      ['sal/orders', ar ? 'سجل أوامر البيع' : 'Sales Orders Register', ar ? 'متابعة العقود وأوامر بيع السيارات' : 'Customer orders, reservations & invoicing', 'sales'],
+      ['sal/deliveries', ar ? 'محاضر التسليم ومرتجعات المبيعات' : 'Deliveries & Sales Returns', ar ? 'سجل تسليم السيارات للعملاء والمرتجعات' : 'Vehicle handovers & return documents', 'sales']
+    ]],
+    [ar ? 'الأصول والمصروفات والضرائب' : 'Assets, Expenses & Tax', 'expenses', [
+      ['fa/register', ar ? 'سجل الأصول الثابتة والإهلاك' : 'Fixed Assets & Depreciation', ar ? 'الأصول ومجمع الإهلاك وصافي القيمة الدفترية' : 'Asset register, accumulated depreciation & NBV', 'assets'],
+      ['exp/list', ar ? 'المصروفات العمومية والتشغيلية' : 'Operating Expenses', ar ? 'تحليل مصروفات المعرض والإدارة' : 'Showroom, administrative & general expenses', 'expenses'],
+      ['exp/schedules', ar ? 'المصروفات المقدمة والمستحقة' : 'Accruals & Prepayments', ar ? 'جدولة الإيجارات والتأمينات والاستحقاقات' : 'Amortization of prepaid & accrued expenses', 'expenses'],
+      ['tax/report', ar ? 'تقرير ضريبة القيمة المضافة والضرائب' : 'VAT & Tax Report', ar ? 'ضريبة المدخلات والمخرجات وصافي الإقرار' : 'Output VAT, input tax & net tax position', 'tax'],
+      ['tax/einvoice', ar ? 'جاهزية الفاتورة الإلكترونية' : 'E-Invoice Readiness', ar ? 'مراجعة بيانات الفواتير للربط الضريبي' : 'Tax authority e-invoicing validation', 'tax']
+    ]]
+  ];
+  return H(t('rep_center'), ar ? 'جميع التقارير محسوبة لحظياً من القيود المرحلة، مع إمكانية التصدير إلى Excel أو الطباعة كـ PDF.' : 'Every report is computed live from posted data. Export statements to Excel or print any report to PDF.', `<button class="btn primary" data-act="fin-xlsx" data-k="is,bs,cf,tb,pl,ar,ap,profit" data-name="goldstern-financial-pack">${ic('file', 15)} ${ar ? 'تصدير الحزمة المالية (Excel)' : 'Financial Pack (Excel)'}</button>`) +
+    `<div class="rc-grid">${groups.map(([g, icon, items]) => { const rendered = items.map(([r, l, sub, m]) => L(r, l, sub, m)).filter(Boolean); return rendered.length ? `<section class="card rc-card"><header><span class="co-step">${ic(icon || 'reports', 18)}</span><h2>${esc(g)}</h2><span class="rc-cnt">${rendered.length}</span></header><ul>${rendered.join('')}</ul></section>` : ''; }).join('')}</div>`;
 }
 function stmtTabs(kind){ const T = [['bs', 'Balance sheet'], ['is', 'Profit & loss'], ['cf', 'Cash flow'], ['eq', 'Changes in equity']];
   return `<nav class="xp-seg" aria-label="Financial statements">${T.map(([k, l]) => `<a href="#/rep/statements?s=${k}" class="${k === kind ? 'on' : ''}"${k === kind ? ' aria-current="page"' : ''}>${l}</a>`).join('')}</nav>`; }
