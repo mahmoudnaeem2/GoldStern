@@ -2076,7 +2076,7 @@ main.content{background:var(--bg)}
 .ad-badge{font-weight:500!important}.subnav > a,.subnav .sm-btn{font-weight:400!important}
 .side .nav-item{font-weight:450!important}.side .nav-item.active{font-weight:600!important}
 th{font-weight:600}td b{font-weight:600}
-th{white-space:normal}th.num{white-space:nowrap}
+th{white-space:nowrap}th.num{white-space:nowrap}
 .sbs{grid-template-columns:repeat(3,minmax(0,1fr))!important}
 @media (min-width:1500px){.sbs{grid-template-columns:repeat(6,minmax(0,1fr))!important}}
 @media (max-width:760px){.sbs{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
@@ -2576,6 +2576,187 @@ html[data-theme="dark"] tbody tr:hover td { background:rgba(255,255,255,0.03)!im
   .pr-tbl tbody td::before, .o-list.mobile-cards tbody td::before {
     content:attr(data-label); font-weight:600; font-size:11.5px; color:var(--muted); text-align:start; flex-shrink:0;
   }
+}
+
+/* =========================================================================
+   EXECUTIVE DATA TABLES & GRIDS (System-wide UI/UX Refresh)
+   - Professional Title Case (No aggressive all-caps screaming)
+   - Clean, crisp, legible typography & balanced padding
+   - High-contrast, polished row separation and hover states
+   - Anti-wrap column protection (No awkward two-line broken headers)
+   - Custom sleek scrollbars matching GoldStern luxury dark/gold aesthetic
+   ========================================================================= */
+table {
+  width: 100% !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  font-size: 13.5px !important;
+}
+
+.tbl-wrap {
+  overflow-x: auto !important;
+  overflow-y: auto !important;
+  position: relative !important;
+  background: #ffffff !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: #cbd5e1 #f8fafc !important;
+}
+
+.tbl-wrap::-webkit-scrollbar {
+  width: 6px !important;
+  height: 6px !important;
+}
+.tbl-wrap::-webkit-scrollbar-track {
+  background: #f8fafc !important;
+  border-radius: 4px !important;
+}
+.tbl-wrap::-webkit-scrollbar-thumb {
+  background: #cbd5e1 !important;
+  border-radius: 4px !important;
+}
+.tbl-wrap::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8 !important;
+}
+
+/* Table Headers (Clean, Modern, Title Case) */
+th,
+thead th,
+.tbl-wrap thead th,
+.o-list thead th,
+.o-sec thead th,
+.fs-tbl thead th,
+.pg-tbl thead th,
+.pr-tbl thead th,
+.xp-tbl thead th {
+  background: #f8fafc !important;
+  color: #475569 !important;
+  font-size: 12.5px !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  letter-spacing: 0.01em !important;
+  padding: 11px 16px !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  border-top: none !important;
+  white-space: nowrap !important;
+  text-align: start !important;
+  vertical-align: middle !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 10 !important;
+  box-shadow: 0 1px 0 #e2e8f0, 0 2px 4px rgba(15, 23, 42, 0.02) !important;
+}
+
+th.num,
+thead th.num,
+.tbl-wrap thead th.num {
+  text-align: end !important;
+}
+
+/* Table Data Cells */
+td,
+tbody td,
+.tbl-wrap tbody td,
+.o-list tbody td,
+.o-sec tbody td,
+.fs-tbl tbody td,
+.pg-tbl tbody td,
+.pr-tbl tbody td,
+.xp-tbl tbody td {
+  padding: 12px 16px !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  border-top: none !important;
+  color: #1e293b !important;
+  font-size: 13.5px !important;
+  text-align: start !important;
+  vertical-align: middle !important;
+}
+
+td.num,
+tbody td.num {
+  text-align: end !important;
+  font-variant-numeric: tabular-nums !important;
+}
+
+td.wrap,
+tbody td.wrap {
+  white-space: normal !important;
+}
+
+/* Row Hover & Alternation */
+tbody tr {
+  transition: background-color 0.12s ease !important;
+}
+
+tbody tr:hover td {
+  background: #f8fafc !important;
+}
+
+tbody tr:last-child td {
+  border-bottom: none !important;
+}
+
+tr[data-act] {
+  cursor: pointer !important;
+}
+
+/* Card table container */
+.card .tbl-wrap {
+  border-top: 1px solid #e2e8f0 !important;
+  border-radius: 0 0 12px 12px !important;
+}
+
+/* Number, Codes & Tabular Fonts */
+.mono,
+td.mono,
+span.mono,
+b.mono {
+  font-family: var(--font-mono, "SF Mono", Consolas, Menlo, monospace) !important;
+  font-variant-numeric: tabular-nums !important;
+}
+
+/* Status Badges & Pills in Tables */
+.pill,
+.badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 11.5px !important;
+  font-weight: 600 !important;
+  border-radius: 999px !important;
+  padding: 3px 10px !important;
+  line-height: 1.3 !important;
+  letter-spacing: 0 !important;
+  white-space: nowrap !important;
+}
+
+.pill.ok, .badge.b-ok, .pill.b-ok {
+  background: #dcfce7 !important;
+  color: #15803d !important;
+  border: 1px solid rgba(21, 128, 61, 0.2) !important;
+}
+
+.pill.gold, .pill.warn, .badge.b-warn {
+  background: #fef3c7 !important;
+  color: #b45309 !important;
+  border: 1px solid rgba(180, 83, 9, 0.2) !important;
+}
+
+.pill.info, .badge.b-info {
+  background: #e0f2fe !important;
+  color: #0369a1 !important;
+  border: 1px solid rgba(3, 105, 161, 0.2) !important;
+}
+
+.pill.mute, .badge.b-mute {
+  background: #f1f5f9 !important;
+  color: #475569 !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+.pill.bad, .badge.b-bad {
+  background: #fee2e2 !important;
+  color: #b91c1c !important;
+  border: 1px solid rgba(185, 28, 28, 0.2) !important;
 }
 
 </style>
@@ -9898,7 +10079,7 @@ function poListPage(title, sub, list, newBtn){
       <select class="input" data-filter="po_kind"><option value="">All types</option><option value="customer" ${F.po_kind === 'customer' ? 'selected' : ''}>Import for customer</option><option value="stock" ${F.po_kind === 'stock' ? 'selected' : ''}>Import for stock</option><option value="local" ${F.po_kind === 'local' ? 'selected' : ''}>Buy from customer</option></select>
       <select class="input" data-filter="po_st"><option value="">All statuses</option>${statuses.map(x => `<option ${F.po_st === x ? 'selected' : ''}>${x}</option>`).join('')}</select>
       <span class="muted" style="align-self:center;font-size:12.5px;margin-inline-start:auto">${rows.length} order${rows.length === 1 ? '' : 's'}</span></div>
-    <div class="tbl-wrap"><table class="o-list"><thead><tr><th>Number</th><th>Type</th><th>Supplier</th><th>Customer</th><th>Car</th><th class="num">Total</th><th>Supplier invoice</th><th>Customer invoice</th><th>Status</th></tr></thead><tbody>
+    <div class="tbl-wrap"><table class="o-list"><thead><tr><th>Number</th><th>Type</th><th>Supplier</th><th>Customer</th><th>Car</th><th class="num">Total</th><th>Supplier Invoice</th><th>Customer Invoice</th><th style="text-align:center">Status</th></tr></thead><tbody>
     ${rows.map(r => { const bill = r.c.supInv; return `<tr data-act="po-view" data-id="${r.po.id}" style="cursor:pointer">
       <td style="white-space:nowrap"><b>${esc(r.po.number)}</b><div class="muted" style="font-size:12px">${r.po.date}</div></td><td>${(() => { const k = ORDER_KINDS[poKind(r.po)] || ORDER_KINDS.stock; return `<span class="pill ${k[1]}">${k[0]}</span>`; })()}</td>
       <td>${esc(r.sup ? r.sup.legalName : '?')}</td><td>${r.cust ? esc(r.cust.legalName) : '<span class="muted">not sold yet</span>'}</td>
@@ -9906,7 +10087,7 @@ function poListPage(title, sub, list, newBtn){
       <td class="num" style="white-space:nowrap">${money(total(r.po))} <span class="muted">${r.po.currency}</span></td>
       <td style="white-space:nowrap">${bill ? invPill(bill) : '<span class="muted">—</span>'}</td>
       <td style="white-space:nowrap">${r.c.sale ? invPill(r.c.sale) : '<span class="muted">—</span>'}</td>
-      <td>${carClosed(r.v) ? '<span class="pill mute">Closed</span>' : poClosed(r.po) ? '<span class="pill ok">Done</span>' : `<span class="badge ${r.st[1]}">${r.st[0]}</span>`}</td></tr>`; }).join('') || `<tr><td colspan="9" class="empty">
+      <td style="text-align:center">${carClosed(r.v) ? '<span class="pill mute">Closed</span>' : poClosed(r.po) ? '<span class="pill ok">Done</span>' : `<span class="badge ${r.st[1]}">${r.st[0]}</span>`}</td></tr>`; }).join('') || `<tr><td colspan="9" class="empty">
         <div class="empty-box">
           <div class="empty-icon">${ic('purchases', 28)}</div>
           <div class="empty-title">${q || F.po_st ? 'No orders match your filter' : 'No vehicle orders yet'}</div>
