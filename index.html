@@ -7339,9 +7339,11 @@ document.addEventListener('click', e => {
     wrap.querySelectorAll('[data-pane]').forEach(p => p.style.display = p.dataset.pane === tab ? 'block' : 'none');
     return;
   }
-  const el = e.target.closest('[data-act]'); if (!el) return;
+  const el = e.target.closest('[data-act]');
+  if (!e.target.closest('.ux-dd-wrap')) document.querySelectorAll('.ux-pop').forEach(p => p.remove());
+  if (!el) return;
   if (el.dataset.act === 'modal-bg' && e.target !== el) return;
-  const h = CLICK[el.dataset.act]; if (h){ e.preventDefault(); h(el); }
+  const h = CLICK[el.dataset.act]; if (h){ if (el.type !== 'checkbox' && e.target.type !== 'checkbox') e.preventDefault(); h(el); }
 });
 /* search boxes filter live while typing (debounced), keeping focus and caret */
 let FILTER_T = null;
