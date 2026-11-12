@@ -7930,7 +7930,7 @@ function navHTML(){
     const rendered = list.map(n => {
       const kids = n.group ? n.children.filter(c => !c.mod || can(c.mod, 'read', u)) : null;
       if (n.group && !kids.length) return ''; if (!n.group && n.mod && !can(n.mod, 'read', u)) return '';
-      const to = n.group ? (UI.navLast[n.key] && kids.some(c => c.route === UI.navLast[n.key]) ? UI.navLast[n.key] : kids[0].route) : n.route;
+      const menuR = menuRoutes(n.key), to = n.group ? (UI.navLast[n.key] && kids.some(c => c.route === UI.navLast[n.key]) && (!menuR.length || menuR.includes(UI.navLast[n.key])) ? UI.navLast[n.key] : (menuR.find(r0 => kids.some(c => c.route === r0)) || kids[0].route)) : n.route;
       const title = esc(t(n.key));
       return `<a class="nav-item${g && g.key === n.key ? ' active' : ''}" href="#/${to}" data-app="${n.key}" title="${title}"><span class="nav-ic">${ic(n.key, 18)}</span><span class="nav-lbl">${title}</span></a>`;
     }).filter(Boolean).join('');
@@ -7949,22 +7949,31 @@ const NAV_LABEL_AR = {
 };
 const tNav = s => (UI.lang === 'ar' && NAV_LABEL_AR[s]) ? NAV_LABEL_AR[s] : s;
 const NAV_MENUS = {
-  purchases: [['pur/import'], ['Suppliers', ['partners/suppliers', '§Billing', 'ap/invoices', 'ap/receipts', 'ap/advances']]],
+  purchases: [['pur/import'], ['partners/suppliers'], ['Bills & payments', ['ap/invoices', 'ap/receipts', 'ap/advances']]],
   sales: [['Orders', ['sal/orders', 'sal/quotes', 'sal/inquiries']], ['Invoicing', ['ar/invoices', 'sal/proforma', 'ar/receipts', 'ar/advances', 'sal/deliveries']], ['partners/customers']],
   cars: [['inv/overview'], ['Cars', ['veh/list', 'inv/stock']], ['Operations', ['inv/receipts', 'inv/deliveries', 'inv/moves', 'inv/counts']]],
   banking: [['bank/accounts'], ['Operations', ['bank/txns', 'bank/transfers']], ['bank/statements'], ['Currency', ['settings/rates', 'bank/reval']]],
   accounting: [
     ['acc/journals'],
-    ['Journals & Closing', ['§Transactions', 'acc/journals', 'acc/opening', '§Management', 'fa/register', 'bank/reval', '§Actions', 'acc/close']],
+    ['Journals & Closing', ['acc/opening', 'fa/register', 'acc/close']],
     ['Ledger & Statements', ['§Audit reports', 'acc/gl', 'acc/tb', 'acc/partner-ledger', '§Statement reports', ['Balance sheet', 'rep/statements?s=bs'], ['Profit and loss', 'rep/statements?s=is'], ['Cash flow statement', 'rep/statements?s=cf'], ['Changes in equity', 'rep/statements?s=eq']]],
     ['Configuration', ['§Accounting', 'acc/coa', 'acc/mappings', 'ana/accounts', 'tax/codes', 'settings/fiscal']]
   ],
   expenses: [['pur/carexp'], ['exp/list'], ['exp/schedules']],
   hr: [['hr/employees'], ['hr/payroll'], ['hr/loans']],
-  reports: [['Financial', ['rep/statements', 'rep/budgets', 'tax/report']], ['Cars', ['ana/profit', 'imp/landed', 'inv/valuation']], ['Partners', ['acc/partner-ledger', 'ar/aging', 'ap/aging']], ['rep/center']],
-  settings: [['General', ['settings/company', 'settings/users', 'settings/roles', 'settings/currencies', 'settings/fiscal']], ['Cars & tax', ['veh/settings', 'tax/codes', 'tax/einvoice']],
+  reports: [['rep/center'], ['Financial', ['rep/budgets', 'tax/report']], ['Cars', ['ana/profit', 'imp/landed', 'inv/valuation']], ['Partners', ['ar/aging', 'ap/aging']]],
+  settings: [['General', ['settings/company', 'settings/users', 'settings/roles', 'settings/currencies']], ['Cars & e-invoicing', ['veh/settings', 'tax/einvoice']],
     ['System', ['settings/sequences', 'acc/integrity', 'settings/audit', 'settings/tests', 'settings/data']]]
 };
+/* routes a section's menu lists, in menu order: a sidebar link opens the first one, so it always lands on a page of its own menu */
+function menuRoutes(key){
+  const out = [];
+  for (const [lbl, list] of (NAV_MENUS[key] || [])){
+    if (!list){ out.push(lbl); continue; }
+    for (const x of list){ if (Array.isArray(x)) out.push(x[1].split('?')[0]); else if (typeof x === 'string' && !x.startsWith('§')) out.push(x); }
+  }
+  return out;
+}
 function subnavHTML(){
   const r = route(), u = currentUser(), g = navGroupOf(r); if (!g || !g.group) return '';
   const kids = g.children.filter(c => !c.mod || can(c.mod, 'read', u)), byR = new Map(kids.map(c => [c.route, c])), used = new Set();
@@ -8031,8 +8040,6 @@ function viewShell(){
         <div class="side-me">
           <div class="side-avatar">${esc(initials)}</div>
           <div class="side-user-meta"><div class="side-user-name">${esc(u.name)}</div><div class="side-user-role">${esc(roleName(u.roles[0]))}</div></div>
-          <button type="button" class="side-me-btn" data-act="theme-toggle" title="${esc(UI.theme === 'dark' ? t('light_mode') : t('dark_mode'))}" aria-label="Toggle theme">${ic(UI.theme === 'dark' ? 'sun' : 'moon', 16)}</button>
-          <button type="button" class="side-me-btn" data-act="lang" title="${UI.lang === 'ar' ? 'English' : 'العربية'}" aria-label="Toggle language">${ic('globe', 16)}</button>
           <button type="button" class="side-me-btn" data-act="logout" title="${esc(t('signout'))}" aria-label="${esc(t('signout'))}">${ic('logout', 16)}</button>
         </div>
       </div>
@@ -16972,7 +16979,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261112-192842';
+const APP_BUILD = 'build-20261112-193709';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
