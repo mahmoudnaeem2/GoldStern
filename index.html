@@ -2084,12 +2084,12 @@ th{white-space:normal}th.num{white-space:nowrap}
 /* ==== New car order form ==== */
 .co-ed{display:flex;flex-direction:column;gap:16px}
 .co-kinds{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-.co-kind{display:flex;align-items:flex-start;gap:12px;text-align:start;padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:var(--surface);cursor:pointer;font:inherit;color:var(--text)}
-.co-kind:hover{border-color:#c9d0da}
-.co-kind b{display:block;font-size:14px;font-weight:600}.co-kind small{display:block;font-size:12.5px;color:var(--muted);margin-top:2px;line-height:1.35}
-.co-kic{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;flex:none;background:var(--surface-2);color:var(--muted)}
-.co-kind.on{border-color:var(--btn-primary,#1f2a3c);box-shadow:inset 0 0 0 1px var(--btn-primary,#1f2a3c);background:#fbfcfd}
-.co-kind.on .co-kic{background:var(--btn-primary,#1f2a3c);color:#fff}
+.co-kind{display:flex;align-items:flex-start;gap:12px;text-align:start;padding:14px 16px;border:1.5px solid var(--border);border-radius:12px;background:var(--surface);cursor:pointer;font:inherit;color:var(--text);transition:all .18s ease}
+.co-kind:hover{border-color:#c59b27;transform:translateY(-1px);box-shadow:0 3px 10px rgba(0,0,0,.04)}
+.co-kind b{display:block;font-size:14px;font-weight:600;letter-spacing:-.01em}.co-kind small{display:block;font-size:12.5px;color:var(--muted);margin-top:2px;line-height:1.35}
+.co-kic{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;flex:none;background:var(--surface-2);color:var(--muted);transition:all .18s ease}
+.co-kind.on{border-color:#b8860b;box-shadow:0 0 0 1px #b8860b, 0 4px 14px rgba(184,134,11,.14);background:linear-gradient(180deg,#fffdf7 0%,#ffffff 100%)}
+.co-kind.on .co-kic{background:linear-gradient(135deg,#d4af37 0%,#b8860b 100%);color:#fff;box-shadow:0 2px 6px rgba(184,134,11,.25)}
 .co-kind:focus-visible{outline:2px solid var(--info);outline-offset:2px}
 .co-body{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:20px;align-items:start;max-width:1280px;margin:0 auto;width:100%}
 .co-main{display:flex;flex-direction:column;gap:16px;min-width:0}
@@ -9911,7 +9911,7 @@ function poListPage(title, sub, list, newBtn){
           <div class="empty-icon">${ic('purchases', 28)}</div>
           <div class="empty-title">${q || F.po_st ? 'No orders match your filter' : 'No vehicle orders yet'}</div>
           <div class="empty-desc">${q || F.po_st ? 'Try clearing your search query or choosing another status.' : 'Start importing luxury cars for registered customers or for showroom inventory.'}</div>
-          ${!q && !F.po_st && can('purchases', 'create') ? `<button class="btn gold" data-act="io-new" data-kind="customer">${ic('plus', 14)} Import for a customer</button>` : ''}
+          ${!q && !F.po_st && can('purchases', 'create') ? `<button class="btn gold" data-act="io-new" data-kind="customer">${ic('plus', 14)} ${UI.lang === 'ar' ? 'طلب سيارة جديد' : 'New car order'}</button>` : ''}
         </div>
       </td></tr>`}
     </tbody></table></div></div>`;
@@ -14231,7 +14231,7 @@ function advButtons(po, sm = true){
 }
 function pageImportOrders(){
   return poListPage(t('import_orders'), '', S.purchaseOrders.filter(p => p.importOrder),
-    can('purchases', 'create') && can('vehicles', 'create') ? Object.entries(ORDER_KINDS).map(([k, x], i) => `<button class="btn${i === 0 ? ' gold' : ''}" data-act="io-new" data-kind="${k}">${i === 0 ? ic('plus', 14) + ' ' : ''}${x[2]}</button>`).join('') : '');
+    can('purchases', 'create') && can('vehicles', 'create') ? `<button class="btn gold" data-act="io-new" data-kind="customer">${ic('plus', 14)} ${UI.lang === 'ar' ? 'طلب سيارة جديد' : 'New car order'}</button>` : '');
 }
 function importOrderForm(kind = 'customer'){
   const last = [...S.purchaseOrders].filter(p => p.importOrder && p.kind !== 'local').sort((a, b) => a.createdAt < b.createdAt ? 1 : -1)[0];
@@ -14257,8 +14257,23 @@ function importOrderForm(kind = 'customer'){
       f('Order date', `<input class="input" type="date" name="date" value="${todayCairo()}">`) +
       f('Purchase price *', `<div class="co-money"><input class="input mono" name="price" inputmode="decimal" placeholder="0.00"><select name="currency" aria-label="Currency">${S.companyCurrencies.filter(c => c.active).map(c => `<option ${c.code === cur ? 'selected' : ''}>${c.code}</option>`).join('')}</select></div>`, 'span2') +
       f(`Exchange rate <em data-rate-lbl>1 ${cur} = ? EGP</em>`, `<input class="input mono" name="rate" data-rate-for="currency" inputmode="decimal" autocomplete="off" placeholder="from today’s rate">`), 'invoices');
+  const kindsBar = `<div class="co-kinds" role="radiogroup" aria-label="Order type">
+    <button type="button" class="co-kind${kind === 'customer' ? ' on' : ''}" data-act="io-kind" data-kind="customer">
+      <span class="co-kic">${ic('users', 18)}</span>
+      <div><b>Import for a customer</b><small>Imported specifically for a client</small></div>
+    </button>
+    <button type="button" class="co-kind${kind === 'stock' ? ' on' : ''}" data-act="io-kind" data-kind="stock">
+      <span class="co-kic">${ic('cars', 18)}</span>
+      <div><b>Import for stock</b><small>Bought for company inventory</small></div>
+    </button>
+    <button type="button" class="co-kind${kind === 'local' ? ' on' : ''}" data-act="io-kind" data-kind="local">
+      <span class="co-kic">${ic('invoices', 18)}</span>
+      <div><b>Buy from a customer</b><small>Direct purchase or trade-in</small></div>
+    </button>
+  </div>`;
   return `<input type="hidden" name="kind" value="${kind}">
   <div class="co-ed">
+    ${kindsBar}
     <div class="co-body">
       <div class="co-main">${carCard}${partyCard}${priceCard}</div>
       <aside class="co-sum" aria-live="polite">
