@@ -31,3 +31,12 @@ Browser tests write screenshots to `tests/out/`. GitHub runs the feature check a
 **Chart of accounts:** the Odoo 6-digit chart is built in. A new company gets it automatically; data on the older 4-digit chart is renumbered to the Odoo codes in place the first time the new version opens (same accounts, so entries and balances do not change; the old code is kept as `prevCode`).
 
 **Settings → Data & Backup → Update data** brings saved data up to date (missing accounts, mappings, journals, categories, permissions) without changing existing records. It also runs automatically when the system opens.
+
+## White-label (selling a branded copy)
+
+The app is a single `index.html`. To deliver it to a customer under their own name:
+
+1. **Fast way (no code):** open the app → Settings → Company → **Branding**. Set the display name, tagline, three colours and upload the full logo and icon. Saved with the customer's data.
+2. **Baked-in way:** in `index.html` edit `DEFAULT_BRAND` (name, tagline, colours) and the three `DEFAULT_LOGO_*` images, then host the file on the customer's own server (any static host). Their data stays in their own browser storage/backup file.
+
+The company *legal name* (used on documents and reports) is entered at first-run setup and is separate from the display name.
