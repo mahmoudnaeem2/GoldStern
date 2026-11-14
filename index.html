@@ -7037,6 +7037,20 @@ function pfStatusBadge(st){
   return '<span class="pill ' + cls + '">' + esc(lbl) + '</span>';
 }
 
+function pfMakeOpts(){
+  const names = new Set([...(S.makes || []).filter(m => m.active !== false).map(m => m.name), ...S.vehicles.map(v => makeName(v.makeId)).filter(Boolean)]);
+  return [...names].sort().map(n => '<option value="' + esc(n) + '">').join('');
+}
+function pfModelOpts(make){
+  const mk = String(make || '').trim().toLowerCase();
+  const names = new Set();
+  (S.makes || []).forEach(m => { if (!mk || m.name.toLowerCase() === mk) (m.models || []).filter(x => x.active !== false).forEach(x => names.add(x.name)); });
+  S.vehicles.forEach(v => { const mn = modelName(v.makeId, v.modelId); if (mn && (!mk || String(makeName(v.makeId) || '').toLowerCase() === mk)) names.add(mn); });
+  return [...names].sort().map(n => '<option value="' + esc(n) + '">').join('');
+}
+document.addEventListener('input', e => {
+  if (e.target && e.target.id === 'pf_make'){ const dl = document.getElementById('pf-models'); if (dl) dl.innerHTML = pfModelOpts(e.target.value); }
+});
 function pfForm(pf = {}){
   const curList = S.companyCurrencies.filter(c => c.active).map(c => c.code);
   const cur = pf.currency || 'EGP';
@@ -7063,13 +7077,13 @@ function pfForm(pf = {}){
       '<h3 style="font-size:14px;font-weight:700;margin-bottom:12px">' + ic('cars', 16) + ' Vehicle Specifications</h3>' +
       '<div class="o-grid">' +
         '<div>' +
-          '<div class="o-f"><div class="l">Make / Brand *</div><div class="v"><input class="odoo-sheet-input" name="make" id="pf_make" value="' + esc(pf.make || '') + '" placeholder="e.g. Mercedes-Benz, BMW, Porsche" required></div></div>' +
-          '<div class="o-f"><div class="l">Model *</div><div class="v"><input class="odoo-sheet-input" name="model" id="pf_model" value="' + esc(pf.model || '') + '" placeholder="e.g. C200, X5, Macan" required></div></div>' +
+          '<div class="o-f"><div class="l">Make / Brand *</div><div class="v"><input class="odoo-sheet-input" name="make" id="pf_make" list="pf-makes" autocomplete="off" value="' + esc(pf.make || '') + '" placeholder="Pick from your brands or type a new one" required><datalist id="pf-makes">' + pfMakeOpts() + '</datalist></div></div>' +
+          '<div class="o-f"><div class="l">Model *</div><div class="v"><input class="odoo-sheet-input" name="model" id="pf_model" list="pf-models" autocomplete="off" value="' + esc(pf.model || '') + '" placeholder="Pick from your models or type a new one" required><datalist id="pf-models">' + pfModelOpts(pf.make) + '</datalist></div></div>' +
           '<div class="o-f"><div class="l">Year</div><div class="v"><input class="odoo-sheet-input" name="year" id="pf_year" value="' + esc(pf.year || '2026') + '" placeholder="e.g. 2026"></div></div>' +
         '</div>' +
         '<div>' +
           '<div class="o-f"><div class="l">Chassis / VIN</div><div class="v"><input class="odoo-sheet-input mono" name="vin" id="pf_vin" value="' + esc(pf.vin || '') + '" placeholder="Chassis or VIN number"></div></div>' +
-          '<div class="o-f"><div class="l">Exterior Color</div><div class="v"><input class="odoo-sheet-input" name="color" id="pf_color" value="' + esc(pf.color || '') + '" placeholder="e.g. Black Obsidian, White, Grey"></div></div>' +
+          '<div class="o-f"><div class="l">Exterior Color</div><div class="v"><input class="odoo-sheet-input" name="color" id="pf_color" list="pf-colors" autocomplete="off" value="' + esc(pf.color || '') + '" placeholder="Pick or type a colour"><datalist id="pf-colors">' + [...new Set(S.vehicles.map(v => v.exteriorColor).filter(Boolean))].map(c => '<option value="' + esc(c) + '">').join('') + '</datalist></div></div>' +
           '<div class="o-f"><div class="l">Motor / Capacity</div><div class="v"><input class="odoo-sheet-input" name="motor" id="pf_motor" value="' + esc(pf.motor || '') + '" placeholder="e.g. 2.0L Turbo / 204 HP"></div></div>' +
         '</div>' +
       '</div>' +
@@ -17955,7 +17969,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-171344';
+const APP_BUILD = 'build-20261114-171416';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
