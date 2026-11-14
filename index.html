@@ -10024,10 +10024,12 @@ function transferForm(){
   return `<div class="row"><div class="field"><label>From account *</label><select class="input" name="fromBankId">${opts}</select></div><div class="field"><label>To account *</label><select class="input" name="toBankId">${(() => { const o = bankOptions('').split('</option>'); if (o.length > 2) o[1] = o[1].replace('<option ', '<option selected '); return o.join('</option>'); })()}</select></div>
       <div class="field" style="max-width:170px"><label>Date *</label><input class="input" type="date" name="date" value="${todayCairo()}"></div></div>
     <div class="row"><div class="field"><label>Amount sent * <span class="muted" id="bt-scur"></span></label><input class="input mono" name="srcAmount" inputmode="decimal"></div><div class="field"><label>Amount received * <span class="muted" id="bt-dcur"></span></label><input class="input mono" name="dstAmount" inputmode="decimal"></div></div>
-    <div class="row"><div class="field"><label>Bank fee (source currency)</label><input class="input mono" name="fee" inputmode="decimal"></div><div class="field"><label>Intermediary fee (source currency)</label><input class="input mono" name="intermediaryFee" inputmode="decimal"></div><div class="field"><label>Intermediary / exchange company</label><input class="input" name="intermediary"></div></div>
-    <div class="row"><div class="field"><label>Valuation</label><select class="input" name="valuation"><option value="actual">EGP leg at actual amount (no FX difference)</option><option value="rate">Value foreign legs at approved rate → realized FX</option></select><span class="hint">Applies when one side is EGP. EUR↔USD always uses approved rates.</span></div>
-      <div class="field"><label>Rate type</label><select class="input" name="rateType">${S.rateTypes.filter(r => r.active).map(r => `<option value="${r.code}">${esc(r.name)}</option>`).join('')}</select></div></div>
-    <div class="row"><div class="field"><label>Bank reference</label><input class="input" name="bankRef"></div><div class="field"><label>Transfer reference</label><input class="input" name="transferRef"></div><div class="field"><label>Notes</label><input class="input" name="notes"></div></div>
+    <div class="row"><div class="field"><label>Bank fee (source currency)</label><input class="input mono" name="fee" inputmode="decimal"></div><div class="field"><label>Notes</label><input class="input" name="notes"></div></div>
+    <details class="bt-more"><summary class="muted" style="cursor:pointer;margin:2px 0 10px">More options (exchange company, rate, references)</summary>
+      <div class="row"><div class="field"><label>Intermediary fee (source currency)</label><input class="input mono" name="intermediaryFee" inputmode="decimal"></div><div class="field"><label>Intermediary / exchange company</label><input class="input" name="intermediary"></div></div>
+      <div class="row"><div class="field"><label>Valuation</label><select class="input" name="valuation"><option value="actual">EGP leg at actual amount (no FX difference)</option><option value="rate">Value foreign legs at approved rate → realized FX</option></select><span class="hint">Applies when one side is EGP. EUR↔USD always uses approved rates.</span></div>
+        <div class="field"><label>Rate type</label><select class="input" name="rateType">${S.rateTypes.filter(r => r.active).map(r => `<option value="${r.code}">${esc(r.name)}</option>`).join('')}</select></div></div>
+      <div class="row"><div class="field"><label>Bank reference</label><input class="input" name="bankRef"></div><div class="field"><label>Transfer reference</label><input class="input" name="transferRef"></div></div></details>
     <div id="bt-preview" class="note" style="margin:0">Enter amounts to preview the accounting.</div>`;
 }
 function btPreview(){
@@ -18231,7 +18233,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-180046';
+const APP_BUILD = 'build-20261114-183109';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
