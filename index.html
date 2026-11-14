@@ -3542,6 +3542,24 @@ html body .zh-hello .zh-chips{margin-top:10px}
 html[data-theme="dark"] body .zh-hello{background:#161d2b;border-color:#26324a}
 html[data-theme="dark"] body .zh-hello h1{color:#f1f5f9}
 @media (max-width:700px){html body .zh-hello{padding:16px}html body .zh-hello h1{font-size:20px!important}}
+/* partner ledger: one row per partner, entries open in a nested table */
+html body .pg-tbl{table-layout:auto}
+html body .pg-tbl > thead > tr > th:first-child{width:46%}
+html body .pg-bal small{display:block;font-size:11px;font-weight:500;color:#7a859c;margin-top:1px}
+html body .pg-bal.neg{color:#c62828}
+html body .pg-settled{display:inline-block;padding:2px 10px;border-radius:999px;background:#E4F6EC;color:#1F7A4D;font-size:12px;font-weight:600}
+html body .pg-op{color:#7a859c}
+html body .pg-tbl tr.pg-subrow>td{padding:0 0 4px!important;background:#F8FAFD;border-bottom:1px solid #E3E8F2}
+html body .pg-sub{table-layout:fixed;width:calc(100% - 64px);max-width:calc(100% - 64px);margin:6px 16px 8px 48px;border-collapse:collapse;background:#fff;border:1px solid #E3E8F2;border-radius:10px;overflow:hidden}
+html body .pg-sub th{font-size:11.5px;font-weight:600;color:#6b7791;text-align:left;padding:8px 12px;background:#F3F6FB;border-bottom:1px solid #E3E8F2}
+html body .pg-sub th.num{text-align:right}
+html body .pg-sub th:nth-child(1){width:104px}html body .pg-sub th:nth-child(3){width:120px}html body .pg-sub th.num{width:124px}
+html body .pg-sub td{overflow:hidden;text-overflow:ellipsis}
+html body .pg-sub td.pg-ent{display:flex;align-items:center;gap:10px}html body .pg-sub td.pg-ent>div{min-width:0}html body .pg-sub .pl-jnl-tag{flex:none}html body .pg-sub td.pg-ent span{white-space:normal}
+html body .pg-sub td{padding:9px 12px;border-bottom:1px solid #EEF1F7;font-size:13px}
+html body .pg-sub tr.pg-line{cursor:pointer}html body .pg-sub tr.pg-line:hover{background:#F6F8FE}
+html body .pg-sub tr:last-child td{border-bottom:0}
+html body .pg-stmt{display:inline-flex;align-items:center;gap:6px;margin:0 16px 8px 48px;font-size:13px;color:var(--brand,#3F5FE0);font-weight:600}
 /* both modes: one sans family, tabular figures instead of monospace, no all-caps labels */
 .mono,.num,td.mono,b.mono,span.mono,a.mono,div.mono,button.mono,.mh-no{font-family:var(--font)!important;font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1}
 html:not([dir=rtl]) body{font-family:var(--font)}
@@ -13753,15 +13771,18 @@ function pagePartnerLedger(){
   const jnlCls = j => { const c = String(j || '').toLowerCase();
     return /bill|pur|pj|ap/.test(c) ? 'bill' : /inv|sal|sj|ar/.test(c) ? 'inv' : /bnk|csh|bank|cash|bj/.test(c) ? 'bnk' : /gj/.test(c) ? 'gj' : 'def'; };
   const initials = n => String(n || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0] || '').join('').toUpperCase() || '?';
+  const bal = (g, v) => v.eq(0) ? '<td class="num pg-bal"><span class="pg-settled">Settled</span></td>' : `<td class="num pg-bal b${v.lt(0) ? ' neg' : ''}">${money(v)}<small>${g.side === 'ar' ? (v.gt(0) ? 'owes you' : 'you owe') : (v.lt(0) ? 'you owe' : 'owes you')}</small></td>`;
   const grp = g => {
     const open = unfolded(g.key);
     let h = `<tr class="pg-row${open ? ' open' : ''}" data-act="pled-fold" data-k="${esc(g.key)}" tabindex="0" aria-expanded="${open}">
-      <td colspan="3"><div class="pg-who"><span class="pg-car">${ic('chev', 14)}</span><span class="pg-av ${g.side}">${esc(initials(g.name))}</span>
+      <td><div class="pg-who"><span class="pg-car">${ic('chev', 14)}</span><span class="pg-av ${g.side}">${esc(initials(g.name))}</span>
         <div><b>${esc(g.name)}</b><span>${[g.code, g.p && g.p.phone].filter(Boolean).map(esc).join(' · ')}${g.code || (g.p && g.p.phone) ? ' · ' : ''}${g.lines.length} ${g.lines.length === 1 ? 'entry' : 'entries'}</span></div></div></td>
-      ${amt(g.debit)}${amt(g.credit)}<td></td>${amt(g.end, 'b')}
+      ${amt(g.initial, 'pg-op')}${amt(g.debit)}${amt(g.credit)}${bal(g, g.end)}
     </tr>`;
     if (open){
-      if (!g.initial.eq(0)) h += `<tr class="pg-init"><td colspan="3">Opening balance</td><td></td><td></td><td></td>${amt(g.initial)}</tr>`;
+      const hasFc = g.lines.some(z => z.fc);
+      h += `<tr class="pg-subrow"><td colspan="5"><table class="pg-sub"><thead><tr><th>Date</th><th>Entry</th><th>Due</th><th class="num">Debit</th><th class="num">Credit</th>${hasFc ? '<th class="num">Foreign amount</th>' : ''}<th class="num">Balance</th></tr></thead><tbody>`;
+      if (!g.initial.eq(0)) h += `<tr class="pg-init"><td colspan="${hasFc ? 6 : 5}">Opening balance</td>${amt(g.initial)}</tr>`;
       h += g.lines.map(z => {
         const od = z.due && z.inv && invState(z.inv).open.gt(0) && z.due < todayCairo();
         const label = (z.ref.split(' · ').slice(1).join(' · ')) || z.account;
@@ -13770,18 +13791,18 @@ function pagePartnerLedger(){
           <td class="pg-ent"><span class="pl-jnl-tag ${jnlCls(z.jnl)}">${esc(z.jnl)}</span><div><b>${esc(z.e.number || '')}</b><span title="${esc(label)}">${esc(label)} <i>${esc(z.acode)}</i></span></div></td>
           <td>${z.due ? `<span class="pg-due${od ? ' od' : ''}">${z.due}${od ? ' · overdue' : ''}</span>` : '<span class="muted">—</span>'}</td>
           ${amt(z.debit)}${amt(z.credit)}
-          <td class="num pg-fc">${z.fc ? esc(z.fc) : '<span class="muted">—</span>'}</td>
+          ${hasFc ? `<td class="num pg-fc">${z.fc ? esc(z.fc) : '<span class="muted">—</span>'}</td>` : ''}
           ${amt(z.bal)}
         </tr>`;
       }).join('');
-      if (g.p) h += `<tr class="pg-more"><td colspan="7"><a href="#/partners/statement?side=${g.side}&id=${g.p.id}">${ic('file', 13)} Full statement for ${esc(g.name)}</a></td></tr>`;
+      h += `</tbody></table>${g.p ? `<a class="pg-stmt" href="#/partners/statement?side=${g.side}&id=${g.p.id}">${ic('file', 13)} Full statement for ${esc(g.name)}</a>` : ''}</td></tr>`;
     }
     return h;
   };
   const sideHdr = (side, grps) => {
     const t = k => grps.reduce((a, g) => a.plus(g[k]), D0());
-    return `<tr class="pg-side ${side}"><td colspan="3"><span class="pg-dot"></span>${side === 'ar' ? 'Customers · receivable' : 'Vendors · payable'} <em>${grps.length}</em></td>
-      ${amt(t('debit'))}${amt(t('credit'))}<td></td>${amt(t('end'), 'b')}</tr>`;
+    return `<tr class="pg-side ${side}"><td><span class="pg-dot"></span>${side === 'ar' ? 'Customers · receivable' : 'Vendors · payable'} <em>${grps.length}</em></td>
+      ${amt(t('initial'), 'pg-op')}${amt(t('debit'))}${amt(t('credit'))}${amt(t('end'), 'b')}</tr>`;
   };
   const recv = ar.reduce((t, g) => t.plus(g.end), D0()), pay = ap.reduce((t, g) => t.plus(g.end), D0()).negated(), net = recv.minus(pay);
   const egp = '<small>EGP</small>';
@@ -13806,12 +13827,12 @@ function pagePartnerLedger(){
     <div class="card pg-card">
       <div class="tbl-wrap">
         <table class="pg-tbl">
-          <thead><tr><th style="width:110px">Date</th><th>Entry</th><th style="width:120px">Due</th><th class="num">Debit</th><th class="num">Credit</th><th class="num">Foreign amount</th><th class="num">Balance</th></tr></thead>
+          <thead><tr><th>Partner</th><th class="num">Opening</th><th class="num">Debit</th><th class="num">Credit</th><th class="num">Balance</th></tr></thead>
           <tbody>
             ${L.groups.length ? ((ar.length && P.type !== 'ap' ? sideHdr('ar', ar) + ar.map(grp).join('') : '') + (ap.length && P.type !== 'ar' ? sideHdr('ap', ap) + ap.map(grp).join('') : ''))
-              : `<tr><td colspan="7"><div class="xp-empty">${ic('users', 22)}<b>${P.q ? 'No match for “' + esc(P.q) + '”' : 'No receivable or payable movements'}</b><span>${P.q ? 'Try another name, code or entry number.' : 'Try a longer period.'}</span></div></td></tr>`}
+              : `<tr><td colspan="5"><div class="xp-empty">${ic('users', 22)}<b>${P.q ? 'No match for “' + esc(P.q) + '”' : 'No receivable or payable movements'}</b><span>${P.q ? 'Try another name, code or entry number.' : 'Try a longer period.'}</span></div></td></tr>`}
           </tbody>
-          <tfoot><tr class="pg-tot"><td colspan="3">Total${P.q ? ` <em>${L.groups.length} shown</em>` : ''}</td>${amt(L.debit, 'b')}${amt(L.credit, 'b')}<td></td>${amt(L.balance, 'b')}</tr></tfoot>
+          <tfoot><tr class="pg-tot"><td>Total${P.q ? ` <em>${L.groups.length} shown</em>` : ''}</td><td></td>${amt(L.debit, 'b')}${amt(L.credit, 'b')}${amt(L.balance, 'b')}</tr></tfoot>
         </table>
       </div>
     </div>
@@ -18155,7 +18176,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-173952';
+const APP_BUILD = 'build-20261114-174158';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
