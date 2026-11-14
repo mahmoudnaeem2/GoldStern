@@ -3472,6 +3472,10 @@ html body .btn.primary,html body .btn.gold,html:not([data-theme="dark"]) body .b
 html body .btn.primary:hover,html body .btn.gold:hover,html body .zh-new .btn.dash-pdf:hover,html body .auth-box .btn.primary:hover{background:#8E5330!important;border-color:#8E5330!important}
 html body .btn.primary:focus-visible{outline:2px solid #D9A77F;outline-offset:2px}
 html body .zf-k.clk{cursor:pointer;transition:transform .15s,box-shadow .15s}html body .zf-k.clk:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(31,41,55,.10)}
+html body tr.ux-grp td{background:#EEF1FA!important;border-top:1px solid #DDE3F2;border-bottom:1px solid #DDE3F2;font-size:13px;color:#1b2540;padding-top:8px;padding-bottom:8px}
+html body tr.ux-grp .ux-gtog{border:0;background:none;cursor:pointer;color:#3F5FE0;font-size:13px;padding:0 4px}
+html body tr.ux-grp .ux-gcount{display:inline-block;min-width:20px;padding:0 7px;margin-inline-start:6px;border-radius:999px;background:#3F5FE0;color:#fff;font-size:11.5px;font-weight:600;text-align:center}
+html body .ux-dd-wrap .btn.on{border-color:#3F5FE0;color:#3F5FE0}
 /* both modes: one sans family, tabular figures instead of monospace, no all-caps labels */
 .mono,.num,td.mono,b.mono,span.mono,a.mono,div.mono,button.mono,.mh-no{font-family:var(--font)!important;font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1}
 html:not([dir=rtl]) body{font-family:var(--font)}
@@ -17909,7 +17913,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-114021';
+const APP_BUILD = 'build-20261114-114407';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
@@ -18246,13 +18250,14 @@ function enhanceUX(){
     });
   }
   // 6: Add Saved Filter Presets & Column Visibility controls to .filters bars
-  const filterBar = document.querySelector('main.content .filters');
+  const filterBar = document.querySelector('main.content .filters, main.content .xp-bar');
   const mainTbl = document.querySelector('main.content table.o-list, main.content .card table');
   if (filterBar && mainTbl && !filterBar.querySelector('.ux-dd-wrap')){
     const wrap = document.createElement('div');
     wrap.className = 'ux-dd-wrap';
     wrap.innerHTML = `
-      <button type="button" class="btn sm" data-act="col-vis-menu" title="${esc(t('columns'))}">${ic('grid', 14)} ${esc(t('columns'))}</button>
+      <button type="button" class="btn sm${(UI.groupBy || {})[r] ? ' on' : ''}" data-act="group-by-menu" title="Group by">${ic('layers', 14)} ${(UI.groupBy || {})[r] ? 'Grouped: ' + esc(UI.groupBy[r]) : 'Group by'}</button>
+      <button type="button" class="btn sm" data-act="col-vis-menu" style="margin-inline-start:6px" title="${esc(t('columns'))}">${ic('grid', 14)} ${esc(t('columns'))}</button>
       <button type="button" class="btn sm" data-act="filter-preset-menu" style="margin-inline-start:6px" title="${esc(t('saved_filters'))}">${ic('star', 14)} ${esc(t('saved_filters'))}</button>`;
     filterBar.appendChild(wrap);
   }
@@ -18277,6 +18282,26 @@ function enhanceUX(){
     // 4: Client-side Pagination for tables with > 25 rows
     const tbody = tbl.querySelector('tbody');
     if (!tbody) return;
+    tbody.querySelectorAll('tr.ux-grp').forEach(x => x.remove());
+    const gcol = (UI.groupBy || {})[r], gIdx = gcol ? ths.findIndex(th => th.textContent.trim() === gcol) : -1;
+    if (gIdx >= 0 && tbl === document.querySelector('main.content table.o-list, main.content .card table, main.content table')){
+      const rows0 = [...tbody.querySelectorAll('tr')].filter(tr => !tr.querySelector('.empty, .xp-empty') && tr.children.length === ths.length);
+      const key = tr => ((tr.children[gIdx] || {}).textContent || '').trim().split(/\n+/)[0].replace(/\s+/g, ' ').slice(0, 60) || '—';
+      const groups = new Map(); rows0.forEach(tr => { const k = key(tr); (groups.get(k) || groups.set(k, []).get(k)).push(tr); });
+      const num = v => { const n = parseFloat(String(v).replace(/[^0-9.\-]/g, '')); return isNaN(n) ? null : n; };
+      const closed = (UI.groupClosed && UI.groupClosed[r]) || [];
+      [...groups.entries()].sort((x, y) => x[0].localeCompare(y[0])).forEach(([k, trs]) => {
+        const h = document.createElement('tr'); h.className = 'ux-grp no-row-click'; h.dataset.gk = k;
+        h.innerHTML = ths.map((th, i) => {
+          const hide = th.style.display === 'none' ? ' style="display:none"' : '';
+          if (i === 0) return `<td${hide}><button type="button" class="ux-gtog" data-act="group-toggle" data-k="${esc(k)}">${closed.includes(k) ? '▸' : '▾'}</button> <b>${esc(k)}</b> <span class="ux-gcount">${trs.length}</span></td>`;
+          if (th.classList.contains('num') && i !== gIdx){ const vals = trs.map(tr => num((tr.children[i] || {}).textContent)); const cur0 = new Set(trs.map(tr => (((tr.children[i] || {}).textContent || '').match(/[A-Za-z]{2,}/g) || []).join(' '))); if (vals.every(v => v !== null) && cur0.size === 1) return `<td class="num"${hide}><b>${money(vals.reduce((a, v) => a + v, 0).toFixed(2))}</b></td>`; }
+          return `<td${hide}></td>`;
+        }).join('');
+        tbody.appendChild(h); trs.forEach(tr => { tbody.appendChild(tr); tr.style.display = closed.includes(k) ? 'none' : ''; });
+      });
+      return;
+    }
     const allRows = [...tbody.querySelectorAll('tr')].filter(tr => !tr.querySelector('.empty, .xp-empty'));
     const pageSize = UI.pageSize === undefined ? 25 : UI.pageSize;
     if (allRows.length > 25){
@@ -18402,6 +18427,20 @@ Object.assign(CLICK, {
     UI.pageByRoute[r] = (UI.pageByRoute[r] || 1) + 1;
     render();
   },
+  'group-by-menu'(el){
+    const wrap = el.closest('.ux-dd-wrap'); if (!wrap) return;
+    const existing = wrap.querySelector('.ux-pop'); if (existing){ existing.remove(); return; }
+    const tbl = document.querySelector('main.content table.o-list, main.content .card table'); if (!tbl) return;
+    const cur = (UI.groupBy || {})[route()] || '';
+    const cols = [...tbl.querySelectorAll('thead th')].filter(th => th.textContent.trim() && !th.classList.contains('num')).map(th => th.textContent.trim());
+    const pop = document.createElement('div'); pop.className = 'ux-pop';
+    pop.innerHTML = `<div style="font-size:11px;font-weight:700;color:var(--muted);padding:4px 8px;text-transform:uppercase">Group by</div>` +
+      `<label><span style="flex:1">None</span><input type="radio" name="gb" data-act="group-by-set" data-col="" ${cur ? '' : 'checked'}></label>` +
+      cols.map(c => `<label><span style="flex:1">${esc(c)}</span><input type="radio" name="gb" data-act="group-by-set" data-col="${esc(c)}" ${cur === c ? 'checked' : ''}></label>`).join('');
+    wrap.appendChild(pop);
+  },
+  'group-by-set'(el){ UI.groupBy = UI.groupBy || {}; if (el.dataset.col) UI.groupBy[route()] = el.dataset.col; else delete UI.groupBy[route()]; if (UI.groupClosed) delete UI.groupClosed[route()]; saveUI(); render(); },
+  'group-toggle'(el){ const r = route(), k = el.dataset.k; UI.groupClosed = UI.groupClosed || {}; const c = new Set(UI.groupClosed[r] || []); if (c.has(k)) c.delete(k); else c.add(k); UI.groupClosed[r] = [...c]; saveUI(); render(); },
   'col-vis-menu'(el){
     const wrap = el.closest('.ux-dd-wrap'); if (!wrap) return;
     const existing = wrap.querySelector('.ux-pop');
