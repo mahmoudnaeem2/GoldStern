@@ -1,4 +1,4 @@
-# Carbook
+# Goldstern ERP
 
 ERP and accounting system for Goldstern, an Egyptian car importer. It is one self-contained web page: open it at **https://mahmoudnaeem2.github.io/GoldStern/** or open `index.html` in a browser (Chrome or Edge). Data is saved in the browser on that computer; use **Settings → Data & Backup** to export a backup.
 
