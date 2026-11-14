@@ -3565,6 +3565,22 @@ html body .page-back:hover{border-color:#c5cfe6;background:#f6f8fe}
 /* empty states look the same everywhere: centred, with room to breathe */
 html body td.empty,html body .empty{text-align:center!important;padding:36px 16px!important;color:#6b7791;font-size:14px}
 html body td.empty::before{content:"";display:block;width:40px;height:40px;margin:0 auto 10px;border-radius:12px;background:#EEF1F7}
+/* bank & cash accounts as cards */
+html body .bk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
+html body .bk-card{background:#fff;border:1px solid #E3E8F2;border-radius:16px;padding:18px;cursor:pointer;display:flex;flex-direction:column;gap:6px;transition:border-color .15s,box-shadow .15s,transform .15s;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+html body .bk-card:hover{border-color:color-mix(in srgb,var(--brand,#3F5FE0) 40%,#E3E8F2);box-shadow:0 8px 22px -12px rgba(63,95,224,.35);transform:translateY(-1px)}
+html body .bk-card.off{opacity:.6}
+html body .bk-top{display:flex;align-items:center;gap:12px}
+html body .bk-ic{width:42px;height:42px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;flex:none}
+html body .bk-ic.bank{background:#E8EDFF;color:var(--brand,#3F5FE0)}html body .bk-ic.cash{background:#E4F6EC;color:#1F7A4D}
+html body .bk-nm{flex:1;min-width:0;display:flex;flex-direction:column}html body .bk-nm b{font-size:15px;color:#161B2E;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}html body .bk-nm span{font-size:12.5px;color:#6b7791}
+html body .bk-cur{font-size:11.5px;font-weight:700;letter-spacing:.04em;color:#5b6784;background:#F1F4F9;border-radius:999px;padding:3px 9px}
+html body .bk-bal{font-size:26px;font-weight:700;letter-spacing:-.01em;margin-top:10px;font-variant-numeric:tabular-nums;color:#161B2E}
+html body .bk-bal small{font-size:13px;font-weight:500;color:#6b7791}html body .bk-bal.neg{color:#c62828}
+html body .bk-sub{display:flex;justify-content:space-between;font-size:12.5px;color:#6b7791;min-height:18px}
+html body .bk-warn{color:#c62828;font-weight:600}
+html body .bk-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;padding-top:12px;border-top:1px solid #EEF1F7}
+html body .bk-meta{font-size:12px;color:#6b7791;font-family:ui-monospace,monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* both modes: one sans family, tabular figures instead of monospace, no all-caps labels */
 .mono,.num,td.mono,b.mono,span.mono,a.mono,div.mono,button.mono,.mh-no{font-family:var(--font)!important;font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1}
 html:not([dir=rtl]) body{font-family:var(--font)}
@@ -5353,6 +5369,8 @@ function csvRows(text){
 }
 function tableToStatementLines(rows){
   if (!rows.length) throw new AppError('The file is empty.');
+  const isHdr = r => { const l = r.map(h => String(h).toLowerCase().trim()); return l.some(h => /date|تاريخ|posting/.test(h)) && l.some(h => /debit|credit|amount|withdraw|deposit|مدين|دائن|مبلغ/.test(h)); };
+  const hi = Math.max(0, rows.slice(0, 15).findIndex(isHdr)); if (hi > 0) rows = rows.slice(hi);
   const H = rows[0].map(h => String(h).toLowerCase().trim());
   const find = keys => H.findIndex(h => keys.some(k => h.includes(k)));
   const col = { date: find(['date','تاريخ','posting']), desc: find(['desc','detail','narrative','particular','بيان','وصف']), ref: find(['ref','cheque','check','مرجع']),
@@ -9938,19 +9956,32 @@ const docEntry = d => S.entries.find(e => e.id === d.entryId);
 const docStatus = d => { const e = docEntry(d); return e ? badge(e.status) : badge('ISSUE'); };
 function needBanks(){ return S.banks.length ? '' : `<div class="note warn">No bank or cash accounts yet. ${can('banking', 'create') ? '<a href="#/bank/accounts">Create one</a>.' : ''}</div>`; }
 function pageBanks(){
-  const today = todayCairo();
-  const rows = S.banks.map(b => { const bal = bankBalance(b, today); const last = S.statements.filter(s => s.bankId === b.id && s.status === 'reconciled').sort((x, y) => x.to < y.to ? 1 : -1)[0];
-    return `<tr style="${b.active ? '' : 'opacity:.55'}"><td><b>${esc(b.name)}</b><div class="muted" style="font-size:12px">${esc([b.bankName, b.branch].filter(Boolean).join(' · '))}</div></td>
-      <td class="mono" style="font-size:12px">${esc(b.iban || b.accountNo || '')}${b.swift ? `<div class="muted">${esc(b.swift)}</div>` : ''}</td><td>${b.kind === 'cash' ? 'Cash' : 'Bank'}</td><td class="mono">${b.currency}</td>
-      <td class="mono">${esc((acc(b.glAccountId) || {}).code || '?')}</td><td class="num"><b>${money(bal.fc)}</b> ${b.currency}</td><td class="num">${money(bal.egp)}</td>
-      <td style="font-size:12px">${last ? `up to ${last.to}` : '<span class="muted">Not yet</span>'}</td>
-      <td><div class="row-acts"><a class="btn sm" href="#/bank/book?id=${b.id}">Transactions</a>${can('banking', 'edit') ? `<button class="btn sm" data-act="bank-edit" data-id="${b.id}">Edit</button><button class="btn sm ${b.active ? 'danger-t' : ''}" data-act="bank-active" data-id="${b.id}">${b.active ? 'Archive' : 'Restore'}</button>` : ''}</div></td></tr>`; }).join('');
-  const byCur = {}; for (const b of S.banks){ const x = bankBalance(b, today); byCur[b.currency] = (byCur[b.currency] || D0()).plus(x.fc); }
+  const today = todayCairo(), canEdit = can('banking', 'edit');
+  const list = S.banks.map(b => ({ b, bal: bankBalance(b, today), last: S.statements.filter(s => s.bankId === b.id && s.status === 'reconciled').sort((x, y) => x.to < y.to ? 1 : -1)[0] }));
+  const live = list.filter(x => x.b.active);
+  const byCur = {}; for (const x of live){ byCur[x.b.currency] = { fc: (byCur[x.b.currency] ? byCur[x.b.currency].fc : D0()).plus(x.bal.fc), n: (byCur[x.b.currency] ? byCur[x.b.currency].n : 0) + 1 }; }
+  const totalEgp = live.reduce((t, x) => t.plus(x.bal.egp), D0());
+  const curs = [...new Set(['EGP', ...S.companyCurrencies.filter(c => c.active).map(c => c.code)])].filter(c => c === 'EGP' || byCur[c]).slice(0, 3);
+  const card = ({ b, bal, last }) => {
+    const neg = bal.fc.lt(0), num = b.iban || b.accountNo || '';
+    const menu = canEdit ? rowMenu(`Actions for ${b.name}`, [`<button type="button" role="menuitem" data-act="bank-edit" data-id="${b.id}">${ic('edit', 14)} Edit</button>`, ...(b.active && S.banks.filter(x => x.active).length >= 2 ? [`<button type="button" role="menuitem" data-act="bt-new" data-from="${b.id}">${ic('swap', 14)} Transfer from here</button>`] : []), `<button type="button" role="menuitem" data-act="bank-active" data-id="${b.id}">${ic('lock', 14)} ${b.active ? 'Archive' : 'Restore'}</button>`]) : '';
+    return `<div class="bk-card${b.active ? '' : ' off'}" data-act="rm-go" data-href="#/bank/book?id=${b.id}" tabindex="0" role="link" title="Open the transactions of ${esc(b.name)}">
+      <div class="bk-top"><span class="bk-ic ${b.kind === 'cash' ? 'cash' : 'bank'}">${ic(b.kind === 'cash' ? 'wallet' : 'banking', 20)}</span>
+        <div class="bk-nm"><b>${esc(b.name)}</b><span>${esc([b.kind === 'cash' ? 'Cash' : (b.bankName || 'Bank account'), b.branch].filter(Boolean).join(' · '))}</span></div>
+        <span class="bk-cur">${b.currency}</span><span class="no-row-click">${menu}</span></div>
+      <div class="bk-bal${neg ? ' neg' : ''}">${money(bal.fc)} <small>${b.currency}</small></div>
+      <div class="bk-sub">${b.currency !== 'EGP' ? `<span>${money(bal.egp)} EGP book value</span>` : '<span>&nbsp;</span>'}${neg ? '<span class="bk-warn">Negative balance</span>' : ''}</div>
+      <div class="bk-foot"><span class="bk-meta">${num ? esc(num) : 'GL ' + esc((acc(b.glAccountId) || {}).code || '?')}</span>
+        ${last ? `<span class="pill ok">Reconciled to ${last.to}</span>` : '<span class="pill mute">Not reconciled yet</span>'}${b.active ? '' : '<span class="pill mute">Archived</span>'}</div>
+    </div>`; };
   return H(t('bank_accounts'), 'Each account is linked to its own GL account and holds a single currency. Balances never mix currencies.',
-    can('banking', 'create') && S.accounts.length ? '<button class="btn primary" data-act="bank-new">New bank / cash account</button>' : '') + needChart() + `
-    <div class="grid g3">${['EGP','EUR','USD'].map(c => `<div class="card stat"><div class="k">${c} balance</div><div class="v${D(byCur[c] || 0).lt(0) ? ' neg' : ''}">${money(byCur[c] || 0)}</div><div class="s">${(n => n === 1 ? '1 account' : n + ' accounts')(S.banks.filter(b => b.currency === c).length)}</div></div>`).join('')}</div>
-    <div class="card"><div class="tbl-wrap"><table><thead><tr><th>Account</th><th>IBAN / number</th><th>Type</th><th>Cur</th><th>GL</th><th class="num">Balance</th><th class="num">EGP book value</th><th>Reconciled</th><th></th></tr></thead>
-      <tbody>${rows || '<tr><td colspan="9" class="empty">No accounts yet.</td></tr>'}</tbody></table></div></div>`;
+    (can('banking', 'create') && S.banks.filter(x => x.active).length >= 2 ? `<button type="button" class="btn" data-act="bt-new">${ic('swap', 14)} Transfer between accounts</button>` : '') + (can('banking', 'create') && S.accounts.length ? `<button type="button" class="btn primary" data-act="bank-new">${ic('plus', 14)} New bank / cash account</button>` : '')) + needChart() + `
+    <div class="xp-kpis">
+      <div class="xp-hero"><div class="xp-hero-top"><span class="xp-kic">${ic('banking', 20)}</span><span class="xp-tag">${live.length} account${live.length === 1 ? '' : 's'}</span></div>
+        <span class="xp-kl">Total cash &amp; bank (EGP book value)</span><b class="${totalEgp.lt(0) ? 'neg' : ''}">${money(totalEgp)} <small>EGP</small></b><em>Across all currencies</em></div>
+      ${curs.map((c, i) => { const x = byCur[c] || { fc: D0(), n: 0 }; return `<div class="xp-k ${['ok', 'info', 'gold'][i % 3]}"><span class="xp-kic">${ic(c === 'EGP' ? 'wallet' : 'coins', 18)}</span><div><span class="xp-kl">${c} balance</span><b class="${x.fc.lt(0) ? 'neg' : ''}">${money(x.fc)} <small>${c}</small></b><em>${x.n} account${x.n === 1 ? '' : 's'}</em></div></div>`; }).join('')}
+    </div>
+    ${list.length ? `<div class="bk-grid">${list.map(card).join('')}</div>` : `<div class="card"><div class="xp-empty">${ic('banking', 22)}<b>No bank or cash accounts yet</b><span>Add the accounts you pay from and receive into.</span></div></div>`}`;
 }
 function bankForm(b = {}){
   const used = b.id && bankBook(b).length;
@@ -10038,7 +10069,7 @@ function pageBankStatements(){
   let list = [...S.statements]; if (F.s_bank) list = list.filter(s => s.bankId === F.s_bank);
   list.sort((a, b) => a.to < b.to ? 1 : -1);
   return H(t('statements'), 'Import CSV, Excel or OFX statements, or enter lines manually, then match them to the bank book.',
-    can('banking', 'create') && S.banks.length ? '<button class="btn primary" data-act="st-import">Import statement</button>' : '') + needBanks() + `
+    can('banking', 'create') && S.banks.length ? '<button class="btn" data-act="st-template">'+ic('file',15)+' Excel template</button><button class="btn primary" data-act="st-import">Import statement</button>' : '') + needBanks() + `
     <div class="card"><div class="filters"><select class="input" data-filter="s_bank"><option value="">All accounts</option>${S.banks.map(b => `<option value="${b.id}" ${F.s_bank === b.id ? 'selected' : ''}>${esc(bankLabel(b))}</option>`).join('')}</select></div>
     <div class="tbl-wrap"><table><thead><tr><th>Number</th><th>Account</th><th>Period</th><th class="num">Lines</th><th class="num">Matched</th><th class="num">Closing</th><th class="num">Difference</th><th>Status</th><th></th></tr></thead><tbody>
     ${list.map(st => { const b = bankById(st.bankId), rep = recReport(st); return `<tr><td class="mono">${esc(st.number)}</td><td>${esc(bankLabel(b))}</td><td>${st.from} → ${st.to}</td><td class="num">${st.lines.length}</td><td class="num">${st.lines.filter(l => l.matchId).length}</td>
@@ -14644,10 +14675,19 @@ Object.assign(CLICK, {
   'bank-new'(){ openModal({ title: 'New bank / cash account', wide: true, body: bankForm({}), onSubmit: f => A.saveBank(null, f) }); },
   'bank-edit'(el){ const b = bankById(el.dataset.id); openModal({ title: `Edit ${b.name}`, wide: true, body: bankForm(b), onSubmit: f => A.saveBank(b.id, f) }); },
   'bank-active'(el){ const b = bankById(el.dataset.id); openModal({ title: `${b.active ? 'Deactivate' : 'Activate'} ${b.name}`, submit: 'Confirm', body: '<div class="field"><label>Reason *</label><input class="input" name="reason" required></div>', onSubmit: f => A.setBankActive(b.id, !b.active, f.reason) }); },
-  'bt-new'(){ openModal({ title: 'New transfer / currency conversion', wide: true, formAttrs: 'data-bt', submit: 'Create & submit for approval', body: transferForm(),
-    onSubmit: f => { const d = A.createTransfer(f); toast(`${d.number} created; its entry awaits approval.`, 'ok'); return () => jeView(docEntry(d)); } }); btPreview(); },
+  'bt-new'(el){ const from = el && el.dataset && el.dataset.from; openModal({ title: 'New transfer / currency conversion', wide: true, formAttrs: 'data-bt', submit: 'Create & submit for approval', body: transferForm(),
+    onSubmit: f => { const d = A.createTransfer(f); toast(`${d.number} created; its entry awaits approval.`, 'ok'); return () => jeView(docEntry(d)); } }); if (from){ const sel = document.querySelector('#mform [name=fromBankId]'); if (sel){ sel.value = from; sel.dispatchEvent(new Event('change', { bubbles: true })); } } btPreview(); },
   'bx-new'(el){ openModal({ title: 'New bank transaction', wide: true, submit: 'Create & submit for approval', body: bankTxnForm({ bankId: el.dataset.bank }),
     onSubmit: f => { const d = A.createBankTxn(f); toast(`${d.number} created; its entry awaits approval.`, 'ok'); return () => jeView(docEntry(d)); } }); },
+  'st-template'(){
+    const bk = S.banks[0], cur = bk ? bk.currency : 'EGP', d = todayCairo();
+    XW.save('bank-statement-template.xlsx', [{ name: 'Statement', title: 'Bank statement import template', subtitle: `Fill one row per bank line · Debit = money out, Credit = money in · Dates as YYYY-MM-DD · ${cur} · delete the sample rows`,
+      columns: [{ h: 'Date', t: 'date', w: 13 }, { h: 'Description', w: 38 }, { h: 'Reference', w: 18 }, { h: 'Debit', t: 'money', w: 15 }, { h: 'Credit', t: 'money', w: 15 }, { h: 'Balance', t: 'money', w: 16 }],
+      rows: [{ k: 'line', c: [d, 'Sample: customer transfer', 'TRF-0001', '', 15000, ''] }, { k: 'line', c: [d, 'Sample: bank charges', 'FEE-0001', 150, '', ''] }] },
+      { name: 'Instructions', title: 'How to use', subtitle: 'Then go to Banking, Statements, Import statement and upload this file',
+        columns: [{ h: 'Column', w: 18 }, { h: 'Meaning', w: 70 }],
+        rows: [{ k: 'line', c: ['Date', 'Transaction date, YYYY-MM-DD or DD/MM/YYYY (required)'] }, { k: 'line', c: ['Description', 'Bank narrative'] }, { k: 'line', c: ['Reference', 'Cheque or transfer number'] }, { k: 'line', c: ['Debit', 'Money OUT of the account'] }, { k: 'line', c: ['Credit', 'Money IN to the account'] }, { k: 'line', c: ['Balance', 'Optional running balance'] }] }]);
+    toast('Template downloaded. Fill it in, then use Import statement.', 'ok'); },
   'st-import'(){
     openModal({ title: 'Import bank statement', wide: true, submit: 'Import', body: `
       <div class="row"><div class="field"><label>Bank account *</label><select class="input" name="bankId">${bankOptions('')}</select></div>
@@ -18191,7 +18231,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-174852';
+const APP_BUILD = 'build-20261114-175809';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
