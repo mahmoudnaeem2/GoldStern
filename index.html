@@ -3109,6 +3109,51 @@ html body .sb-s,html body .ad-badge,html body .side-user-role,html body .dep-chi
 /* collapsed sidebar: section labels become a thin divider */
 html body .shell.collapsed .side .nav-sec{height:1px!important;min-height:0!important;padding:0!important;margin:10px 14px!important;overflow:hidden;background:rgba(255,255,255,.10)!important;font-size:0!important}
 html body .shell.collapsed .side .nav-sec *{display:none!important}
+/* ---- dashboard: header, 4 KPI cards, two panels ---- */
+html body .ad-head{padding:2px 2px 14px}
+html body .ad-head h1{margin:0;font-size:22px;font-weight:600;letter-spacing:-.01em;color:#1b2433}
+html body .ad-head p{margin:2px 0 0;color:var(--muted);font-size:13.5px}
+html body .ad-ks-row{margin-bottom:16px}
+html:not([data-theme="dark"]) body .ad-k{background:var(--surface)!important;border:1px solid var(--border)!important;border-radius:8px;padding:16px 18px;box-shadow:none}
+html body .ad-two{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:16px;align-items:start}
+html body .ad-panel{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:0 0 6px;overflow:hidden}
+html body .ad-panel>h2{margin:0;padding:14px 18px;font-size:14px;font-weight:600;border-bottom:1px solid var(--border)}
+html body .ad-panel .todo-inbox{margin:0;border:0;border-radius:0;box-shadow:none;background:transparent;padding:0}
+html body .ad-panel .todo-item{margin:0;border:0;border-bottom:1px solid var(--border);border-radius:0;padding:12px 18px}
+html body .ad-panel .muted{padding:14px 18px}
+html body .ad-panel .sbs{display:block;margin:0}
+html body .ad-panel .sb{display:flex;align-items:center;gap:12px;padding:11px 18px;border:0;border-bottom:1px solid var(--border);border-radius:0;background:transparent;box-shadow:none}
+html body .ad-panel .sb:last-child,html body .ad-panel .ad-br:last-child{border-bottom:0}
+html body .ad-panel .sb:hover,html body .ad-panel .ad-br:hover{background:var(--surface-2,#f6f7f9)}
+html body .ad-panel .sb-tx{display:grid;grid-template-columns:1fr auto;align-items:center;column-gap:12px;flex:1}
+html body .ad-panel .sb-tx b{grid-column:2;grid-row:1/3;font-size:16px;font-weight:600}
+html body .ad-panel .sb-l{grid-column:1;font-size:13.5px;color:var(--text,#1b2433);font-weight:500}
+html body .ad-panel .sb-s{grid-column:1;font-size:12.5px;color:var(--muted)}
+html body .ad-grid{display:block!important}
+html body .ad-br{display:grid;grid-template-columns:34px minmax(0,1.2fr) minmax(0,1fr) auto auto;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid var(--border)}
+html body .ad-br .ad-ic{width:34px;height:34px;border-radius:8px;display:grid;place-items:center;background:var(--surface-2,#f1f3f7);color:var(--muted)}
+html body .ad-bt b{display:block;font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html body .ad-bt span,html body .ad-bf span{font-size:12.5px;color:var(--muted)}
+html body .ad-bf{text-align:end}
+html body .ad-bf b{display:block;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+html body .ad-bf b small{font-size:12px;color:var(--muted);font-weight:500}
+html body .ad-bf b.neg{color:#b3261e}
+html body .ad-ba{display:flex;gap:6px}
+html body .ad-ba .btn{height:30px;min-height:30px;padding:0 10px;font-size:12.5px;background:var(--surface);color:var(--text,#1b2433)!important;border:1px solid var(--border)!important}
+html body .ad-ba .btn:hover{border-color:#c4cadb!important;background:var(--surface-2,#f6f7f9)}
+@media (max-width:1100px){html body .ad-two{grid-template-columns:1fr}}
+@media (max-width:700px){html body .ad-br{grid-template-columns:34px 1fr auto}html body .ad-bb,html body .ad-ba{grid-column:2/-1}}
+html body .ad-panel a.sb{border:0!important;border-bottom:1px solid var(--border)!important;margin:0!important;border-radius:0!important}
+html body .ad-panel a.sb:last-child{border-bottom:0!important}
+html body .ad-panel .ad-ba a.btn,html body .ad-panel .ad-ba button.btn,html body .ad-panel .ad-ba .btn.primary{background:var(--surface)!important;color:#1b2433!important;border:1px solid var(--border)!important;box-shadow:none!important}
+html body .ad-br{grid-template-columns:34px minmax(120px,1fr) minmax(0,auto) auto auto;column-gap:14px}
+html body .ad-bf{min-width:150px}
+html body .ad-bb{min-width:0}
+html body .ad-br{grid-template-columns:34px minmax(0,1fr) auto auto}
+html body .ad-bt .ad-badge{display:table;margin-top:4px;padding:1px 8px;border-radius:4px}
+html body .ad-bf{min-width:140px}
+@media (max-width:700px){html body .ad-br{grid-template-columns:34px 1fr auto}html body .ad-ba{grid-column:2/-1}}
+@media (max-width:700px){html body .ad-br{grid-template-columns:34px minmax(0,1fr)}html body .ad-bf{grid-column:2;text-align:start;min-width:0}html body .ad-ba{grid-column:2;flex-wrap:wrap}html body .ad-ba .btn{height:36px;min-height:36px}html body .ad-ks-row{grid-template-columns:1fr 1fr}}
 /* both modes: one sans family, tabular figures instead of monospace, no all-caps labels */
 .mono,.num,td.mono,b.mono,span.mono,a.mono,div.mono,button.mono,.mh-no{font-family:var(--font)!important;font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1}
 html:not([dir=rtl]) body{font-family:var(--font)}
@@ -8665,11 +8710,8 @@ function pageAccDash(){
     return `<svg class="ad-spark" viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true"><polygon points="0,40 ${pts.map(p0 => p0.join(',')).join(' ')} 100,40" fill="${color}" opacity=".10"/><polyline points="${pts.map(p0 => p0.join(',')).join(' ')}" fill="none" stroke="${color}" stroke-width="1.6" vector-effect="non-scaling-stroke" stroke-linejoin="round"/></svg>`; };
   const ring = (done, total) => { const r = 22, c = 2 * Math.PI * r, f = total ? done / total : 0;
     return `<svg class="ad-ring" viewBox="0 0 56 56" aria-hidden="true"><circle cx="28" cy="28" r="${r}" fill="none" stroke="var(--surface-2)" stroke-width="6"/><circle cx="28" cy="28" r="${r}" fill="none" stroke="var(--gold)" stroke-width="6" stroke-linecap="round" stroke-dasharray="${(c * f).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 28 28)"/></svg>`; };
-  const card = o => `<section class="ad-card" style="--c:${o.c};--cs:${o.cs}">
-      <header><span class="ad-ic">${ic(o.i, 20)}</span><div class="ad-t"><h3>${o.t}</h3><p>${o.sub}</p></div>${o.badge || ''}</header>
-      <div class="ad-main"><div class="ad-num"><b class="${o.neg ? 'neg' : ''}">${o.num}</b><span>${o.numSub}</span></div>${o.side || ''}</div>
-      ${o.chart ? `<div class="ad-chart">${o.chart}</div>` : ''}
-      <footer>${o.btn || ''}</footer></section>`;
+  const card = o => `<div class="ad-br" style="--c:${o.c}"><span class="ad-ic">${ic(o.i, 18)}</span><div class="ad-bt"><b>${o.t}</b><span>${o.sub}</span>${o.badge || ''}</div>
+      <div class="ad-bf"><b class="${o.neg ? 'neg' : ''}">${o.num}</b><span>${o.numSub}</span></div><div class="ad-ba">${o.btn || ''}</div></div>`;
   const bankCards = banks.map(b => { const bal = bankBalance(b), rec = S.statements.filter(st => st.bankId === b.id && st.status === 'reconciled').sort((x, y) => x.to < y.to ? 1 : -1)[0];
     const pts = [...Array(13)].map((_, k) => { try { return bankBalance(b, addDays(today, -60 + k * 5)).fc; } catch (e){ return D0(); } });
     return card({ i: b.kind === 'cash' ? 'wallet' : 'banking', c: b.kind === 'cash' ? '#0e7490' : '#1d4ed8', cs: b.kind === 'cash' ? '#ecfeff' : '#eff6ff', t: esc(b.name), sub: `${b.kind === 'cash' ? 'Cash' : 'Bank'} · ${b.currency}`,
@@ -8700,8 +8742,9 @@ function pageAccDash(){
   ].join('');
   const hello = (n => n < 12 ? 'Good morning' : n < 17 ? 'Good afternoon' : 'Good evening')(+new Date().toLocaleString('en-GB', { hour: '2-digit', hour12: false, timeZone: 'Africa/Cairo' }));
   return `<div class="ad">
-    <div class="ad-hero">
+    <div class="ad-head">
       <div class="ad-hi"><h1>${hello}, ${esc((currentUser().name || '').split(' ')[0] || 'there')}</h1><p>Here is where the money stands on ${new Date(today + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}.</p></div>
+    </div>
       <div class="ad-ks-row">
         ${kp('coins', 'Cash &amp; bank', cash, `${banks.length} account${banks.length === 1 ? '' : 's'}`, '#/bank/accounts')}
         ${kp('inbox', 'Customers owe you', ar.tot, ar.over.length ? `${money(ar.overTot)} overdue` : `${ar.open.length} open invoice${ar.open.length === 1 ? '' : 's'}`, '#/ar/aging', ar.over.length ? 'warn' : '')}
@@ -8709,7 +8752,7 @@ function pageAccDash(){
         <a class="ad-k ad-k-p" href="#/rep/statements?s=is"><span class="ad-kic">${ic('reports', 20)}</span><span class="ad-kl">Profit since ${fyFrom.slice(0, 7)}</span><b class="${ytd.net.lt(0) ? 'neg' : ''}">${money(ytd.net)}<small> EGP</small></b>
           <span class="ad-mini">${months.map(x => { const mx = months.reduce((m, y) => y.net.abs().gt(m) ? y.net.abs() : m, D0()); const h = mx.eq(0) ? 2 : Math.max(2, +x.net.abs().div(mx).mul(26).toFixed(1)); return `<i title="${x.m}: ${money(x.net)}" style="height:${h}px;${x.net.lt(0) ? 'background:#fca5a5' : ''}"></i>`; }).join('')}</span></a>
       </div>
-    </div>
+    <div class="ad-two"><section class="ad-panel ad-need"><h2>Needs attention</h2>
     ${(() => {
       const todos = [];
       if (drafts.length){
@@ -8743,11 +8786,11 @@ function pageAccDash(){
         todos.push({ tone:'warn', title: UI.lang === 'ar' ? `${draftRates.length} سعر صرف بانتظار الاعتماد` : `${draftRates.length} Exchange Rate${draftRates.length === 1 ? '' : 's'} awaiting approval`, sub: draftRates.map(r => r.from + '→' + r.to).join(', '), act: `<a class="btn sm" href="#/settings/rates">${UI.lang === 'ar' ? 'اعتماد الأسعار' : 'Review Rates'}</a>` });
       }
       return `<section class="todo-inbox" aria-label="${esc(t('my_tasks'))}">
-        <div class="todo-inbox-h"><h2>${ic('inbox', 18)} ${esc(t('my_tasks'))} <span class="pill ${todos.length ? 'gold' : 'ok'}">${todos.length}</span></h2></div>
         ${todos.length ? `<div class="todo-list">${todos.map(td => `<div class="todo-item ${td.tone}"><div class="todo-item-txt"><b>${esc(td.title)}</b><span>${esc(td.sub)}</span></div>${td.act}</div>`).join('')}</div>` : `<div class="muted" style="font-size:13px">✓ ${esc(t('all_caught_up'))}</div>`}
       </section>`;
     })()}
-    <nav class="sbs" aria-label="What needs attention">${smart}</nav>
+    <nav class="sbs" aria-label="What needs attention">${smart}</nav></section>
+    <section class="ad-panel ad-books"><h2>Books at a glance</h2>
     <div class="ad-grid">
       ${card({ i: 'invoices', c: '#047857', cs: '#ecfdf5', t: 'Customer invoices', sub: 'Sales journal', num: `${money(ar.tot)} <small>EGP</small>`, numSub: `${ar.open.length} waiting for payment`,
         badge: ar.over.length ? `<span class="ad-badge bad">${ar.over.length} overdue</span>` : '', chart: bars(agAr, '#047857', BUCKETS),
@@ -8761,7 +8804,7 @@ function pageAccDash(){
         btn: (can('journals', 'create') ? `<button class="btn primary sm" data-act="je-new">New entry</button>` : '') + `<a class="btn sm" href="#/acc/journals">Entries</a>` })}
       ${card({ i: 'calendar', c: '#a16207', cs: '#fefce8', t: `Close ${lastYm}`, sub: 'Month-end checklist', num: `${done}<small> of ${tot}</small>`, numSub: issues ? `${issues} step${issues === 1 ? '' : 's'} to fix` : (done === tot ? 'Ready to lock' : 'steps done'), neg: false,
         side: ring(done, tot), badge: issues ? `<span class="ad-badge bad">${issues} to fix</span>` : '', btn: `<a class="btn primary sm" href="#/acc/close">Open checklist</a>` })}
-    </div>
+    </div></section></div>
   </div>`;
 }
 
@@ -17462,7 +17505,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-101247';
+const APP_BUILD = 'build-20261114-101746';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
