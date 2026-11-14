@@ -3421,6 +3421,7 @@ html body .xp-kpis .xp-tag{background:var(--surface-2)!important;color:var(--mut
 html body .xp-kpis b.neg{color:var(--bad)!important}
 html body .inv-cards>.inv-card{background:var(--surface)!important;border:1px solid var(--border)!important;border-inline-start:4px solid var(--k3)!important;border-radius:10px!important;box-shadow:none!important}
 html body .inv-cards .inv-card .t{color:var(--muted)!important;font-weight:500}
+.att header{display:flex;justify-content:space-between;align-items:center;gap:8px}.att-list{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}.att-list li{display:flex;align-items:center;gap:10px;border:1px solid var(--border);border-radius:8px;padding:8px 10px}.att-nm{flex:1;min-width:0;display:flex;flex-direction:column}.att-nm b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.att-nm .muted{font-size:11.5px}.att-ic{color:var(--muted);display:inline-flex}.att-add{cursor:pointer}
 /* sign-in / first-run setup: one centred card — navy logo band on top, form below, soft light page */
 html body .auth{display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:0;min-height:100vh;padding:32px 16px;background:radial-gradient(700px 380px at 50% 0,rgba(63,95,224,.10),transparent 70%),#F3F5FA!important}
 html body .auth-art{width:100%;max-width:480px;box-sizing:border-box;background:linear-gradient(160deg,#1a2a46,var(--midnight,#0F1B2D))!important;border-radius:16px 16px 0 0;padding:30px 24px 26px!important;display:flex;align-items:center;justify-content:center;min-height:0;overflow:hidden}
@@ -8464,6 +8465,7 @@ function openModal({ title, body, submit = 'Save', wide = false, xwide = false, 
         ${onSubmit ? `<div class="modal-f">${footer || ''}<button type="button" class="btn" data-act="modal-close">${t('cancel')}</button><button class="btn ${danger ? 'danger' : 'primary'}" type="submit">${esc(submit)}</button></div>` : (footer ? `<div class="modal-f">${footer}</div>` : '')}
       </form></div></div>`;
   document.querySelectorAll('#mform input').forEach(el => { if (MONEY_FIELD.test(el.name || '') && el.value) el.value = groupDigits(el.value); });
+  if (screen && /^(je|inv|po|so):/.test(screen.key)){ const mb = document.querySelector('#mform .modal-b'), k = screen.key.split(':'); if (mb && !mb.querySelector('.att')) mb.insertAdjacentHTML('beforeend', `<div style="margin-top:14px">${attachSection(k[0], k[1])}</div>`); }
   const first = document.querySelector('#mform .input'); if (first) first.focus();
   const mf = document.getElementById('mform'); if (mf && onSubmit && !danger){ const mark = e => { if (MODAL && e.isTrusted) MODAL.dirty = true; }; mf.addEventListener('input', mark); mf.addEventListener('change', mark); }
 }
@@ -10697,6 +10699,56 @@ function pageAging(side){
 }
 
 /* ---------- Partner Ledger (Odoo-style Payables & Receivables) ---------- */
+/* ---------------- Attachments: files on entries, invoices, orders and cars ----------------
+   Metadata lives in S.attachments (audited); the file bytes live in this browser's IndexedDB. */
+const FILES = (() => {
+  let dbp = null;
+  const open = () => dbp || (dbp = new Promise((res, rej) => { try { const r = indexedDB.open('carbook-files', 1); r.onupgradeneeded = () => r.result.createObjectStore('blobs'); r.onsuccess = () => res(r.result); r.onerror = () => rej(new AppError('This browser cannot store files.')); } catch (e){ rej(new AppError('This browser cannot store files.')); } }));
+  const tx = (mode, fn) => open().then(db => new Promise((res, rej) => { const t = db.transaction('blobs', mode), st = t.objectStore('blobs'), rq = fn(st); t.oncomplete = () => res(rq && rq.result); t.onerror = () => rej(new AppError('Could not save the file.')); }));
+  return { put: (id, blob) => tx('readwrite', st => st.put(blob, id)), get: id => tx('readonly', st => st.get(id)), del: id => tx('readwrite', st => st.delete(id)) };
+})();
+const ATT_MAX = 10 * 1024 * 1024;
+function attOwnerMod(type, id){
+  if (type === 'je') return ['journals', 'create'];
+  if (type === 'veh') return ['vehicles', 'edit'];
+  if (type === 'inv'){ const i = S.invoices.find(x => x.id === id); return [i ? SIDES[i.side].mod : 'ar', 'create']; }
+  if (type === 'po') return ['purchases', 'create'];
+  if (type === 'so') return ['sales', 'create'];
+  throw new AppError('Unknown attachment target.');
+}
+const attList = (type, id) => (S.attachments || []).filter(a => a.ownerType === type && a.ownerId === id);
+const attSize = n => n >= 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB';
+function attachSection(type, id){
+  const list = attList(type, id); let canAdd = false; try { const [m, a] = attOwnerMod(type, id); canAdd = can(m, a); } catch (e){}
+  return `<section class="rc att" data-att="${type}:${esc(id)}"><header><h3>Attachments <span class="cnt">${list.length}</span></h3>${canAdd ? `<label class="btn sm att-add">${ic('plus', 14)} Add files<input type="file" multiple hidden data-att-input="1" data-owner="${type}" data-oid="${esc(id)}" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.zip"></label>` : ''}</header>
+    ${list.length ? `<ul class="att-list">${list.map(a => `<li><span class="att-ic">${ic('file', 16)}</span><div class="att-nm"><b>${esc(a.name)}</b><span class="muted">${attSize(a.size)} · ${esc(userName(a.addedBy) || '')} · ${esc(String(a.addedAt || '').slice(0, 10))}</span></div><button type="button" class="btn sm" data-act="att-open" data-id="${a.id}">Open</button>${canAdd ? `<button type="button" class="btn sm" data-act="att-del" data-id="${a.id}" title="Delete">${ic('close', 14)}</button>` : ''}</li>`).join('')}</ul>` : `<p class="muted" style="margin:6px 0 0">No files yet. Add the invoice scan, customs paper or contract here.</p>`}</section>`;
+}
+function attRefresh(type, id){ document.querySelectorAll(`.att[data-att="${type}:${CSS.escape ? id : id}"]`).forEach(el => { el.outerHTML = attachSection(type, id); }); }
+Object.assign(A, {
+  addAttachment(type, id, meta){
+    const [m, a] = attOwnerMod(type, id), me = requirePerm(m, a);
+    if (!meta || !meta.id || !meta.name) throw new AppError('File details are missing.');
+    if (meta.size > ATT_MAX) throw new AppError(`${meta.name} is larger than 10 MB.`);
+    const rec = { id: meta.id, ownerType: type, ownerId: id, name: String(meta.name).slice(0, 160), size: +meta.size || 0, type: meta.type || '', addedBy: me.id, addedAt: nowISO() };
+    (S.attachments = S.attachments || []).push(rec); log('attachment_add', m, id, null, { name: rec.name, size: rec.size, owner: type }, '', rec.name); saveState(); return rec;
+  },
+  deleteAttachment(attId){
+    const rec = (S.attachments || []).find(x => x.id === attId); if (!rec) throw new AppError('Attachment not found.');
+    const [m, a] = attOwnerMod(rec.ownerType, rec.ownerId), me = requirePerm(m, a);
+    S.attachments = S.attachments.filter(x => x.id !== attId); log('attachment_delete', m, rec.ownerId, { name: rec.name, size: rec.size }, null, `Removed by ${me.name || me.username}`, rec.name); saveState(); return rec;
+  }
+});
+document.addEventListener('change', async e => {
+  const t0 = e.target; if (!t0 || !t0.dataset || !t0.dataset.attInput || !t0.files || !t0.files.length) return;
+  const { owner, oid } = t0.dataset; let n = 0;
+  for (const f of [...t0.files]){
+    try { if (f.size > ATT_MAX) throw new AppError(`${f.name} is larger than 10 MB.`);
+      const id = uid('att'); await FILES.put(id, f); try { A.addAttachment(owner, oid, { id, name: f.name, size: f.size, type: f.type }); n++; } catch (ex){ await FILES.del(id); throw ex; }
+    } catch (ex){ toast(ex.message || 'Could not add the file.', 'bad'); }
+  }
+  if (n) toast(n === 1 ? 'File added.' : `${n} files added.`, 'ok'); attRefresh(owner, oid);
+});
+
 function stmtEvents(side, p){
   const SD = SIDES[side];
   const advs = S.settlements.filter(s => s.side === side && s.partnerId === p.id && s.type === 'cash' && entryStatus(s) === 'posted' && advState(s).availPosted.gt(0));
@@ -11069,6 +11121,7 @@ function pageVehicle(){
         ${kv('Chassis (VIN)', esc(v.vin))}${kv('Year', esc(String(v.year || '')))}${kv('Colour', esc([v.exteriorColor, v.interiorColor].filter(Boolean).join(' / ')))}${v.mileage ? kv('Mileage', esc(v.mileage) + ' km') : ''}${kv('Location', esc(locName(v.location) || ''))}${kv('Analytic account', an ? esc(an.code) : '')}
       </dl></section>
       ${moves.length ? `<section class="rc"><header><h3>History</h3></header><ol class="tl">${moves.slice(0, 8).map(m => `<li><span class="dot"></span><div><b>${m.type === 'status' ? esc(vStatus(m.to).name) : m.type === 'location' ? 'Moved to ' + esc(locName(m.to) || m.to) : esc(m.to)}</b><div class="muted">${m.date}${m.reason ? ' · ' + esc(m.reason) : ''}</div></div></li>`).join('')}</ol></section>` : ''}
+      ${attachSection('veh', v.id)}
     </aside></div></div>`;
 }
 function pageVehicleSettings(){
@@ -14865,6 +14918,18 @@ Object.assign(FORM_HANDLERS, {
 });
 Object.assign(CLICK, {
   'pst-print'(el){ stmtPrint(el.dataset.side, el.dataset.id); },
+  async 'att-open'(el){
+    const rec = (S.attachments || []).find(x => x.id === el.dataset.id); if (!rec) return;
+    try { const blob = await FILES.get(rec.id); if (!blob) return toast('The file is not stored in this browser (added on another device).', 'bad');
+      const url = URL.createObjectURL(blob); if (/^image\/|pdf$/.test(blob.type)) window.open(url, '_blank'); else { const a = document.createElement('a'); a.href = url; a.download = rec.name; document.body.appendChild(a); a.click(); a.remove(); }
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch (ex){ toast(ex.message || 'Could not open the file.', 'bad'); }
+  },
+  async 'att-del'(el){
+    const rec = (S.attachments || []).find(x => x.id === el.dataset.id); if (!rec) return;
+    if (!confirm(`Delete ${rec.name}?`)) return;
+    try { A.deleteAttachment(rec.id); await FILES.del(rec.id).catch(() => {}); toast('File deleted.', 'ok'); attRefresh(rec.ownerType, rec.ownerId); } catch (ex){ toast(ex.message || 'Could not delete.', 'bad'); }
+  },
   'pst-xlsx'(el){ stmtXlsx(el.dataset.side, el.dataset.id); },
   'partner-new'(el){ const side = el.dataset.side; openModal({ title: `New ${SIDES[side].partner.toLowerCase()}`, wide: true, body: partnerForm(side, { paymentTerms: side === 'ar' ? 0 : 30, preferredCurrency: side === 'ar' ? 'EGP' : 'EUR' }), onSubmit: f => { const p = A.savePartner(side, null, f); toast(`${p.code} created.`, 'ok'); } }); },
   'partner-edit'(el){ const side = el.dataset.side, p = partnerById(side, el.dataset.id); openModal({ title: `Edit ${p.code}`, wide: true, body: partnerForm(side, p), onSubmit: f => A.savePartner(side, p.id, f) }); },
@@ -18471,7 +18536,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-194848';
+const APP_BUILD = 'build-20261114-195048';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
