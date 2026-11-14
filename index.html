@@ -15989,6 +15989,7 @@ function carExpenseForm(pre = {}){
       <td class="num"><input class="input mono" name="cx_amt_${v.id}" data-cx-man style="display:none;width:140px;text-align:end;margin-inline-start:auto" autocomplete="off"><div data-cx-share="${v.id}" class="muted" style="font-size:11.5px"></div></td></tr>`; }).join('');
   return `
   <div class="o-sec c-info" style="border-top:0;padding-top:0;margin-top:0"><h3>Expense</h3>
+    <div class="cx-kind" role="tablist" style="display:flex;gap:8px;margin-bottom:12px"><button type="button" class="btn sm" data-act="cx-kind" data-k="cost">Car cost (freight, customs…)</button><button type="button" class="btn sm" data-act="cx-kind" data-k="commission">${ic('coins', 14)} Salesperson commission</button></div>
     <div class="row"><div class="field" style="flex:2"><label>Type *</label>${combo('costTypeName', types, pre.type || '', '', 'costtype')}</div>
       <div class="field" style="flex:2"><label>Description</label><input class="input" name="description" placeholder="e.g. Freight Hamburg → Alexandria" autocomplete="off"></div>
       <div class="field"><label>Date *</label><input class="input" type="date" name="date" value="${todayCairo()}"></div></div>
@@ -15996,7 +15997,7 @@ function carExpenseForm(pre = {}){
       <div class="field" style="max-width:110px"><label>Currency</label><select class="input" name="currency">${S.companyCurrencies.filter(c => c.active).map(c => `<option ${c.code === 'EGP' ? 'selected' : ''}>${c.code}</option>`).join('')}</select></div>
       <div class="field" style="max-width:190px"><label>Exchange rate <span class="muted" data-rate-lbl></span></label><input class="input mono" name="rate" data-rate-for="currency" autocomplete="off"></div>
       <div class="field" style="max-width:220px"><label>Of which VAT (recoverable)</label><input class="input mono" name="vat" placeholder="0" autocomplete="off"><span class="hint">VAT paid at customs or on the bill goes to input VAT, not to the car cost.</span></div></div></div>
-  <div class="o-sec c-gold" data-cx-comm style="display:none"><h3>Salesperson commission</h3>
+  <div class="o-sec c-gold" data-cx-comm style="display:none;padding:18px 24px 14px"><h3>Salesperson commission</h3>
     <div class="row"><div class="field" style="flex:2"><label>Salesperson *</label><select class="input" name="commUserId">${S.users.filter(u => u.active).map(u => `<option value="${u.id}">${esc(userName(u.id))}</option>`).join('')}</select></div>
       <div class="field" style="flex:2"><label>Commission is</label><select class="input" name="commBasis"><option value="pct">A percentage of the car's sale price</option><option value="fixed">A fixed amount (type it below)</option></select></div>
       <div class="field" style="max-width:130px" data-cx-pct><label>Rate %</label><input class="input mono" name="commPct" autocomplete="off" placeholder="e.g. 1.5"></div></div>
@@ -16020,6 +16021,7 @@ function cxRefresh(form, ev){
   const q = (document.getElementById('cx-q') || {}).value || ''; form.querySelectorAll('[data-cx-row]').forEach(r => { const on = r.querySelector('[name=cx_car]').checked; r.style.display = !q || on || r.dataset.q.includes(q.toLowerCase()) ? '' : 'none'; r.style.background = on ? 'var(--gold-soft)' : ''; });
   const ids = [].concat(fd.cx_car ?? []).filter(Boolean), cars = ids.map(vehById).filter(Boolean), cur = fd.currency || 'EGP', multi = cars.length > 1;
   const isComm = (S.costTypes.find(c => sameTxt(c.name, String(fd.costTypeName || '').trim())) || {}).commission, cs = form.querySelector('[data-cx-comm]');
+  form.querySelectorAll('[data-act=cx-kind]').forEach(bt => { const on = (bt.dataset.k === 'commission') === !!isComm; bt.classList.toggle('primary', on); });
   if (cs){ cs.style.display = isComm ? '' : 'none'; const pctOn = fd.commBasis !== 'fixed'; form.querySelector('[data-cx-pct]').style.display = pctOn ? '' : 'none';
     const cn = document.getElementById('cx-comm-note'); if (cn) cn.textContent = '';
     if (isComm && cars.length === 1){
@@ -16069,6 +16071,9 @@ Object.assign(CLICK, {
   'close-tick'(el){ S.closeTicks = S.closeTicks || {}; const m = S.closeTicks[el.dataset.ym] = S.closeTicks[el.dataset.ym] || {}; m[el.dataset.k] = !m[el.dataset.k]; log('close_checklist', 'ledger', el.dataset.ym, null, { item: el.dataset.k, done: m[el.dataset.k] }, '', el.dataset.ym); saveState(); render(); },
   'close-dep'(el){ run(() => A.runDepreciation(monthEnd(el.dataset.ym)), 'Depreciation posted.'); },
   'close-sch'(el){ run(() => A.runSchedules(monthEnd(el.dataset.ym)), 'Due months posted.'); },
+  'cx-kind'(el){ const fm = el.closest('form'), inp = fm.querySelector('[name=costTypeName]'), ct = S.costTypes.find(c => c.commission && c.active);
+    if (el.dataset.k === 'commission'){ if (ct) inp.value = ct.name; } else if (ct && sameTxt(inp.value, ct.name)) inp.value = '';
+    inp.dispatchEvent(new Event('input', { bubbles: true })); inp.dispatchEvent(new Event('change', { bubbles: true })); },
   'cx-new'(el){ const po = el.dataset.po ? poById(el.dataset.po) : null, veh = el.dataset.veh;
     openModal({ title: 'Car expense', xwide: true, formAttrs: 'data-cx', submit: 'Save & post', body: carExpenseForm({ cars: veh ? [veh] : [], type: el.dataset.type || '' }),
       onSubmit: f => { const x = A.createCarExpense(f); toast(`${x.number} posted: ${money(x.total)} ${x.currency} on ${x.carExp.cars.length} car${x.carExp.cars.length > 1 ? 's' : ''}.`, 'ok'); return po ? () => poView(poById(po.id)) : null; } });
@@ -18256,7 +18261,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-184822';
+const APP_BUILD = 'build-20261114-185050';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
