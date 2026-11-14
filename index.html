@@ -3449,6 +3449,9 @@ html body .zh-new .btn:nth-child(3) svg{background:#E4F6EC;color:#1F7A4D}
   html body .zf .zf-grid{gap:12px!important}
   html body .zf .zf-kpis{grid-template-columns:repeat(3,1fr)!important}
 }
+html body .zh-new .btn.dash-pdf{background:#3F5FE0!important;border:0!important;color:#fff!important;height:38px;padding:0 16px;gap:8px;border-radius:9px;box-shadow:none;font-weight:600}
+html body .zh-new .btn.dash-pdf:hover{background:#3552c8!important}
+html body .zh-new .btn.dash-pdf svg{width:16px!important;height:16px!important;padding:0!important;background:none!important;color:#fff!important;border-radius:0}
 /* both modes: one sans family, tabular figures instead of monospace, no all-caps labels */
 .mono,.num,td.mono,b.mono,span.mono,a.mono,div.mono,button.mono,.mh-no{font-family:var(--font)!important;font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1}
 html:not([dir=rtl]) body{font-family:var(--font)}
@@ -9085,7 +9088,7 @@ function pageAccDash(){
   const hello = (n => n < 12 ? 'Good morning' : n < 17 ? 'Good afternoon' : 'Good evening')(+new Date().toLocaleString('en-GB', { hour: '2-digit', hour12: false, timeZone: 'Africa/Cairo' }));
   return `<div class="ad zh zf">
     <div class="zh-head"><div><h1>Finance dashboard</h1><p>As of ${new Date(today + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} · financial year from ${dsh(fyFrom)} · all figures in EGP</p></div>
-      <div class="zh-new"><button class="btn" data-act="dash-pdf">${ic('file', 16)}<span>Save as PDF</span></button></div></div>
+      <div class="zh-new"><button class="btn dash-pdf" data-act="dash-pdf">${ic('printer', 16)}<span>Company snapshot (PDF)</span></button></div></div>
     <div class="zf-kpis">
       ${kpi('Cash & bank', money(cash), `${banks.length} account${banks.length === 1 ? '' : 's'}${unrec.length ? ' · ' + unrec.length + ' unreconciled' : ''}`, '', cash.lt(0), '#/bank/accounts', 'coins', 'ind')}
       ${kpi('Receivables', money(ar.tot), ar.over.length ? `${money(ar.overTot)} overdue` : 'none overdue', '', false, '#/ar/aging', 'inbox', 'teal')}
@@ -17856,7 +17859,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-111958';
+const APP_BUILD = 'build-20261114-112109';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
