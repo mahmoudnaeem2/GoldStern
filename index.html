@@ -3354,6 +3354,33 @@ html body .zf-ks a{color:var(--zi);font-weight:550;text-decoration:none}
 @media (max-width:1100px){html body .zf-kpis.four{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:560px){html body .zf-kpis.four,html body .zf-kpis:not(.four){grid-template-columns:1fr}}
 html body .zf-k b{overflow:visible;text-overflow:clip}
+/* ---- coloured KPI cards ---- */
+html body .zf-k.t-ind{background:linear-gradient(135deg,#eceeff 0,#fff 78%)!important;border-color:#dfe3ff!important}
+html body .zf-k.t-ind:hover{border-color:#4f5bd5!important}
+html body .t-ind .zf-ki{background:#4f5bd5!important;color:#fff!important;box-shadow:0 6px 12px #4f5bd540}
+html body .t-ind .zf-kl{color:#3a46c2!important;font-weight:600}
+html body .zf-k.t-teal{background:linear-gradient(135deg,#dcf7f1 0,#fff 78%)!important;border-color:#c6f0e7!important}
+html body .zf-k.t-teal:hover{border-color:#0fb59a!important}
+html body .t-teal .zf-ki{background:#0fb59a!important;color:#fff!important;box-shadow:0 6px 12px #0fb59a40}
+html body .t-teal .zf-kl{color:#0b8f7a!important;font-weight:600}
+html body .zf-k.t-amber{background:linear-gradient(135deg,#fff1d6 0,#fff 78%)!important;border-color:#ffe6b8!important}
+html body .zf-k.t-amber:hover{border-color:#f2a21a!important}
+html body .t-amber .zf-ki{background:#f2a21a!important;color:#fff!important;box-shadow:0 6px 12px #f2a21a40}
+html body .t-amber .zf-kl{color:#b9770a!important;font-weight:600}
+html body .zf-k.t-blue{background:linear-gradient(135deg,#e0efff 0,#fff 78%)!important;border-color:#cfe5ff!important}
+html body .zf-k.t-blue:hover{border-color:#2f8ae8!important}
+html body .t-blue .zf-ki{background:#2f8ae8!important;color:#fff!important;box-shadow:0 6px 12px #2f8ae840}
+html body .t-blue .zf-kl{color:#1d68b8!important;font-weight:600}
+html body .zf-k.t-violet{background:linear-gradient(135deg,#f0e8ff 0,#fff 78%)!important;border-color:#e3d6ff!important}
+html body .zf-k.t-violet:hover{border-color:#8b5cf6!important}
+html body .t-violet .zf-ki{background:#8b5cf6!important;color:#fff!important;box-shadow:0 6px 12px #8b5cf640}
+html body .t-violet .zf-kl{color:#6b3fd0!important;font-weight:600}
+html body .zf-k.t-green{background:linear-gradient(135deg,#dff7e8 0,#fff 78%)!important;border-color:#c9f0d9!important}
+html body .zf-k.t-green:hover{border-color:#16b364!important}
+html body .t-green .zf-ki{background:#16b364!important;color:#fff!important;box-shadow:0 6px 12px #16b36440}
+html body .t-green .zf-kl{color:#0d8a4b!important;font-weight:600}
+html body .zf-k b{font-size:24px}
+html body .zf-ks{color:#5b6580}
 /* both modes: one sans family, tabular figures instead of monospace, no all-caps labels */
 .mono,.num,td.mono,b.mono,span.mono,a.mono,div.mono,button.mono,.mh-no{font-family:var(--font)!important;font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1}
 html:not([dir=rtl]) body{font-family:var(--font)}
@@ -17741,7 +17768,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-105158';
+const APP_BUILD = 'build-20261114-105952';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
