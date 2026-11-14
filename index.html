@@ -11906,10 +11906,10 @@ function pageEmployees(){
   return H(t('employees'), 'Your team and their monthly salaries. Bonuses, deductions, and loan installments are processed in Payroll.',
     (ed ? `<button type="button" class="btn primary" data-act="emp-new">${ic('plus', 14)} New employee</button>` : '')) + `
     <div class="zf-kpis four">
-      ${tile('hr', 'blue', 'Monthly salaries', money(vSal) + ' <small>EGP</small>', `${list.length} ${list.length === 1 ? 'employee' : 'employees'} · ${scope}`)}
-      ${tile('users', 'green', 'Active employees', String(act.length), `${S.employees.length - act.length} inactive`, `data-act="set-filter" data-k="emp_s" data-v="${st === 'active' ? 'all' : 'active'}" role="button" tabindex="0"`)}
-      ${tile('coins', 'amber', 'Average salary', list.length ? money(vSal.div(list.length)) + ' <small>EGP</small>' : '—', `Per employee · ${scope}`)}
-      ${tile('calendar', pr && pr.status === 'posted' ? 'teal' : 'violet', monthLabel(cur) + ' payroll', pr ? (pr.status === 'posted' ? (nPaid === nPay && nPay ? 'Paid' : 'Posted') : 'Draft') : 'Not started', prSub + ` · <a href="#/hr/payroll">Open →</a>`)}
+      ${tile('hr', 'blue', 'Monthly salaries', money(vSal) + ' <small>EGP</small>', `${list.length} ${list.length === 1 ? 'employee' : 'employees'} · ${scope}`, 'data-act="emp-kpi" data-k="sal" role="button" tabindex="0"')}
+      ${tile('users', 'green', 'Active employees', String(act.length), `${S.employees.length - act.length} inactive`, 'data-act="emp-kpi" data-k="active" role="button" tabindex="0"')}
+      ${tile('coins', 'amber', 'Average salary', list.length ? money(vSal.div(list.length)) + ' <small>EGP</small>' : '—', `Per employee · ${scope}`, 'data-act="emp-kpi" data-k="avg" role="button" tabindex="0"')}
+      ${tile('calendar', pr && pr.status === 'posted' ? 'teal' : 'violet', monthLabel(cur) + ' payroll', pr ? (pr.status === 'posted' ? (nPaid === nPay && nPay ? 'Paid' : 'Posted') : 'Draft') : 'Not started', prSub + ' · click for payslips', 'data-act="emp-kpi" data-k="pay" role="button" tabindex="0"')}
     </div>
     <div class="card xp-list">
       <div class="xp-bar"><div class="xp-seg" role="tablist">${[['active', 'Active'], ['inactive', 'Inactive'], ['all', 'All']].map(([k, l]) => `<button type="button" role="tab" aria-selected="${st === k}" class="${st === k ? 'on' : ''}" data-act="set-filter" data-k="emp_s" data-v="${k}">${l}<span>${k === 'all' ? S.employees.length : k === 'active' ? act.length : S.employees.length - act.length}</span></button>`).join('')}</div>
@@ -13996,6 +13996,32 @@ Object.assign(CLICK, {
     if (open){ const pop = m.querySelector('.rm-pop'), r = el.getBoundingClientRect(), w = Math.max(180, pop.offsetWidth), h = pop.offsetHeight, rtl = document.documentElement.dir === 'rtl';
       pop.style.top = (r.bottom + 4 + h > innerHeight ? r.top - h - 4 : r.bottom + 4) + 'px'; pop.style.left = (rtl ? r.left : Math.max(8, r.right - w)) + 'px'; const f = pop.querySelector('[role=menuitem]'); if (f) f.focus(); } },
   'emp-new'(){ employeeForm(null); },
+  'emp-kpi'(el){
+    hrInit(); const k = el.dataset.k, cur = todayCairo().slice(0, 7), F = UI.filters, q = String(F.emp_q || '').trim().toLowerCase(), st = F.emp_s || 'active';
+    let list = S.employees.filter(e => st === 'all' ? true : st === 'inactive' ? e.active === false : e.active !== false);
+    if (q) list = list.filter(e => [e.code, e.name, e.title, e.phone].join(' ').toLowerCase().includes(q));
+    const act = S.employees.filter(e => e.active !== false);
+    const rows = (arr, extra = () => '') => arr.slice().sort((a, b) => a.name.localeCompare(b.name)).map(e => `<tr data-act="emp-edit" data-id="${e.id}" tabindex="0"><td><b>${esc(e.name)}</b><br><span class="muted">${esc([e.code, e.title].filter(Boolean).join(' · '))}</span></td><td>${esc(e.startDate || '—')}</td><td class="num"><b>${money(e.salary)}</b> <span class="muted">EGP</span></td>${extra(e)}</tr>`).join('');
+    const head = (x = '') => `<thead><tr><th>Employee</th><th>Start date</th><th class="num">Monthly salary</th>${x}</tr></thead>`;
+    let title, body;
+    if (k === 'pay'){
+      const sh = payrollSheet(cur), pr = payrollOf(cur);
+      title = `${monthLabel(cur)} payroll`;
+      body = !sh.lines.length ? '<p class="muted">No payslips yet for this month.</p>' : `<div class="tbl-wrap"><table class="o-list"><thead><tr><th>Employee</th><th class="num">Salary</th><th class="num">Bonus</th><th class="num">Deductions</th><th class="num">Loan</th><th class="num">Net</th><th>Paid</th></tr></thead><tbody>${sh.lines.map(l => `<tr><td><b>${esc(l.name)}</b></td><td class="num">${money(l.salary)}</td><td class="num">${money(l.bonus || 0)}</td><td class="num">${money(l.deduction || 0)}</td><td class="num">${money(l.loanDed || 0)}</td><td class="num"><b>${money(l.net)}</b></td><td>${l.paid ? '<span class="pill ok">Paid</span>' : '<span class="pill">Unpaid</span>'}</td></tr>`).join('')}</tbody><tfoot><tr><td><b>Total</b></td><td colspan="4"></td><td class="num"><b>${money(sh.lines.reduce((t, l) => t.plus(l.net), D0()))}</b></td><td></td></tr></tfoot></table></div><p class="muted" style="margin-top:8px">Status: ${pr ? (pr.status === 'posted' ? 'posted' : 'draft') : 'not started'}</p>`;
+    } else if (k === 'active'){
+      title = `Active employees (${act.length})`;
+      body = `<div class="tbl-wrap"><table class="o-list">${head()}<tbody>${rows(act) || '<tr><td colspan="3" class="muted">No active employees.</td></tr>'}</tbody></table></div>`;
+    } else if (k === 'avg'){
+      const tot = list.reduce((t, e) => t.plus(e.salary || 0), D0()), sorted = list.slice().sort((a, b) => +b.salary - +a.salary);
+      title = 'Salary spread';
+      body = !list.length ? '<p class="muted">No employees in this view.</p>' : `<p>Average <b>${money(tot.div(list.length))}</b> · highest <b>${money(sorted[0].salary)}</b> (${esc(sorted[0].name)}) · lowest <b>${money(sorted[sorted.length - 1].salary)}</b> (${esc(sorted[sorted.length - 1].name)}) EGP</p><div class="tbl-wrap"><table class="o-list">${head()}<tbody>${rows(list)}</tbody></table></div>`;
+    } else {
+      const tot = list.reduce((t, e) => t.plus(e.salary || 0), D0());
+      title = 'Monthly salaries';
+      body = `<div class="tbl-wrap"><table class="o-list">${head()}<tbody>${rows(list) || '<tr><td colspan="3" class="muted">No employees in this view.</td></tr>'}</tbody><tfoot><tr><td><b>Total</b></td><td></td><td class="num"><b>${money(tot)}</b> <span class="muted">EGP</span></td></tr></tfoot></table></div>`;
+    }
+    openModal({ title, wide: true, body, footer: `<a class="btn" href="#/hr/payroll" data-act="modal-close">Open payroll</a><button type="button" class="btn" data-act="modal-close">Close</button>` });
+  },
   'emp-edit'(el){ const e = (S.employees || []).find(x => x.id === el.dataset.id); if (e) employeeForm(e); },
   'pr-month'(el){ const v = +el.dataset.v, form = document.getElementById('pr-form');
     if (form && form.querySelector('.pr-in') && can('expenses', 'create')){ try { A.savePayroll(form.dataset.month, formData(form)); } catch (ex){ if (ex instanceof AppError){ toast(ex.message, 'bad'); return; } throw ex; } } UI.prMonth = v === 0 ? todayCairo().slice(0, 7) : monthShift(UI.prMonth || todayCairo().slice(0, 7), v); render(); },
@@ -17883,7 +17909,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-113629';
+const APP_BUILD = 'build-20261114-114021';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
