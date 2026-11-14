@@ -16046,8 +16046,8 @@ function carExpenseForm(pre = {}){
       <td>${cu ? esc(cu.legalName) : '<span class="muted">stock</span>'}</td><td><span class="pill ${g === 'out' ? 'mute' : g === 'stock' ? 'ok' : 'info'}">${esc(vStatus(v.status).name)}</span></td>
       <td class="num"><input class="input mono" name="cx_amt_${v.id}" data-cx-man style="display:none;width:140px;text-align:end;margin-inline-start:auto" autocomplete="off"><div data-cx-share="${v.id}" class="muted" style="font-size:11.5px"></div></td></tr>`; }).join('');
   return `
-  <div class="o-sec c-info" style="border-top:0;padding-top:0;margin-top:0"><h3>Expense</h3>
-    <div class="cx-kind" role="tablist" style="display:flex;gap:8px;margin-bottom:12px"><button type="button" class="btn sm" data-act="cx-kind" data-k="cost">Car cost (freight, customs…)</button><button type="button" class="btn sm" data-act="cx-kind" data-k="commission">${ic('coins', 14)} Salesperson commission</button></div>
+  <div class="cx-kind" role="tablist" style="display:flex;gap:8px;margin-bottom:4px"><button type="button" class="btn sm" data-act="cx-kind" data-k="cost">Car cost (freight, customs…)</button><button type="button" class="btn sm" data-act="cx-kind" data-k="commission">${ic('coins', 14)} Salesperson commission</button></div>
+  <div class="o-sec c-info" data-cx-exp style="border-top:0;padding-top:0;margin-top:0"><h3>Expense</h3>
     <div class="row"><div class="field" style="flex:2"><label>Type *</label>${combo('costTypeName', types, pre.type || '', '', 'costtype')}</div>
       <div class="field" style="flex:2"><label>Description</label><input class="input" name="description" placeholder="e.g. Freight Hamburg → Alexandria" autocomplete="off"></div>
       <div class="field"><label>Date *</label><input class="input" type="date" name="date" value="${todayCairo()}"></div></div>
@@ -16065,7 +16065,7 @@ function carExpenseForm(pre = {}){
       <div class="field" style="flex:2" data-cx-now><label>Paid from *</label><select class="input" name="bankId">${bankOptions('')}</select></div>
       <div class="field" style="flex:2;display:none" data-cx-credit><label>Supplier *</label>${combo('supplierName', partnerOpts('ap'), '', '', 'supplier')}</div>
       <div class="field"><label>Receipt / invoice no.</label><input class="input" name="ref" autocomplete="off"></div></div></div>
-  <div class="o-sec c-gold"><h3>Cars <span class="cnt" id="cx-n">0 selected</span></h3>
+  <div class="o-sec c-gold" data-cx-carsec><h3>Cars <span class="cnt" id="cx-n">0 selected</span></h3>
     <div class="field"><label>Find a car</label><input class="input" id="cx-q" placeholder="Model, chassis or customer…" autocomplete="off"></div>
     <div class="tbl-wrap" style="max-height:330px;overflow:auto;border:1px solid var(--border);border-radius:6px"><table><thead><tr><th></th><th>Car</th><th>Customer</th><th>Status</th><th class="num">Share</th></tr></thead><tbody>${rows || '<tr><td colspan="5" class="empty">No cars yet.</td></tr>'}</tbody></table></div>
     <div id="cx-sum" class="note" style="margin-top:10px"></div>
@@ -16081,8 +16081,13 @@ function cxRefresh(form, ev){
   const isComm = (S.costTypes.find(c => sameTxt(c.name, String(fd.costTypeName || '').trim())) || {}).commission, cs = form.querySelector('[data-cx-comm]');
   form.querySelectorAll('[data-act=cx-kind]').forEach(bt => { const on = (bt.dataset.k === 'commission') === !!isComm; bt.classList.toggle('primary', on); });
   const ps = form.querySelector('[data-cx-paysec]'); if (ps) ps.style.display = isComm ? 'none' : '';
+  { const ex = form.querySelector('[data-cx-exp]'), cm = form.querySelector('[data-cx-comm]'), cr = form.querySelector('[data-cx-carsec]');
+    if (ex && cm && cr && ps && ex.parentNode && ex.parentNode === cr.parentNode && form.dataset.cxMode !== (isComm ? 'c' : 'n')){
+      form.dataset.cxMode = isComm ? 'c' : 'n'; const par = ex.parentNode, order = isComm ? [cr, cm, ex, ps] : [ex, cm, ps, cr];
+      order.forEach((el, i) => { par.appendChild(el); el.style.borderTop = i === 0 ? '0' : ''; el.style.paddingTop = i === 0 ? '0' : ''; el.style.marginTop = i === 0 ? '0' : ''; }); } }
   if (cs){ cs.style.display = isComm ? '' : 'none'; const pctOn = fd.commBasis !== 'fixed'; form.querySelector('[data-cx-pct]').style.display = pctOn ? '' : 'none';
     const cn = document.getElementById('cx-comm-note'); if (cn) cn.textContent = '';
+    { const ai2 = form.querySelector('[name=amount]'); if (ai2) ai2.readOnly = !!(isComm && pctOn); }
     if (isComm && cars.length === 1){
       const so = S.invoices.filter(x => x.soId && (x.vehicleIds || []).includes(cars[0].id)).map(i => soById(i.soId)).filter(Boolean)[0], us = form.querySelector('[name=commUserId]');
       if (so && us && ev && ev.target && (ev.target.name === 'cx_car' || ev.target.name === 'costTypeName')){ us.value = so.salespersonId; if (D(so.commissionPct || 0).gt(0) && !fd.commPct){ form.querySelector('[name=commPct]').value = so.commissionPct; fd.commPct = so.commissionPct; } }
@@ -18371,7 +18376,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-185547';
+const APP_BUILD = 'build-20261114-185806';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
