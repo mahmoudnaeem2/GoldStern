@@ -3300,6 +3300,60 @@ html body .zf table.zf-t td{padding:6px!important;font-size:13px}
 html body .zf table.zf-t{table-layout:auto}
 html body .zf-card.zf-w6{grid-column:span 6}
 html body .zf-card{overflow:hidden}
+/* ---- modern finance dashboard skin ---- */
+html body main.content:has(.zf){background:linear-gradient(180deg,#f3f5fb 0,#f7f8fb 320px)}
+html body .zf{--zl:#eceff5;--zt:#161b2e;--zm:#6a7390;--zg:#10b981;--zr:#f4506a;--zi:#4f5bd5}
+html body .zh-head h1{font-size:24px;font-weight:650;letter-spacing:-.025em;color:var(--zt)}
+html body .zh-head p{font-size:13.5px;color:var(--zm)}
+html body .zh-new .btn{height:36px;border-radius:10px;padding:0 14px;font-weight:550;border:1px solid var(--zl);background:#fff;box-shadow:0 1px 2px rgba(22,27,46,.05)}
+html body .zh-new .btn.primary{background:linear-gradient(135deg,#5865f2,#4350d8)!important;border-color:transparent!important;color:#fff!important;box-shadow:0 6px 14px rgba(79,91,213,.28)}
+html body .zf-kpis{gap:14px}
+html body .zf-k{border:1px solid rgba(22,27,46,.05);border-radius:16px;padding:16px 18px;box-shadow:0 1px 2px rgba(22,27,46,.04),0 8px 24px rgba(22,27,46,.05);gap:10px;transition:transform .15s,box-shadow .15s}
+html body .zf-k:hover{transform:translateY(-1px);box-shadow:0 2px 4px rgba(22,27,46,.05),0 12px 28px rgba(22,27,46,.09);border-color:rgba(22,27,46,.05)}
+html body .zf-kt{display:flex;align-items:center;gap:10px}
+html body .zf-ki{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;flex:none}
+html body .t-ind .zf-ki{background:#eceeff;color:#4f5bd5}html body .t-teal .zf-ki{background:#dcf7f1;color:#0d9d86}html body .t-amber .zf-ki{background:#fff1d6;color:#c77d0a}
+html body .t-blue .zf-ki{background:#e0efff;color:#2478d6}html body .t-violet .zf-ki{background:#f0e8ff;color:#7a4fd6}html body .t-green .zf-ki{background:#dff7e8;color:#12924f}
+html body .zf-kl{font-size:12.5px;font-weight:500;color:var(--zm);line-height:1.25}
+html body .zf-k b{font-size:22px;font-weight:650;letter-spacing:-.025em;color:var(--zt)}
+html body .zf-k b.neg{color:var(--zr)}
+html body .zf-ks{font-size:12.5px}
+html body i.zf-d{padding:2px 8px;font-weight:600}
+html body i.zf-d.good{background:#d9f6e8;color:#0c8a55}html body i.zf-d.bad{background:#ffe3e8;color:#d6304d}
+html body .zf-card{border:1px solid rgba(22,27,46,.05);border-radius:16px;padding:20px 22px;box-shadow:0 1px 2px rgba(22,27,46,.04),0 8px 24px rgba(22,27,46,.05)}
+html body .zf-card.zf-flush{padding:20px 0 6px}html body .zf-flush .zf-ch{padding:0 22px}
+html body .zf-ch{margin-bottom:14px}
+html body .zf-ch h2{font-size:15.5px;font-weight:650;letter-spacing:-.015em;color:var(--zt)}
+html body .zf-ch a{font-size:13px;font-weight:550;color:var(--zi);padding:4px 10px;border-radius:8px;background:#eef0fe;text-decoration:none}
+html body .zf-ch a:hover{background:#e2e6fd;text-decoration:none}
+html body .zf-leg{font-size:12.5px;color:var(--zm)}
+html body .zf-leg i{border-radius:50%;width:8px;height:8px}
+html body .zf-leg i.inc,html body .zf-bp i.inc{background:linear-gradient(180deg,#34d399,#10b981)}
+html body .zf-leg i.exp,html body .zf-bp i.exp{background:linear-gradient(180deg,#fb7185,#f4506a);opacity:1}
+html body .zf-bars{height:150px;gap:14px;border-bottom:0;background:repeating-linear-gradient(180deg,transparent 0,transparent 37px,#eef0f6 37px,#eef0f6 38px)}
+html body .zf-bp{gap:4px}html body .zf-bp i{width:36%;max-width:28px;border-radius:7px 7px 3px 3px}
+html body table.zf-t,html body .zf table.zf-t{border-collapse:separate;border-spacing:0}
+html body .zf table.zf-t th{font-size:12px!important;font-weight:550!important;color:#8a93ad!important;border-bottom:1px solid var(--zl)!important;padding:8px 8px!important}
+html body .zf table.zf-t td{border-bottom:1px solid #f1f3f8!important;padding:9px 8px!important;font-size:13.5px;color:var(--zt)}
+html body .zf-t tr.tot td{background:#f6f7fd!important;font-weight:600;border-top:0!important}
+html body .zf-t tr.tot td:first-child{border-radius:10px 0 0 10px}html body .zf-t tr.tot td:last-child{border-radius:0 10px 10px 0}
+html body .zf-t td.mut{color:#8a93ad}
+html body .zf-agbar{height:12px;border-radius:999px;gap:3px;background:#eef0f6}html body .zf-agbar i{border-radius:999px}
+html body .zf-top div{border-top:1px solid #f1f3f8;padding:8px 0}html body .zf-top b{font-weight:500}
+html body .zf-note.ok{background:#e4f8ee;color:#0c8a55;padding:8px 12px;border-radius:10px;display:inline-block;font-weight:500}
+html body .zf-note.bad{background:#ffe3e8;color:#d6304d;padding:8px 12px;border-radius:10px;display:inline-block}
+html body .zf a.sb{padding:11px 22px;border-top:1px solid #f1f3f8!important}
+html body .zf a.sb:hover{background:#f6f7fd!important}
+html body .zf .sb-ic{width:34px;height:34px;border-radius:10px}
+html body .zf .sb-tx b{font-weight:650;font-size:16px}
+html body .zf .todo-item{padding:12px 22px;border-top:1px solid #f1f3f8}
+html body .zf-kpis.four{grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:18px}
+html body .zf-k b small{font-size:13px;font-weight:500;color:var(--zm)}
+html body .zf-ks a{color:var(--zi);font-weight:550;text-decoration:none}
+@media (max-width:1700px){html body .zf-kpis:not(.four){grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:1100px){html body .zf-kpis.four{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){html body .zf-kpis.four,html body .zf-kpis:not(.four){grid-template-columns:1fr}}
+html body .zf-k b{overflow:visible;text-overflow:clip}
 /* both modes: one sans family, tabular figures instead of monospace, no all-caps labels */
 .mono,.num,td.mono,b.mono,span.mono,a.mono,div.mono,button.mono,.mh-no{font-family:var(--font)!important;font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1}
 html:not([dir=rtl]) body{font-family:var(--font)}
@@ -8926,18 +8980,18 @@ function pageAccDash(){
   const bs = balanceSheet(today);
   const bsRow = (l, v, cls = '') => `<tr class="${cls}"><td>${l}</td><td class="num ${+v < 0 ? 'neg' : ''}">${money(v)}</td></tr>`;
   const wc = +ar.tot + +cash - +ap.tot;
-  const kpi = (label, val, sub, pill, neg, href) => `<a class="zf-k" href="${href}"><span class="zf-kl">${label}</span><b class="${neg ? 'neg' : ''}">${val}</b><span class="zf-ks">${sub}${pill || ''}</span></a>`;
+  const kpi = (label, val, sub, pill, neg, href, icn, tone) => `<a class="zf-k t-${tone || 'ind'}" href="${href}"><span class="zf-kt"><span class="zf-ki">${ic(icn || 'coins', 18)}</span><span class="zf-kl">${label}</span></span><b class="${neg ? 'neg' : ''}">${val}</b><span class="zf-ks">${sub}${pill || ''}</span></a>`;
   const hello = (n => n < 12 ? 'Good morning' : n < 17 ? 'Good afternoon' : 'Good evening')(+new Date().toLocaleString('en-GB', { hour: '2-digit', hour12: false, timeZone: 'Africa/Cairo' }));
   return `<div class="ad zh zf">
     <div class="zh-head"><div><h1>Finance dashboard</h1><p>As of ${new Date(today + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} · financial year from ${dsh(fyFrom)} · all figures in EGP</p></div>
       <div class="zh-new">${can('ar', 'create') ? '<button class="btn primary sm" data-act="inv-new" data-side="ar">+ New invoice</button>' : ''}${can('ap', 'create') ? '<button class="btn sm" data-act="inv-new" data-side="ap">+ New bill</button>' : ''}${can('journals', 'create') ? '<button class="btn sm" data-act="je-new">+ New entry</button>' : ''}</div></div>
     <div class="zf-kpis">
-      ${kpi('Cash & bank', money(cash), `${banks.length} account${banks.length === 1 ? '' : 's'}${unrec.length ? ' · ' + unrec.length + ' unreconciled' : ''}`, '', cash.lt(0), '#/bank/accounts')}
-      ${kpi('Receivables', money(ar.tot), ar.over.length ? `${money(ar.overTot)} overdue` : 'none overdue', '', false, '#/ar/aging')}
-      ${kpi('Payables', money(ap.tot), ap.over.length ? `${money(ap.overTot)} overdue` : 'none overdue', '', false, '#/ap/aging')}
-      ${kpi('Revenue (FY to date)', money(ytd.revenue), prevIs ? 'vs same period last year ' : 'no prior-year data', prevIs ? chgPill(chg(ytd.revenue, prevIs.revenue)) : '', false, '#/rep/statements?s=is')}
-      ${kpi('Gross margin', gm.toFixed(1) + '%', `gross profit ${cmp(+ytd.gross)}`, '', gm < 0, '#/rep/statements?s=is')}
-      ${kpi('Net profit (FY to date)', money(ytd.net), `${nm.toFixed(1)}% of revenue `, prevIs ? chgPill(chg(ytd.net, prevIs.net)) : '', ytd.net.lt(0), '#/rep/statements?s=is')}
+      ${kpi('Cash & bank', money(cash), `${banks.length} account${banks.length === 1 ? '' : 's'}${unrec.length ? ' · ' + unrec.length + ' unreconciled' : ''}`, '', cash.lt(0), '#/bank/accounts', 'coins', 'ind')}
+      ${kpi('Receivables', money(ar.tot), ar.over.length ? `${money(ar.overTot)} overdue` : 'none overdue', '', false, '#/ar/aging', 'inbox', 'teal')}
+      ${kpi('Payables', money(ap.tot), ap.over.length ? `${money(ap.overTot)} overdue` : 'none overdue', '', false, '#/ap/aging', 'truck', 'amber')}
+      ${kpi('Revenue (FY to date)', money(ytd.revenue), prevIs ? 'vs same period last year ' : 'no prior-year data', prevIs ? chgPill(chg(ytd.revenue, prevIs.revenue)) : '', false, '#/rep/statements?s=is', 'trend', 'blue')}
+      ${kpi('Gross margin', gm.toFixed(1) + '%', `gross profit ${cmp(+ytd.gross)}`, '', gm < 0, '#/rep/statements?s=is', 'reports', 'violet')}
+      ${kpi('Net profit (FY to date)', money(ytd.net), `${nm.toFixed(1)}% of revenue `, prevIs ? chgPill(chg(ytd.net, prevIs.net)) : '', ytd.net.lt(0), '#/rep/statements?s=is', 'wallet', 'green')}
     </div>
     <div class="zf-grid">
       <section class="zf-card zf-w6"><div class="zf-ch"><h2>Revenue and expenses · last 6 months</h2><span class="zf-leg"><i class="inc"></i>Revenue <i class="exp"></i>Expenses</span></div>${ieChart}</section>
@@ -11720,14 +11774,14 @@ function pageEmployees(){
   let list = S.employees.filter(e => st === 'all' ? true : st === 'inactive' ? e.active === false : e.active !== false);
   if (q) list = list.filter(e => [e.code, e.name, e.title, e.phone].join(' ').toLowerCase().includes(q));
   list = list.slice().sort((a, b) => a.name.localeCompare(b.name));
-  const tile = (icon, cls, l, v, sub) => `<div class="xp-k ${cls}"><span class="xp-kic">${ic(icon, 18)}</span><div><span class="xp-kl">${l}</span><b>${v}</b><em>${sub}</em></div></div>`;
+  const tile = (icon, tone, l, v, sub) => `<div class="zf-k t-${tone}"><span class="zf-kt"><span class="zf-ki">${ic(icon, 18)}</span><span class="zf-kl">${l}</span></span><b>${v}</b><span class="zf-ks">${sub}</span></div>`;
   return H(t('employees'), 'Your team and their monthly salaries. Bonuses, deductions, and loan installments are processed in Payroll.',
     (ed ? `<button type="button" class="btn primary" data-act="emp-new">${ic('plus', 14)} New employee</button>` : '')) + `
-    <div class="xp-kpis">
-      <div class="xp-hero"><div class="xp-hero-top"><span class="xp-kic">${ic('hr', 20)}</span><span class="xp-tag">${act.length} active</span></div><span class="xp-kl">Monthly salaries</span><b>${money(monthly)} <small>EGP</small></b><em>Before bonuses and deductions</em></div>
-      ${tile('users', 'ok', 'Active employees', String(act.length), `${S.employees.length - act.length} inactive`)}
-      ${tile('coins', 'gold', 'Average salary', act.length ? money(monthly.div(act.length)) + ' <small>EGP</small>' : '—', 'Per active employee')}
-      ${tile('calendar', pr && pr.status === 'posted' ? 'ok' : 'info', monthLabel(cur) + ' payroll', pr ? (pr.status === 'posted' ? 'Posted' : 'Draft') : 'Not started', `<a href="#/hr/payroll">Open payroll →</a>`)}
+    <div class="zf-kpis four">
+      ${tile('hr', 'blue', 'Monthly salaries', money(monthly) + ' <small>EGP</small>', 'Before bonuses and deductions')}
+      ${tile('users', 'green', 'Active employees', String(act.length), `${S.employees.length - act.length} inactive`)}
+      ${tile('coins', 'amber', 'Average salary', act.length ? money(monthly.div(act.length)) + ' <small>EGP</small>' : '—', 'Per active employee')}
+      ${tile('calendar', pr && pr.status === 'posted' ? 'teal' : 'violet', monthLabel(cur) + ' payroll', pr ? (pr.status === 'posted' ? 'Posted' : 'Draft') : 'Not started', `<a href="#/hr/payroll">Open payroll →</a>`)}
     </div>
     <div class="card xp-list">
       <div class="xp-bar"><div class="xp-seg" role="tablist">${[['active', 'Active'], ['inactive', 'Inactive'], ['all', 'All']].map(([k, l]) => `<button type="button" role="tab" aria-selected="${st === k}" class="${st === k ? 'on' : ''}" data-act="set-filter" data-k="emp_s" data-v="${k}">${l}<span>${k === 'all' ? S.employees.length : k === 'active' ? act.length : S.employees.length - act.length}</span></button>`).join('')}</div>
@@ -17687,7 +17741,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-103506';
+const APP_BUILD = 'build-20261114-105158';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
