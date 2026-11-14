@@ -1180,13 +1180,11 @@ th{color:var(--g500);font-weight:500;background:var(--g50)}
 .rec-meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;margin-top:6px;font-size:13px;color:var(--muted)}
 .rec-meta span + span:not(.pill)::before{content:'';display:inline-block;width:3px;height:3px;border-radius:50%;background:#b3b6bc;margin-inline-end:14px;vertical-align:middle}
 .rec-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-.rec-path{list-style:none;display:flex;margin:0 0 20px;padding:14px 20px;background:#fff;border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);gap:0;counter-reset:st}
-.rec-path li{flex:1;display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted);position:relative;white-space:nowrap}
-.rec-path li:not(:last-child)::after{content:'';flex:1;height:2px;background:var(--border);margin:0 12px;border-radius:2px}
-.rec-path li.done::after{background:#1c1d21}
-.rec-path .dot{width:22px;height:22px;border-radius:50%;border:2px solid var(--border-2);background:#fff;display:inline-flex;align-items:center;justify-content:center;flex:none;color:#fff}
-.rec-path li.done{color:var(--text)}.rec-path li.done .dot{background:#1c1d21;border-color:#1c1d21}
-.rec-path li.cur{color:var(--text);font-weight:600}.rec-path li.cur .dot{border-color:var(--gold);box-shadow:0 0 0 4px rgba(184,137,43,.18)}
+.rec-path{list-style:none;display:flex;justify-content:flex-end;margin:0 0 16px;padding:0;gap:0}
+.rec-path li{position:relative;padding:7px 18px 7px 26px;margin-inline-start:-6px;font-size:13px;color:var(--muted);background:var(--surface);white-space:nowrap;clip-path:polygon(0 0,calc(100% - 12px) 0,100% 50%,calc(100% - 12px) 100%,0 100%,12px 50%)}
+.rec-path li:first-child{margin-inline-start:0;padding-inline-start:18px;clip-path:polygon(0 0,calc(100% - 12px) 0,100% 50%,calc(100% - 12px) 100%,0 100%);border-radius:6px 0 0 6px}
+.rec-path li.past{color:var(--text)}
+.rec-path li.cur{background:var(--side,#0b0f19);color:#fff;font-weight:600}
 .rec{max-width:1600px!important;margin:0 auto!important;width:100%!important}.rec-layout{display:grid;grid-template-columns:minmax(0,1fr) 350px;gap:24px;align-items:start}
 .rc,.rec-main > .o-sec{background:#fff;border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:18px 20px;margin:0 0 16px}
 .rec-main > .o-sec{border-top:1px solid var(--border)}
@@ -9889,7 +9887,7 @@ function jeView(e){
         <div class="rec-kind">${esc(j ? j.name : e.journal)}${e.number && e.draftRef ? ` · <span class="mono">${esc(e.draftRef)}</span>` : ''}</div><h2>${esc(entryRef(e))}</h2>
         <div class="rec-meta"><span class="pill ${stCls}">${esc(stTxt)}</span><span>${e.accountingDate}</span>${partners.length ? `<span>${esc(partners.map(nm).join(', '))}</span>` : ''}<span>${money(td)} EGP</span></div></div></div>
         <div class="rec-actions">__ACTS__</div></div>
-      <ol class="rec-path">${steps.map(([t0, ok]) => `<li class="${ok ? 'done' : 'cur'}"><span class="dot">${ok ? ic('check', 12) : ''}</span>${t0}</li>`).join('')}</ol>
+      <ol class="rec-path">${(() => { const ci = steps.reduce((a, x, i) => x[1] ? i : a, 0); return steps.map(([t0], i) => `<li class="${i < ci ? 'past' : i === ci ? 'cur' : ''}">${t0}</li>`).join(''); })()}</ol>
       <div class="rec-layout stack"><div class="rec-main">
         <section class="rc"><header><h3>Journal items <span class="cnt">${lines.length}</span></h3>${bal ? '<span class="pill ok">Balanced</span>' : '<span class="pill bad">Not balanced</span>'}</header>
           ${e.description ? `<p class="rc-note" style="margin-bottom:12px">${esc(e.description)}</p>` : ''}
@@ -10997,7 +10995,7 @@ function pageVehicle(){
       <h2>${esc(makeName(v.makeId))} ${esc(modelName(v.makeId, v.modelId))} ${v.year}</h2>
       <div class="rec-meta">${carClosed(v) ? '<span class="pill mute">Closed</span>' : `<span class="pill ${st.group === 'out' ? 'ok' : st.group === 'stock' ? 'info' : 'mute'}">${esc(st.name)}</span>`}<span>Chassis ${esc(v.vin)}</span>${cust ? `<span>${esc(cust.legalName)}</span>` : '<span>Stock car</span>'}</div></div></div>
       <div class="rec-actions">${actList}</div></div>
-    <ol class="rec-path">${steps.map(([t0, ok], i) => `<li class="${i < stIdx || (i === stIdx && i === steps.length - 1 && ok) ? 'done' : i === stIdx ? 'cur' : ''}"><span class="dot">${i < stIdx || (i === stIdx && ok && i === steps.length - 1) ? ic('check', 12) : ''}</span>${t0}</li>`).join('')}</ol>
+    <ol class="rec-path">${steps.map(([t0], i) => `<li class="${i < stIdx ? 'past' : i === stIdx ? 'cur' : ''}">${t0}</li>`).join('')}</ol>
     <div class="rec-layout"><div class="rec-main">
       <section class="rc"><header><h3>Profit &amp; loss</h3><span class="muted" style="font-size:12.5px">EGP</span></header>
         <div class="kpis">
@@ -18416,7 +18414,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-193239';
+const APP_BUILD = 'build-20261114-193724';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
