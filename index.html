@@ -6614,6 +6614,20 @@ function commExpenseAccount(){
   return S.accounts.find(a => a.code === '601020' && a.active && !a.isGroup) || S.accounts.find(a => a.active && !a.isGroup && /sales commissions?$/i.test(a.nameEn || '')) || getMapping('import_expense');
 }
 /* A commission is a car expense of the "Sales commission" type, accrued to a liability and paid later. */
+function commissionInput(f){
+  const ids = [].concat(f.cx_car ?? []).filter(Boolean); if (ids.length !== 1) throw new AppError('A sales commission belongs to one car. Tick a single car.');
+  const v = vehById(ids[0]); if (!v) throw new AppError('Unknown car.');
+  const cur = f.commCur || 'EGP'; if (!isActiveCurrency(cur)) throw new AppError('Select an active currency.');
+  if (!isISODate(f.commDate)) throw new AppError('Commission date is required.');
+  let rate = ''; if (cur !== 'EGP'){ rate = String(f.commRate || '').trim().replace(/,/g, ''); if (!rate) throw new AppError(`Enter the exchange rate (1 ${cur} = ? EGP).`); validateRateString(rate); }
+  const rt = cur === 'EGP' ? D(1) : D(rate); let amount, saleNet = '';
+  if (f.commBasis === 'fixed'){ const fx = String(f.commFixed || '').trim().replace(/,/g, ''); if (!amtOk(fx, cur) || !D(fx).gt(0)) throw new AppError(`Enter the commission amount in ${cur}.`); amount = D(fx); }
+  else { const pc = String(f.commPct || '').trim(); if (!/^\d+(\.\d+)?$/.test(pc) || !D(pc).gt(0) || D(pc).gt(100)) throw new AppError('Commission rate must be above 0 and at most 100%.');
+    const net = vehicleProfit(v).net; if (!net.gt(0)) throw new AppError('This car has no posted sale yet, so a percentage cannot be calculated. Use a fixed amount or sell the car first.');
+    saleNet = net.toFixed(2); amount = r2(r2(net.mul(pc).div(100)).div(rt)); }
+  if (!amount.gt(0)) throw new AppError('The commission works out to zero.');
+  return { ...f, currency: cur, rate, date: f.commDate, amount: amount.toFixed(2), vat: '', __saleNet: saleNet };
+}
 function commissionRows(asOf = '9999-12-31'){
   const out = [];
   for (const x of S.expenses){
@@ -6698,6 +6712,7 @@ Object.assign(A, {
   },
   createCarExpense(f){
     const me = requirePerm('imports', 'create');
+    { const tn0 = String(f.costTypeName || '').trim(), ct0 = S.costTypes.find(c => sameTxt(c.name, tn0) || c.code === tn0); if (ct0 && ct0.commission) f = commissionInput(f); }
     if (!isISODate(f.date)) throw new AppError('Date is required.');
     const ids = [...new Set([].concat(f.cx_car ?? []).filter(Boolean))], cars = ids.map(vehById);
     if (!cars.length) throw new AppError('Tick the car (or cars) this expense is for.'); if (cars.some(v => !v)) throw new AppError('Unknown car.');
@@ -6712,7 +6727,7 @@ Object.assign(A, {
     let rate = null; if (cur !== 'EGP'){ const r = String(f.rate || '').trim().replace(/,/g, ''); if (!r) throw new AppError(`Enter the exchange rate (1 ${cur} = ? EGP).`); rate = validateRateString(r); }
     const typeName = String(f.costTypeName || '').trim(); if (!typeName || typeName === '__add') throw new AppError('Select the expense type (freight, customs, clearance…).');
     let desc = String(f.description || '').trim(); const ref = String(f.ref || '').trim();
-    const ctPre = S.costTypes.find(c => sameTxt(c.name, typeName) || c.code === typeName), isComm = !!(ctPre && ctPre.commission), comm = isComm ? { userId: f.commUserId || '', basis: f.commBasis === 'fixed' ? 'fixed' : 'pct', pct: String(f.commPct || '').trim() } : null;
+    const ctPre = S.costTypes.find(c => sameTxt(c.name, typeName) || c.code === typeName), isComm = !!(ctPre && ctPre.commission), comm = isComm ? { userId: f.commUserId || '', basis: f.commBasis === 'fixed' ? 'fixed' : 'pct', pct: String(f.commPct || '').trim(), saleNet: f.__saleNet || '' } : null;
     if (isComm){ if (cars.length !== 1) throw new AppError('A sales commission belongs to one car. Tick a single car.'); if (!comm.userId || !S.users.some(u => u.id === comm.userId)) throw new AppError('Select the salesperson.');
       if (comm.basis === 'pct' && (!/^\d+(\.\d+)?$/.test(comm.pct) || D(comm.pct).gt(100))) throw new AppError('Commission rate must be 0–100%.');
       if (!desc) desc = `Commission ${userName(comm.userId)}${comm.basis === 'pct' ? ' · ' + comm.pct + '% of sale price' : ''}`; }
@@ -15825,7 +15840,7 @@ function syncRateField(form){
     if (box) box.style.display = cur === 'EGP' ? 'none' : '';
     const lbl = box && box.querySelector('[data-rate-lbl]'); if (lbl) lbl.textContent = `1 ${cur} = ? EGP`;
     if (cur === 'EGP'){ rt.value = ''; return; }
-    if (!rt.value || rt.dataset.auto){ const d = (form.querySelector('[name=date]') || {}).value || todayCairo(); try { rt.value = getRate(cur, 'EGP', d, 'official').rate.toFixed(); rt.dataset.auto = '1'; } catch (e){ rt.value = ''; } }
+    if (!rt.value || rt.dataset.auto){ const d = (form.querySelector(`[name="${rt.dataset.dateFor || 'date'}"]`) || {}).value || todayCairo(); try { rt.value = getRate(cur, 'EGP', d, 'official').rate.toFixed(); rt.dataset.auto = '1'; } catch (e){ rt.value = ''; } }
   });
 }
 document.addEventListener('change', e => { const form = document.getElementById('mform'); if (form && form.contains(e.target) && (e.target.matches('[name=currency], [name=date]')) && form.querySelector('[data-rate-for]')) syncRateField(form); });
@@ -16057,9 +16072,14 @@ function carExpenseForm(pre = {}){
       <div class="field" style="max-width:220px"><label>Of which VAT (recoverable)</label><input class="input mono" name="vat" placeholder="0" autocomplete="off"><span class="hint">VAT paid at customs or on the bill goes to input VAT, not to the car cost.</span></div></div></div>
   <div class="o-sec c-gold" data-cx-comm style="display:none;padding:18px 24px 14px"><h3>Salesperson commission</h3>
     <div class="row"><div class="field" style="flex:2"><label>Salesperson *</label><select class="input" name="commUserId">${S.users.filter(u => u.active).map(u => `<option value="${u.id}">${esc(userName(u.id))}</option>`).join('')}</select></div>
-      <div class="field" style="flex:2"><label>Commission is</label><select class="input" name="commBasis"><option value="pct">A percentage of the car's sale price</option><option value="fixed">A fixed amount (type it below)</option></select></div>
-      <div class="field" style="max-width:130px" data-cx-pct><label>Rate %</label><input class="input mono" name="commPct" autocomplete="off" placeholder="e.g. 1.5"></div></div>
-    <div id="cx-comm-note" class="hint"></div><div class="note" style="margin-top:8px">The commission is booked as a car expense and accrued to <b>Accrued Sales Commissions</b> (a liability). Pay it later from <b>Expenses ▸ Commissions</b>.</div></div>
+      <div class="field" style="flex:2"><label>Commission is</label><select class="input" name="commBasis"><option value="pct">A percentage of the car's sale price</option><option value="fixed">A fixed amount</option></select></div>
+      <div class="field" style="max-width:150px" data-cx-pct><label>Rate %</label><input class="input mono" name="commPct" autocomplete="off" placeholder="e.g. 1.5"></div>
+      <div class="field" style="max-width:190px;display:none" data-cx-fixed><label>Amount *</label><input class="input mono" name="commFixed" autocomplete="off"></div></div>
+    <div class="row"><div class="field" style="max-width:170px"><label>Date *</label><input class="input" type="date" name="commDate" value="${todayCairo()}"></div>
+      <div class="field" style="max-width:150px"><label>Currency</label><select class="input" name="commCur">${S.companyCurrencies.filter(c => c.active).map(c => `<option ${c.code === 'EGP' ? 'selected' : ''}>${c.code}</option>`).join('')}</select></div>
+      <div class="field" style="max-width:210px"><label>Exchange rate <span class="muted" data-rate-lbl></span></label><input class="input mono" name="commRate" data-rate-for="commCur" data-date-for="commDate" autocomplete="off"></div></div>
+    <div id="cx-comm-note" class="note" style="margin-top:6px;font-size:14px"></div>
+    <div class="hint" style="margin-top:8px">Saving books the commission as a car expense and accrues it to <b>Accrued Sales Commissions</b> (a liability). Pay it later from <b>Expenses ▸ Commissions</b>.</div></div>
   <div class="o-sec c-ok" data-cx-paysec><h3>Payment</h3>
     <div class="row"><div class="field"><label>How was it paid?</label><select class="input" name="payMode"><option value="now">Paid now — cash or bank</option><option value="credit">Pay the supplier later</option></select></div>
       <div class="field" style="flex:2" data-cx-now><label>Paid from *</label><select class="input" name="bankId">${bankOptions('')}</select></div>
@@ -16069,7 +16089,7 @@ function carExpenseForm(pre = {}){
     <div class="field"><label>Find a car</label><input class="input" id="cx-q" placeholder="Model, chassis or customer…" autocomplete="off"></div>
     <div class="tbl-wrap" style="max-height:330px;overflow:auto;border:1px solid var(--border);border-radius:6px"><table><thead><tr><th></th><th>Car</th><th>Customer</th><th>Status</th><th class="num">Share</th></tr></thead><tbody>${rows || '<tr><td colspan="5" class="empty">No cars yet.</td></tr>'}</tbody></table></div>
     <div id="cx-sum" class="note" style="margin-top:10px"></div>
-    <p class="hint" style="margin-top:8px">With several cars the amount is split equally. To give a car a different share, type its amount — the rest is split equally between the others. Closed cars are not listed. The amount is added to each car's cost. Before the sale it becomes part of the car's stock value; after the sale it is charged straight to the car's cost of sales. Either way the car's profit goes down by its share.</p></div>`;
+    <p class="hint" data-cx-carhint style="margin-top:8px">With several cars the amount is split equally. To give a car a different share, type its amount — the rest is split equally between the others. Closed cars are not listed. The amount is added to each car's cost. Before the sale it becomes part of the car's stock value; after the sale it is charged straight to the car's cost of sales. Either way the car's profit goes down by its share.</p></div>`;
 }
 const bankCurOf = id => { if (!id) return ''; if (id.startsWith('gl:')){ const a = acc(id.slice(3)); return a ? a.currency : ''; } const b = bankById(id); return b ? b.currency : ''; };
 function cxRefresh(form, ev){
@@ -16085,22 +16105,30 @@ function cxRefresh(form, ev){
     if (ex && cm && cr && ps && ex.parentNode && ex.parentNode === cr.parentNode && form.dataset.cxMode !== (isComm ? 'c' : 'n')){
       form.dataset.cxMode = isComm ? 'c' : 'n'; const par = ex.parentNode, order = isComm ? [cr, cm, ex, ps] : [ex, cm, ps, cr];
       order.forEach((el, i) => { par.appendChild(el); el.style.borderTop = i === 0 ? '0' : ''; el.style.paddingTop = i === 0 ? '0' : ''; el.style.marginTop = i === 0 ? '0' : ''; }); } }
-  if (cs){ cs.style.display = isComm ? '' : 'none'; const pctOn = fd.commBasis !== 'fixed'; form.querySelector('[data-cx-pct]').style.display = pctOn ? '' : 'none';
-    const cn = document.getElementById('cx-comm-note'); if (cn) cn.textContent = '';
-    { const ai2 = form.querySelector('[name=amount]'); if (ai2) ai2.readOnly = !!(isComm && pctOn); }
+  { const sb = form.querySelector('.modal-f button[type=submit]'); if (sb) sb.textContent = isComm ? 'Confirm commission' : 'Save & post'; }
+  { const ch = form.querySelector('[data-cx-carhint]'); if (ch) ch.style.display = isComm ? 'none' : ''; }
+  { const ex = form.querySelector('[data-cx-exp]'); if (ex) ex.style.display = isComm ? 'none' : ''; const ai0 = form.querySelector('[name=amount]'); if (ai0) ai0.required = !isComm; }
+  if (cs){ cs.style.display = isComm ? '' : 'none'; const pctOn = fd.commBasis !== 'fixed'; form.querySelector('[data-cx-pct]').style.display = pctOn ? '' : 'none'; form.querySelector('[data-cx-fixed]').style.display = pctOn ? 'none' : '';
+    const cn = document.getElementById('cx-comm-note'), ccur = fd.commCur || 'EGP'; if (cn){ cn.className = 'note'; cn.textContent = ''; }
+    if (isComm && ev && ev.target && ev.target.name === 'commCur') syncRateField(form);
     if (isComm && cars.length === 1){
       const so = S.invoices.filter(x => x.soId && (x.vehicleIds || []).includes(cars[0].id)).map(i => soById(i.soId)).filter(Boolean)[0], us = form.querySelector('[name=commUserId]');
       if (so && us && ev && ev.target && (ev.target.name === 'cx_car' || ev.target.name === 'costTypeName')){ us.value = so.salespersonId; if (D(so.commissionPct || 0).gt(0) && !fd.commPct){ form.querySelector('[name=commPct]').value = so.commissionPct; fd.commPct = so.commissionPct; } }
-      if (pctOn && cn){ const pr = vehicleProfit(cars[0]), net = pr.net, pc = String(fd.commPct || '').trim(), rt = cur === 'EGP' ? D(1) : (/^\d+(\.\d+)?$/.test(String(fd.rate || '')) ? D(fd.rate) : null);
-        if (!net.gt(0)) cn.textContent = 'This car has no posted sale yet, so a percentage cannot be calculated. Choose "fixed amount" or sell the car first.';
-        else if (!/^\d+(\.\d+)?$/.test(pc)) cn.textContent = `Sale price ${money(net)} EGP. Enter the rate %.`;
-        else if (!rt) cn.textContent = `Sale price ${money(net)} EGP. Enter the exchange rate to get the ${cur} amount.`;
-        else { const egp = r2(net.mul(pc).div(100)), amt = r2(egp.div(rt)); cn.textContent = `${pc}% of ${money(net)} EGP = ${money(egp)} EGP${cur !== 'EGP' ? ` = ${money(amt)} ${cur}` : ''}`;
-          const ai = form.querySelector('[name=amount]'); if (ai && ai.value !== amt.toFixed(2)){ ai.value = amt.toFixed(2); fd.amount = ai.value; } } }
-    } else if (isComm && cn) cn.textContent = 'Tick one car: a commission belongs to a single sale.'; }
+      const rt = ccur === 'EGP' ? D(1) : (/^\d+(\.\d+)?$/.test(String(fd.commRate || '')) ? D(fd.commRate) : null), net = vehicleProfit(cars[0]).net, bad = m => { cn.className = 'note warn'; cn.textContent = m; };
+      if (cn){ if (pctOn){ const pc = String(fd.commPct || '').trim();
+          if (!net.gt(0)) bad('This car has no posted sale yet, so a percentage cannot be calculated. Choose "A fixed amount" or sell the car first.');
+          else if (!/^\d+(\.\d+)?$/.test(pc)) bad(`Sale price ${money(net)} EGP. Enter the rate %.`);
+          else if (!rt || !rt.gt(0)) bad(`Sale price ${money(net)} EGP. Enter the exchange rate to get the ${ccur} amount.`);
+          else { const egp = r2(net.mul(pc).div(100)), amt = r2(egp.div(rt)); cn.innerHTML = `Sale price <b>${money(net)} EGP</b> × ${esc(pc)}% = <b>${money(egp)} EGP</b>${ccur !== 'EGP' ? ` ÷ ${money(rt)} = <b style="font-size:16px">${money(amt)} ${ccur}</b>` : ''}<div class="muted" style="font-size:12.5px;margin-top:4px">Dr Sales Commissions · Cr Accrued Sales Commissions</div>`; } }
+        else { const fx = String(fd.commFixed || '').replace(/,/g, '');
+          if (!/^\d+(\.\d+)?$/.test(fx) || !D(fx).gt(0)) bad('Enter the commission amount.');
+          else if (!rt || !rt.gt(0)) bad(`Enter the exchange rate for ${ccur}.`);
+          else cn.innerHTML = `<b style="font-size:16px">${money(D(fx))} ${ccur}</b>${ccur !== 'EGP' ? ` = <b>${money(r2(D(fx).mul(rt)))} EGP</b>` : ''}<div class="muted" style="font-size:12.5px;margin-top:4px">Dr Sales Commissions · Cr Accrued Sales Commissions</div>`; } }
+    } else if (isComm && cn){ cn.className = 'note warn'; cn.textContent = 'Tick one car above: a commission belongs to a single sale.'; } }
   document.getElementById('cx-n').textContent = `${cars.length} selected`;
   form.querySelectorAll('[data-cx-man]').forEach(i => { const id = i.name.slice(7); i.style.display = multi && ids.includes(id) ? '' : 'none'; if (!ids.includes(id)) i.value = ''; });
   form.querySelectorAll('[data-cx-share]').forEach(sp => sp.textContent = '');
+  { const o2 = document.getElementById('cx-sum'); if (o2) o2.style.display = isComm ? 'none' : ''; if (isComm) return; }
   const out = document.getElementById('cx-sum'), amt = String(fd.amount || '').replace(/,/g, ''), rate = cur === 'EGP' ? D(1) : (/^\d+(\.\d+)?$/.test(String(fd.rate || '')) ? D(fd.rate) : null);
   if (!cars.length){ out.className = 'note warn'; out.innerHTML = 'Tick the car (or cars) this expense is for.'; return; }
   if (!/^\d+(\.\d+)?$/.test(amt) || !D(amt).gt(0)){ out.className = 'note'; out.innerHTML = `${cars.length} car${cars.length > 1 ? 's' : ''} selected. Enter the amount.`; return; }
@@ -18376,7 +18404,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-185806';
+const APP_BUILD = 'build-20261114-190420';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
