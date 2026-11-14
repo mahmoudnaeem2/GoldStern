@@ -3496,16 +3496,6 @@ html body main.content{max-width:none!important;padding-left:20px!important;padd
 html body .tbl-wrap{scrollbar-width:thin}
 @media (max-width:1800px){html body main.content .tbl-wrap table th,html body main.content .tbl-wrap table td{padding-left:8px!important;padding-right:8px!important}html body main.content .tbl-wrap table th.ux-sel-th,html body main.content .tbl-wrap table td.ux-sel-td{padding-left:10px!important;padding-right:2px!important;width:30px}}
 html body .filters>.ux-dd-wrap,html body .xp-bar>.ux-dd-wrap,html body .ux-tools>.ux-dd-wrap{margin-inline-start:auto}
-/* larger interface on desktop screens */
-@media (min-width:1024px){
-  html{zoom:1.1}
-  html body .shell:not(.collapsed){grid-template-columns:236px 1fr!important}
-  html body .shell,html body .auth{min-height:calc(100vh / 1.1)!important}
-  html body .side{height:calc(100vh / 1.1)!important}
-  html body .card > .tbl-wrap,html body .card .tbl-wrap{max-height:calc((100vh - 230px) / 1.1)}
-  html body .modal{max-height:calc(90vh / 1.1)}
-}
-@media print{html{zoom:1!important}}
 /* both modes: one sans family, tabular figures instead of monospace, no all-caps labels */
 .mono,.num,td.mono,b.mono,span.mono,a.mono,div.mono,button.mono,.mh-no{font-family:var(--font)!important;font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1}
 html:not([dir=rtl]) body{font-family:var(--font)}
@@ -17944,7 +17934,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-120248';
+const APP_BUILD = 'build-20261114-120543';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
@@ -18338,8 +18328,8 @@ function enhanceUX(){
       return;
     }
     const allRows = [...tbody.querySelectorAll('tr')].filter(tr => !tr.querySelector('.empty, .xp-empty'));
-    const pageSize = UI.pageSize === undefined ? 25 : UI.pageSize;
-    if (allRows.length > 25){
+    const pageSize = 0; // no paging: every row is shown, the count sits in the toolbar
+    if (allRows.length > 0){
       UI.pageByRoute = UI.pageByRoute || {};
       const totalPages = pageSize > 0 ? Math.max(1, Math.ceil(allRows.length / pageSize)) : 1;
       let curPage = Math.min(totalPages, Math.max(1, UI.pageByRoute[r] || 1));
@@ -18355,11 +18345,7 @@ function enhanceUX(){
         pager.className = 'ux-pager';
         pager.innerHTML = `
           <span class="ux-pg-txt"><b>${start + 1}-${Math.min(end, allRows.length)}</b> / ${allRows.length}</span>
-          <button type="button" class="btn sm ux-pg-b" data-act="ux-page-prev" aria-label="Previous page" ${curPage <= 1 ? 'disabled' : ''}>${ic('chev-left', 14)}</button>
-          <button type="button" class="btn sm ux-pg-b" data-act="ux-page-next" aria-label="Next page" ${curPage >= totalPages ? 'disabled' : ''}>${ic('chev-right', 14)}</button>
-          <select class="input ux-pg-sz" data-act="ux-page-size" title="Rows per page" aria-label="Rows per page">
-            ${[25, 50, 100, 0].map(sz => `<option value="${sz}" ${pageSize === sz ? 'selected' : ''}>${sz === 0 ? (UI.lang === 'ar' ? 'الكل' : 'All') : sz}</option>`).join('')}
-          </select>`;
+          ${pageSize > 0 && totalPages > 1 ? `<button type="button" class="btn sm ux-pg-b" data-act="ux-page-prev" aria-label="Previous page" ${curPage <= 1 ? 'disabled' : ''}>${ic('chev-left', 14)}</button><button type="button" class="btn sm ux-pg-b" data-act="ux-page-next" aria-label="Next page" ${curPage >= totalPages ? 'disabled' : ''}>${ic('chev-right', 14)}</button>` : ''}`;
         dd.insertBefore(pager, dd.firstChild);
       }
     }
