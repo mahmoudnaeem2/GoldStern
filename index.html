@@ -3519,6 +3519,13 @@ html body .co-kind b{font-size:13.5px;font-weight:600;margin:0}
 html body .co-kind small{display:none!important}
 html body .co-kind.on{background:#3F5FE0!important;color:#fff!important;box-shadow:0 4px 10px rgba(63,95,224,.28)!important}
 html body .co-kind.on .co-kic{background:none!important;color:#fff!important}
+/* dashboard tiles that filter the list when clicked */
+html body .xp-k[data-act],html body .xp-hero[data-act],html body .xp-cats li.xp-pick{cursor:pointer;transition:border-color .15s,box-shadow .15s,transform .15s}
+html body .xp-k[data-act]:hover,html body .xp-hero[data-act]:hover{transform:translateY(-1px);box-shadow:0 6px 18px -8px rgba(63,95,224,.35)}
+html body .xp-k.on{border-color:#3F5FE0;box-shadow:0 0 0 2px rgba(63,95,224,.18)}
+html body .xp-cats li.xp-pick{padding:6px 8px;margin:0 -8px;border-radius:8px}
+html body .xp-cats li.xp-pick:hover{background:rgba(63,95,224,.06)}
+html body .xp-cats li.xp-pick.on{background:rgba(63,95,224,.10)}
 /* both modes: one sans family, tabular figures instead of monospace, no all-caps labels */
 .mono,.num,td.mono,b.mono,span.mono,a.mono,div.mono,button.mono,.mh-no{font-family:var(--font)!important;font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1}
 html:not([dir=rtl]) body{font-family:var(--font)}
@@ -12471,7 +12478,7 @@ function pageExpenses(){
 
   const tabs = [['', 'All'], ['bank', 'Cash & bank'], ['supplier', 'Supplier bills'], ['employee', 'Employee claims']];
   const plus = ic('plus', 14) + '';
-  const tile = (icon, cls, label, val, sub) => `<div class="xp-k ${cls}"><span class="xp-kic">${ic(icon, 18)}</span><div><span class="xp-kl">${label}</span><b>${money(val)} <small>EGP</small></b><em>${sub}</em></div></div>`;
+  const tile = (icon, cls, label, val, sub, flt) => `<div class="xp-k ${cls}${flt !== undefined && stf === flt ? ' on' : ''}" data-act="set-filter" data-k="ex_s" data-v="${stf === flt ? '' : flt}" role="button" tabindex="0" title="Show these in the list"><span class="xp-kic">${ic(icon, 18)}</span><div><span class="xp-kl">${label}</span><b>${money(val)} <small>EGP</small></b><em>${sub}</em></div></div>`;
   const methodTag = x => {
     if (x.method === 'bank' && x.payments && x.payments.length > 1){
       return x.payments.map(p => { const bk = bankById(p.bankId); return `<span class="xp-m bank" style="margin-inline-end:4px">${ic('banking', 13)}${esc(bk ? bk.name : 'Cash / bank')} (${money(p.amount)})</span>`; }).join('');
@@ -12483,11 +12490,11 @@ function pageExpenses(){
     (ed ? `<button type="button" class="btn" data-act="ec-new">${plus} New category</button>` : '') +
     (can('expenses', 'create') ? `<button type="button" class="btn primary" data-act="ex-new">${plus} New expense</button>` : '')) +
     `<div class="xp-kpis">
-      <div class="xp-hero"><div class="xp-hero-top"><span class="xp-kic">${ic('expenses', 20)}</span><span class="xp-tag">${OPEX.length} voucher${OPEX.length === 1 ? '' : 's'}</span></div>
+      <div class="xp-hero" data-act="xp-clear" data-k="ex_s,ex_q" role="button" tabindex="0" title="Show all expenses"><div class="xp-hero-top"><span class="xp-kic">${ic('expenses', 20)}</span><span class="xp-tag">${OPEX.length} voucher${OPEX.length === 1 ? '' : 's'}</span></div>
         <span class="xp-kl">Total operating expenses</span><b>${money(totalSpent)} <small>EGP</small></b><em>This month: ${money(monthSpent)} EGP</em></div>
-      ${tile('banking', 'ok', 'Paid from cash & bank', bankSpent, 'Settled directly')}
-      ${tile('truck', 'info', 'On supplier bills', suppSpent, 'Owed to vendors')}
-      ${tile('users', 'gold', 'Employee claims', empSpent, 'To reimburse')}
+      ${tile('banking', 'ok', 'Paid from cash & bank', bankSpent, 'Settled directly', 'bank')}
+      ${tile('truck', 'info', 'On supplier bills', suppSpent, 'Owed to vendors', 'supplier')}
+      ${tile('users', 'gold', 'Employee claims', empSpent, 'To reimburse', 'employee')}
     </div>
     <div class="xp-body">
       <div class="card xp-list">
@@ -12517,7 +12524,7 @@ function pageExpenses(){
       </div>
       <aside class="card xp-side">
         <header><h3>Where the money goes</h3><span>${money(catTot)} EGP</span></header>
-        ${cats.length ? `<ul class="xp-cats">${cats.slice(0, 8).map(([n, v]) => `<li><div><span>${esc(n)}</span><b>${money(v)}</b></div><div class="xp-cb"><i><b style="width:${Math.max(3, Number(v.div(catMax).mul(100).toFixed(1)))}%"></b></i><small>${catTot.gt(0) ? v.div(catTot).mul(100).toFixed(0) : 0}%</small></div></li>`).join('')}</ul>` : '<p class="xp-none">Spending per category shows here once you record expenses.</p>'}
+        ${cats.length ? `<ul class="xp-cats">${cats.slice(0, 8).map(([n, v]) => `<li class="xp-pick${q === n.toLowerCase() ? ' on' : ''}" data-act="set-filter" data-k="ex_q" data-v="${q === n.toLowerCase() ? '' : esc(n)}" role="button" tabindex="0" title="Show ${esc(n)} expenses"><div><span>${esc(n)}</span><b>${money(v)}</b></div><div class="xp-cb"><i><b style="width:${Math.max(3, Number(v.div(catMax).mul(100).toFixed(1)))}%"></b></i><small>${catTot.gt(0) ? v.div(catTot).mul(100).toFixed(0) : 0}%</small></div></li>`).join('')}</ul>` : '<p class="xp-none">Spending per category shows here once you record expenses.</p>'}
         <details class="xp-cfg"><summary>${S.expenseCats.length} categories &amp; their accounts</summary>
           <ul>${S.expenseCats.map(c => `<li><span>${esc(c.name)}</span><code>${esc((acc(c.accountId) || {}).code || '—')}</code></li>`).join('')}</ul>
           ${ed ? `<button type="button" class="btn sm" data-act="ec-new">${plus} Add category</button>` : ''}
@@ -15846,6 +15853,19 @@ document.addEventListener('change', e => { const fm = e.target.closest && e.targ
 Object.assign(CLICK, {
   'sm-toggle'(el){ const d = el.closest('.sm-dd'), on = !d.classList.contains('open'); document.querySelectorAll('.sm-dd.open').forEach(x => { x.classList.remove('open'); x.querySelector('.sm-btn').setAttribute('aria-expanded', 'false'); }); if (on){ d.classList.add('open'); el.setAttribute('aria-expanded', 'true'); const f0 = d.querySelector('.sm-pop a'); if (f0 && el.matches(':focus-visible')) f0.focus(); } },
   'set-filter'(el){ UI.filters[el.dataset.k] = el.dataset.v; render(); },
+  'xp-clear'(el){ String(el.dataset.k || '').split(',').forEach(k => { UI.filters[k] = ''; }); render(); },
+  'cx-cars-kpi'(){
+    const per = new Map();
+    for (const x of S.expenses.filter(d => d.carExp)){
+      const e = entryById(x.entryId); if (!e || e.status !== 'posted' || !e.totals) continue;
+      const cars = x.carExp.cars.map(vehById).filter(Boolean); if (!cars.length) continue;
+      const share = D(e.totals.egpDebit).div(cars.length);
+      cars.forEach(v => { const r = per.get(v.id) || { v, n: 0, egp: D0() }; r.n++; r.egp = r.egp.plus(share); per.set(v.id, r); });
+    }
+    const rows = [...per.values()].sort((a, b) => Number(b.egp) - Number(a.egp)), tot = rows.reduce((t, r) => t.plus(r.egp), D0());
+    openModal({ title: 'Car expenses by car', wide: true, body: rows.length ? `<div class="tbl-wrap"><table class="o-list"><thead><tr><th>Car</th><th>Chassis</th><th class="num">Expenses</th><th class="num">EGP (shared costs split)</th></tr></thead><tbody>${rows.map(r => `<tr><td><b>${esc(carName(r.v))}</b></td><td class="mono">${esc(r.v.vin)}</td><td class="num">${r.n}</td><td class="num"><b>${money(r.egp)}</b></td></tr>`).join('')}</tbody><tfoot><tr><td colspan="3"><b>Total</b></td><td class="num"><b>${money(tot)}</b></td></tr></tfoot></table></div>` : '<p class="muted">No posted car expenses yet.</p>',
+      footer: '<button type="button" class="btn" data-act="modal-close">Close</button>' });
+  },
   'close-tick'(el){ S.closeTicks = S.closeTicks || {}; const m = S.closeTicks[el.dataset.ym] = S.closeTicks[el.dataset.ym] || {}; m[el.dataset.k] = !m[el.dataset.k]; log('close_checklist', 'ledger', el.dataset.ym, null, { item: el.dataset.k, done: m[el.dataset.k] }, '', el.dataset.ym); saveState(); render(); },
   'close-dep'(el){ run(() => A.runDepreciation(monthEnd(el.dataset.ym)), 'Depreciation posted.'); },
   'close-sch'(el){ run(() => A.runSchedules(monthEnd(el.dataset.ym)), 'Due months posted.'); },
@@ -15895,14 +15915,14 @@ function pageCarExpenses(){
   if (stf) list = list.filter(r => stOf(r) === stf);
   list.sort((a, b) => a.x.date === b.x.date ? (a.x.createdAt < b.x.createdAt ? 1 : -1) : (a.x.date < b.x.date ? 1 : -1));
   const tabs = [['', 'All'], ['posted', 'Posted'], ['pending', 'Draft'], ['reversed', 'Reversed']];
-  const tile = (icon, cls, label, val, sub, unit = 'EGP') => `<div class="xp-k ${cls}"><span class="xp-kic">${ic(icon, 18)}</span><div><span class="xp-kl">${label}</span><b>${val} ${unit ? `<small>${unit}</small>` : ''}</b><em>${sub}</em></div></div>`;
+  const tile = (icon, cls, label, val, sub, unit = 'EGP', act = '') => `<div class="xp-k ${cls}" ${act} role="button" tabindex="0"><span class="xp-kic">${ic(icon, 18)}</span><div><span class="xp-kl">${label}</span><b>${val} ${unit ? `<small>${unit}</small>` : ''}</b><em>${sub}</em></div></div>`;
   return H(t('car_expenses'), 'Freight, customs, clearance, transport and any other cost you pay for a car. One expense can be shared between several cars.', can('imports', 'create') ? `<button type="button" class="btn primary" data-act="cx-new">${ic('plus', 14)} New car expense</button>` : '') + `
     <div class="xp-kpis">
-      <div class="xp-hero"><div class="xp-hero-top"><span class="xp-kic">${ic('truck', 20)}</span><span class="xp-tag">${ALL.length} expense${ALL.length === 1 ? '' : 's'}</span></div>
+      <div class="xp-hero" data-act="xp-clear" data-k="cx_s,cx_q" role="button" tabindex="0" title="Show all car expenses"><div class="xp-hero-top"><span class="xp-kic">${ic('truck', 20)}</span><span class="xp-tag">${ALL.length} expense${ALL.length === 1 ? '' : 's'}</span></div>
         <span class="xp-kl">Total car expenses</span><b>${money(tot)} <small>EGP</small></b><em>This month: ${money(month)} EGP</em></div>
-      ${tile('cars', 'ok', 'Cars with expenses', String(carIds.size), 'Cars carrying extra costs', '')}
-      ${tile('wallet', 'info', 'Average per car', money(perCar), 'Posted expenses ÷ cars')}
-      ${tile('invoices', 'gold', 'Biggest cost type', `<span style="font-size:19px;display:block;line-height:1.3;max-width:200px;white-space:normal">${types.length ? esc(types[0][0]) : '—'}</span>`, types.length ? money(types[0][1]) + ' EGP' : 'Nothing posted yet', '')}
+      ${tile('cars', 'ok', 'Cars with expenses', String(carIds.size), 'Cars carrying extra costs', '', 'data-act="cx-cars-kpi" title="See each car"')}
+      ${tile('wallet', 'info', 'Average per car', money(perCar), 'Posted expenses ÷ cars', 'EGP', 'data-act="cx-cars-kpi" title="See each car"')}
+      ${tile('invoices', 'gold', 'Biggest cost type', `<span style="font-size:19px;display:block;line-height:1.3;max-width:200px;white-space:normal">${types.length ? esc(types[0][0]) : '—'}</span>`, types.length ? money(types[0][1]) + ' EGP' : 'Nothing posted yet', '', types.length ? `data-act="set-filter" data-k="cx_q" data-v="${q === types[0][0].toLowerCase() ? '' : esc(types[0][0])}" title="Show these expenses"` : '')}
     </div>
     <div class="xp-body">
       <div class="card xp-list">
@@ -15920,7 +15940,7 @@ function pageCarExpenses(){
     </tbody></table></div></div>
       <aside class="card xp-side">
         <header><h3>Where the money goes</h3><span>${money(tot)} EGP</span></header>
-        ${types.length ? `<ul class="xp-cats">${types.slice(0, 8).map(([n, v]) => `<li><div><span>${esc(n)}</span><b>${money(v)}</b></div><div class="xp-cb"><i><b style="width:${Math.max(3, Number(v.div(tMax).mul(100).toFixed(1)))}%"></b></i><small>${tot.gt(0) ? v.div(tot).mul(100).toFixed(0) : 0}%</small></div></li>`).join('')}</ul>` : '<p class="xp-n">Spending per cost type shows here once you post a car expense.</p>'}
+        ${types.length ? `<ul class="xp-cats">${types.slice(0, 8).map(([n, v]) => `<li class="xp-pick${q === n.toLowerCase() ? ' on' : ''}" data-act="set-filter" data-k="cx_q" data-v="${q === n.toLowerCase() ? '' : esc(n)}" role="button" tabindex="0" title="Show ${esc(n)} expenses"><div><span>${esc(n)}</span><b>${money(v)}</b></div><div class="xp-cb"><i><b style="width:${Math.max(3, Number(v.div(tMax).mul(100).toFixed(1)))}%"></b></i><small>${tot.gt(0) ? v.div(tot).mul(100).toFixed(0) : 0}%</small></div></li>`).join('')}</ul>` : '<p class="xp-n">Spending per cost type shows here once you post a car expense.</p>'}
       </aside>
     </div>`;
 }
@@ -18036,7 +18056,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-172715';
+const APP_BUILD = 'build-20261114-172946';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
