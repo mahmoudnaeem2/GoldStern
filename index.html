@@ -3412,20 +3412,23 @@ html body .xp-kpis .xp-tag{grid-area:t}
 html body .xp-kpis .xp-kl{grid-area:l;font-size:12.5px}
 html body .xp-kpis b{grid-area:v;font-size:24px!important;font-weight:650;letter-spacing:-.025em;display:block;margin:0}
 html body .xp-kpis em{grid-area:s;font-style:normal;font-size:12.5px;margin:0}
-/* sign-in / first-run setup: aligned fields, brand navy panel */
-html body .auth-art{background:radial-gradient(900px 520px at 15% 10%,rgba(63,95,224,.28),transparent 60%),linear-gradient(160deg,#16243b 0%,#0F1B2D 100%)!important;color:#e8edf6}
-html body .auth-art p{color:#a9b6cc}
-html body .auth-art .stripe{background:linear-gradient(90deg,transparent,#3F5FE0,transparent)!important}
-html body .auth-form{background:#fff}
-html body .auth-box{max-width:460px}
-html body .auth-box h2{font-size:24px;letter-spacing:-.01em}
+/* sign-in / first-run setup: one centred card — navy logo band on top, form below, soft light page */
+html body .auth{display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:0;min-height:100vh;padding:32px 16px;background:radial-gradient(700px 380px at 50% 0,rgba(63,95,224,.10),transparent 70%),#F3F5FA!important}
+html body .auth-art{width:100%;max-width:480px;box-sizing:border-box;background:linear-gradient(160deg,#1a2a46,#0F1B2D)!important;border-radius:16px 16px 0 0;padding:30px 24px 26px!important;display:flex;align-items:center;justify-content:center;min-height:0;overflow:hidden}
+html body .auth-art>div:not(:first-child),html body .auth-art .stripe{display:none!important}
+html body .auth-art .auth-logo{width:210px;max-width:70%}
+html body .auth-form{width:100%;max-width:480px;box-sizing:border-box;display:block!important;padding:28px 32px 30px!important;background:#fff!important;border:1px solid #E3E8F2;border-top:0;border-radius:0 0 16px 16px;box-shadow:0 12px 36px rgba(15,27,45,.08)}
+html body .auth-box{max-width:none;width:100%}
+html body .auth-box h2{font-size:22px;letter-spacing:-.01em}
 html body .auth-box .row{align-items:flex-start;flex-wrap:nowrap}
 html body .auth-box .row>.field{min-width:0}
 html body .auth-box .input,html body .auth-box select.input{height:44px;box-sizing:border-box;padding:0 12px;width:100%}
 html body .auth-box .input[readonly]{background:#f3f5f9;color:#475569}
 html body .auth-box .hint{font-size:12px;color:#64748b}
 html body .auth-box .field label{margin:0}
-@media (max-width:520px){html body .auth-box .row{flex-wrap:wrap}}
+html body .auth-box .btn.primary{background:#3F5FE0!important;border-color:#3F5FE0!important;color:#fff!important;border-radius:10px;min-height:44px}
+html body .auth-box .btn.primary:hover{background:#3552c8!important}
+@media (max-width:520px){html body .auth-box .row{flex-wrap:wrap}html body .auth-form{padding:22px 20px!important}}
 /* both modes: one sans family, tabular figures instead of monospace, no all-caps labels */
 .mono,.num,td.mono,b.mono,span.mono,a.mono,div.mono,button.mono,.mh-no{font-family:var(--font)!important;font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1}
 html:not([dir=rtl]) body{font-family:var(--font)}
@@ -17832,7 +17835,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-111349';
+const APP_BUILD = 'build-20261114-111427';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
