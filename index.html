@@ -3071,6 +3071,41 @@ html body .card:has(.mini-t) .card-h h2{font-size:14px}
 html body .mini-t th.num,html body .mini-t td.num{text-align:right}
 html body .mini-t th{font-size:12px;font-weight:600;color:var(--muted);padding:8px 16px!important}
 html body .mini-t td{padding:9px 16px!important}
+/* ---- phone & small-text pass (audit) ---- */
+@media (max-width:700px){
+  html body header .top-search-btn{padding:0!important;width:36px!important;min-width:0!important;max-width:36px!important;height:36px;justify-content:center;flex:none!important}
+  html body header{gap:8px!important;padding-inline:12px!important}
+  html body header .top-icon-btn{width:34px!important}
+  html body .top-search-btn .tsb-txt,html body .top-search-btn .tsb-kbd{display:none!important}
+  html body .fav-strip{display:none!important}
+  html body .top-brand-text{display:none}
+  html body .top-icon-btn{width:36px;height:36px;flex:none}
+  html body .subnav{overflow-x:auto;flex-wrap:nowrap!important;padding:0 12px!important;scrollbar-width:none}
+  html body .subnav::-webkit-scrollbar{display:none}
+  html body .subnav .app,html body .subnav>a,html body .subnav .sm-dd{flex:none;white-space:nowrap}
+  html body .subnav .app{display:none}
+  html body .btn,html body .chip,html body button.f-chip{min-height:36px}
+  html body main.content td a,html body main.content td .link{display:inline-block;padding:8px 0}
+  html body main.content input[type=checkbox]{width:20px;height:20px}
+  html body main.content{overflow-x:hidden}
+}
+/* never smaller than 12px */
+html body .mono,html body .muted,html body .hint,html body .s,html body small,html body .pill,html body .badge,html body td .sub{font-size:max(12px,1em)}
+html body main.content *:where(span,div,td,th,a,small,b,kbd):not(svg *){min-height:0}
+/* light dashboard hero: no heavy dark block */
+html:not([data-theme="dark"]) body .ad-hero{background:var(--surface)!important;color:var(--text,#1b2433)!important;border:1px solid var(--border)!important;box-shadow:none!important}
+html:not([data-theme="dark"]) body .ad-hero::after{display:none}
+html:not([data-theme="dark"]) body .ad-hero h1,html:not([data-theme="dark"]) body .ad-hero h2,html:not([data-theme="dark"]) body .ad-hi h1{color:#1b2433!important}
+html:not([data-theme="dark"]) body .ad-hero p,html:not([data-theme="dark"]) body .ad-hi p{color:var(--muted)!important}
+html:not([data-theme="dark"]) body .ad-k{background:var(--surface-2,#f6f7f9)!important;border:1px solid var(--border)!important;color:#1b2433!important}
+html:not([data-theme="dark"]) body .ad-k:hover{background:#eef1f7!important;border-color:#cfd5e2!important}
+html:not([data-theme="dark"]) body .ad-k b{color:#1b2433!important}
+html:not([data-theme="dark"]) body .ad-k b small,html:not([data-theme="dark"]) body .ad-ks,html:not([data-theme="dark"]) body .ad-kl{color:var(--muted)!important}
+html:not([data-theme="dark"]) body .ad-k b.neg{color:#b3261e!important}
+html:not([data-theme="dark"]) body .ad-kic{background:#e8ecfb!important;color:#3f5fe0!important}
+html:not([data-theme="dark"]) body .ad-kic.warn{background:#fbe9e7!important;color:#b3261e!important}
+/* text floor: 12px */
+html body .sb-s,html body .ad-badge,html body .side-user-role,html body .dep-chip,html body .tsb-kbd,html body main.content .mono,html body main.content [style*="font-size:11px"],html body main.content [style*="font-size:10.5px"],html body main.content [style*="font-size:11.5px"],html body main.content [style*="font-size:10px"]{font-size:12px!important}
 /* both modes: one sans family, tabular figures instead of monospace, no all-caps labels */
 .mono,.num,td.mono,b.mono,span.mono,a.mono,div.mono,button.mono,.mh-no{font-family:var(--font)!important;font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1}
 html:not([dir=rtl]) body{font-family:var(--font)}
@@ -17424,7 +17459,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-100411';
+const APP_BUILD = 'build-20261114-101201';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
