@@ -8320,7 +8320,7 @@ const NAV = [
     { key:'fixed_assets', route:'fa/register', phase:9, mod:'assets' },
     { key:'coa', route:'acc/coa', phase:2, mod:'coa' }, { key:'gl', route:'acc/gl', phase:2, mod:'ledger' }, { key:'tb', route:'acc/tb', phase:2, mod:'ledger' }, { key:'partner_ledger', route:'acc/partner-ledger', phase:2, mod:'ledger' }, { key:'opening', route:'acc/opening', phase:2, mod:'journals' } ] },
   { key:'hr', group:true, children:[ { key:'employees', route:'hr/employees', phase:9, mod:'expenses' }, { key:'payroll', route:'hr/payroll', phase:9, mod:'expenses' }, { key:'emp_loans', route:'hr/loans', phase:9, mod:'expenses' } ] },
-  { key:'expenses', group:true, children:[ { key:'car_expenses', route:'pur/carexp', phase:6, mod:'imports' }, { key:'expense_docs', route:'exp/list', phase:9, mod:'expenses' }, { key:'schedules', route:'exp/schedules', phase:9, mod:'expenses' } ] },
+  { key:'expenses', group:true, children:[ { key:'expense_docs', route:'exp/list', phase:9, mod:'expenses' }, { key:'car_expenses', route:'pur/carexp', phase:6, mod:'imports' }, { key:'schedules', route:'exp/schedules', phase:9, mod:'expenses' } ] },
   { key:'reports', group:true, children:[ { key:'fs', route:'rep/statements', phase:10, mod:'ledger' }, { key:'profitability', route:'ana/profit', phase:8, mod:'analytics' }, { key:'ar', route:'ar/aging', phase:4, mod:'ar' }, { key:'ap', route:'ap/aging', phase:4, mod:'ap' }, { key:'partner_ledger', route:'acc/partner-ledger', phase:2, mod:'ledger' },
     { key:'valuation', route:'inv/valuation', phase:5, mod:'inventory' }, { key:'costing', route:'imp/landed', phase:6, mod:'imports' }, { key:'tax_rep', route:'tax/report', phase:9, mod:'tax' }, { key:'budgets', route:'rep/budgets', phase:10, mod:'ledger' }, { key:'rep_center', route:'rep/center', phase:10, mod:'dashboard' } ] },
   { key:'settings', group:true, children:[
@@ -8582,7 +8582,7 @@ const NAV_MENUS = {
     ['Ledger & Statements', ['§Audit reports', 'acc/gl', 'acc/tb', 'acc/partner-ledger', '§Statement reports', ['Balance sheet', 'rep/statements?s=bs'], ['Profit and loss', 'rep/statements?s=is'], ['Cash flow statement', 'rep/statements?s=cf'], ['Changes in equity', 'rep/statements?s=eq']]],
     ['Configuration', ['§Accounting', 'acc/coa', 'acc/mappings', 'ana/accounts', 'tax/codes', 'settings/fiscal']]
   ],
-  expenses: [['pur/carexp'], ['exp/list'], ['exp/schedules']],
+  expenses: [['exp/list'], ['pur/carexp'], ['exp/schedules']],
   hr: [['hr/employees'], ['hr/payroll'], ['hr/loans']],
   reports: [['rep/center'], ['Financial', ['rep/budgets', 'tax/report']], ['Cars', ['ana/profit', 'imp/landed', 'inv/valuation']], ['Partners', ['ar/aging', 'ap/aging']]],
   settings: [['General', ['settings/company', 'settings/users', 'settings/roles', 'settings/currencies']], ['Cars & e-invoicing', ['veh/settings', 'tax/einvoice']],
@@ -17878,7 +17878,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-113200';
+const APP_BUILD = 'build-20261114-113436';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
