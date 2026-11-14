@@ -3437,6 +3437,18 @@ html body .zh-new .btn .ic,html body .zh-new .btn svg{width:26px!important;heigh
 html body .zh-new .btn:nth-child(1) svg{background:#E8EDFF;color:#3F5FE0}
 html body .zh-new .btn:nth-child(2) svg{background:#FFF1DC;color:#B26A00}
 html body .zh-new .btn:nth-child(3) svg{background:#E4F6EC;color:#1F7A4D}
+/* company snapshot: the dashboard prints as a clean A4 PDF */
+@page{size:A4;margin:12mm}
+@media print{
+  html body{background:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  html body .side,html body header,html body .top,html body .subnav,html body .hamb,html body .toast,html body .zh-new{display:none!important}
+  html body .shell,html body .shell.collapsed{display:block!important;padding:0!important}
+  html body main.content{padding:0!important;margin:0!important;max-width:none!important}
+  html body .zf .zf-card,html body .zf .zf-k{break-inside:avoid;box-shadow:none!important}
+  html body .zf{zoom:.72}
+  html body .zf .zf-grid{gap:12px!important}
+  html body .zf .zf-kpis{grid-template-columns:repeat(3,1fr)!important}
+}
 /* both modes: one sans family, tabular figures instead of monospace, no all-caps labels */
 .mono,.num,td.mono,b.mono,span.mono,a.mono,div.mono,button.mono,.mh-no{font-family:var(--font)!important;font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1}
 html:not([dir=rtl]) body{font-family:var(--font)}
@@ -9073,7 +9085,7 @@ function pageAccDash(){
   const hello = (n => n < 12 ? 'Good morning' : n < 17 ? 'Good afternoon' : 'Good evening')(+new Date().toLocaleString('en-GB', { hour: '2-digit', hour12: false, timeZone: 'Africa/Cairo' }));
   return `<div class="ad zh zf">
     <div class="zh-head"><div><h1>Finance dashboard</h1><p>As of ${new Date(today + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} · financial year from ${dsh(fyFrom)} · all figures in EGP</p></div>
-      <div class="zh-new">${can('ar', 'create') ? `<button class="btn primary sm" data-act="inv-new" data-side="ar">${ic('file', 16)}<span>New invoice</span></button>` : ''}${can('ap', 'create') ? `<button class="btn sm" data-act="inv-new" data-side="ap">${ic('wallet', 16)}<span>New bill</span></button>` : ''}${can('journals', 'create') ? `<button class="btn sm" data-act="je-new">${ic('edit', 16)}<span>New entry</span></button>` : ''}</div></div>
+      <div class="zh-new"><button class="btn" data-act="dash-pdf">${ic('file', 16)}<span>Save as PDF</span></button></div></div>
     <div class="zf-kpis">
       ${kpi('Cash & bank', money(cash), `${banks.length} account${banks.length === 1 ? '' : 's'}${unrec.length ? ' · ' + unrec.length + ' unreconciled' : ''}`, '', cash.lt(0), '#/bank/accounts', 'coins', 'ind')}
       ${kpi('Receivables', money(ar.tot), ar.over.length ? `${money(ar.overTot)} overdue` : 'none overdue', '', false, '#/ar/aging', 'inbox', 'teal')}
@@ -14233,6 +14245,7 @@ Object.assign(CLICK, {
     [...S.accounts].sort((a, b) => a.code < b.code ? -1 : 1).map(a => [a.code, a.nameEn, a.nameAr, (acc(a.parentId) || {}).code || '', a.type, a.isGroup, a.normal, a.allowManual, a.reconcile, a.currency, a.requireCostCenter, a.system, a.active, a.isGroup ? '' : accountBalance(a.id).toFixed(2)]));
     log('export', 'coa', null, null, { rows: S.accounts.length }, 'CSV export'); saveState(); }); },
   'je-new'(){ openEntryEditor(null); },
+  'dash-pdf'(){ const old = document.title; document.title = `Goldstern — Company snapshot ${todayCairo()}`; const back = () => { document.title = old; window.removeEventListener('afterprint', back); }; window.addEventListener('afterprint', back); window.print(); },
   'ob-new'(){ openEntryEditor({ journal: 'OB', description: 'Opening balances at go-live', accountingDate: todayCairo() }, { journal: 'OB' }); },
   'je-view'(el){
     if (document.querySelector('.po-tabs-wrapper') || (SCREEN && SCREEN.key && SCREEN.key.startsWith('po:'))){
@@ -17843,7 +17856,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-111613';
+const APP_BUILD = 'build-20261114-111958';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
