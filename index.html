@@ -10875,6 +10875,7 @@ function pageVehicle(){
     cy && !cy.invoiced && po.status === 'approved' && can('ap', 'create') ? `<button type="button" class="btn gold" data-act="po-inv" data-id="${po.id}">${ic('invoices', 14)} Supplier invoice & receive</button>` : '',
     cy && cy.received && !cy.sold && can('ar', 'create') ? `<button type="button" class="btn gold" data-act="io-sell" data-id="${po.id}">${ic('sales', 14)} Sell car</button>` : '',
     can('imports', 'create') && !carClosed(v) ? `<button type="button" class="btn" data-act="cx-new" data-veh="${v.id}">${ic('plus', 14)} Car expense</button>` : '',
+    can('imports', 'create') && !carClosed(v) ? `<button type="button" class="btn" data-act="cx-new" data-veh="${v.id}" data-type="Sales commission">${ic('coins', 14)} Commission</button>` : '',
     st.group === 'out' && !carClosed(v) && can('vehicles', 'edit') ? `<button type="button" class="btn" data-act="car-close" data-id="${v.id}">${ic('check', 14)} Close car</button>` : '',
     carClosed(v) && can('vehicles', 'edit') ? `<span class="pill mute" style="align-self:center;padding:6px 12px">${ic('check', 14)} Closed</span><button type="button" class="btn" data-act="car-reopen" data-id="${v.id}">Reopen</button>` : '',
     can('vehicles', 'edit') ? `<button type="button" class="btn" data-act="veh-edit" data-id="${v.id}">${ic('settings', 14)} Edit</button>` : '',
@@ -10902,6 +10903,7 @@ function pageVehicle(){
   const actList = [cy && !cy.invoiced && po.status === 'approved' && can('ap', 'create') ? `<button type="button" class="btn gold" data-act="po-inv" data-id="${po.id}">Supplier invoice & receive</button>` : '',
     cy && cy.received && !cy.sold && can('ar', 'create') ? `<button type="button" class="btn gold" data-act="io-sell" data-id="${po.id}">Sell car</button>` : '',
     can('imports', 'create') && !carClosed(v) ? `<button type="button" class="btn" data-act="cx-new" data-veh="${v.id}">${ic('plus', 15)}Car expense</button>` : '',
+    can('imports', 'create') && !carClosed(v) ? `<button type="button" class="btn" data-act="cx-new" data-veh="${v.id}" data-type="Sales commission">${ic('coins', 15)} Commission</button>` : '',
     st.group === 'out' && !carClosed(v) && can('vehicles', 'edit') ? `<button type="button" class="btn" data-act="car-close" data-id="${v.id}">Close car</button>` : '',
     carClosed(v) && can('vehicles', 'edit') ? `<button type="button" class="btn" data-act="car-reopen" data-id="${v.id}">Reopen</button>` : '',
     can('vehicles', 'edit') ? `<button type="button" class="btn" data-act="veh-edit" data-id="${v.id}">Edit</button>` : ''].join('');
@@ -16070,7 +16072,7 @@ Object.assign(CLICK, {
   'close-dep'(el){ run(() => A.runDepreciation(monthEnd(el.dataset.ym)), 'Depreciation posted.'); },
   'close-sch'(el){ run(() => A.runSchedules(monthEnd(el.dataset.ym)), 'Due months posted.'); },
   'cx-new'(el){ const po = el.dataset.po ? poById(el.dataset.po) : null, veh = el.dataset.veh;
-    openModal({ title: 'Car expense', xwide: true, formAttrs: 'data-cx', submit: 'Save & post', body: carExpenseForm({ cars: veh ? [veh] : [] }),
+    openModal({ title: 'Car expense', xwide: true, formAttrs: 'data-cx', submit: 'Save & post', body: carExpenseForm({ cars: veh ? [veh] : [], type: el.dataset.type || '' }),
       onSubmit: f => { const x = A.createCarExpense(f); toast(`${x.number} posted: ${money(x.total)} ${x.currency} on ${x.carExp.cars.length} car${x.carExp.cars.length > 1 ? 's' : ''}.`, 'ok'); return po ? () => poView(poById(po.id)) : null; } });
     const fm = document.getElementById('mform'); if (fm){ syncRateField(fm); cxRefresh(fm); } }
 });
@@ -16116,7 +16118,7 @@ function pageCarExpenses(){
   list.sort((a, b) => a.x.date === b.x.date ? (a.x.createdAt < b.x.createdAt ? 1 : -1) : (a.x.date < b.x.date ? 1 : -1));
   const tabs = [['', 'All'], ['posted', 'Posted'], ['pending', 'Draft'], ['reversed', 'Reversed']];
   const tile = (icon, cls, label, val, sub, unit = 'EGP', act = '') => `<div class="xp-k ${cls}" ${act} role="button" tabindex="0"><span class="xp-kic">${ic(icon, 18)}</span><div><span class="xp-kl">${label}</span><b>${val} ${unit ? `<small>${unit}</small>` : ''}</b><em>${sub}</em></div></div>`;
-  return H(t('car_expenses'), 'Freight, customs, clearance, transport and any other cost you pay for a car. One expense can be shared between several cars.', can('imports', 'create') ? `<button type="button" class="btn primary" data-act="cx-new">${ic('plus', 14)} New car expense</button>` : '') + `
+  return H(t('car_expenses'), 'Freight, customs, clearance, transport and any other cost you pay for a car. One expense can be shared between several cars.', can('imports', 'create') ? `<button type="button" class="btn" data-act="cx-new" data-type="Sales commission">${ic('coins', 14)} Sales commission</button><button type="button" class="btn primary" data-act="cx-new">${ic('plus', 14)} New car expense</button>` : '') + `
     <div class="xp-kpis">
       <div class="xp-hero" data-act="xp-clear" data-k="cx_s,cx_q" role="button" tabindex="0" title="Show all car expenses"><div class="xp-hero-top"><span class="xp-kic">${ic('truck', 20)}</span><span class="xp-tag">${ALL.length} expense${ALL.length === 1 ? '' : 's'}</span></div>
         <span class="xp-kl">Total car expenses</span><b>${money(tot)} <small>EGP</small></b><em>This month: ${money(month)} EGP</em></div>
@@ -18256,7 +18258,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-183327';
+const APP_BUILD = 'build-20261114-184148';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
