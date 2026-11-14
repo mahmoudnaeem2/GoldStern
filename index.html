@@ -10036,10 +10036,10 @@ function btPreview(){
   if (s) document.getElementById('bt-scur').textContent = s.currency; if (d) document.getElementById('bt-dcur').textContent = d.currency;
   try {
     const x = buildTransfer(f);
-    out.className = 'note'; out.style.margin = '0';
+    out.className = 'note'; out.style.margin = '0'; out.style.display = '';
     out.innerHTML = `<b>Preview (EGP):</b> ${x.lines.map(l => `${l.debit ? 'Dr' : 'Cr'} ${esc(accLabel(acc(l.accountId)))} <span class="mono">${money(l.debit || l.credit)}</span>${l.fcCurrency ? ` <span class="muted">(${money(D(l.fcDebit).plus(l.fcCredit))} ${l.fcCurrency} @ ${fmtNum(l.fcRate, 6)})</span>` : ''}`).join('<br>')}
       <br><span class="muted">Actual rate ${x.src.currency !== x.dst.currency ? fmtNum(D(x.da).div(x.sa), 6) + ' ' + x.dst.currency + '/' + x.src.currency : '—'} · FX difference ${money(x.fx)} EGP · fees posted to Bank Charges, separate from FX</span>`;
-  } catch (e){ out.className = 'note warn'; out.style.margin = '0'; out.textContent = e.message; }
+  } catch (e){ out.style.margin = '0'; if (!String(f.srcAmount || '').trim() && !String(f.dstAmount || '').trim()){ out.className = ''; out.textContent = ''; out.style.display = 'none'; return; } out.style.display = ''; out.className = 'note warn'; out.textContent = e.message; }
 }
 document.addEventListener('input', e => { if (e.target.closest('#mform[data-bt]')) btPreview(); });
 document.addEventListener('change', e => { if (e.target.closest('#mform[data-bt]')) btPreview(); });
@@ -18231,7 +18231,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-175809';
+const APP_BUILD = 'build-20261114-180046';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
