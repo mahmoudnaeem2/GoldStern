@@ -3043,6 +3043,18 @@ html:not([data-theme="dark"]) .co-main .co-card,html[data-theme="dark"] .co-main
 html:not([data-theme="dark"]) .co-main .co-card + .co-card,html[data-theme="dark"] .co-main .co-card + .co-card{border-top:1px solid var(--border)!important}
 .co-f{grid-template-columns:150px minmax(0,1fr)!important}
 .co-f > span em{color:var(--muted)}
+/* order progress: numbered steps joined by a line, current step in accent */
+html body .statusbar{display:flex;align-items:center;gap:0;border:0!important;border-radius:0!important;background:transparent!important;overflow:visible}
+html body .statusbar span{display:inline-flex;align-items:center;gap:8px;padding:0 14px 0 0!important;margin-inline-end:14px;border:0!important;background:transparent!important;color:var(--muted)!important;font-size:13px;font-weight:500;position:relative}
+html body .statusbar span:not(:last-child)::after{content:"";width:26px;height:2px;border-radius:2px;background:var(--border);margin-inline-start:6px}
+html body .statusbar span.done:not(:last-child)::after{background:#2f7d4f}
+html body .statusbar span i{width:22px;height:22px;border-radius:50%;display:inline-grid;place-items:center;font-style:normal;font-size:11px;font-weight:600;border:1.5px solid var(--border);background:var(--surface);color:var(--muted)}
+html body .statusbar span.done{color:#2f7d4f!important}
+html body .statusbar span.done i{background:#2f7d4f;border-color:#2f7d4f;color:#fff}
+html body .statusbar span.cur{color:var(--text,#1b2433)!important;font-weight:600}
+html body .statusbar span.cur i{background:var(--gold);border-color:var(--gold);color:#fff;box-shadow:0 0 0 3px rgba(63,95,224,.16)}
+html:not([data-theme="dark"]) body .statusbar span.cur,html body .statusbar span.cur{background:transparent!important;border:0!important;color:var(--text,#1b2433)!important}
+html body .statusbar span.cur::after{background:var(--border)!important}
 /* both modes: one sans family, tabular figures instead of monospace, no all-caps labels */
 .mono,.num,td.mono,b.mono,span.mono,a.mono,div.mono,button.mono,.mh-no{font-family:var(--font)!important;font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1}
 html:not([dir=rtl]) body{font-family:var(--font)}
@@ -16116,7 +16128,7 @@ function poView(po){
           
         </div>
         <div class="statusbar">
-          ${steps.map(([t0, ok], i) => `<span class="${i < cur || (i === cur && i === steps.length - 1 && ok) ? 'done' : i === cur ? 'cur' : ''}">${i < cur || (i === cur && ok && i === steps.length - 1) ? '✓ ' : ''}${t0}</span>`).join('')}
+          ${steps.map(([t0, ok], i) => { const dn = i < cur || (i === cur && ok && i === steps.length - 1); return `<span class="${dn ? 'done' : i === cur ? 'cur' : ''}"><i>${dn ? ic('check', 11) : i + 1}</i>${t0}</span>`; }).join('')}
         </div>
       </div>
 
@@ -17396,7 +17408,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-090425';
+const APP_BUILD = 'build-20261114-100158';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
