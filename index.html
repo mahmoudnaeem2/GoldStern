@@ -14649,6 +14649,7 @@ Object.assign(CLICK, {
   'je-new'(){ openEntryEditor(null); },
   'dash-pdf'(){ const old = document.title; document.title = `${brand().name} — Company snapshot ${todayCairo()}`; const back = () => { document.title = old; window.removeEventListener('afterprint', back); }; window.addEventListener('afterprint', back); window.print(); },
   'ob-new'(){ openEntryEditor({ journal: 'OB', description: 'Opening balances at go-live', accountingDate: todayCairo() }, { journal: 'OB' }); },
+  'je-full'(el){ const e = S.entries.find(x => x.id === el.dataset.id); if (!e) return; closeJeDrawer(); jeView(e); },
   'je-view'(el){
     if (document.querySelector('.po-tabs-wrapper') || (SCREEN && SCREEN.key && SCREEN.key.startsWith('po:'))){
       const id = el.dataset.id || (el.closest('[data-id]') && el.closest('[data-id]').dataset.id);
@@ -18404,7 +18405,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-190420';
+const APP_BUILD = 'build-20261114-190709';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
@@ -18464,7 +18465,7 @@ function openJeDrawer(entryId){
           <div style="font-size:12px;color:var(--muted)">${e.accountingDate} ${e.description ? '· ' + esc(e.description) : ''}</div>
         </div>
         <div style="display:flex;align-items:center;gap:8px">
-          <button type="button" class="btn sm" data-act="je-view" data-id="${e.id}" title="Open full screen entry view">Full view</button>
+          <button type="button" class="btn sm" data-act="je-full" data-id="${e.id}" title="Open full screen entry view">Full view</button>
           <button type="button" class="je-drawer-close-btn" data-act="je-drawer-close" aria-label="Close drawer">${ic('close', 16)}</button>
         </div>
       </div>
