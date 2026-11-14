@@ -3483,6 +3483,8 @@ html body .ux-pop-act{display:flex;align-items:center;gap:8px;padding:8px 12px;b
 html body .ux-pop-act:hover{background:#F1F4FB}
 html body main.content .card:has(.ux-selbar),html body main.content .card:has(.ux-selbar) .tbl-wrap{overflow:visible!important}
 html body .ux-tools{display:flex;justify-content:flex-end;padding:8px 16px;border-bottom:1px solid #E6EAF3}
+html body #je-bulk-bar .ux-pop{right:0;left:auto;top:100%;z-index:30}
+html body main.content .card:has(#je-bulk-bar){overflow:visible!important}
 /* both modes: one sans family, tabular figures instead of monospace, no all-caps labels */
 .mono,.num,td.mono,b.mono,span.mono,a.mono,div.mono,button.mono,.mh-no{font-family:var(--font)!important;font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1}
 html:not([dir=rtl]) body{font-family:var(--font)}
@@ -9360,7 +9362,7 @@ function pageJournals(){
     const jnl = journalOf(e.journal);
     const canBulk = !isPostedStatus(e.status) && e.status !== 'reversed';
     return `<tr data-act="je-drawer-view" data-id="${e.id}" class="po-je-tr" id="po-je-row-${e.id}" style="cursor:pointer">
-      <td class="no-row-click" style="width:36px;text-align:center" onclick="event.stopPropagation()">${canBulk ? `<input type="checkbox" class="je-bulk-chk" value="${e.id}" data-status="${e.status}">` : ''}</td>
+      <td class="no-row-click" style="width:36px;text-align:center" onclick="event.stopPropagation()"><input type="checkbox" class="je-bulk-chk" value="${e.id}" data-status="${e.status}" data-bulk="${canBulk ? 1 : 0}"></td>
       <td style="white-space:nowrap"><b>${esc(entryRef(e))}</b>${e.number && e.draftRef !== e.number ? `<div class="muted mono" style="font-size:11px">${esc(e.draftRef)}</div>` : ''}</td>
       <td style="white-space:nowrap;font-variant-numeric:tabular-nums;font-weight:500">${e.accountingDate}</td>
       <td style="white-space:nowrap"><span class="pill sm mute">${esc(jnl ? jnl.code : e.journal)}</span></td>
@@ -9391,7 +9393,8 @@ function pageJournals(){
       </div>
       <div id="je-bulk-bar" style="display:none;padding:10px 16px;background:var(--info-soft);border-bottom:1px solid var(--border);align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
         <span id="je-bulk-cnt" style="font-weight:600;font-size:13px">0 selected</span>
-        <div style="display:flex;gap:8px">
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="ux-dd-wrap" style="position:relative"><button type="button" class="btn sm" data-act="ux-action-menu">Action ▾</button></span>
           <button type="button" class="btn primary sm" data-act="je-bulk-post">${ic('check', 14)} Post Selected</button>
           <button type="button" class="btn danger sm" data-act="je-bulk-del">${ic('close', 14)} Delete Selected Drafts</button>
         </div>
@@ -17920,7 +17923,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-115052';
+const APP_BUILD = 'build-20261114-115216';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
@@ -18300,12 +18303,12 @@ function enhanceUX(){
       const key = tr => ((tr.children[gIdx] || {}).textContent || '').trim().split(/\n+/)[0].replace(/\s+/g, ' ').slice(0, 60) || '—';
       const groups = new Map(); rows0.forEach(tr => { const k = key(tr); (groups.get(k) || groups.set(k, []).get(k)).push(tr); });
       const num = v => { const n = parseFloat(String(v).replace(/[^0-9.\-]/g, '')); return isNaN(n) ? null : n; };
-      const closed = (UI.groupClosed && UI.groupClosed[r]) || [];
+      const closed = (UI.groupClosed && UI.groupClosed[r]) || [], firstLbl = ths.findIndex(th => th.textContent.trim());
       [...groups.entries()].sort((x, y) => x[0].localeCompare(y[0])).forEach(([k, trs]) => {
         const h = document.createElement('tr'); h.className = 'ux-grp no-row-click'; h.dataset.gk = k;
         h.innerHTML = ths.map((th, i) => {
           const hide = th.style.display === 'none' ? ' style="display:none"' : '';
-          if (i === 0) return `<td${hide}><button type="button" class="ux-gtog" data-act="group-toggle" data-k="${esc(k)}">${closed.includes(k) ? '▸' : '▾'}</button> <b>${esc(k)}</b> <span class="ux-gcount">${trs.length}</span></td>`;
+          if (i === firstLbl) return `<td${hide}><button type="button" class="ux-gtog" data-act="group-toggle" data-k="${esc(k)}">${closed.includes(k) ? '▸' : '▾'}</button> <b>${esc(k)}</b> <span class="ux-gcount">${trs.length}</span></td>`;
           if (th.classList.contains('num') && i !== gIdx){ const vals = trs.map(tr => num((tr.children[i] || {}).textContent)); const cur0 = new Set(trs.map(tr => (((tr.children[i] || {}).textContent || '').match(/[A-Za-z]{2,}/g) || []).join(' '))); if (vals.every(v => v !== null) && cur0.size === 1) return `<td class="num"${hide}><b>${money(vals.reduce((a, v) => a + v, 0).toFixed(2))}</b></td>`; }
           return `<td${hide}></td>`;
         }).join('');
@@ -18368,7 +18371,7 @@ function uxSelectable(){
   }
   uxSelUpdate();
 }
-const uxSelRows = () => [...document.querySelectorAll('main.content tr')].filter(tr => tr.querySelector('.ux-sel:checked'));
+const uxSelRows = () => [...document.querySelectorAll('main.content tr')].filter(tr => tr.querySelector('.ux-sel:checked, .je-bulk-chk:checked'));
 function uxSelUpdate(){
   const bar = document.querySelector('.ux-selbar'); if (!bar) return;
   const rows = uxSelRows(), all = document.querySelectorAll('main.content .ux-sel').length;
@@ -18436,8 +18439,8 @@ Object.assign(CLICK, {
     updateJeBulkBar();
   },
   'je-bulk-post'(){
-    const ids = [...document.querySelectorAll('.je-bulk-chk:checked')].map(c => c.value);
-    if (!ids.length) return;
+    const ids = [...document.querySelectorAll('.je-bulk-chk:checked')].filter(c => c.dataset.bulk !== '0').map(c => c.value);
+    if (!ids.length) return toast('Only unposted entries can be posted.', 'bad');
     let posted = 0;
     withUndoSnap(() => {
       for (const id of ids){
@@ -18451,8 +18454,8 @@ Object.assign(CLICK, {
     toast(`${posted} journal entr${posted === 1 ? 'y' : 'ies'} posted.`, 'ok');
   },
   'je-bulk-del'(){
-    const ids = [...document.querySelectorAll('.je-bulk-chk:checked')].map(c => c.value);
-    if (!ids.length) return;
+    const ids = [...document.querySelectorAll('.je-bulk-chk:checked')].filter(c => c.dataset.bulk !== '0').map(c => c.value);
+    if (!ids.length) return toast('Only draft entries can be deleted.', 'bad');
     openModal({
       title: `Delete ${ids.length} Draft Entr${ids.length === 1 ? 'y' : 'ies'}?`,
       submit: 'Delete Selected',
