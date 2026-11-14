@@ -15880,22 +15880,49 @@ function carExpensesTable(vid, opts = {}){
     </tbody></table></div></div>`;
 }
 function pageCarExpenses(){
-  const F = UI.filters, q = String(F.cx_q || '').trim().toLowerCase();
-  let list = S.expenses.filter(x => x.carExp).map(x => ({ x, e: entryById(x.entryId), cars: x.carExp.cars.map(vehById).filter(Boolean) }));
+  const F = UI.filters, q = String(F.cx_q || '').trim().toLowerCase(), stf = F.cx_s || '';
+  const ALL = S.expenses.filter(x => x.carExp).map(x => ({ x, e: entryById(x.entryId), cars: x.carExp.cars.map(vehById).filter(Boolean) }));
+  const stOf = r => r.e ? (r.e.status === 'posted' ? 'posted' : r.e.status === 'reversed' ? 'reversed' : 'pending') : 'pending';
+  const egpOfR = r => D(r.e && r.e.totals ? r.e.totals.egpDebit : '0');
+  const live = ALL.filter(r => stOf(r) === 'posted'), tot = live.reduce((t, r) => t.plus(egpOfR(r)), D0());
+  const ym = todayCairo().slice(0, 7), month = live.filter(r => String(r.x.date || '').startsWith(ym)).reduce((t, r) => t.plus(egpOfR(r)), D0());
+  const carIds = new Set(live.flatMap(r => r.cars.map(v => v.id)));
+  const byType = new Map(); live.forEach(r => { const k = costTypeName(r.x.carExp.type) || 'Other'; byType.set(k, (byType.get(k) || D0()).plus(egpOfR(r))); });
+  const types = [...byType.entries()].sort((a, b) => Number(b[1]) - Number(a[1])), tMax = types.length ? types[0][1] : D(1);
+  const perCar = carIds.size ? tot.div(carIds.size) : D0();
+  let list = ALL.slice();
   if (q) list = list.filter(r => `${r.x.number} ${costTypeName(r.x.carExp.type)} ${r.x.carExp.description || ''} ${r.x.payee} ${r.cars.map(v => v.vin + ' ' + makeName(v.makeId) + ' ' + modelName(v.makeId, v.modelId)).join(' ')}`.toLowerCase().includes(q));
+  if (stf) list = list.filter(r => stOf(r) === stf);
   list.sort((a, b) => a.x.date === b.x.date ? (a.x.createdAt < b.x.createdAt ? 1 : -1) : (a.x.date < b.x.date ? 1 : -1));
-  const live = list.filter(r => r.e && r.e.status === 'posted'), tot = live.reduce((t, r) => t.plus(r.e.totals ? r.e.totals.egpDebit : '0'), D0());
-  return H(t('car_expenses'), 'Freight, customs, clearance, transport and any other cost you pay for a car. One expense can be shared between several cars.', can('imports', 'create') ? '<button class="btn primary" data-act="cx-new">New car expense</button>' : '') + `
-    <div class="card"><div class="filters"><input class="input" data-filter="cx_q" placeholder="Search type, car, chassis, supplier…" value="${esc(F.cx_q || '')}" style="min-width:320px">
-      <span class="muted" style="align-self:center;font-size:12.5px;margin-inline-start:auto">${list.length} expense${list.length === 1 ? '' : 's'} · ${money(tot)} EGP posted</span></div>
+  const tabs = [['', 'All'], ['posted', 'Posted'], ['pending', 'Draft'], ['reversed', 'Reversed']];
+  const tile = (icon, cls, label, val, sub, unit = 'EGP') => `<div class="xp-k ${cls}"><span class="xp-kic">${ic(icon, 18)}</span><div><span class="xp-kl">${label}</span><b>${val} ${unit ? `<small>${unit}</small>` : ''}</b><em>${sub}</em></div></div>`;
+  return H(t('car_expenses'), 'Freight, customs, clearance, transport and any other cost you pay for a car. One expense can be shared between several cars.', can('imports', 'create') ? `<button type="button" class="btn primary" data-act="cx-new">${ic('plus', 14)} New car expense</button>` : '') + `
+    <div class="xp-kpis">
+      <div class="xp-hero"><div class="xp-hero-top"><span class="xp-kic">${ic('truck', 20)}</span><span class="xp-tag">${ALL.length} expense${ALL.length === 1 ? '' : 's'}</span></div>
+        <span class="xp-kl">Total car expenses</span><b>${money(tot)} <small>EGP</small></b><em>This month: ${money(month)} EGP</em></div>
+      ${tile('cars', 'ok', 'Cars with expenses', String(carIds.size), 'Cars carrying extra costs', '')}
+      ${tile('wallet', 'info', 'Average per car', money(perCar), 'Posted expenses ÷ cars')}
+      ${tile('invoices', 'gold', 'Biggest cost type', `<span style="font-size:19px;display:block;line-height:1.3;max-width:200px;white-space:normal">${types.length ? esc(types[0][0]) : '—'}</span>`, types.length ? money(types[0][1]) + ' EGP' : 'Nothing posted yet', '')}
+    </div>
+    <div class="xp-body">
+      <div class="card xp-list">
+        <div class="xp-bar">
+          <div class="xp-seg" role="tablist">${tabs.map(([k, l]) => `<button type="button" role="tab" aria-selected="${stf === k}" class="${stf === k ? 'on' : ''}" data-act="set-filter" data-k="cx_s" data-v="${k}">${l}<span>${k ? ALL.filter(r => stOf(r) === k).length : ALL.length}</span></button>`).join('')}</div>
+          <label class="xp-search">${ic('search', 15)}<input class="input" data-filter="cx_q" placeholder="Search type, car, chassis, supplier…" value="${esc(F.cx_q || '')}" aria-label="Search car expenses"></label>
+        </div>
     <div class="tbl-wrap"><table class="o-list"><thead><tr><th>Date</th><th>Number</th><th>Type</th><th>Cars</th><th>Paid</th><th class="num">Amount</th><th class="num">EGP</th><th>Status</th></tr></thead><tbody>
     ${list.map(r => { const inv = r.x.invoiceId && S.invoices.find(i => i.id === r.x.invoiceId), st = entryStatus(r.x);
       return `<tr data-act="je-view" data-id="${r.e ? r.e.id : ''}" style="cursor:pointer"><td style="white-space:nowrap">${r.x.date}</td><td style="white-space:nowrap"><b>${esc(r.x.number)}</b></td>
       <td><b>${esc(costTypeName(r.x.carExp.type))}</b>${r.x.carExp.description ? `<div class="muted" style="font-size:12px">${esc(r.x.carExp.description)}</div>` : ''}</td>
       <td>${r.cars.length === 1 ? `${esc(makeName(r.cars[0].makeId))} ${esc(modelName(r.cars[0].makeId, r.cars[0].modelId))} <span class="muted" style="font-size:12px">${esc(r.cars[0].vin)}</span>` : `<b>${r.cars.length} cars</b><div class="muted" style="font-size:12px">${r.cars.map(v => esc(v.vin)).join(', ')}</div>`}</td>
       <td>${esc(r.x.payee)}${inv ? ' ' + invPill(inv) : ''}</td><td class="num" style="white-space:nowrap">${money(r.x.total)} <span class="muted">${r.x.currency}</span></td><td class="num">${r.e && r.e.totals ? money(r.e.totals.egpDebit) : ''}</td>
-      <td>${st === 'posted' ? '<span class="pill ok">Posted</span>' : st === 'reversed' ? '<span class="pill mute">Reversed</span>' : badge(st)}</td></tr>`; }).join('') || `<tr><td colspan="8" class="empty">${q ? 'No expenses match.' : 'No car expenses yet. Use “New car expense” for freight, customs, clearance…'}</td></tr>`}
-    </tbody></table></div></div>`;
+      <td>${st === 'posted' ? '<span class="pill ok">Posted</span>' : st === 'reversed' ? '<span class="pill mute">Reversed</span>' : badge(st)}</td></tr>`; }).join('') || `<tr><td colspan="8"><div class="xp-empty">${ic('truck', 22)}<b>${q || stf ? 'No car expenses match this filter' : 'No car expenses yet'}</b><span>${q || stf ? 'Try another tab or clear the search.' : 'Record freight, customs, clearance and other costs of a car.'}</span>${!q && !stf && can('imports', 'create') ? `<button type="button" class="btn primary" data-act="cx-new">${ic('plus', 14)} New car expense</button>` : ''}</div></td></tr>`}
+    </tbody></table></div></div>
+      <aside class="card xp-side">
+        <header><h3>Where the money goes</h3><span>${money(tot)} EGP</span></header>
+        ${types.length ? `<ul class="xp-cats">${types.slice(0, 8).map(([n, v]) => `<li><div><span>${esc(n)}</span><b>${money(v)}</b></div><div class="xp-cb"><i><b style="width:${Math.max(3, Number(v.div(tMax).mul(100).toFixed(1)))}%"></b></i><small>${tot.gt(0) ? v.div(tot).mul(100).toFixed(0) : 0}%</small></div></li>`).join('')}</ul>` : '<p class="xp-n">Spending per cost type shows here once you post a car expense.</p>'}
+      </aside>
+    </div>`;
 }
 /* Everything sitting in a car's cost, line by line (purchase, each car expense, exchange differences, other). */
 function carCostBreakdown(v){
@@ -18009,7 +18036,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-172428';
+const APP_BUILD = 'build-20261114-172715';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
