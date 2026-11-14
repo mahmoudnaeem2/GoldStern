@@ -15000,8 +15000,10 @@ function virtualRemove(reg, d){
   const c = reg.coll(); const i = c.indexOf(d); if (i >= 0) c.splice(i, 1);
   if (e && e.status === 'posted'){
     // Posted: the entry stays in the books and is reversed; the document gets a new posted entry when saved.
-    const me = currentUser(), date = checkPostingAllowed(e.accountingDate).ok ? e.accountingDate : todayCairo();
+    const me = currentUser(), open0 = checkPostingAllowed(e.accountingDate).ok, date = open0 ? e.accountingDate : todayCairo();
     const r = reverseCore(e, date, `Document ${reg.numberOf(d)} edited`, me); onEntryReversed(e, r);
+    // Open period (Odoo-style): the old entry and its internal reversal drop out, the edited entry takes the same number. Closed period: both stay in the books.
+    if (open0) S.entries = S.entries.filter(x => x.id !== e.id && x.id !== r.id);
     for (const k of ['invoices','settlements','expenses','transfers','bankTxns']) S[k] = (S[k] || []).filter(x => x.entryId !== e.id);
     S.assets = S.assets.filter(a => a.acquisitionEntryId !== e.id);
   } else if (e){
@@ -15015,7 +15017,7 @@ function beginEdit(kind, id){
   const reg = DOC_KINDS[kind]; if (!reg) throw new AppError('Unknown document type.');
   const d = reg.coll().find(x => x.id === id); if (!d) throw new AppError('Document not found.');
   const why = editBlock(kind, d); if (why) throw new AppError(why);
-  const ctx = { kind, id, fn: reg.fn, snapOrig: JSON.stringify(S), old: clone(d), oldEntry: clone(reg.entryOf(d)), number: reg.numberOf(d), form: formOf(kind, d) };
+  const ctx = { kind, id, fn: reg.fn, inPlace: !!(reg.entryOf(d) && reg.entryOf(d).status === 'posted' && checkPostingAllowed(reg.entryOf(d).accountingDate).ok), snapOrig: JSON.stringify(S), old: clone(d), oldEntry: clone(reg.entryOf(d)), number: reg.numberOf(d), form: formOf(kind, d) };
   virtualRemove(reg, d);
   return ctx;
 }
@@ -15034,8 +15036,8 @@ function replaceDocument(ctx, run, f){
     const snapSeqs = JSON.parse(attempt).sequences, seqOf = doc => snapSeqs.find(x => x.doc === doc) || {};
     const oE = ctx.oldEntry, nE = reg.entryOf(res);
     const swaps = [[res.id, ctx.old.id]];
-    const repost = oE && oE.status === 'posted';
-    if (oE && nE && !repost){ swaps.push([nE.id, oE.id], [nE.draftRef, oE.draftRef]); const q = S.sequences.find(x => x.doc === 'journal_entry'); q.counters = clone(seqOf('journal_entry').counters || {}); }
+    const repost = oE && oE.status === 'posted' && !ctx.inPlace;
+    if (oE && nE && !repost){ swaps.push([nE.id, oE.id], [nE.draftRef, oE.draftRef]); if (ctx.inPlace && nE.number && oE.number && nE.number !== oE.number) swaps.push([nE.number, oE.number]); const q = S.sequences.find(x => x.doc === 'journal_entry'); const origSeq = ctx.inPlace ? ((JSON.parse(ctx.snapOrig).sequences || []).find(x => x.doc === 'journal_entry') || {}) : seqOf('journal_entry'); q.counters = clone(origSeq.counters || {}); }
     const oNo = ctx.number, nNo = reg.numberOf(res);
     if (oNo && nNo && oNo !== nNo && numStem(oNo) === numStem(nNo)){
       const q = S.sequences.find(x => x.doc !== 'journal_entry' && nNo.startsWith(x.prefix + '-') && JSON.stringify(x.counters) !== JSON.stringify(seqOf(x.doc).counters));
@@ -15050,10 +15052,10 @@ function replaceDocument(ctx, run, f){
     fin.editedBy = me.id; fin.editedAt = nowISO(); fin.editCount = (ctx.old.editCount || 0) + 1;
     if (reg.carry) reg.carry(ctx.old, fin);
     const fe = reg.entryOf(fin);
-    if (fe && oE && !repost) fe.history = (oE.history || []).concat([{ at: nowISO(), by: me.id, action: `document edited (was ${oE.status}); new version submitted for approval` }]);
+    if (fe && oE && !repost) fe.history = (oE.history || []).concat([{ at: nowISO(), by: me.id, action: ctx.inPlace ? 'document edited in place (was posted)' : `document edited (was ${oE.status}); new version submitted for approval` }]);
     if (reg.after) reg.after(ctx.old, fin);
     ctx.done = true;
-    log('document_edit', reg.mod(fin), fin.id, ctx.old, clone(fin), repost ? `Edited after posting: ${oE.number} reversed, new entry ${(fe || {}).number || ''} posted` : oE ? `Edited before posting (entry was ${oE.status})` : 'Edited', reg.numberOf(fin));
+    log('document_edit', reg.mod(fin), fin.id, ctx.old, clone(fin), repost ? `Edited after posting: ${oE.number} reversed, new entry ${(fe || {}).number || ''} posted` : oE && ctx.inPlace ? `Edited in place (entry ${oE.number}, was posted; before/after in audit)` : oE ? `Edited before posting (entry was ${oE.status})` : 'Edited', reg.numberOf(fin));
     saveState(); return fin;
   } catch (e){ S = JSON.parse(attempt); throw e; }
 }
@@ -15149,7 +15151,8 @@ function startEdit(kind, id){
   try { DOC_KINDS[kind].open(ctx.old); } catch (e){ const c = EDIT_CTX; EDIT_CTX = null; cancelEdit(c); closeModal(); render(); toast('Could not open the form: ' + e.message, 'bad'); return; }
   const oe = ctx.oldEntry;
   decorateModal(`Edit ${DOC_KINDS[kind].label} ${ctx.number}`, 'Save changes',
-    oe && oe.status === 'posted' ? `You are changing <b>${esc(ctx.number)}</b>. It keeps its number. Its posted entry ${esc(oe.number)} is reversed and the corrected entry is posted when you save; both stay in the books and the audit trail.`
+    oe && oe.status === 'posted' && ctx.inPlace ? `You are changing <b>${esc(ctx.number)}</b> (entry ${esc(oe.number)}). It keeps its number and entry; the change is recorded in the audit trail.`
+      : oe && oe.status === 'posted' ? `You are changing <b>${esc(ctx.number)}</b>. It keeps its number. Its posted entry ${esc(oe.number)} is reversed and the corrected entry is posted when you save; both stay in the books and the audit trail.`
       : `You are changing <b>${esc(ctx.number)}</b>${oe ? ` (entry ${esc(oe.draftRef)}, ${esc(oe.status)})` : ''}. It keeps its number${oe && APPROVALS ? ' and goes back for approval' : ''}. The previous version stays in the audit trail.`);
   fillForm(ctx.form);
 }
@@ -18062,13 +18065,13 @@ function runTestSuite(){
       eq(e.status, 'posted'); if (!e.number) throw new Error('no posted number'); return `${na1.number} → ${e.number} posted on save by an AR accountant`; }));
     T('No approvals', 'Exchange rates and purchase orders take effect immediately', noAppr(() => { as(acc); const r = A.createRate({ from:'EUR', to:'EGP', rate:'53.25', effective:'2027-03-06', type:'bank', source:'NBE' }); eq(r.status, 'approved');
       as(purO); const po = A.createPO({ supplierId: s1.id, date: '2027-03-06', currency:'EUR', pl_desc:['Car X'], pl_price:['1000'] }); eq(po.status, 'approved'); return `${r.number} approved, ${po.number} approved on save`; }));
-    T('No approvals', 'Editing a posted invoice keeps its number, reverses the old entry and posts the new one', noAppr(() => { as(arU);
+    T('No approvals', 'Editing a posted invoice (open period) keeps its number and entry, no reversal, books stay balanced', noAppr(() => { as(arU);
       const oldE = na1.entryId; editDocument('invoice', na1.id, invF('ar', c1, 'EGP', '950', '2027-03-06'));
       const x = S.invoices.find(v => v.id === na1.id), ne = S.entries.find(v => v.id === x.entryId), oe = S.entries.find(v => v.id === oldE);
-      eq(x.number, na1.number); eq(x.total, '950.00'); eq(oe.status, 'reversed'); eq(ne.status, 'posted'); if (ne.id === oldE) throw new Error('entry not replaced');
+      eq(x.number, na1.number); eq(x.total, '950.00'); eq(ne.status, 'posted'); eq(ne.number, oe ? oe.number : ne.number); if (S.entries.some(v => v.reversalOf === oldE)) throw new Error('unexpected reversal entry');
       eq(S.invoices.filter(v => v.number === na1.number).length, 1);
       const bad = subledgerChecks().filter(c => c.ok === false); if (bad.length) throw new Error(bad.map(c => c.name + ': ' + c.detail).join('; '));
-      return `${x.number}: 900 → 950; ${oe.number} reversed, ${ne.number} posted; subledger agrees`; }));
+      return `${x.number}: 900 → 950 edited in place as ${ne.number}; subledger agrees`; }));
     T('No approvals', 'Received into: any cash or bank account of the chart can be chosen directly', noAppr(() => { as(arU);
       const cashId = AC('1110'); const s = A.createSettlement('ar', { side:'ar', partnerId: c1.id, bankId: 'gl:' + cashId, date:'2027-03-07', amount:'500', fee:'', rateType:'official' });
       const b = S.banks.find(x => x.glAccountId === cashId); if (!b) throw new Error('cash book not linked'); eq(S.settlements.find(x => x.id === s.id).bankId, b.id);
@@ -18414,7 +18417,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-193724';
+const APP_BUILD = 'build-20261114-194226';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
