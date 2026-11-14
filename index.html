@@ -3504,6 +3504,11 @@ html body main.content .tbl-wrap table th,html body main.content .tbl-wrap table
 html body main.content .tbl-wrap table th{position:static!important}
 html body main.content .tbl-wrap table td.num,html body main.content .tbl-wrap table th.num{white-space:nowrap!important}
 html body main.content .tbl-wrap table .pill,html body main.content .tbl-wrap table .badge{white-space:nowrap}
+html body .co-main>.co-kinds{margin-bottom:12px;gap:8px}
+html body .co-kind{padding:10px 12px;gap:10px;border-radius:10px}
+html body .co-kind .co-kic{width:32px;height:32px;flex:none}
+html body .co-kind.on{border-color:#3F5FE0!important;background:#F3F5FF!important;box-shadow:0 0 0 3px rgba(63,95,224,.12)!important}
+html body .co-kind.on .co-kic{background:#3F5FE0!important;color:#fff!important}
 /* both modes: one sans family, tabular figures instead of monospace, no all-caps labels */
 .mono,.num,td.mono,b.mono,span.mono,a.mono,div.mono,button.mono,.mh-no{font-family:var(--font)!important;font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1}
 html:not([dir=rtl]) body{font-family:var(--font)}
@@ -15467,7 +15472,7 @@ function importOrderForm(kind = 'customer'){
   return `<input type="hidden" name="kind" value="${kind}">
   <div class="co-ed">
     <div class="co-body">
-      <div class="co-main">${carCard}${partyCard}${priceCard}</div>
+      <div class="co-main">${kindsBar}${carCard}${partyCard}${priceCard}</div>
       <aside class="co-sum" aria-live="polite">
         <div class="co-sum-top"><span class="co-sum-ic">${ic('cars', 20)}</span><span class="co-sum-tag">${esc((ORDER_KINDS[kind] || ORDER_KINDS.customer)[0])}</span></div>
         <h3 id="co-s-car">New car</h3><p class="co-s-vin" id="co-s-vin">Chassis not entered</p>
@@ -17942,7 +17947,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-120914';
+const APP_BUILD = 'build-20261114-121018';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
