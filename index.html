@@ -3482,6 +3482,7 @@ html body .ux-selbar .ux-pop{left:0!important;right:auto!important;top:100%;z-in
 html body .ux-pop-act{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:7px;color:var(--text);text-decoration:none}
 html body .ux-pop-act:hover{background:#F1F4FB}
 html body main.content .card:has(.ux-selbar),html body main.content .card:has(.ux-selbar) .tbl-wrap{overflow:visible!important}
+html body .ux-tools{display:flex;justify-content:flex-end;padding:8px 16px;border-bottom:1px solid #E6EAF3}
 /* both modes: one sans family, tabular figures instead of monospace, no all-caps labels */
 .mono,.num,td.mono,b.mono,span.mono,a.mono,div.mono,button.mono,.mh-no{font-family:var(--font)!important;font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1}
 html:not([dir=rtl]) body{font-family:var(--font)}
@@ -17919,7 +17920,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-114756';
+const APP_BUILD = 'build-20261114-115052';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
@@ -18258,14 +18259,18 @@ function enhanceUX(){
   // 6: Add Saved Filter Presets & Column Visibility controls to .filters bars
   const filterBar = document.querySelector('main.content .filters, main.content .xp-bar');
   const mainTbl = document.querySelector('main.content table.o-list, main.content .card table');
-  if (filterBar && mainTbl && !filterBar.querySelector('.ux-dd-wrap')){
+  if (!filterBar && mainTbl && mainTbl.querySelector('thead th') && !document.querySelector('main.content .ux-tools') && !mainTbl.closest('.modal')){
+    const bar = document.createElement('div'); bar.className = 'ux-tools filters'; (mainTbl.closest('.tbl-wrap') || mainTbl).insertAdjacentElement('beforebegin', bar);
+  }
+  const filterBar2 = filterBar || document.querySelector('main.content .ux-tools');
+  if (filterBar2 && mainTbl && !filterBar2.querySelector('.ux-dd-wrap')){
     const wrap = document.createElement('div');
     wrap.className = 'ux-dd-wrap';
     wrap.innerHTML = `
       <button type="button" class="btn sm${(UI.groupBy || {})[r] ? ' on' : ''}" data-act="group-by-menu" title="Group by">${ic('layers', 14)} ${(UI.groupBy || {})[r] ? 'Grouped: ' + esc(UI.groupBy[r]) : 'Group by'}</button>
       <button type="button" class="btn sm" data-act="col-vis-menu" style="margin-inline-start:6px" title="${esc(t('columns'))}">${ic('grid', 14)} ${esc(t('columns'))}</button>
       <button type="button" class="btn sm" data-act="filter-preset-menu" style="margin-inline-start:6px" title="${esc(t('saved_filters'))}">${ic('star', 14)} ${esc(t('saved_filters'))}</button>`;
-    filterBar.appendChild(wrap);
+    filterBar2.appendChild(wrap);
   }
   // Apply hidden columns for current route & add data-label for mobile cards (Item 6 & Item 14)
   document.querySelectorAll('main.content table').forEach(tbl => {
