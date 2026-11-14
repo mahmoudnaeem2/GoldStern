@@ -3560,6 +3560,8 @@ html body .pg-sub td{padding:9px 12px;border-bottom:1px solid #EEF1F7;font-size:
 html body .pg-sub tr.pg-line{cursor:pointer}html body .pg-sub tr.pg-line:hover{background:#F6F8FE}
 html body .pg-sub tr:last-child td{border-bottom:0}
 html body .pg-stmt{display:inline-flex;align-items:center;gap:6px;margin:0 16px 8px 48px;font-size:13px;color:var(--brand,#3F5FE0);font-weight:600}
+html body .page-back{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 12px 0 8px;margin:0 0 10px;border-radius:10px;border:1px solid #E3E8F2;background:#fff;color:#3b4764;font-size:13px;font-weight:600;cursor:pointer}
+html body .page-back:hover{border-color:#c5cfe6;background:#f6f8fe}
 /* both modes: one sans family, tabular figures instead of monospace, no all-caps labels */
 .mono,.num,td.mono,b.mono,span.mono,a.mono,div.mono,button.mono,.mh-no{font-family:var(--font)!important;font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1}
 html:not([dir=rtl]) body{font-family:var(--font)}
@@ -8435,7 +8437,7 @@ setInterval(() => {
   if (!OPEN_ACCESS && SESSION && SESSION.userId && Date.now() - SESSION.lastActive > IDLE_MINUTES * 60000){ A.logout('Session expired after inactivity'); render(); toast('You were signed out after ' + IDLE_MINUTES + ' minutes of inactivity.'); }
 }, 30000);
 let PAGE_RETURN = {};
-window.addEventListener('hashchange', () => { if (SCREEN && !GOING_BACK) PAGE_RETURN[location.hash] = SCREEN; GOING_BACK = false; leaveModal(); closeModal(); SCREEN_STACK = []; LAST_CLOSED_AT = 0; render(); document.querySelector('.side')?.classList.remove('open'); });
+window.__navCount = 0; window.addEventListener('hashchange', () => { window.__navCount++; if (SCREEN && !GOING_BACK) PAGE_RETURN[location.hash] = SCREEN; GOING_BACK = false; leaveModal(); closeModal(); SCREEN_STACK = []; LAST_CLOSED_AT = 0; render(); document.querySelector('.side')?.classList.remove('open'); });
 
 /* ---------------- Navigation model ---------------- */
 const NAV = [
@@ -8854,7 +8856,10 @@ function pageFor(r){
   if (!can(m[0], 'read')) return denied(m[0]);
   return m[1]();
 }
-const H = (title, sub, actions = '') => { const prose = sub && /[.!]\s*$/.test(String(sub).replace(/<[^>]+>/g, '')); return `<div class="page-h"><div><h1${prose ? ` title="${esc(String(sub).replace(/<[^>]+>/g, ''))}"` : ''}>${esc(title)}</h1>${sub && !prose ? `<p>${sub}</p>` : ''}</div>${actions ? `<div class="actions">${String(actions).replace(/(<button[^>]*class="btn primary"[^>]*>)(New |Add )/g, (m, a1, a2) => a1 + ic('plus', 16) + a2)}</div>` : ''}</div>`; };
+/* pages you reach by drilling in from a list get a Back button (statement of a partner, ledger of one account) */
+const DRILL_BACK = { 'partners/statement': () => '#/partners/' + (routeParam('side') === 'ap' ? 'suppliers' : 'customers'), 'acc/gl': () => routeParam('account') ? '#/acc/coa' : null };
+const pageBack = () => { try { const f = DRILL_BACK[route()]; const fb = f && f(); return fb ? `<button type="button" class="page-back" data-act="page-back" data-fb="${fb}" aria-label="Back" title="Back">${ic('back', 16)}<span>Back</span></button>` : ''; } catch (e){ return ''; } };
+const H = (title, sub, actions = '') => { const prose = sub && /[.!]\s*$/.test(String(sub).replace(/<[^>]+>/g, '')); return `${pageBack()}<div class="page-h"><div><h1${prose ? ` title="${esc(String(sub).replace(/<[^>]+>/g, ''))}"` : ''}>${esc(title)}</h1>${sub && !prose ? `<p>${sub}</p>` : ''}</div>${actions ? `<div class="actions">${String(actions).replace(/(<button[^>]*class="btn primary"[^>]*>)(New |Add )/g, (m, a1, a2) => a1 + ic('plus', 16) + a2)}</div>` : ''}</div>`; };
 const badge = (s) => { const m = { draft:'b-warn', approved:'b-info', rejected:'b-bad', superseded:'b-mute', open:'b-ok', closed:'b-warn', locked:'b-bad', active:'b-ok', inactive:'b-mute', PASS:'b-ok', FAIL:'b-bad', SKIP:'b-mute',
   submitted:'b-gold', posted:'b-ok', reversed:'b-mute', OK:'b-ok', ISSUE:'b-bad', WARN:'b-warn', INFO:'b-info', 'N/A':'b-mute' }; const lbl = /^[a-z]/.test(String(s)) ? String(s).charAt(0).toUpperCase() + String(s).slice(1) : s; return `<span class="badge ${m[s] || 'b-mute'}">${esc(lbl)}</span>`; };
 
@@ -15971,6 +15976,7 @@ document.addEventListener('change', e => { const fm = e.target.closest && e.targ
 Object.assign(CLICK, {
   'sm-toggle'(el){ const d = el.closest('.sm-dd'), on = !d.classList.contains('open'); document.querySelectorAll('.sm-dd.open').forEach(x => { x.classList.remove('open'); x.querySelector('.sm-btn').setAttribute('aria-expanded', 'false'); }); if (on){ d.classList.add('open'); el.setAttribute('aria-expanded', 'true'); const f0 = d.querySelector('.sm-pop a'); if (f0 && el.matches(':focus-visible')) f0.focus(); } },
   'set-filter'(el){ UI.filters[el.dataset.k] = el.dataset.v; render(); },
+  'page-back'(el){ if (history.length > 1 && document.referrer !== undefined && window.__navCount > 0) history.back(); else location.hash = el.dataset.fb; },
   'brand-logo-clear'(el){ run(() => A.saveBrand({ [el.dataset.k]: '' }), 'Logo removed.'); },
   'brand-reset'(){ run(() => A.saveBrand({ reset: true }), 'Branding reset to default.'); },
   'xp-clear'(el){ String(el.dataset.k || '').split(',').forEach(k => { UI.filters[k] = ''; }); render(); },
@@ -18176,7 +18182,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-174158';
+const APP_BUILD = 'build-20261114-174244';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
