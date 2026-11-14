@@ -17957,7 +17957,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-121117';
+const APP_BUILD = 'build-20261114-170845';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
@@ -18296,7 +18296,7 @@ function enhanceUX(){
   // 6: Add Saved Filter Presets & Column Visibility controls to .filters bars
   const filterBar = document.querySelector('main.content .filters, main.content .xp-bar');
   const mainTbl = document.querySelector('main.content table.o-list, main.content .card table');
-  if (!filterBar && mainTbl && mainTbl.querySelector('thead th') && !document.querySelector('main.content .ux-tools') && !mainTbl.closest('.modal')){
+  if (!filterBar && uxIsRecordTable(mainTbl) && mainTbl.querySelector('thead th') && !document.querySelector('main.content .ux-tools') && !mainTbl.closest('.modal')){
     const bar = document.createElement('div'); bar.className = 'ux-tools filters'; (mainTbl.closest('.tbl-wrap') || mainTbl).insertAdjacentElement('beforebegin', bar);
   }
   const filterBar2 = filterBar || document.querySelector('main.content .ux-tools');
@@ -18376,8 +18376,17 @@ function enhanceUX(){
   uxSelectable();
 }
 /* Odoo-style row selection + Action menu on the main list table of a page */
+/* a table of records (rows you can open), as opposed to a report such as a P&L or a trial balance */
+function uxIsRecordTable(tbl){
+  if (!tbl) return false;
+  const rows = [...tbl.querySelectorAll('tbody tr')].filter(tr => tr.children.length > 1);
+  if (!rows.length) return false;
+  if (tbl.querySelector('tbody tr[data-act$="-fold"], tbody tr.is-sec, tbody tr.is-acc, tbody tr.is-sum')) return false;
+  return rows.filter(tr => tr.hasAttribute('data-act') || tr.hasAttribute('data-id') || tr.querySelector('.je-bulk-chk')).length >= rows.length * 0.5;
+}
 function uxSelectable(){
   const tbl = document.querySelector('main.content table.o-list, main.content .card table');
+  if (!uxIsRecordTable(tbl)) return;
   if (!tbl || tbl.querySelector('.je-bulk-chk') || !tbl.querySelector('thead th') || !document.querySelector('main.content .ux-dd-wrap')) return;
   const tbody = tbl.querySelector('tbody'); if (!tbody) return;
   const hr = tbl.querySelector('thead tr'); if (!hr) return;
