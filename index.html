@@ -3412,6 +3412,20 @@ html body .xp-kpis .xp-tag{grid-area:t}
 html body .xp-kpis .xp-kl{grid-area:l;font-size:12.5px}
 html body .xp-kpis b{grid-area:v;font-size:24px!important;font-weight:650;letter-spacing:-.025em;display:block;margin:0}
 html body .xp-kpis em{grid-area:s;font-style:normal;font-size:12.5px;margin:0}
+/* sign-in / first-run setup: aligned fields, brand navy panel */
+html body .auth-art{background:radial-gradient(900px 520px at 15% 10%,rgba(63,95,224,.28),transparent 60%),linear-gradient(160deg,#16243b 0%,#0F1B2D 100%)!important;color:#e8edf6}
+html body .auth-art p{color:#a9b6cc}
+html body .auth-art .stripe{background:linear-gradient(90deg,transparent,#3F5FE0,transparent)!important}
+html body .auth-form{background:#fff}
+html body .auth-box{max-width:460px}
+html body .auth-box h2{font-size:24px;letter-spacing:-.01em}
+html body .auth-box .row{align-items:flex-start;flex-wrap:nowrap}
+html body .auth-box .row>.field{min-width:0}
+html body .auth-box .input,html body .auth-box select.input{height:44px;box-sizing:border-box;padding:0 12px;width:100%}
+html body .auth-box .input[readonly]{background:#f3f5f9;color:#475569}
+html body .auth-box .hint{font-size:12px;color:#64748b}
+html body .auth-box .field label{margin:0}
+@media (max-width:520px){html body .auth-box .row{flex-wrap:wrap}}
 /* both modes: one sans family, tabular figures instead of monospace, no all-caps labels */
 .mono,.num,td.mono,b.mono,span.mono,a.mono,div.mono,button.mono,.mh-no{font-family:var(--font)!important;font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1}
 html:not([dir=rtl]) body{font-family:var(--font)}
@@ -8349,7 +8363,7 @@ function viewSetup(){
   return `<div class="auth">
     <div class="auth-art"><div><img class="auth-logo" src="${LOGO_FULL}" alt="Goldstern — Save Big Drive Bold"></div>
       <div><h1 style="font-size:26px">Enterprise Resource Planning</h1><p>Vehicle import, inventory, sales and accounting for Goldstern, Egypt. Functional and reporting currency: EGP.</p></div>
-      <div class="stripe"></div><div style="font-size:12px;color:#7d7a72">Complete ERP · Accounting, Banking, AR/AP, Vehicles, Landed Cost, Sales, Tax, Assets &amp; Reporting · v${APP_VERSION}</div></div>
+      <div class="stripe"></div><div style="font-size:12px;color:#93a1b8">Complete ERP · Accounting, Banking, AR/AP, Vehicles, Landed Cost, Sales, Tax, Assets &amp; Reporting · v${APP_VERSION}</div></div>
     <div class="auth-form"><form class="auth-box" data-form="setup" autocomplete="off">
       <h2>Company setup</h2><p class="muted" style="margin-top:0">First run. Create the company record and the first Super Admin.</p>
       <div class="note bad form-err" id="setup-err"></div>
@@ -17818,7 +17832,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-111250';
+const APP_BUILD = 'build-20261114-111349';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
