@@ -9429,8 +9429,6 @@ function pageJournals(){
         <span id="je-bulk-cnt" style="font-weight:600;font-size:13px">0 selected</span>
         <div style="display:flex;gap:8px;align-items:center">
           <span class="ux-dd-wrap" style="position:relative"><button type="button" class="btn sm" data-act="ux-action-menu">Action ▾</button></span>
-          <button type="button" class="btn primary sm" data-act="je-bulk-post">${ic('check', 14)} Post Selected</button>
-          <button type="button" class="btn danger sm" data-act="je-bulk-del">${ic('close', 14)} Delete Selected Drafts</button>
         </div>
       </div>
       <div class="tbl-wrap">
@@ -17957,7 +17955,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-170845';
+const APP_BUILD = 'build-20261114-171344';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
@@ -18527,16 +18525,21 @@ Object.assign(CLICK, {
     const wrap = el.closest('.ux-dd-wrap'); const ex = wrap.querySelector('.ux-pop'); if (ex){ ex.remove(); return; }
     const pop = document.createElement('div'); pop.className = 'ux-pop';
     const emp = route() === 'hr/employees' && can('expenses', 'create');
+    const jeDrafts = el.closest('#je-bulk-bar') ? [...document.querySelectorAll('.je-bulk-chk:checked')].filter(c => c.dataset.bulk !== '0').length : 0;
     pop.innerHTML = `<div style="font-size:11px;font-weight:700;color:var(--muted);padding:4px 8px;text-transform:uppercase">Action</div>
       <a href="#" class="ux-pop-act" data-act="ux-act" data-k="csv">${ic('file', 14)} Export (CSV)</a>
       <a href="#" class="ux-pop-act" data-act="ux-act" data-k="copy">${ic('copy', 14)} Copy to clipboard</a>
       <a href="#" class="ux-pop-act" data-act="ux-act" data-k="print">${ic('printer', 14)} Print selected</a>
+      ${jeDrafts ? `<div class="sm-sep"></div><a href="#" class="ux-pop-act" data-act="ux-act" data-k="je-post">${ic('check', 14)} Post selected (${jeDrafts})</a><a href="#" class="ux-pop-act" data-act="ux-act" data-k="je-del" style="color:var(--danger,#B42318)">${ic('close', 14)} Delete selected drafts (${jeDrafts})</a>` : ''}
       ${emp ? `<div class="sm-sep"></div><a href="#" class="ux-pop-act" data-act="ux-act" data-k="emp-archive">${ic('lock', 14)} Archive</a><a href="#" class="ux-pop-act" data-act="ux-act" data-k="emp-unarchive">${ic('undo', 14)} Unarchive</a>` : ''}`;
     wrap.appendChild(pop);
   },
   'ux-act'(el, ev){
     if (ev && ev.preventDefault) ev.preventDefault();
-    const k = el.dataset.k, { header, rows } = uxSelData(), pop = el.closest('.ux-pop'); if (pop) pop.remove();
+    const k = el.dataset.k, pop = el.closest('.ux-pop'); if (pop) pop.remove();
+    if (k === 'je-post') return CLICK['je-bulk-post']();
+    if (k === 'je-del') return CLICK['je-bulk-del']();
+    const { header, rows } = uxSelData();
     if (k === 'csv'){ downloadCSV(`${route().replace(/\W+/g, '-')}-${todayCairo()}.csv`, header, rows); toast(`Exported ${rows.length} rows.`, 'ok'); }
     else if (k === 'copy'){ const txt = [header, ...rows].map(r => r.join('\t')).join('\n'); (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject()).then(() => toast(`Copied ${rows.length} rows.`, 'ok'), () => toast('Copy is blocked by the browser.', 'bad')); }
     else if (k === 'print'){ const sel = new Set(uxSelRows()); const all = [...document.querySelectorAll('main.content tbody tr')]; const was = all.map(tr => tr.style.display); all.forEach(tr => { if (!sel.has(tr) && !tr.classList.contains('ux-grp')) tr.style.display = 'none'; }); const back = () => { all.forEach((tr, i) => { tr.style.display = was[i]; }); window.removeEventListener('afterprint', back); }; window.addEventListener('afterprint', back); window.print(); }
