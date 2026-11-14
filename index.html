@@ -3240,6 +3240,66 @@ html body .zh .sb-ic{width:30px;height:30px;border-radius:6px}
 @media (max-width:900px){html body .zh-grid{grid-template-columns:1fr}}
 html body .zh-grid>.zh-card:last-child{align-self:start}
 @media (max-width:700px){html body .zh-new .btn{height:36px}html body .zh-ch a{padding:8px 0}}
+/* ---- finance manager dashboard ---- */
+html body .zf{--zl:#e3e6ec;--zt:#2b3240;--zm:#6b7385;--zg:#2e9e6b;--zr:#d9483b}
+html body .zf-kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin-bottom:16px}
+html body .zf-k{display:flex;flex-direction:column;gap:4px;background:#fff;border:1px solid var(--zl);border-radius:8px;padding:14px 16px;text-decoration:none;color:inherit;min-width:0}
+html body .zf-k:hover{border-color:#c7cfe0}
+html body .zf-kl{font-size:12.5px;color:var(--zm);font-weight:500}
+html body .zf-k b{font-size:19px;font-weight:500;font-variant-numeric:tabular-nums;letter-spacing:-.01em;color:var(--zt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html body .zf-k b.neg,html body .zf .neg{color:var(--zr)}
+html body .zf-ks{font-size:12px;color:var(--zm);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+html body i.zf-d{font-style:normal;font-size:11.5px;font-weight:500;padding:1px 6px;border-radius:999px}
+html body i.zf-d.good{background:#e6f5ec;color:#1e7a4c}html body i.zf-d.bad{background:#fbe9e7;color:#b3261e}
+html body .zf-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:16px}
+html body .zf-card{grid-column:span 6;background:#fff;border:1px solid var(--zl);border-radius:8px;padding:16px 20px;min-width:0}
+html body .zf-card.zf-w7{grid-column:span 7}html body .zf-card.zf-w5{grid-column:span 5}html body .zf-card.zf-w12{grid-column:span 12}
+html body .zf-card.zf-flush{padding:16px 0 4px}html body .zf-flush .zf-ch{padding:0 20px}
+html body .zf-ch{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+html body .zf-ch h2{margin:0;font-size:14.5px;font-weight:500;color:var(--zt)}
+html body .zf-ch a{font-size:13px;color:#2f6fd6;text-decoration:none}html body .zf-ch a:hover{text-decoration:underline}
+html body .zf-leg{font-size:12.5px;color:var(--zm)}html body .zf-leg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin:0 6px 0 12px;vertical-align:-1px}
+html body .zf-leg i:first-child{margin-left:0}
+html body .zf-leg i.inc,html body .zf-bp i.inc{background:var(--zg)}html body .zf-leg i.exp,html body .zf-bp i.exp{background:var(--zr);opacity:.85}
+html body .zf-bars{display:flex;align-items:flex-end;gap:10px;height:130px;border-bottom:1px solid var(--zl)}
+html body .zf-bg{flex:1;height:100%;display:flex;align-items:flex-end}
+html body .zf-bp{display:flex;align-items:flex-end;justify-content:center;gap:3px;width:100%;height:100%}
+html body .zf-bp i{display:block;width:34%;max-width:26px;min-height:2px;border-radius:2px 2px 0 0}
+html body .zf-t{width:100%;border-collapse:collapse;font-size:13px;table-layout:auto}
+html body .zf-t th{font-size:12px;font-weight:500;color:var(--zm);text-align:start;padding:7px 8px;border-bottom:1px solid var(--zl);background:transparent!important;position:static!important;box-shadow:none!important;white-space:nowrap}
+html body .zf-t td{padding:7px 8px;border-bottom:1px solid #f0f2f6;color:var(--zt);white-space:nowrap}
+html body .zf-t .num{text-align:end;font-variant-numeric:tabular-nums}
+html body .zf-t td.mut{color:var(--zm)}
+html body .zf-t tr.tot td{font-weight:500;border-top:1px solid var(--zl);background:#fafbfc}
+html body .zf-t tr.big td{font-size:14px}
+html body .zf-t tr:last-child td{border-bottom:0}
+html body .zf-t tbody tr:hover td{background:inherit}
+html body .zf-mt{margin-top:6px}
+html body .zf-t tr.cost td:first-child{padding-inline-start:8px}
+html body .zf-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-inline-end:6px}
+html body .zf-agbar{display:flex;gap:2px;height:10px;border-radius:5px;overflow:hidden;margin:2px 0 12px;background:var(--zl)}html body .zf-agbar i{display:block;min-width:3px}
+html body .zf-top{margin-top:12px;font-size:13px}html body .zf-top>span{display:block;font-size:12px;color:var(--zm);margin-bottom:4px}
+html body .zf-top div{display:flex;gap:8px;align-items:baseline;padding:5px 0;border-top:1px solid #f0f2f6}html body .zf-top b{font-weight:400;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}html body .zf-top em{font-style:normal;color:var(--zm);font-size:12px}html body .zf-top .num{font-variant-numeric:tabular-nums}
+html body .zf-bs td:first-child{white-space:normal}
+html body .zf-note{margin:10px 0 0;font-size:12.5px}html body .zf-note.ok{color:#1e7a4c}html body .zf-note.bad{color:var(--zr)}
+html body .zf .todo-inbox{margin:0;padding:0;border:0;background:transparent;box-shadow:none}
+html body .zf .todo-item{margin:0;border:0;border-top:1px solid var(--zl);border-radius:0;padding:10px 20px}
+html body .zf .todo-inbox .muted{padding:2px 20px 10px;font-size:13px}
+html body .zf .sbs{display:block;margin:0}
+html body .zf a.sb{display:flex;align-items:center;gap:12px;padding:9px 20px;margin:0;border:0!important;border-top:1px solid var(--zl)!important;border-radius:0!important;background:transparent!important;box-shadow:none!important}
+html body .zf a.sb:hover{background:#f7f8fa!important}
+html body .zf .sb-tx{display:grid;grid-template-columns:1fr auto;align-items:center;column-gap:12px;flex:1}
+html body .zf .sb-tx b{grid-column:2;grid-row:1/3;font-size:15px;font-weight:500}
+html body .zf .sb-l{grid-column:1;font-size:13.5px;color:var(--zt)}html body .zf .sb-s{grid-column:1;font-size:12.5px;color:var(--zm)}
+html body .zf .sb-ic{width:28px;height:28px;border-radius:6px}
+@media (max-width:1250px){html body .zf-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:1000px){html body .zf-card,html body .zf-card.zf-w7,html body .zf-card.zf-w5{grid-column:span 12}}
+@media (max-width:600px){html body .zf-kpis{grid-template-columns:1fr 1fr}html body .zf-card{overflow-x:auto}}
+html body .zf table.zf-t th{padding:7px 6px!important;background:transparent!important;border-bottom:1px solid var(--zl)!important;font-size:12px!important;font-weight:500!important}
+html body .zf table.zf-t td{padding:6px!important;font-size:13px}
+html body .zf table.zf-t{table-layout:auto}
+html body .zf-card.zf-w6{grid-column:span 6}
+html body .zf-card{overflow:hidden}
 /* both modes: one sans family, tabular figures instead of monospace, no all-caps labels */
 .mono,.num,td.mono,b.mono,span.mono,a.mono,div.mono,button.mono,.mh-no{font-family:var(--font)!important;font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1}
 html:not([dir=rtl]) body{font-family:var(--font)}
@@ -8826,29 +8886,69 @@ function pageAccDash(){
     sb({ i: 'cars', n: toDeliver.length, l: 'Cars to deliver', s: 'sold, not handed over', tone: toDeliver.length ? 'warn' : '', href: '#/inv/deliveries' }),
     sb({ i: 'wallet', n: money(held), l: 'Deposits held', s: 'EGP from customers, not invoiced', href: '#/ar/advances' })
   ].join('');
-  /* ---- Zoho-style dashboard helpers ---- */
-  const cmp = n => { const a = Math.abs(n); return a >= 1e6 ? (n / 1e6).toFixed(a >= 1e7 ? 0 : 1) + 'M' : a >= 1e3 ? (n / 1e3).toFixed(0) + 'K' : String(Math.round(n)); };
+  /* ---- Finance-manager dashboard helpers ---- */
+  const cmp = n => { const a = Math.abs(n); return a < 0.5 ? '–' : a >= 1e6 ? (n / 1e6).toFixed(a >= 1e7 ? 0 : 1) + 'M' : a >= 1e3 ? (n / 1e3).toFixed(0) + 'K' : String(Math.round(n)); };
   const mlabel = m => new Date(m + '-01T00:00:00').toLocaleDateString('en-GB', { month: 'short' });
-  const ie = months.map(x => { try { const r = incomeStatement(x.m + '-01', monthEnd(x.m) > today ? today : monthEnd(x.m)); return { m: x.m, inc: +r.revenue, exp: +r.cogs.plus(r.opex) }; } catch (e){ return { m: x.m, inc: 0, exp: 0 }; } });
+  const dsh = d => new Date(d + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  const chg = (now, prev) => { const a = +now, b = +prev; return b && Math.abs(b) > 0 ? (a - b) / Math.abs(b) * 100 : null; };
+  const chgPill = (c, goodUp = true) => c == null ? '' : `<i class="zf-d ${(c >= 0) === goodUp ? 'good' : 'bad'}">${c >= 0 ? '▲' : '▼'} ${Math.abs(c).toFixed(1)}%</i>`;
+  const prevFrom = `${+fyFrom.slice(0, 4) - 1}${fyFrom.slice(4)}`, prevTo = `${+today.slice(0, 4) - 1}${today.slice(4)}`;
+  let prevIs = null; try { prevIs = incomeStatement(prevFrom, prevTo); if (prevIs.revenue.eq(0) && prevIs.cogs.eq(0) && prevIs.opex.eq(0)) prevIs = null; } catch (e){}
+  const ie = months.map(x => { try { const r = incomeStatement(x.m + '-01', monthEnd(x.m) > today ? today : monthEnd(x.m)); return { m: x.m, inc: +r.revenue, exp: +r.cogs.plus(r.opex), net: +r.net }; } catch (e){ return { m: x.m, inc: 0, exp: 0, net: 0 }; } });
   const ieMax = Math.max(1, ...ie.flatMap(x => [x.inc, x.exp]));
-  const ieChart = `<div class="zh-bars" role="img" aria-label="Income and expense, last 6 months">${ie.map(x => `<div class="zh-bg"><div class="zh-bp"><i class="inc" style="height:${(x.inc / ieMax * 100).toFixed(1)}%" title="Income ${money(x.inc)}"></i><i class="exp" style="height:${(x.exp / ieMax * 100).toFixed(1)}%" title="Expenses ${money(x.exp)}"></i></div><span>${mlabel(x.m)}</span></div>`).join('')}</div>`;
-  const split = (tot, over) => { const t0 = +tot, o0 = +over, cur = Math.max(0, t0 - o0), cp = t0 > 0 ? cur / t0 * 100 : 100; return `<div class="zh-prog"><i style="width:${cp.toFixed(1)}%"></i></div>`; };
-  const recCard = (title, sub, o, href) => `<section class="zh-card"><div class="zh-ch"><h2>${title}</h2><a href="${href}">View</a></div>
-      <p class="zh-sub">${sub} <b>${money(o.tot)} EGP</b></p>${split(o.tot, o.overTot)}
-      <div class="zh-two"><div><span class="zh-k cur">Current</span><b>${money(o.tot.minus(o.overTot))}</b></div><div class="end"><span class="zh-k over">Overdue${o.over.length ? ' · ' + o.over.length : ''}</span><b class="${o.over.length ? 'neg' : ''}">${money(o.overTot)}</b></div></div></section>`;
-  const bankRows = banks.map(b => { const bal = bankBalance(b), rec = S.statements.some(st => st.bankId === b.id && st.status === 'reconciled');
-    return `<a class="zh-bk" href="#/bank/book?id=${b.id}"><span class="zh-bi">${ic(b.kind === 'cash' ? 'wallet' : 'banking', 16)}</span><span class="zh-bn"><b>${esc(b.name)}</b><em>${b.kind === 'cash' ? 'Cash' : 'Bank'} · ${b.currency}${rec ? '' : ' · not reconciled'}</em></span><span class="zh-bv ${bal.fc.lt(0) ? 'neg' : ''}">${money(bal.fc)}<small>${b.currency}</small></span></a>`; }).join('') || '<div class="muted" style="padding:14px 18px">No bank or cash accounts yet.</div>';
+  const ieChart = `<div class="zf-bars" role="img" aria-label="Revenue and expenses, last 6 months">${ie.map(x => `<div class="zf-bg"><div class="zf-bp"><i class="inc" style="height:${(x.inc / ieMax * 100).toFixed(1)}%" title="Revenue ${money(x.inc)}"></i><i class="exp" style="height:${(x.exp / ieMax * 100).toFixed(1)}%" title="Expenses ${money(x.exp)}"></i></div></div>`).join('')}</div>
+    <table class="zf-t zf-mt"><thead><tr><th></th>${ie.map(x => `<th class="num">${mlabel(x.m)}</th>`).join('')}</tr></thead><tbody>
+      <tr><td>Revenue</td>${ie.map(x => `<td class="num">${cmp(x.inc)}</td>`).join('')}</tr>
+      <tr><td>Expenses</td>${ie.map(x => `<td class="num">${cmp(x.exp)}</td>`).join('')}</tr>
+      <tr class="tot"><td>Net profit</td>${ie.map(x => `<td class="num ${x.net < 0 ? 'neg' : ''}">${cmp(x.net)}</td>`).join('')}</tr></tbody></table>`;
+  const gm = ytd.revenue.gt(0) ? +ytd.gross.div(ytd.revenue).mul(100) : 0, nm = ytd.revenue.gt(0) ? +ytd.net.div(ytd.revenue).mul(100) : 0;
+  const pl = (label, now, prev, cls = '') => `<tr class="${cls}"><td>${label}</td><td class="num ${+now < 0 ? 'neg' : ''}">${money(now)}</td><td class="num mut">${ytd.revenue.gt(0) ? (+D(now).div(ytd.revenue).mul(100)).toFixed(1) + '%' : '—'}</td><td class="num mut">${prev == null ? '—' : cmp(+prev)}</td><td class="num">${prev == null ? '' : chgPill(chg(now, prev), cls.includes('cost') ? false : true)}</td></tr>`;
+  const plTable = `<table class="zf-t"><thead><tr><th></th><th class="num">FY to date</th><th class="num">% rev</th><th class="num">Last year</th><th class="num">Change</th></tr></thead><tbody>
+    ${pl('Revenue', ytd.revenue, prevIs && prevIs.revenue)}${pl('Cost of sales', ytd.cogs, prevIs && prevIs.cogs, 'cost')}${pl('Gross profit', ytd.gross, prevIs && prevIs.gross, 'tot')}${pl('Operating expenses', ytd.opex, prevIs && prevIs.opex, 'cost')}${pl('Operating profit', ytd.operating, prevIs && prevIs.operating, 'tot')}${pl('Other (FX, assets)', ytd.other, prevIs && prevIs.other)}${pl('Net profit', ytd.net, prevIs && prevIs.net, 'tot big')}</tbody></table>`;
+  /* cash outlook: next 8 weeks of collections and payments by due date */
+  const wk = d => { const n = Math.floor(daysBetween(today, d || today) / 7); return Math.max(0, Math.min(7, n)); };
+  const inW = Array(8).fill(0), outW = Array(8).fill(0);
+  for (const i of ar.open) inW[wk(i.dueDate || i.date)] += +(invState(i).egpOpen || 0);
+  for (const i of ap.open) outW[wk(i.dueDate || i.date)] += +(invState(i).egpOpen || 0);
+  let run = +cash; const balW = inW.map((v, k) => (run += v - outW[k]));
+  const owMax = Math.max(1, ...inW, ...outW);
+  const outlook = `<div class="zf-bars zf-ow">${inW.map((v, k) => `<div class="zf-bg"><div class="zf-bp"><i class="inc" style="height:${(v / owMax * 100).toFixed(1)}%" title="Collections ${money(v)}"></i><i class="exp" style="height:${(outW[k] / owMax * 100).toFixed(1)}%" title="Payments ${money(outW[k])}"></i></div></div>`).join('')}</div>
+    <table class="zf-t zf-mt"><thead><tr><th></th>${inW.map((_, k) => `<th class="num">${k === 0 ? 'Now–' + dsh(addDays(today, 7)) : dsh(addDays(today, 7 * k + 1))}</th>`).join('')}</tr></thead><tbody>
+      <tr><td>Collections (customers)</td>${inW.map(v => `<td class="num">${cmp(v)}</td>`).join('')}</tr>
+      <tr><td>Payments (vendors)</td>${outW.map(v => `<td class="num">${cmp(-v)}</td>`).join('')}</tr>
+      <tr class="tot"><td>Projected cash</td>${balW.map(v => `<td class="num ${v < 0 ? 'neg' : ''}">${cmp(v)}</td>`).join('')}</tr></tbody></table>`;
+  const agColors = ['#3b82c4', '#e8b04a', '#e8923a', '#d9633b', '#b83227'];
+  const agCard = (title, side, o, href) => { const a = aging(side, today) || { list: [], tot: [] }, tot = a.tot.map(Number), sum = tot.reduce((x, y) => x + y, 0), top = [...a.list].sort((x, y) => +y.total - +x.total).slice(0, 3);
+    return `<section class="zf-card"><div class="zf-ch"><h2>${title}</h2><a href="${href}">Aging report</a></div>
+      <div class="zf-agbar">${tot.map((n, i) => n ? `<i style="flex:${n};background:${agColors[i]}" title="${BUCKETS[i]}: ${money(n)}"></i>` : '').join('') || '<i style="flex:1;background:var(--zl)"></i>'}</div>
+      <table class="zf-t"><thead><tr>${BUCKETS.map((l, i) => `<th class="num"><i class="zf-dot" style="background:${agColors[i]}"></i>${l}</th>`).join('')}</tr></thead><tbody><tr>${tot.map(n => `<td class="num">${cmp(n)}</td>`).join('')}</tr></tbody></table>
+      <div class="zf-top"><span>Largest balances</span>${top.map(r => `<div><b>${esc(r.partner ? (r.partner.commercialName || r.partner.legalName || r.partner.code) : '?')}</b><em>${sum ? (+r.total / sum * 100).toFixed(0) : 0}%</em><span class="num">${money(r.total)}</span></div>`).join('') || '<div><em>No open balances.</em></div>'}</div></section>`; };
+  const bs = balanceSheet(today);
+  const bsRow = (l, v, cls = '') => `<tr class="${cls}"><td>${l}</td><td class="num ${+v < 0 ? 'neg' : ''}">${money(v)}</td></tr>`;
+  const wc = +ar.tot + +cash - +ap.tot;
+  const kpi = (label, val, sub, pill, neg, href) => `<a class="zf-k" href="${href}"><span class="zf-kl">${label}</span><b class="${neg ? 'neg' : ''}">${val}</b><span class="zf-ks">${sub}${pill || ''}</span></a>`;
   const hello = (n => n < 12 ? 'Good morning' : n < 17 ? 'Good afternoon' : 'Good evening')(+new Date().toLocaleString('en-GB', { hour: '2-digit', hour12: false, timeZone: 'Africa/Cairo' }));
-  return `<div class="ad zh">
-    <div class="zh-head"><div><h1>Dashboard</h1><p>${hello}, ${esc((currentUser().name || '').split(' ')[0] || 'there')} · ${new Date(today + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p></div>
+  return `<div class="ad zh zf">
+    <div class="zh-head"><div><h1>Finance dashboard</h1><p>As of ${new Date(today + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} · financial year from ${dsh(fyFrom)} · all figures in EGP</p></div>
       <div class="zh-new">${can('ar', 'create') ? '<button class="btn primary sm" data-act="inv-new" data-side="ar">+ New invoice</button>' : ''}${can('ap', 'create') ? '<button class="btn sm" data-act="inv-new" data-side="ap">+ New bill</button>' : ''}${can('journals', 'create') ? '<button class="btn sm" data-act="je-new">+ New entry</button>' : ''}</div></div>
-    <div class="zh-grid">
-      ${recCard('Total Receivables', 'Total unpaid invoices', ar, '#/ar/aging')}
-      ${recCard('Total Payables', 'Total unpaid bills', ap, '#/ap/aging')}
-      <section class="zh-card"><div class="zh-ch"><h2>Income and Expense</h2><a href="#/rep/statements?s=is">Report</a></div>
-        ${ieChart}<div class="zh-leg"><span><i class="inc"></i>Income</span><span><i class="exp"></i>Expenses</span><span class="r">Profit since ${fyFrom.slice(0, 7)} <b class="${ytd.net.lt(0) ? 'neg' : ''}">${money(ytd.net)} EGP</b></span></div></section>
-      <section class="zh-card zh-flush"><div class="zh-ch"><h2>Cash and Bank</h2><span class="zh-tot ${cash.lt(0) ? 'neg' : ''}">${money(cash)} EGP</span></div>${bankRows}</section>
-      <section class="zh-card zh-flush"><div class="zh-ch"><h2>Needs attention</h2></div>
+    <div class="zf-kpis">
+      ${kpi('Cash & bank', money(cash), `${banks.length} account${banks.length === 1 ? '' : 's'}${unrec.length ? ' · ' + unrec.length + ' unreconciled' : ''}`, '', cash.lt(0), '#/bank/accounts')}
+      ${kpi('Receivables', money(ar.tot), ar.over.length ? `${money(ar.overTot)} overdue` : 'none overdue', '', false, '#/ar/aging')}
+      ${kpi('Payables', money(ap.tot), ap.over.length ? `${money(ap.overTot)} overdue` : 'none overdue', '', false, '#/ap/aging')}
+      ${kpi('Revenue (FY to date)', money(ytd.revenue), prevIs ? 'vs same period last year ' : 'no prior-year data', prevIs ? chgPill(chg(ytd.revenue, prevIs.revenue)) : '', false, '#/rep/statements?s=is')}
+      ${kpi('Gross margin', gm.toFixed(1) + '%', `gross profit ${cmp(+ytd.gross)}`, '', gm < 0, '#/rep/statements?s=is')}
+      ${kpi('Net profit (FY to date)', money(ytd.net), `${nm.toFixed(1)}% of revenue `, prevIs ? chgPill(chg(ytd.net, prevIs.net)) : '', ytd.net.lt(0), '#/rep/statements?s=is')}
+    </div>
+    <div class="zf-grid">
+      <section class="zf-card zf-w6"><div class="zf-ch"><h2>Revenue and expenses · last 6 months</h2><span class="zf-leg"><i class="inc"></i>Revenue <i class="exp"></i>Expenses</span></div>${ieChart}</section>
+      <section class="zf-card zf-w6"><div class="zf-ch"><h2>Profit and loss</h2><a href="#/rep/statements?s=is">Full statement</a></div>${plTable}</section>
+      <section class="zf-card zf-w12"><div class="zf-ch"><h2>Cash outlook · next 8 weeks</h2><span class="zf-leg"><i class="inc"></i>Collections <i class="exp"></i>Payments · by invoice due date, overdue counted in the first week</span></div>${outlook}</section>
+      ${agCard('Receivables aging', 'ar', ar, '#/ar/aging')}
+      ${agCard('Payables aging', 'ap', ap, '#/ap/aging')}
+      <section class="zf-card"><div class="zf-ch"><h2>Balance sheet</h2><a href="#/rep/statements?s=bs">Full statement</a></div>
+        <table class="zf-t zf-bs"><tbody>${bsRow('Total assets', bs.assets)}${bsRow('Total liabilities', bs.liabilities)}${bsRow('Equity (incl. current earnings)', bs.equity)}${bsRow('Working capital (cash + receivables − payables)', wc, 'tot')}</tbody></table>
+        <p class="zf-note ${bs.balanced ? 'ok' : 'bad'}">${bs.balanced ? '✓ Assets equal liabilities plus equity' : '⚠ Balance sheet does not balance — run the integrity check'}</p></section>
+      <section class="zf-card zf-flush"><div class="zf-ch"><h2>Controls and actions</h2><a href="#/acc/close">Close ${lastYm}: ${done}/${tot}</a></div>
         ${(() => {
       const todos = [];
       if (drafts.length){
@@ -8886,10 +8986,6 @@ function pageAccDash(){
       </section>`;
     })()}
         <nav class="sbs" aria-label="What needs attention">${smart}</nav></section>
-      <section class="zh-card"><div class="zh-ch"><h2>Close ${lastYm}</h2><a href="#/acc/close">Open checklist</a></div>
-        <p class="zh-sub">Month-end checklist · <b>${done} of ${tot}</b> steps done${issues ? ` · <span class="neg">${issues} to fix</span>` : ''}</p>
-        <div class="zh-prog"><i style="width:${tot ? (done / tot * 100).toFixed(1) : 0}%"></i></div>
-        <div class="zh-two"><div><span class="zh-k cur">Entries posted this month</span><b>${posted.filter(e => e.accountingDate.startsWith(ym)).length}</b></div><div class="end"><span class="zh-k over">Not posted</span><b class="${drafts.length ? 'neg' : ''}">${drafts.length}</b></div></div></section>
     </div>
   </div>`;
 }
@@ -17591,7 +17687,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-102546';
+const APP_BUILD = 'build-20261114-103506';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
