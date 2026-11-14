@@ -3421,7 +3421,7 @@ html body .xp-kpis .xp-tag{background:var(--surface-2)!important;color:var(--mut
 html body .xp-kpis b.neg{color:var(--bad)!important}
 html body .inv-cards>.inv-card{background:var(--surface)!important;border:1px solid var(--border)!important;border-inline-start:4px solid var(--k3)!important;border-radius:10px!important;box-shadow:none!important}
 html body .inv-cards .inv-card .t{color:var(--muted)!important;font-weight:500}
-.att header{display:flex;justify-content:space-between;align-items:center;gap:8px}.att-list{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}.att-list li{display:flex;align-items:center;gap:10px;border:1px solid var(--border);border-radius:8px;padding:8px 10px}.att-nm{flex:1;min-width:0;display:flex;flex-direction:column}.att-nm b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.att-nm .muted{font-size:11.5px}.att-ic{color:var(--muted);display:inline-flex}.att-add{cursor:pointer}
+.att header{display:flex;justify-content:space-between;align-items:center;gap:8px}.att-list{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}.att-list li{display:flex;align-items:center;gap:10px;border:1px solid var(--border);border-radius:8px;padding:8px 10px}.att-nm{flex:1;min-width:0;display:flex;flex-direction:column}.att-nm b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.att-nm .muted{font-size:11.5px}.att-ic{color:var(--muted);display:inline-flex}.att-add{cursor:pointer}.imp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:14px}.imp-cols{display:flex;flex-wrap:wrap;gap:4px;margin:0}.imp-cols span{font-size:11.5px;background:var(--surface-2);border:1px solid var(--border);border-radius:999px;padding:2px 8px;color:var(--muted)}.imp-cols .req{color:var(--text);font-weight:600}
 /* sign-in / first-run setup: one centred card — navy logo band on top, form below, soft light page */
 html body .auth{display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:0;min-height:100vh;padding:32px 16px;background:radial-gradient(700px 380px at 50% 0,rgba(63,95,224,.10),transparent 70%),#F3F5FA!important}
 html body .auth-art{width:100%;max-width:480px;box-sizing:border-box;background:linear-gradient(160deg,#1a2a46,var(--midnight,#0F1B2D))!important;border-radius:16px 16px 0 0;padding:30px 24px 26px!important;display:flex;align-items:center;justify-content:center;min-height:0;overflow:hidden}
@@ -3741,7 +3741,7 @@ const EN = {
   cust_adv:'Customer Deposits', supp_adv:'Supplier Advances', bank_rec:'Bank Reconciliation', fx:'Foreign Currency',
   reval:'Exchange Rate Revaluation', tax_rep:'Tax Report', fiscal:'Fiscal Periods',
   company:'Company', users:'Users', roles:'Roles & Permissions', currencies:'Currencies', rates:'Exchange Rates',
-  sequences:'Document Numbering', audit:'Audit Trail', tests:'System Tests', data:'Data & Backup',
+  sequences:'Document Numbering', audit:'Audit Trail', tests:'System Tests', data:'Data & Backup', import:'Import Data',
   signout:'Sign out', signin:'Sign in', username:'Username', password:'Password', save:'Save', cancel:'Cancel',
   planned:'Planned', phase:'Phase', welcome:'Welcome', lang:'العربية',
   opening:'Opening Balances', mappings:'Account Mappings', integrity:'Integrity Checks',
@@ -3765,7 +3765,7 @@ const AR = {
   cust_adv:'دفعات العملاء المقدمة', supp_adv:'دفعات الموردين المقدمة', bank_rec:'التسوية البنكية', fx:'العملات الأجنبية',
   reval:'إعادة تقييم العملات', tax_rep:'التقارير الضريبية', fiscal:'الفترات المالية',
   company:'الشركة', users:'المستخدمون', roles:'الأدوار والصلاحيات', currencies:'العملات', rates:'أسعار الصرف',
-  sequences:'ترقيم المستندات', audit:'سجل التدقيق', tests:'اختبارات النظام', data:'البيانات والنسخ الاحتياطي',
+  sequences:'ترقيم المستندات', audit:'سجل التدقيق', tests:'اختبارات النظام', import:'استيراد البيانات', data:'البيانات والنسخ الاحتياطي',
   signout:'تسجيل الخروج', signin:'تسجيل الدخول', username:'اسم المستخدم', password:'كلمة المرور', save:'حفظ', cancel:'إلغاء',
   planned:'مخطط', phase:'المرحلة', welcome:'مرحباً', lang:'English',
   opening:'الأرصدة الافتتاحية', mappings:'ربط الحسابات', integrity:'فحوص سلامة البيانات',
@@ -8581,7 +8581,7 @@ const NAV = [
     { key:'currencies', route:'settings/currencies', phase:1, mod:'currencies' }, { key:'fiscal', route:'settings/fiscal', phase:1, mod:'fiscal' }, { key:'vehicle_settings', route:'veh/settings', phase:5, mod:'vehicles' },
     { key:'tax_codes', route:'tax/codes', phase:9, mod:'tax' }, { key:'einvoice', route:'tax/einvoice', phase:9, mod:'tax' }, { key:'mappings', route:'acc/mappings', phase:2, mod:'mappings' }, { key:'analytic_accounts', route:'ana/accounts', phase:8, mod:'analytics' },
     { key:'sequences', route:'settings/sequences', phase:1, mod:'sequences' }, { key:'integrity', route:'acc/integrity', phase:2, mod:'integrity' }, { key:'audit', route:'settings/audit', phase:1, mod:'audit' },
-    { key:'tests', route:'settings/tests', phase:1, mod:'system_tests' }, { key:'data', route:'settings/data', phase:1, mod:'settings' } ] }
+    { key:'tests', route:'settings/tests', phase:1, mod:'system_tests' }, { key:'data', route:'settings/data', phase:1, mod:'settings' }, { key:'import', route:'settings/import', phase:1, mod:'company' } ] }
 ];
 const PLANNED_SCOPE = {
   vehicles:['Vehicle master with unique internal ID and VIN','Configurable statuses and logged transitions','Per-vehicle analytic account'],
@@ -8840,7 +8840,7 @@ const NAV_MENUS = {
   hr: [['hr/employees'], ['hr/payroll'], ['hr/loans']],
   reports: [['rep/center'], ['Financial', ['rep/budgets', 'tax/report']], ['Cars', ['ana/profit', 'imp/landed', 'inv/valuation']], ['Partners', ['ar/aging', 'ap/aging']]],
   settings: [['General', ['settings/company', 'settings/users', 'settings/roles', 'settings/currencies']], ['Cars & e-invoicing', ['veh/settings', 'tax/einvoice']],
-    ['System', ['settings/sequences', 'acc/integrity', 'settings/audit', 'settings/tests', 'settings/data']]]
+    ['System', ['settings/sequences', 'acc/integrity', 'settings/audit', 'settings/tests', 'settings/data', 'settings/import']]]
 };
 /* routes a section's menu lists, in menu order: a sidebar link opens the first one, so it always lands on a page of its own menu */
 function menuRoutes(key){
@@ -8950,7 +8950,7 @@ function pageFor(r){
   const map = { 'dashboard':['dashboard', pageAccDash], 'setup-status':['dashboard', pageDashboard], 'settings/company':['company', pageCompany], 'settings/users':['users', pageUsers],
     'settings/roles':['roles', pageRoles], 'settings/currencies':['currencies', pageCurrencies], 'settings/rates':['exchange_rates', pageRates],
     'settings/fiscal':['fiscal', pageFiscal], 'settings/sequences':['sequences', pageSequences], 'settings/audit':['audit', pageAudit],
-    'settings/tests':['system_tests', pageTests], 'settings/data':['settings', pageData],
+    'settings/tests':['system_tests', pageTests], 'settings/data':['settings', pageData], 'settings/import':['company', pageImport],
     'acc/dashboard':['dashboard', () => { setTimeout(() => { location.hash = '#/dashboard'; }, 0); return ''; }], 'acc/close':['ledger', pageMonthClose], 'acc/coa':['coa', pageCOA], 'acc/journals':['journals', pageJournals], 'acc/opening':['journals', pageOpening],
     'acc/gl':['ledger', pageGL], 'acc/tb':['ledger', pageTB], 'acc/partner-ledger':['ledger', pagePartnerLedger], 'acc/mappings':['mappings', pageMappings], 'acc/integrity':['integrity', pageIntegrity],
     'bank/accounts':['banking', pageBanks], 'bank/book':['banking', pageBankBook], 'bank/transfers':['banking', pageTransfers], 'bank/txns':['banking', pageBankTxns],
@@ -10747,6 +10747,100 @@ document.addEventListener('change', async e => {
     } catch (ex){ toast(ex.message || 'Could not add the file.', 'bad'); }
   }
   if (n) toast(n === 1 ? 'File added.' : `${n} files added.`, 'ok'); attRefresh(owner, oid);
+});
+
+/* ---------------- Import data from Excel/CSV: customers, suppliers, chart of accounts, cars ---------------- */
+const IMPORT_TYPES = {
+  customers: { label: 'Customers', mod: 'customers', desc: 'One row per customer. Existing names are rejected so nothing is imported twice.',
+    cols: [['name', 'Name', 'Mahmoud Trading Co', 1], ['commercial', 'Commercial name', ''], ['kind', 'Type (individual / corporate)', 'corporate'], ['tax', 'Tax / ID number', '123456789'], ['phone', 'Phone', '01001234567'], ['email', 'Email', ''], ['address', 'Address', 'Cairo'], ['contact', 'Contact person', ''], ['terms', 'Payment terms (days)', '0'], ['currency', 'Currency', 'EGP'], ['credit', 'Credit limit (EGP, 0 = none)', '0'], ['category', 'Category', ''], ['notes', 'Notes', '']] },
+  suppliers: { label: 'Suppliers', mod: 'suppliers', desc: 'One row per supplier or vendor.',
+    cols: [['name', 'Name', 'Euro Motors GmbH', 1], ['commercial', 'Commercial name', ''], ['country', 'Country', 'Germany'], ['category', 'Category', 'Vehicle supplier'], ['tax', 'Tax / ID number', ''], ['phone', 'Phone', ''], ['email', 'Email', ''], ['address', 'Address', ''], ['contact', 'Contact person', ''], ['terms', 'Payment terms (days)', '30'], ['currency', 'Currency', 'EUR'], ['bank', 'Bank name', ''], ['iban', 'IBAN', ''], ['swift', 'SWIFT', ''], ['notes', 'Notes', '']] },
+  accounts: { label: 'Chart of accounts', mod: 'coa', desc: 'Parents can come in any order. Types: asset, liability, equity, revenue, cogs, expense.',
+    cols: [['code', 'Code', '1115', 1], ['name', 'Name (English)', 'Petty cash', 1], ['nameAr', 'Name (Arabic)', 'عهدة'], ['type', 'Type', 'asset', 1], ['parent', 'Parent code', '111'], ['group', 'Group account (yes / no)', 'no'], ['normal', 'Normal balance (debit / credit)', 'debit'], ['manual', 'Allow manual entries (yes / no)', 'yes'], ['reconcile', 'Reconcile (yes / no)', 'no'], ['currency', 'Currency restriction', '']] },
+  cars: { label: 'Cars (stock master)', mod: 'vehicles', desc: 'Registers the cars and their details. It does not post accounting: enter the opening stock value with an opening-balance entry or the purchase order.',
+    cols: [['vin', 'VIN / chassis', 'WBAXXXXXXXXXXXXXX', 1], ['make', 'Make', 'BMW', 1], ['model', 'Model', 'X5', 1], ['year', 'Year', '2025', 1], ['trim', 'Trim', ''], ['ext', 'Exterior color', 'Black'], ['int', 'Interior color', ''], ['cc', 'Engine cc', ''], ['fuel', 'Fuel', 'petrol'], ['gear', 'Transmission', 'automatic'], ['mileage', 'Mileage', '0'], ['origin', 'Origin', 'Germany'], ['supplier', 'Supplier name', ''], ['location', 'Location code', ''], ['status', 'Status code', 'available'], ['nonstd', 'Non-standard VIN (yes / no)', 'no'], ['notes', 'Notes', '']] }
+};
+const impKey = h => String(h || '').toLowerCase().replace(/\(.*?\)/g, '').replace(/[^a-z0-9؀-ۿ]/g, '');
+function impTable(type, table){
+  const T = IMPORT_TYPES[type], head = (table[0] || []).map(impKey), idx = {};
+  T.cols.forEach(([k, h]) => { const i = head.indexOf(impKey(h)); if (i >= 0) idx[k] = i; });
+  const missing = T.cols.filter(c => c[3] && !(c[0] in idx)).map(c => c[1]);
+  if (missing.length) throw new AppError(`The file is missing the column${missing.length > 1 ? 's' : ''}: ${missing.join(', ')}. Download the template and keep its headings.`);
+  return table.slice(1).map((r, i) => { const d = {}; T.cols.forEach(c => { d[c[0]] = ''; }); for (const k in idx) d[k] = String(r[idx[k]] == null ? '' : r[idx[k]]).trim(); return { n: i + 2, d }; }).filter(x => Object.values(x.d).some(v => v));
+}
+const impYes = v => /^(y|yes|true|1|نعم)$/i.test(String(v || '').trim());
+function impRun(type, d){
+  if (type === 'customers' || type === 'suppliers'){
+    const side = type === 'customers' ? 'ar' : 'ap';
+    if (partnersOf(side).some(x => sameTxt(x.legalName, d.name))) throw new AppError(`${d.name} already exists.`);
+    const base = { legalName: d.name, commercialName: d.commercial, taxNo: d.tax, phone: d.phone, email: d.email, address: d.address, contact: d.contact, paymentTerms: d.terms || (side === 'ar' ? '0' : '30'), preferredCurrency: (d.currency || (side === 'ar' ? 'EGP' : 'EUR')).toUpperCase(), category: d.category, notes: d.notes };
+    const p = A.savePartner(side, null, side === 'ar' ? { ...base, kind: /corp|شركة/i.test(d.kind) ? 'corporate' : 'individual', creditLimit: d.credit || '0' } : { ...base, country: d.country, bankName: d.bank, iban: d.iban, swift: d.swift });
+    return `${p.code} ${p.legalName}`;
+  }
+  if (type === 'accounts'){
+    const tk = Object.keys(ACC_TYPES).find(k => k === d.type.toLowerCase() || ACC_TYPES[k].en.toLowerCase() === d.type.toLowerCase());
+    if (!tk) throw new AppError(`Unknown type "${d.type}".`);
+    let parentId = null; if (d.parent){ const pa = accByCode(d.parent.toUpperCase()); if (!pa) throw new AppError(`Parent ${d.parent} not found.`); parentId = pa.id; }
+    const a = A.saveAccount(null, { code: d.code, nameEn: d.name, nameAr: d.nameAr, type: tk, parentId, isGroup: impYes(d.group) ? 'yes' : 'no', normal: /^cred/i.test(d.normal) ? 'credit' : /^deb/i.test(d.normal) ? 'debit' : ACC_TYPES[tk].normal, allowManual: d.manual && !impYes(d.manual) ? 'no' : 'yes', reconcile: impYes(d.reconcile) ? 'yes' : 'no', currency: (d.currency || '').toUpperCase() });
+    return `${a.code} ${a.nameEn}`;
+  }
+  if (type === 'cars'){
+    const mm = pickMakeModel(d.make, d.model); let supplierId = '';
+    if (d.supplier){ const su = S.suppliers.find(x => sameTxt(x.legalName, d.supplier)); if (!su) throw new AppError(`Supplier "${d.supplier}" not found. Import suppliers first.`); supplierId = su.id; }
+    const v = A.saveVehicle(null, { vin: d.vin, nonStandardVin: impYes(d.nonstd) ? 'yes' : 'no', ...mm, year: d.year, trim: d.trim, exteriorColor: d.ext, interiorColor: d.int, engineCc: d.cc, fuel: d.fuel.toLowerCase(), transmission: d.gear.toLowerCase(), mileage: d.mileage, origin: d.origin, supplierId, location: d.location, status: d.status || 'available', notes: d.notes });
+    return `${v.code} ${d.make} ${d.model} ${d.year}`;
+  }
+  throw new AppError('Unknown import type.');
+}
+function importMasters(type, rows, commit, skipInvalid){
+  const T = IMPORT_TYPES[type]; if (!T) throw new AppError('Unknown import type.');
+  requirePerm(T.mod, 'create');
+  const snap = JSON.stringify(S), prevSand = SANDBOX, res = rows.map(r => ({ n: r.n, d: r.d, ok: false, err: '', label: '' }));
+  try {
+    SANDBOX = true;
+    let pending = res.slice(), guard = 0;
+    while (pending.length && guard++ < res.length + 2){
+      const next = [];
+      for (const r of pending){ try { r.label = impRun(type, r.d); r.ok = true; r.err = ''; } catch (e){ r.err = e.message || String(e); next.push(r); } }
+      if (type !== 'accounts' || next.length === pending.length) break; pending = next;
+    }
+  } finally { SANDBOX = prevSand; }
+  const bad = res.filter(r => !r.ok).length;
+  if (!commit || (bad && !skipInvalid)){ S = JSON.parse(snap); return { res, ok: res.length - bad, bad, done: false }; }
+  S = JSON.parse(snap); SANDBOX = true; const final = [];
+  try {
+    const okRows = res.filter(r => r.ok); let pending = okRows.slice(), guard = 0;
+    while (pending.length && guard++ < okRows.length + 2){ const next = []; for (const r of pending){ try { r.label = impRun(type, r.d); final.push(r); } catch (e){ next.push(r); } } if (type !== 'accounts' || next.length === pending.length) break; pending = next; }
+  } finally { SANDBOX = prevSand; }
+  log('import_masters', T.mod, type, null, { type, rows: final.length, skipped: bad }, `Imported ${final.length} ${T.label.toLowerCase()} from file`); saveState();
+  return { res, ok: final.length, bad, done: true };
+}
+async function impParseFile(file){
+  const n = file.name.toLowerCase();
+  if (n.endsWith('.xlsx') || n.endsWith('.xls')){ const X = await loadXlsx(); const wb = X.read(await file.arrayBuffer(), { type: 'array', cellDates: false, raw: false }); return X.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: false, defval: '' }).map(r => r.map(c => String(c))); }
+  return csvRows(await file.text());
+}
+function impPreview(type, rows){
+  const T = IMPORT_TYPES[type], out = importMasters(type, rows, false, false), cap = out.res.slice(0, 200);
+  openModal({ title: `Import ${T.label.toLowerCase()}`, xwide: true, submit: out.ok ? `Import ${out.ok} row${out.ok === 1 ? '' : 's'}` : 'Nothing to import', body: `
+    <div class="kpis" style="grid-template-columns:repeat(3,1fr)"><div><span>Rows read</span><b>${out.res.length}</b></div><div><span>Ready to import</span><b style="color:var(--ok)">${out.ok}</b></div><div><span>With errors</span><b style="color:${out.bad ? 'var(--bad)' : 'inherit'}">${out.bad}</b></div></div>
+    ${out.bad ? `<div class="note" style="margin:10px 0">Rows with errors are skipped. Fix them in the file and import them again, or import the ready rows now.</div>` : ''}
+    <div class="tbl-wrap"><table><thead><tr><th>Row</th><th>Result</th><th>Detail</th></tr></thead><tbody>${cap.map(r => `<tr><td>${r.n}</td><td>${r.ok ? '<span class="pill ok">Ready</span>' : '<span class="pill bad">Error</span>'}</td><td>${esc(r.ok ? r.label : r.err)}</td></tr>`).join('')}</tbody></table></div>${out.res.length > cap.length ? `<p class="muted">Showing the first ${cap.length} rows.</p>` : ''}`,
+    onSubmit: () => { if (!out.ok) throw new AppError('There are no valid rows to import.'); const r = importMasters(type, rows, true, true); toast(`${r.ok} ${T.label.toLowerCase()} imported${r.bad ? `, ${r.bad} skipped` : ''}.`, 'ok'); return () => { render(); }; } });
+}
+function pageImport(){
+  return H('Import data', 'Bring your existing customers, suppliers, accounts and cars in from Excel or CSV. You see every row checked before anything is saved.') + `<div class="imp-grid">${Object.entries(IMPORT_TYPES).map(([k, T]) => {
+    let can0 = false; try { can0 = can(T.mod, 'create'); } catch (e){}
+    return `<section class="card imp-card"><div class="card-h"><h2>${esc(T.label)}</h2></div><p class="muted" style="margin:0 0 8px">${esc(T.desc)}</p>
+      <p class="imp-cols">${T.cols.map(c => `<span class="${c[3] ? 'req' : ''}">${esc(c[1])}${c[3] ? ' *' : ''}</span>`).join('')}</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button type="button" class="btn" data-act="imp-template" data-type="${k}">${ic('file', 15)} Download template</button>
+      ${can0 ? `<label class="btn primary att-add">Choose file and check<input type="file" hidden data-imp-input="${k}" accept=".xlsx,.xls,.csv,.txt"></label>` : '<span class="muted">Your role cannot import this.</span>'}</div></section>`; }).join('')}</div>`;
+}
+document.addEventListener('change', async e => {
+  const t0 = e.target; if (!t0 || !t0.dataset || !t0.dataset.impInput || !t0.files || !t0.files[0]) return;
+  const type = t0.dataset.impInput, f = t0.files[0]; t0.value = '';
+  try { const table = await impParseFile(f); const rows = impTable(type, table); if (!rows.length) throw new AppError('The file has no data rows.'); impPreview(type, rows); }
+  catch (ex){ toast(ex.message || 'Could not read the file.', 'bad'); }
 });
 
 function stmtEvents(side, p){
@@ -14918,6 +15012,9 @@ Object.assign(FORM_HANDLERS, {
 });
 Object.assign(CLICK, {
   'pst-print'(el){ stmtPrint(el.dataset.side, el.dataset.id); },
+  'imp-template'(el){ const T = IMPORT_TYPES[el.dataset.type]; if (!T) return; const ex = {}; T.cols.forEach(c => { ex[c[0]] = c[2] || ''; });
+    XW.save(`import-${el.dataset.type}-template.xlsx`, [{ name: T.label.slice(0, 28), title: `${T.label} import template`, subtitle: `Keep the headings. * = required. Replace the sample row with your data.`,
+      columns: T.cols.map(c => ({ h: c[1], w: Math.max(14, Math.min(34, c[1].length + 4)) })), rows: [{ k: 'line', c: T.cols.map(c => ex[c[0]]) }] }]); },
   async 'att-open'(el){
     const rec = (S.attachments || []).find(x => x.id === el.dataset.id); if (!rec) return;
     try { const blob = await FILES.get(rec.id); if (!blob) return toast('The file is not stored in this browser (added on another device).', 'bad');
@@ -18536,7 +18633,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-195048';
+const APP_BUILD = 'build-20261114-195344';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
