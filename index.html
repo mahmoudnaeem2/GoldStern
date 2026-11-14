@@ -3526,6 +3526,16 @@ html body .xp-k.on{border-color:var(--brand,#3F5FE0);box-shadow:0 0 0 2px rgba(6
 html body .xp-cats li.xp-pick{padding:6px 8px;margin:0 -8px;border-radius:8px}
 html body .xp-cats li.xp-pick:hover{background:rgba(63,95,224,.06)}
 html body .xp-cats li.xp-pick.on{background:rgba(63,95,224,.10)}
+/* dashboard greeting banner */
+html body .zh-hello{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:0 0 18px;padding:20px 24px;border-radius:16px;border:1px solid color-mix(in srgb,var(--brand,#3F5FE0) 16%,#E3E8F2);background:radial-gradient(90% 140% at 0% 0%,color-mix(in srgb,var(--brand,#3F5FE0) 11%,#fff),transparent 70%),#fff;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+html body .zh-hi-main{display:flex;align-items:center;gap:16px;min-width:0}
+html body .zh-hi-ic{flex:none;width:52px;height:52px;border-radius:14px;display:inline-flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--brand,#3F5FE0) 14%,#fff);color:var(--brand,#3F5FE0)}
+html body .zh-hello h1{margin:0;font-size:24px!important;font-weight:650;letter-spacing:-.02em;line-height:1.2;color:var(--zt,#161B2E)}
+html body .zh-hello p{margin:4px 0 0;font-size:14px;color:#5b6784}
+html body .zh-hello .zh-chips{margin-top:10px}
+html[data-theme="dark"] body .zh-hello{background:#161d2b;border-color:#26324a}
+html[data-theme="dark"] body .zh-hello h1{color:#f1f5f9}
+@media (max-width:700px){html body .zh-hello{padding:16px}html body .zh-hello h1{font-size:20px!important}}
 /* both modes: one sans family, tabular figures instead of monospace, no all-caps labels */
 .mono,.num,td.mono,b.mono,span.mono,a.mono,div.mono,button.mono,.mh-no{font-family:var(--font)!important;font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1}
 html:not([dir=rtl]) body{font-family:var(--font)}
@@ -9248,9 +9258,17 @@ function pageAccDash(){
   const bsRow = (l, v, cls = '') => `<tr class="${cls}"><td>${l}</td><td class="num ${+v < 0 ? 'neg' : ''}">${money(v)}</td></tr>`;
   const wc = +ar.tot + +cash - +ap.tot;
   const kpi = (label, val, sub, pill, neg, href, icn, tone) => `<a class="zf-k t-${tone || 'ind'}" href="${href}"><span class="zf-kt"><span class="zf-ki">${ic(icn || 'coins', 18)}</span><span class="zf-kl">${label}</span></span><b class="${neg ? 'neg' : ''}">${val}</b><span class="zf-ks">${sub}${pill || ''}</span></a>`;
-  const hello = (n => n < 12 ? 'Good morning' : n < 17 ? 'Good afternoon' : 'Good evening')(+new Date().toLocaleString('en-GB', { hour: '2-digit', hour12: false, timeZone: 'Africa/Cairo' }));
+  const hrNow = +new Date().toLocaleString('en-GB', { hour: '2-digit', hour12: false, timeZone: 'Africa/Cairo' });
+  const hello = hrNow < 12 ? 'Good morning' : hrNow < 17 ? 'Good afternoon' : 'Good evening';
+  const meName = String(((typeof currentUser === 'function' && currentUser()) || {}).name || '').trim().split(/\s+/)[0];
   return `<div class="ad zh zf">
-    <div class="zh-head"><div><h1>Finance dashboard</h1><div class="zh-chips"><span>${ic('calendar', 14)}${new Date(today + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span><span>FY from ${dsh(fyFrom)}</span><span>EGP</span></div></div>
+    <div class="zh-hello">
+      <div class="zh-hi-main">
+        <span class="zh-hi-ic">${ic(hrNow < 18 && hrNow >= 6 ? 'sun' : 'moon', 22)}</span>
+        <div><h1>${hello}${meName ? ', ' + esc(meName) : ''}</h1>
+          <p>Here is where ${esc((S.company && (S.company.commercialName || S.company.legalName)) || brand().name)} stands today.</p>
+          <div class="zh-chips"><span>${ic('calendar', 14)}${new Date(today + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</span><span>Financial year from ${dsh(fyFrom)}</span><span>EGP</span></div></div>
+      </div>
       <div class="zh-new"><button class="btn dash-pdf" data-act="dash-pdf">${ic('printer', 16)}<span>Company snapshot (PDF)</span></button></div></div>
     <div class="zf-kpis">
       ${kpi('Cash & bank', money(cash), `${banks.length} account${banks.length === 1 ? '' : 's'}${unrec.length ? ' · ' + unrec.length + ' unreconciled' : ''}`, '', cash.lt(0), '#/bank/accounts', 'coins', 'ind')}
@@ -18130,7 +18148,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-173413';
+const APP_BUILD = 'build-20261114-173837';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
