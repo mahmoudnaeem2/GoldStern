@@ -3055,6 +3055,22 @@ html body .statusbar span.cur{color:var(--text,#1b2433)!important;font-weight:60
 html body .statusbar span.cur i{background:var(--gold);border-color:var(--gold);color:#fff;box-shadow:0 0 0 3px rgba(63,95,224,.16)}
 html:not([data-theme="dark"]) body .statusbar span.cur,html body .statusbar span.cur{background:transparent!important;border:0!important;color:var(--text,#1b2433)!important}
 html body .statusbar span.cur::after{background:var(--border)!important}
+/* inventory overview: compact tiles, aligned mini tables */
+html body .inv-cards{grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+html body .inv-card{padding:14px 16px;border-top-width:2px;border-radius:8px;box-shadow:none}
+html body .inv-card .t{font-size:13.5px;font-weight:600;margin-bottom:2px;color:var(--text,#1b2433)}
+html body .inv-card .s{font-size:12.5px;line-height:1.45;color:var(--muted)}
+html body .inv-card .big{font-size:24px;margin-top:8px}
+html body .inv-card>a.btn{height:30px;min-height:30px;padding:0 12px;font-size:12.5px;margin-top:12px!important}
+html body .mini-t{table-layout:fixed;width:100%}
+html body .mini-t th:first-child,html body .mini-t td:first-child{width:36%}
+html body .mini-t th:nth-child(2){width:16%}
+html body .mini-t td{white-space:nowrap}
+html body .card:has(.mini-t) .card-h{padding:12px 16px!important}
+html body .card:has(.mini-t) .card-h h2{font-size:14px}
+html body .mini-t th.num,html body .mini-t td.num{text-align:right}
+html body .mini-t th{font-size:12px;font-weight:600;color:var(--muted);padding:8px 16px!important}
+html body .mini-t td{padding:9px 16px!important}
 /* both modes: one sans family, tabular figures instead of monospace, no all-caps labels */
 .mono,.num,td.mono,b.mono,span.mono,a.mono,div.mono,button.mono,.mh-no{font-family:var(--font)!important;font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1}
 html:not([dir=rtl]) body{font-family:var(--font)}
@@ -10249,7 +10265,7 @@ function pageInvOverview(){
   const card = (title, sub, big, href, color, extra = '') => `<div class="inv-card" style="--ic:${color}"><div class="t">${title}</div><div class="s">${sub}</div>
     <a class="btn ${big ? 'primary' : ''}" href="${href}" style="margin-top:14px;display:inline-block;text-decoration:none">${big ? big : 'Open'}</a>${extra}</div>`;
   const by = (keyf, list) => { const m = new Map(); for (const v of list){ const k = keyf(v); const r = m.get(k) || { n: 0, val: D0() }; r.n++; r.val = r.val.plus(vehicleCost(v).total); m.set(k, r); } return [...m.entries()].sort((a, b) => b[1].n - a[1].n); };
-  const mini = (title, rows) => `<div class="card"><div class="card-h"><h2>${title}</h2></div><div class="tbl-wrap"><table><tbody>${rows.map(([k, r]) => `<tr><td>${esc(k)}</td><td class="num">${r.n} car${r.n > 1 ? 's' : ''}</td><td class="num">${money(r.val)} EGP</td></tr>`).join('') || '<tr><td class="empty">Nothing in stock.</td></tr>'}</tbody></table></div></div>`;
+  const mini = (title, rows) => `<div class="card"><div class="card-h"><h2>${title}</h2></div><div class="tbl-wrap"><table class="mini-t"><thead><tr><th>${/location/i.test(title) ? 'Location' : 'Brand'}</th><th class="num">Cars</th><th class="num">Value</th></tr></thead><tbody>${rows.map(([k, r]) => `<tr><td>${esc(k === '—' ? 'No location' : k)}</td><td class="num">${r.n}</td><td class="num">${money(r.val)} EGP</td></tr>`).join('') || '<tr><td class="empty">Nothing in stock.</td></tr>'}</tbody></table></div></div>`;
   return H(t('inv_overview'), 'Cars coming in, cars in stock and cars going out.') + `
     <div class="inv-cards">
       ${card('Receipts', `${rec.length} car${rec.length === 1 ? '' : 's'} expected · ${recReady.length} arrived in transit, ${rec.length - recReady.length} on order`, recReady.length ? `${recReady.length} to receive` : '', '#/inv/receipts', 'var(--info)')}
@@ -17408,7 +17424,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-100158';
+const APP_BUILD = 'build-20261114-100411';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
