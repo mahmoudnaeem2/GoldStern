@@ -3471,6 +3471,7 @@ html:not([data-theme="dark"]) body .subnav>a.on:hover,html:not([data-theme="dark
 html body .btn.primary,html body .btn.gold,html:not([data-theme="dark"]) body .btn.primary,html:not([data-theme="dark"]) body .btn.gold,html body .zh-new .btn.dash-pdf,html body .auth-box .btn.primary{background:#A8643A!important;border-color:#A8643A!important;color:#fff!important;box-shadow:0 4px 10px rgba(168,100,58,.25)!important}
 html body .btn.primary:hover,html body .btn.gold:hover,html body .zh-new .btn.dash-pdf:hover,html body .auth-box .btn.primary:hover{background:#8E5330!important;border-color:#8E5330!important}
 html body .btn.primary:focus-visible{outline:2px solid #D9A77F;outline-offset:2px}
+html body .zf-k.clk{cursor:pointer;transition:transform .15s,box-shadow .15s}html body .zf-k.clk:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(31,41,55,.10)}
 /* both modes: one sans family, tabular figures instead of monospace, no all-caps labels */
 .mono,.num,td.mono,b.mono,span.mono,a.mono,div.mono,button.mono,.mh-no{font-family:var(--font)!important;font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1}
 html:not([dir=rtl]) body{font-family:var(--font)}
@@ -11897,14 +11898,18 @@ function pageEmployees(){
   let list = S.employees.filter(e => st === 'all' ? true : st === 'inactive' ? e.active === false : e.active !== false);
   if (q) list = list.filter(e => [e.code, e.name, e.title, e.phone].join(' ').toLowerCase().includes(q));
   list = list.slice().sort((a, b) => a.name.localeCompare(b.name));
-  const tile = (icon, tone, l, v, sub) => `<div class="zf-k t-${tone}"><span class="zf-kt"><span class="zf-ki">${ic(icon, 18)}</span><span class="zf-kl">${l}</span></span><b>${v}</b><span class="zf-ks">${sub}</span></div>`;
+  const tile = (icon, tone, l, v, sub, attrs = '') => `<div class="zf-k t-${tone}${attrs ? ' clk' : ''}" ${attrs}><span class="zf-kt"><span class="zf-ki">${ic(icon, 18)}</span><span class="zf-kl">${l}</span></span><b>${v}</b><span class="zf-ks">${sub}</span></div>`;
+  /* the first three cards follow the list below (tab + search); the payroll card follows the current month's run */
+  const vSal = list.reduce((t, e) => t.plus(e.salary || 0), D0()), scope = q ? 'matching search' : st === 'inactive' ? 'inactive' : st === 'all' ? 'all employees' : 'active';
+  const sh = payrollSheet(cur), nPay = sh.lines.length, nPaid = sh.lines.filter(l => l.paid).length, netTot = sh.lines.reduce((t, l) => t.plus(l.net), D0());
+  const prSub = pr && pr.status === 'posted' ? `${nPaid} of ${nPay} paid · net ${money(netTot)}` : pr ? `${nPay} payslips · net ${money(netTot)}` : `${act.length} employees to pay`;
   return H(t('employees'), 'Your team and their monthly salaries. Bonuses, deductions, and loan installments are processed in Payroll.',
     (ed ? `<button type="button" class="btn primary" data-act="emp-new">${ic('plus', 14)} New employee</button>` : '')) + `
     <div class="zf-kpis four">
-      ${tile('hr', 'blue', 'Monthly salaries', money(monthly) + ' <small>EGP</small>', 'Before bonuses and deductions')}
-      ${tile('users', 'green', 'Active employees', String(act.length), `${S.employees.length - act.length} inactive`)}
-      ${tile('coins', 'amber', 'Average salary', act.length ? money(monthly.div(act.length)) + ' <small>EGP</small>' : '—', 'Per active employee')}
-      ${tile('calendar', pr && pr.status === 'posted' ? 'teal' : 'violet', monthLabel(cur) + ' payroll', pr ? (pr.status === 'posted' ? 'Posted' : 'Draft') : 'Not started', `<a href="#/hr/payroll">Open payroll →</a>`)}
+      ${tile('hr', 'blue', 'Monthly salaries', money(vSal) + ' <small>EGP</small>', `${list.length} ${list.length === 1 ? 'employee' : 'employees'} · ${scope}`)}
+      ${tile('users', 'green', 'Active employees', String(act.length), `${S.employees.length - act.length} inactive`, `data-act="set-filter" data-k="emp_s" data-v="${st === 'active' ? 'all' : 'active'}" role="button" tabindex="0"`)}
+      ${tile('coins', 'amber', 'Average salary', list.length ? money(vSal.div(list.length)) + ' <small>EGP</small>' : '—', `Per employee · ${scope}`)}
+      ${tile('calendar', pr && pr.status === 'posted' ? 'teal' : 'violet', monthLabel(cur) + ' payroll', pr ? (pr.status === 'posted' ? (nPaid === nPay && nPay ? 'Paid' : 'Posted') : 'Draft') : 'Not started', prSub + ` · <a href="#/hr/payroll">Open →</a>`)}
     </div>
     <div class="card xp-list">
       <div class="xp-bar"><div class="xp-seg" role="tablist">${[['active', 'Active'], ['inactive', 'Inactive'], ['all', 'All']].map(([k, l]) => `<button type="button" role="tab" aria-selected="${st === k}" class="${st === k ? 'on' : ''}" data-act="set-filter" data-k="emp_s" data-v="${k}">${l}<span>${k === 'all' ? S.employees.length : k === 'active' ? act.length : S.employees.length - act.length}</span></button>`).join('')}</div>
@@ -17878,7 +17883,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-113436';
+const APP_BUILD = 'build-20261114-113629';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
