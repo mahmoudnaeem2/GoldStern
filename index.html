@@ -3457,16 +3457,15 @@ html body .zh-head h1{font-size:22px!important;font-weight:650;letter-spacing:-.
 html body .zh-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
 html body .zh-chips span{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 10px;border-radius:999px;background:#fff;border:1px solid #E3E8F2;color:#5b6784;font-size:12px;font-weight:500}
 html body .zh-chips svg{width:13px;height:13px}
-/* section sub-navigation: a segmented pill control on the page background (replaces the white bar + underline tabs) */
-html:not([data-theme="dark"]) body .subnav{height:auto!important;min-height:0;padding:14px 28px 4px!important;background:transparent!important;border:0!important;box-shadow:none!important;align-items:center!important;gap:12px!important;top:58px}
-html:not([data-theme="dark"]) body .subnav .app{border:0!important;margin:0!important;padding:0!important;font-size:12px!important;font-weight:600!important;color:#7a86a1!important;letter-spacing:.02em;text-transform:none}
+/* section sub-navigation: coloured capsules; the active one is solid indigo */
+html:not([data-theme="dark"]) body .subnav{height:auto!important;min-height:0;padding:14px 28px 4px!important;background:transparent!important;border:0!important;box-shadow:none!important;align-items:center!important;gap:8px!important;top:58px}
+html:not([data-theme="dark"]) body .subnav .app{border:0!important;margin:0 6px 0 0!important;padding:0!important;font-size:12.5px!important;font-weight:600!important;color:#7a86a1!important}
 html:not([data-theme="dark"]) body .subnav .sm-dd{display:inline-flex}
-html:not([data-theme="dark"]) body .subnav>a,html:not([data-theme="dark"]) body .subnav .sm-btn{position:relative;align-self:auto!important;height:34px!important;padding:0 14px!important;border-radius:9px!important;border:1px solid transparent!important;background:transparent!important;color:#56627f!important;font-size:13.5px!important;font-weight:550!important;line-height:1;box-shadow:none!important}
-html:not([data-theme="dark"]) body .subnav .sm-btn{padding-right:30px!important}
+html:not([data-theme="dark"]) body .subnav>a,html:not([data-theme="dark"]) body .subnav .sm-btn{position:relative;align-self:auto!important;height:34px!important;padding:0 16px!important;border-radius:999px!important;border:0!important;background:#E8ECF7!important;color:#44527a!important;font-size:13.5px!important;font-weight:600!important;line-height:1;box-shadow:none!important}
+html:not([data-theme="dark"]) body .subnav .sm-btn{padding-right:32px!important}
 html:not([data-theme="dark"]) body .subnav>a::after,html:not([data-theme="dark"]) body .subnav .sm-btn::after{display:none!important}
-html:not([data-theme="dark"]) body .subnav>a:hover,html:not([data-theme="dark"]) body .subnav .sm-btn:hover,html:not([data-theme="dark"]) body .subnav .sm-dd.open .sm-btn{background:#fff!important;border-color:#E3E8F2!important;color:#1b2540!important}
-html:not([data-theme="dark"]) body .subnav>a.on,html:not([data-theme="dark"]) body .subnav .sm-btn.on{background:#fff!important;color:#3F5FE0!important;font-weight:650!important;border-color:#CFD8F6!important;box-shadow:0 1px 3px rgba(63,95,224,.14)!important}
-html:not([data-theme="dark"]) body .subnav>a.on::after,html:not([data-theme="dark"]) body .subnav .sm-btn.on::after{display:none!important}
+html:not([data-theme="dark"]) body .subnav>a:hover,html:not([data-theme="dark"]) body .subnav .sm-btn:hover,html:not([data-theme="dark"]) body .subnav .sm-dd.open .sm-btn{background:#DCE3F5!important;color:#1b2a55!important}
+html:not([data-theme="dark"]) body .subnav>a.on:hover,html:not([data-theme="dark"]) body .subnav .sm-btn.on:hover,html:not([data-theme="dark"]) body .subnav>a.on,html:not([data-theme="dark"]) body .subnav .sm-btn.on{border-radius:999px!important;background:#3F5FE0!important;color:#fff!important;font-weight:650!important;box-shadow:0 4px 10px rgba(63,95,224,.28)!important}
 @media (max-width:700px){html:not([data-theme="dark"]) body .subnav{padding:10px 14px 2px!important}html:not([data-theme="dark"]) body .subnav .app{display:none}}
 /* both modes: one sans family, tabular figures instead of monospace, no all-caps labels */
 .mono,.num,td.mono,b.mono,span.mono,a.mono,div.mono,button.mono,.mh-no{font-family:var(--font)!important;font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1}
@@ -17875,7 +17874,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-112550';
+const APP_BUILD = 'build-20261114-112717';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
