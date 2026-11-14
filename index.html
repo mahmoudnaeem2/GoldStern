@@ -14718,6 +14718,8 @@ Object.assign(CLICK, {
 /* ---------- Reversal of operational documents: undo what posting did ---------- */
 const lastMoveTo = (v, status, ref) => [...(S.vehicleMoves || [])].reverse().find(m => m.vehicleId === v.id && m.type === 'status' && m.to === status && m.ref === ref) || null;
 function operationalReversalBlocker(e){
+  { const prA = (S.payrolls || []).find(p => p.entryId === e.id && p.status === 'posted');
+    if (prA && (prA.lines || []).some(l => l.paid && l.paidEntryId && ACTIVE_ST.includes(entryStatus({ entryId: l.paidEntryId })))) return `Payslips of ${monthLabel(prA.month)} are already paid. Undo the payslip payments first.`; }
   const chk = (vids, status, what) => { for (const vid of vids || []){ const v = vehById(vid); if (!v) continue; if (lastMoveTo(v, status, e.number) && v.status !== status) return `${v.code} is now ${vStatus(v.status).name}; ${what}`; } return ''; };
   if (e.purchaseFor){ const b = chk(e.purchaseFor, 'purchased', 'undo its later steps before reversing the purchase.'); if (b) return b; }
   if (e.saleAction && e.saleAction.type === 'invoice'){
@@ -14729,6 +14731,17 @@ function operationalReversalBlocker(e){
   return '';
 }
 function onEntryReversed(e, r){
+  /* payroll: reversing the accrual reopens the month and gives the loan installments back; reversing a salary payment un-marks the payslips */
+  for (const pr of (S.payrolls || [])){
+    if (pr.entryId === e.id && pr.status === 'posted'){
+      pr.status = 'saved'; pr.entryId = null; pr.accrualDate = null;
+      for (const ln of (S.empLoans || [])){
+        for (const inst of (ln.installments || [])) if (inst.payrollId === pr.id && inst.status === 'deducted'){ inst.status = 'pending'; delete inst.deductedAt; delete inst.payrollId; delete inst.entryId; delete inst.deductedAmount; }
+        updateLoanStatus(ln);
+      }
+    }
+    for (const l of (pr.lines || [])) if (l.paidEntryId === e.id){ l.paid = false; delete l.paidDate; delete l.paidEntryId; delete l.paidBanks; }
+  }
   const ex = (S.expenses || []).find(x => x.entryId === e.id);
   if (ex){
     const pr = (S.payrolls || []).find(p => p.expenseId === ex.id);
@@ -17805,7 +17818,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-111005';
+const APP_BUILD = 'build-20261114-111250';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
