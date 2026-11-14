@@ -9614,6 +9614,12 @@ document.addEventListener('change', e => {
     jeRecalc();
   }
 });
+/* a manual draft opens straight in the editor (Odoo-style): see it and change it in one place */
+function jeEditDirect(e){
+  if (!(e && ['draft', 'rejected'].includes(e.status) && e.origin === 'manual' && !(typeof docForEntry === 'function' && docForEntry(e)) && can('journals', 'create') && (e.createdBy === (currentUser() || {}).id || can('journals', 'edit')))) return false;
+  if (typeof closeJeDrawer === 'function') try { closeJeDrawer(); } catch (x){}
+  closeModal(); openEntryEditor(e, e.journal === 'OB' ? { journal: 'OB' } : {}); return true;
+}
 function jeView(e){
   const me = currentUser(), j = journalOf(e.journal);
   const posted = isPostedStatus(e.status);
@@ -14399,6 +14405,7 @@ Object.assign(CLICK, {
       if (id) return openJeDrawer(id);
     }
     const e = S.entries.find(x => x.id === el.dataset.id);
+    if (e && jeEditDirect(e)) return;
     if (e) jeView(e);
   },
   'po-del'(el){
@@ -18002,7 +18009,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-172130';
+const APP_BUILD = 'build-20261114-172428';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
@@ -18175,6 +18182,7 @@ function closeJeDrawer(){
 Object.assign(CLICK, {
   'je-drawer-view'(el){
     const id = el.dataset.id || (el.closest('[data-id]') && el.closest('[data-id]').dataset.id);
+    if (id && jeEditDirect(S.entries.find(x => x.id === id))) return;
     if (id) openJeDrawer(id);
   },
   'je-drawer-close'(){
