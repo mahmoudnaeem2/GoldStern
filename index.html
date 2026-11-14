@@ -3429,6 +3429,14 @@ html body .auth-box .field label{margin:0}
 html body .auth-box .btn.primary{background:#3F5FE0!important;border-color:#3F5FE0!important;color:#fff!important;border-radius:10px;min-height:44px}
 html body .auth-box .btn.primary:hover{background:#3552c8!important}
 @media (max-width:520px){html body .auth-box .row{flex-wrap:wrap}html body .auth-form{padding:22px 20px!important}}
+/* dashboard header actions: three equal quiet buttons with a tinted icon */
+html body .zh-new{gap:10px}
+html body .zh-new .btn,html body .zh-new .btn.primary{display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 14px 0 10px;border-radius:10px;background:#fff!important;border:1px solid #DDE3EF!important;color:#1b2540!important;font-weight:600;font-size:13px;box-shadow:0 1px 2px rgba(22,27,46,.04)}
+html body .zh-new .btn:hover{border-color:#b9c4e0!important;background:#f7f9fe!important}
+html body .zh-new .btn .ic,html body .zh-new .btn svg{width:26px!important;height:26px!important;padding:4px!important;box-sizing:border-box;border-radius:7px;flex:none}
+html body .zh-new .btn:nth-child(1) svg{background:#E8EDFF;color:#3F5FE0}
+html body .zh-new .btn:nth-child(2) svg{background:#FFF1DC;color:#B26A00}
+html body .zh-new .btn:nth-child(3) svg{background:#E4F6EC;color:#1F7A4D}
 /* both modes: one sans family, tabular figures instead of monospace, no all-caps labels */
 .mono,.num,td.mono,b.mono,span.mono,a.mono,div.mono,button.mono,.mh-no{font-family:var(--font)!important;font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1}
 html:not([dir=rtl]) body{font-family:var(--font)}
@@ -9065,7 +9073,7 @@ function pageAccDash(){
   const hello = (n => n < 12 ? 'Good morning' : n < 17 ? 'Good afternoon' : 'Good evening')(+new Date().toLocaleString('en-GB', { hour: '2-digit', hour12: false, timeZone: 'Africa/Cairo' }));
   return `<div class="ad zh zf">
     <div class="zh-head"><div><h1>Finance dashboard</h1><p>As of ${new Date(today + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} · financial year from ${dsh(fyFrom)} · all figures in EGP</p></div>
-      <div class="zh-new">${can('ar', 'create') ? '<button class="btn primary sm" data-act="inv-new" data-side="ar">+ New invoice</button>' : ''}${can('ap', 'create') ? '<button class="btn sm" data-act="inv-new" data-side="ap">+ New bill</button>' : ''}${can('journals', 'create') ? '<button class="btn sm" data-act="je-new">+ New entry</button>' : ''}</div></div>
+      <div class="zh-new">${can('ar', 'create') ? `<button class="btn primary sm" data-act="inv-new" data-side="ar">${ic('file', 16)}<span>New invoice</span></button>` : ''}${can('ap', 'create') ? `<button class="btn sm" data-act="inv-new" data-side="ap">${ic('wallet', 16)}<span>New bill</span></button>` : ''}${can('journals', 'create') ? `<button class="btn sm" data-act="je-new">${ic('edit', 16)}<span>New entry</span></button>` : ''}</div></div>
     <div class="zf-kpis">
       ${kpi('Cash & bank', money(cash), `${banks.length} account${banks.length === 1 ? '' : 's'}${unrec.length ? ' · ' + unrec.length + ' unreconciled' : ''}`, '', cash.lt(0), '#/bank/accounts', 'coins', 'ind')}
       ${kpi('Receivables', money(ar.tot), ar.over.length ? `${money(ar.overTot)} overdue` : 'none overdue', '', false, '#/ar/aging', 'inbox', 'teal')}
@@ -17835,7 +17843,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-111427';
+const APP_BUILD = 'build-20261114-111613';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
