@@ -2765,18 +2765,18 @@ b.mono {
 html:not([data-theme="dark"]){--bg:#f4f5f7; --surface:#ffffff; --surface-2:#f7f8fa; --border:#dfe2e7; --border-2:#cdd2da;
   --text:#1b2433; --text-2:#3b4658; --muted:#5e6878; --faint:#8a94a6;
   --midnight:#0f1b2d; --midnight-2:#1e3150; --midnight-line:#1e2c42;
-  --gold:#c9a227; --gold-2:#b38f1c; --gold-ink:#8a6a10; --gold-soft:#fbf6e6;
+  --gold:#3f5fe0; --gold-2:#3350c8; --gold-ink:#2f49b5; --gold-soft:#eef1fd;
   --accent:#0f1b2d; --accent-h:#1e3150; --accent-soft:#eef1f5; --accent-line:#cdd5e1;
   --ok:#1e7a4c; --ok-soft:#e8f4ed; --warn:#8f5600; --warn-soft:#fbf1df; --bad:#b3261e; --bad-soft:#fbe9e7; --info:#2a5b8f; --info-soft:#eaf1f8;
-  --tile:#eef1f5; --tile-ink:#0f1b2d; --link:#2a5b8f;
+  --tile:#eef1f5; --tile-ink:#0f1b2d; --link:#3350c8;
   --radius:6px; --shadow:0 1px 2px rgba(15,27,45,.05); --shadow-pop:0 12px 32px -8px rgba(15,27,45,.18);
-  --font:'IBM Plex Sans','Segoe UI',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;}
+  --font:'Inter','Segoe UI',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;}
 html:not([data-theme="dark"]) body{background:var(--bg);color:var(--text);font-size:13px}
 html:not([data-theme="dark"]) a{color:var(--link)}
 html:not([data-theme="dark"]) .shell,html:not([data-theme="dark"]) main.content{background:var(--bg)}
 html:not([data-theme="dark"]) .side{background:var(--midnight)!important;color:#c3cad6!important;border-inline-end:0!important;box-shadow:none!important}
 html:not([data-theme="dark"]) .brand{background:var(--midnight)!important;border-bottom:1px solid var(--midnight-line)!important}
-html:not([data-theme="dark"]) .brand-logo-wrap,html:not([data-theme="dark"]) .brand-mark{background:transparent;border:1px solid var(--gold);border-radius:7px;padding:4px}
+html:not([data-theme="dark"]) .brand-logo-wrap,html:not([data-theme="dark"]) .brand-mark{background:transparent;border:1px solid #2a3b57;border-radius:7px;padding:4px}
 html:not([data-theme="dark"]) .brand-logo,html:not([data-theme="dark"]) .brand-mark img{filter:none!important}
 html:not([data-theme="dark"]) .side .brand-title,html:not([data-theme="dark"]) .brand-title,html:not([data-theme="dark"]) .brand-name{color:#ffffff!important;letter-spacing:.2em!important;font-weight:600!important}
 html:not([data-theme="dark"]) .side .side-collapse-btn{color:#8794a8!important}
@@ -2793,12 +2793,12 @@ html:not([data-theme="dark"]) .side .nav-item:hover{background:#17253b!important
 html:not([data-theme="dark"]) .side .nav-item:hover .nav-ic{color:#ffffff!important}
 html:not([data-theme="dark"]) .side .nav-item.active{background:var(--midnight-2)!important;color:#ffffff!important;box-shadow:inset 3px 0 0 var(--gold)!important;font-weight:600!important}
 html[dir=rtl]:not([data-theme="dark"]) .side .nav-item.active{box-shadow:inset -3px 0 0 var(--gold)!important}
-html:not([data-theme="dark"]) .side .nav-item.active .nav-ic{color:var(--gold)!important}
+html:not([data-theme="dark"]) .side .nav-item.active .nav-ic{color:#8ea2ff!important}
 html:not([data-theme="dark"]) .side-user-card{background:#16243a!important;border:1px solid var(--midnight-line)!important}
 html:not([data-theme="dark"]) .side-user-name{color:#ffffff!important}
 html:not([data-theme="dark"]) .side-me .side-user-role,html:not([data-theme="dark"]) .side-user-role{color:#8794a8!important}
 html:not([data-theme="dark"]) .side-user-card button,html:not([data-theme="dark"]) .side-user-card a,html:not([data-theme="dark"]) .side .side-foot-btn{color:#aab3c2!important}
-html:not([data-theme="dark"]) .side-avatar,html:not([data-theme="dark"]) .top-user-avatar{background:var(--gold)!important;color:var(--midnight)!important;border:0!important}
+html:not([data-theme="dark"]) .side-avatar,html:not([data-theme="dark"]) .top-user-avatar{background:var(--gold)!important;color:#ffffff!important;border:0!important}
 html:not([data-theme="dark"]) .top,html:not([data-theme="dark"]) .topbar{background:#ffffff!important;border-color:var(--border)!important}
 html:not([data-theme="dark"]) .subnav{background:#ffffff!important;border-color:var(--border)!important}
 html:not([data-theme="dark"]) .subnav > a,html:not([data-theme="dark"]) .sm-btn{font-size:13px!important}
@@ -2819,8 +2819,8 @@ html:not([data-theme="dark"]) .card,html:not([data-theme="dark"]) .pg-card,html:
 html:not([data-theme="dark"]) .sb:hover,html:not([data-theme="dark"]) .ad-kpi-card:hover,html:not([data-theme="dark"]) .ad-card:hover{border-color:var(--border-2)!important;transform:none!important}
 html:not([data-theme="dark"]) main thead th,html:not([data-theme="dark"]) .modal thead th{background:var(--surface-2)!important;color:var(--text-2)!important;font-weight:600!important;text-transform:none!important;letter-spacing:0!important;font-size:12.5px!important;border-bottom:1px solid var(--border)!important;padding-top:8px!important;padding-bottom:8px!important}
 html:not([data-theme="dark"]) main tbody td{border-bottom-color:#eceef1}
-html:not([data-theme="dark"]) .btn.gold{background:var(--gold)!important;border:1px solid var(--gold-2)!important;color:var(--midnight)!important;font-weight:600!important;background-image:none!important}
-html:not([data-theme="dark"]) .btn.gold:hover{background:#d6b03a!important}
+html:not([data-theme="dark"]) .btn.gold{background:var(--gold)!important;border:1px solid var(--gold-2)!important;color:#ffffff!important;font-weight:600!important;background-image:none!important}
+html:not([data-theme="dark"]) .btn.gold:hover{background:#3350c8!important}
 html:not([data-theme="dark"]) .btn.primary,html:not([data-theme="dark"]) .ad-btn.primary{background:var(--midnight)!important;border:1px solid var(--midnight)!important;color:#ffffff!important;background-image:none!important}
 html:not([data-theme="dark"]) .btn.primary:hover,html:not([data-theme="dark"]) .ad-btn.primary:hover{background:var(--midnight-2)!important;border-color:var(--midnight-2)!important}
 html:not([data-theme="dark"]) .btn:not(.primary):not(.gold):not(.danger){background:#f4f5f7;border:1px solid var(--border);color:var(--text)}
@@ -2832,12 +2832,12 @@ html:not([data-theme="dark"]) .sb.alert .sb-ic,html:not([data-theme="dark"]) .ad
 html:not([data-theme="dark"]) .sb.warn .sb-ic{background:var(--warn-soft)!important;color:var(--warn)!important;border-color:#f0d9b0!important}
 html:not([data-theme="dark"]) .inv-card .t .ic{color:var(--tile-ink)!important}
 html:not([data-theme="dark"]) .ad-hero{background:var(--midnight)!important;color:#ffffff!important;border:0;box-shadow:none;border-radius:8px!important}
-html:not([data-theme="dark"]) .ad-hero::after{border-color:rgba(201,162,39,.10)!important}
+html:not([data-theme="dark"]) .ad-hero::after{border-color:rgba(99,128,255,.10)!important}
 html:not([data-theme="dark"]) .ad-hero h1,html:not([data-theme="dark"]) .ad-hero h2{color:#ffffff!important}
 html:not([data-theme="dark"]) .ad-hero p{color:#aab3c2!important}
 html:not([data-theme="dark"]) .ad-k{background:#16243a!important;border:1px solid var(--midnight-line)!important;color:#ffffff!important}
 html:not([data-theme="dark"]) .ad-k:hover{background:var(--midnight-2)!important;border-color:#2d4266!important}
-html:not([data-theme="dark"]) .ad-kic{background:rgba(201,162,39,.14)!important;color:var(--gold)!important;border:0!important}
+html:not([data-theme="dark"]) .ad-kic{background:rgba(99,128,255,.18)!important;color:#a9b9ff!important;border:0!important}
 html:not([data-theme="dark"]) .ad-kic.warn{background:rgba(179,38,30,.2)!important;color:#f2a49c!important}
 html:not([data-theme="dark"]) .ad-kl{color:#aab3c2!important}
 html:not([data-theme="dark"]) .ad-ks,html:not([data-theme="dark"]) .ad-k b small{color:#8794a8!important}
@@ -2849,7 +2849,7 @@ html:not([data-theme="dark"]) .co-sum dl{border-top-color:var(--border)!importan
 html:not([data-theme="dark"]) .co-sum dl div{border-bottom-color:#eceef1!important}
 html:not([data-theme="dark"]) .co-sum dt,html:not([data-theme="dark"]) .xp-hero .xp-kl,html:not([data-theme="dark"]) .xp-hero em,html:not([data-theme="dark"]) .xp-hero b small,html:not([data-theme="dark"]) .co-prog > div{color:var(--muted)!important}
 html:not([data-theme="dark"]) .co-sum dd,html:not([data-theme="dark"]) .co-prog > div b{color:var(--text)!important}
-html:not([data-theme="dark"]) .co-sum-tag{color:var(--gold-ink)!important;background:var(--gold-soft)!important;border-color:#eadfbf!important}
+html:not([data-theme="dark"]) .co-sum-tag{color:var(--gold-ink)!important;background:var(--gold-soft)!important;border-color:#d5dcfa!important}
 html:not([data-theme="dark"]) .co-sum .xv-je{color:var(--link)!important}
 html:not([data-theme="dark"]) .co-sum .xv-btn{background:#ffffff!important;border-color:var(--border-2)!important;color:var(--text)!important}
 html:not([data-theme="dark"]) .co-sum .xv-btn:hover{background:var(--surface-2)!important}
@@ -2861,12 +2861,12 @@ html:not([data-theme="dark"]) .co-sum .note,html:not([data-theme="dark"]) .co-su
 html:not([data-theme="dark"]) .is-sum.net td,html:not([data-theme="dark"]) .is-tbl.many tr.is-sum.net td:first-child,html:not([data-theme="dark"]) .is-tbl.many tr.is-sum.net td:last-child{background:var(--midnight)!important;color:#ffffff!important;border-top:0!important}
 html:not([data-theme="dark"]) .statusbar span.cur,html:not([data-theme="dark"]) .o-status span.on,html:not([data-theme="dark"]) .smart.go{background:var(--midnight)!important;border-color:var(--midnight)!important;color:#fff!important}
 html:not([data-theme="dark"]) main td a:not(.btn),html:not([data-theme="dark"]) .modal td a:not(.btn),html:not([data-theme="dark"]) main p a:not(.btn),html:not([data-theme="dark"]) .note a,html:not([data-theme="dark"]) .lnk0,html:not([data-theme="dark"]) .lnk0 b,html:not([data-theme="dark"]) .po-car-banner-sub b,html:not([data-theme="dark"]) .rdc-row a,html:not([data-theme="dark"]) .po-row a,html:not([data-theme="dark"]) td .mono[style*="0369a1"]{color:var(--link)!important}
-html:not([data-theme="dark"]) main td a:not(.btn):hover,html:not([data-theme="dark"]) .lnk0:hover{color:#1d4672!important;text-decoration:underline}
+html:not([data-theme="dark"]) main td a:not(.btn):hover,html:not([data-theme="dark"]) .lnk0:hover{color:#263fa3!important;text-decoration:underline}
 html:not([data-theme="dark"]) .pill.info,html:not([data-theme="dark"]) .badge.b-info,html:not([data-theme="dark"]) .po-badge-kind,html:not([data-theme="dark"]) .pl-jnl-tag.inv{background:#eef1f5!important;color:#3b4658!important;border-color:#dfe2e7!important}
 html:not([data-theme="dark"]) .note{background:var(--surface-2)!important;color:var(--text-2)!important;border-color:var(--border)!important}
 html:not([data-theme="dark"]) .pg-line:hover,html:not([data-theme="dark"]) .fs-tbl tr[data-act]:hover td,html:not([data-theme="dark"]) .fs-tbl tr[data-href]:hover td,html:not([data-theme="dark"]) .pf-ln:hover td{background:#f6f8fb!important}
 html:not([data-theme="dark"]) .fs-tbl tr[data-act]:hover td.num,html:not([data-theme="dark"]) .fs-tbl tr[data-href]:hover td.num,html:not([data-theme="dark"]) .pf-dz:hover,html:not([data-theme="dark"]) .is-acc:hover td:first-child,html:not([data-theme="dark"]) .rc-doc.lnk-row:hover b{color:var(--link)!important}
-html:not([data-theme="dark"]) .mh-no,html:not([data-theme="dark"]) .mh-crumbs .mh-num,html:not([data-theme="dark"]) .mh-chip,html:not([data-theme="dark"]) .rec-num{background:var(--gold-soft)!important;color:var(--gold-ink)!important;border-color:#eadfbf!important}
+html:not([data-theme="dark"]) .mh-no,html:not([data-theme="dark"]) .mh-crumbs .mh-num,html:not([data-theme="dark"]) .mh-chip,html:not([data-theme="dark"]) .rec-num{background:var(--gold-soft)!important;color:var(--gold-ink)!important;border-color:#d5dcfa!important}
 @media (min-width: 901px){html:not([data-theme="dark"]) .top-brand{display:none!important}}
 
 /* ---- review fixes (both modes) ---- */
@@ -2893,8 +2893,56 @@ html:not([data-theme="dark"]) .mh-no,html:not([data-theme="dark"]) .mh-crumbs .m
 /* ---- review fixes (light mode): contrast ---- */
 html:not([data-theme="dark"]){--faint:#6b7588}
 html:not([data-theme="dark"]) .fs-code,html:not([data-theme="dark"]) b.co-no,html:not([data-theme="dark"]) .co-no,html:not([data-theme="dark"]) .xp-tag{color:var(--muted)!important}
-html:not([data-theme="dark"]) .xp-tag{background:var(--gold-soft)!important;color:var(--gold-ink)!important;border-color:#eadfbf!important}
+html:not([data-theme="dark"]) .xp-tag{background:var(--gold-soft)!important;color:var(--gold-ink)!important;border-color:#d5dcfa!important}
 html:not([data-theme="dark"]) .btn.danger,html:not([data-theme="dark"]) .btn[data-act$="-del"],html:not([data-theme="dark"]) .btn[data-act*="delete"]{color:#a3221b!important}
+
+/* ---- modern skin: Inter, single-line 44px rows, soft borderless badges, lighter canvas ---- */
+html:not([dir=rtl]) body{font-family:'Inter','Segoe UI',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;font-feature-settings:'cv11' 1,'ss01' 1;-webkit-font-smoothing:antialiased;letter-spacing:-.003em}
+.mono,.num,td.mono,b.mono,span.mono,a.mono,div.mono,button.mono,.mh-no{font-family:inherit!important}
+.page-h h1{font-size:22px!important;font-weight:600!important;letter-spacing:-.02em!important}
+/* tables */
+.tbl-wrap{border-radius:10px}
+:is(main,.modal) table:not(.pl):not(.t) td{font-size:13.5px;line-height:1.35}
+.o-list tbody td,.tbl-wrap .o-list tbody td{padding:9px 12px!important;white-space:nowrap;max-width:220px;overflow:hidden;text-overflow:ellipsis}
+.tbl-wrap tbody td,.pg-tbl tbody td,.xp-tbl tbody td,.pr-tbl tbody td{padding-top:10px!important;padding-bottom:10px!important}
+.o-list td.wrap{white-space:normal}
+.o-list thead th{padding:9px 12px!important;font-size:12px!important;font-weight:500!important;white-space:nowrap}
+.o-list td > b:first-child{font-weight:600}
+.o-list td .muted,.o-list td small{font-size:12px!important;font-weight:400}
+.o-list td .muted{display:block;margin-top:1px}
+.o-list td span.muted{display:inline}
+.o-list tbody tr{transition:background .12s}
+/* badges: soft, no border, small radius */
+.pill,.badge{border:0!important;box-shadow:none!important;border-radius:6px!important;font-size:12px!important;font-weight:500!important;padding:2px 8px!important;line-height:1.5}
+.kind-dot{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--text-2,#3b4658)}
+.kind-dot::before{content:"";width:7px;height:7px;border-radius:50%;background:#3f5fe0;flex:none}
+.kind-dot.gold::before{background:#0e9384}.kind-dot.ok::before{background:#1e7a4c}
+
+html:not([data-theme="dark"]){--bg:#f7f8fa;--border:#e6e8ec;--border-2:#d5d9e0;--surface-2:#fafbfc}
+html:not([data-theme="dark"]) .card,html:not([data-theme="dark"]) .pg-card,html:not([data-theme="dark"]) .tbl-wrap{box-shadow:none!important}
+html:not([data-theme="dark"]) main thead th,html:not([data-theme="dark"]) .modal thead th{background:#fafbfc!important;color:var(--muted)!important;font-weight:500!important;box-shadow:0 1px 0 var(--border)!important}
+html:not([data-theme="dark"]) main tbody td{border-bottom-color:#f0f1f4}
+html:not([data-theme="dark"]) .o-list tbody tr:hover td{background:#f7f9fc!important}
+html:not([data-theme="dark"]) .pill.mute,html:not([data-theme="dark"]) .badge.b-mute,html:not([data-theme="dark"]) .pill.info,html:not([data-theme="dark"]) .badge.b-info{background:#f0f2f5!important;color:#4a5567!important}
+html:not([data-theme="dark"]) .pill.ok,html:not([data-theme="dark"]) .badge.b-ok{background:#e7f5ed!important;color:#17693f!important}
+html:not([data-theme="dark"]) .pill.warn,html:not([data-theme="dark"]) .badge.b-warn,html:not([data-theme="dark"]) .pill.gold{background:#fdf3dc!important;color:#8a5a00!important}
+html:not([data-theme="dark"]) .pill.bad,html:not([data-theme="dark"]) .badge.b-bad{background:#fde8e6!important;color:#a3221b!important}
+html:not([data-theme="dark"]) .input,html:not([data-theme="dark"]) select.input{background:#fff}
+
+/* last column (status / row menu) stays visible when a wide list scrolls sideways */
+.tbl-wrap .o-list tbody td:last-child,.tbl-wrap .o-list thead th:last-child{position:sticky!important;inset-inline-end:0;z-index:2}
+.tbl-wrap .o-list thead th:last-child{z-index:11!important}
+html:not([data-theme="dark"]) .tbl-wrap .o-list tbody td:last-child{background:#fff}
+html:not([data-theme="dark"]) .tbl-wrap .o-list tbody tr:hover td:last-child{background:#f7f9fc!important}
+html[data-theme="dark"] .tbl-wrap .o-list tbody td:last-child{background:var(--surface)}
+@media (max-width:1320px){.o-list tbody td,.tbl-wrap .o-list tbody td{padding:9px 10px!important;max-width:170px}.o-list thead th{padding:9px 10px!important}.kind-dot{font-size:12.5px}}
+
+/* accent leftovers from older styles: use the brand accent, not gold */
+html:not([data-theme="dark"]) .ad-mini i{background:var(--gold)!important}
+html:not([data-theme="dark"]) .xp-seg button.on span,html:not([data-theme="dark"]) .pf-cust{color:var(--gold-ink)!important}
+html:not([data-theme="dark"]) .dep-chip{color:var(--text-2)!important;background:#f0f2f5!important;border-color:transparent!important}
+html:not([data-theme="dark"]) .co-kind.on{border-color:var(--gold)!important;box-shadow:0 0 0 3px rgba(63,95,224,.12)!important}
+html:not([data-theme="dark"]) .co-s-tot b{color:var(--text)!important}
 /* both modes: one sans family, tabular figures instead of monospace, no all-caps labels */
 .mono,.num,td.mono,b.mono,span.mono,a.mono,div.mono,button.mono,.mh-no{font-family:var(--font)!important;font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1}
 html:not([dir=rtl]) body{font-family:var(--font)}
@@ -10254,11 +10302,11 @@ function poListPage(title, sub, list, newBtn){
       <select class="input" data-filter="po_kind"><option value="">All types</option><option value="customer" ${F.po_kind === 'customer' ? 'selected' : ''}>Import for customer</option><option value="stock" ${F.po_kind === 'stock' ? 'selected' : ''}>Import for stock</option><option value="local" ${F.po_kind === 'local' ? 'selected' : ''}>Buy from customer</option></select>
       <select class="input" data-filter="po_st"><option value="">All statuses</option>${statuses.map(x => `<option ${F.po_st === x ? 'selected' : ''}>${x}</option>`).join('')}</select>
       <span class="muted" style="align-self:center;font-size:12.5px;margin-inline-start:auto">${rows.length} order${rows.length === 1 ? '' : 's'}</span></div>
-    <div class="tbl-wrap"><table class="o-list"><thead><tr><th>Number</th><th>Type</th><th>Supplier</th><th>Customer</th><th>Car</th><th class="num">Total</th><th>Supplier Invoice</th><th>Customer Invoice</th><th style="text-align:center">Status</th></tr></thead><tbody>
+    <div class="tbl-wrap"><table class="o-list"><thead><tr><th>Number</th><th>Type</th><th>Supplier</th><th>Customer</th><th>Car</th><th class="num">Total</th><th>Supplier bill</th><th>Customer invoice</th><th style="text-align:center">Status</th></tr></thead><tbody>
     ${rows.map(r => { const bill = r.c.supInv; return `<tr data-act="po-view" data-id="${r.po.id}" style="cursor:pointer">
-      <td style="white-space:nowrap"><b>${esc(r.po.number)}</b><div class="muted" style="font-size:12px">${r.po.date}</div></td><td>${(() => { const k = ORDER_KINDS[poKind(r.po)] || ORDER_KINDS.stock; return `<span class="pill ${k[1]}">${k[0]}</span>`; })()}</td>
+      <td style="white-space:nowrap"><b>${esc(r.po.number)}</b><div class="muted" style="font-size:12px">${r.po.date}</div></td><td>${(() => { const k = ORDER_KINDS[poKind(r.po)] || ORDER_KINDS.stock; return `<span class="kind-dot ${k[1]}">${k[0]}</span>`; })()}</td>
       <td>${esc(r.sup ? r.sup.legalName : '?')}</td><td>${r.cust ? esc(r.cust.legalName) : '<span class="muted">not sold yet</span>'}</td>
-      <td>${r.v ? `${esc(makeName(r.v.makeId))} ${esc(modelName(r.v.makeId, r.v.modelId))} <span class="muted mono" style="font-size:12px">${esc(r.v.vin)}</span>` : r.po.lines.length > 1 ? `${r.po.lines.length} cars` : esc((r.po.lines[0] || {}).description || '')}</td>
+      <td>${r.v ? `${esc(makeName(r.v.makeId))} ${esc(modelName(r.v.makeId, r.v.modelId))}<div class="muted" style="font-size:12px">${esc(r.v.vin)}</div>` : r.po.lines.length > 1 ? `${r.po.lines.length} cars` : esc((r.po.lines[0] || {}).description || '')}</td>
       <td class="num" style="white-space:nowrap">${money(total(r.po))} <span class="muted">${r.po.currency}</span></td>
       <td style="white-space:nowrap">${bill ? invPill(bill) : '<span class="muted">—</span>'}</td>
       <td style="white-space:nowrap">${r.c.sale ? invPill(r.c.sale) : '<span class="muted">—</span>'}</td>
@@ -16979,7 +17027,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261112-193709';
+const APP_BUILD = 'build-20261114-085237';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
