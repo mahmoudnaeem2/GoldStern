@@ -3381,6 +3381,37 @@ html body .t-green .zf-ki{background:#16b364!important;color:#fff!important;box-
 html body .t-green .zf-kl{color:#0d8a4b!important;font-weight:600}
 html body .zf-k b{font-size:24px}
 html body .zf-ks{color:#5b6580}
+/* ---- coloured summary cards on every page ---- */
+html body .xp-kpis>:nth-child(1){--k1:#eceeff;--k2:#dfe3ff;--k3:#4f5bd5;--k4:#3a46c2}
+html body .xp-kpis>:nth-child(2){--k1:#dff7e8;--k2:#c9f0d9;--k3:#16b364;--k4:#0d8a4b}
+html body .xp-kpis>:nth-child(3){--k1:#fff1d6;--k2:#ffe6b8;--k3:#f2a21a;--k4:#b9770a}
+html body .xp-kpis>:nth-child(4){--k1:#f0e8ff;--k2:#e3d6ff;--k3:#8b5cf6;--k4:#6b3fd0}
+html body .xp-kpis>:nth-child(5){--k1:#dcf7f1;--k2:#c6f0e7;--k3:#0fb59a;--k4:#0b8f7a}
+html body .xp-kpis>:nth-child(6){--k1:#ffe6ea;--k2:#ffd0d8;--k3:#f4506a;--k4:#c93450}
+html body .inv-cards>:nth-child(1){--k1:#eceeff;--k2:#dfe3ff;--k3:#4f5bd5;--k4:#3a46c2}
+html body .inv-cards>:nth-child(2){--k1:#dff7e8;--k2:#c9f0d9;--k3:#16b364;--k4:#0d8a4b}
+html body .inv-cards>:nth-child(3){--k1:#fff1d6;--k2:#ffe6b8;--k3:#f2a21a;--k4:#b9770a}
+html body .inv-cards>:nth-child(4){--k1:#f0e8ff;--k2:#e3d6ff;--k3:#8b5cf6;--k4:#6b3fd0}
+html body .inv-cards>:nth-child(5){--k1:#dcf7f1;--k2:#c6f0e7;--k3:#0fb59a;--k4:#0b8f7a}
+html body .inv-cards>:nth-child(6){--k1:#ffe6ea;--k2:#ffd0d8;--k3:#f4506a;--k4:#c93450}
+html body .xp-kpis>.xp-k,html body .xp-kpis>.xp-hero,html body .inv-cards>.inv-card{background:linear-gradient(135deg,var(--k1) 0,#fff 78%)!important;border:1px solid var(--k2)!important;border-top:1px solid var(--k2)!important;border-radius:16px!important;box-shadow:0 1px 2px rgba(22,27,46,.04),0 8px 24px rgba(22,27,46,.05)!important;color:#161b2e}
+html body .xp-kpis .xp-kic{background:var(--k3)!important;color:#fff!important;box-shadow:0 6px 12px color-mix(in srgb,var(--k3) 30%,transparent)}
+html body .xp-kpis .xp-kl,html body .inv-cards .inv-card .t{color:var(--k4)!important;font-weight:600}
+html body .xp-kpis .xp-hero b,html body .xp-kpis .xp-k b{color:#161b2e!important}
+html body .xp-kpis .xp-hero b small,html body .xp-kpis .xp-hero em,html body .xp-kpis .xp-k em{color:#5b6580!important}
+html body .xp-kpis .xp-tag{background:#fff;color:var(--k4);border:1px solid var(--k2)}
+html body .xp-kpis .xp-hero::after,html body .xp-kpis .xp-hero::before{display:none}
+html body .inv-cards .inv-card .t .ic{color:var(--k3)!important}
+html body .inv-cards .inv-card>.btn{background:var(--k3)!important;border-color:var(--k3)!important;color:#fff!important}
+html body .inv-cards .inv-card>a.btn:not(.primary){background:#fff!important;color:var(--k4)!important;border-color:var(--k2)!important}
+html body .xp-kpis>.xp-k,html body .xp-kpis>.xp-hero{display:grid!important;grid-template-columns:34px minmax(0,1fr) auto;grid-template-areas:"i l t" "v v v" "s s s";column-gap:10px;row-gap:8px;align-items:center;padding:16px 18px!important;min-height:0}
+html body .xp-kpis>.xp-k>div{display:contents}
+html body .xp-kpis .xp-hero-top{display:contents}
+html body .xp-kpis .xp-kic{grid-area:i;width:34px;height:34px;border-radius:10px;margin:0}
+html body .xp-kpis .xp-tag{grid-area:t}
+html body .xp-kpis .xp-kl{grid-area:l;font-size:12.5px}
+html body .xp-kpis b{grid-area:v;font-size:24px!important;font-weight:650;letter-spacing:-.025em;display:block;margin:0}
+html body .xp-kpis em{grid-area:s;font-style:normal;font-size:12.5px;margin:0}
 /* both modes: one sans family, tabular figures instead of monospace, no all-caps labels */
 .mono,.num,td.mono,b.mono,span.mono,a.mono,div.mono,button.mono,.mh-no{font-family:var(--font)!important;font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1}
 html:not([dir=rtl]) body{font-family:var(--font)}
@@ -17768,7 +17799,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-105952';
+const APP_BUILD = 'build-20261114-110246';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
