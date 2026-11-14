@@ -3895,7 +3895,7 @@ function migrate(s){
   s.vehicles = s.vehicles || []; s.vehicleMoves = s.vehicleMoves || []; s.makes = s.makes || []; s.locations = s.locations || []; s.counts = s.counts || []; s.analyticAccounts = s.analyticAccounts || [];
   s.vehicleStatuses = s.vehicleStatuses || clone(DEFAULT_VEHICLE_STATUSES);
   s.inquiries = s.inquiries || []; s.quotes = s.quotes || []; s.proformas = s.proformas || []; s.salesOrders = s.salesOrders || []; s.deliveries = s.deliveries || []; s.salesPolicy = s.salesPolicy || { discountPct: '0' };
-  s.purchaseRequests = s.purchaseRequests || []; s.purchaseOrders = s.purchaseOrders || []; s.shipments = s.shipments || []; s.costTypes = s.costTypes || clone(DEFAULT_COST_TYPES);
+  s.purchaseRequests = s.purchaseRequests || []; s.purchaseOrders = s.purchaseOrders || []; s.shipments = s.shipments || []; s.costTypes = s.costTypes || clone(DEFAULT_COST_TYPES); if (!s.costTypes.some(c => c.commission)) s.costTypes.push({ code: 'sales_commission', name: 'Sales commission', capitalize: false, active: true, commission: true });
   if (from < 9) for (const [k, c] of [['prepaid','1180'], ['accrued','2130'], ['employee_payable','2190'], ['asset_gain','4600'], ['asset_loss','6290']]) if (!s.mappings[k]){ const a = s.accounts.find(x => x.code === c); if (a) s.mappings[k] = a.id; }
   s.budgets = s.budgets || [];
   s.taxCodes = s.taxCodes || clone(DEFAULT_TAX_CODES); s.eDocs = s.eDocs || {}; s.expenseCats = s.expenseCats || []; s.expenses = s.expenses || []; s.schedules = s.schedules || []; s.assetCats = s.assetCats || []; s.assets = s.assets || [];
@@ -6341,8 +6341,8 @@ Object.assign(A, {
 const DEFAULT_COST_TYPES = [
   ['freight','International shipping',true], ['insurance','Marine insurance',true], ['customs_duty','Customs duties (non-recoverable)',true], ['clearance','Customs clearance',true],
   ['port','Port charges',true], ['inspection','Inspection fees',true], ['documentation','Documentation fees',true], ['transport','Import-related transportation',true],
-  ['bank_charges','Bank charges on acquisition',false], ['other','Other import costs',false]
-].map(([code, name, capitalize]) => ({ code, name, capitalize, active: true }));
+  ['bank_charges','Bank charges on acquisition',false], ['other','Other import costs',false], ['sales_commission','Sales commission',false,true]
+].map(([code, name, capitalize, commission]) => ({ code, name, capitalize, active: true, ...(commission ? { commission: true } : {}) }));
 const SHIP_STATUSES = ['planned','loaded','in_transit','arrived','customs','released','delivered','closed'];
 const ALLOC_METHODS = { equal:'Equal per vehicle', value:'Purchase value', weight:'Weight', volume:'Volume', manual:'Manual shares' };
 const costTypeName = c => c === 'purchase' ? 'Vehicle purchase price' : c === 'fx_diff' ? 'Exchange difference' : ((S.costTypes || []).find(x => x.code === c) || { name: c }).name;
@@ -6655,7 +6655,11 @@ Object.assign(A, {
     const vat = vatS ? D(vatS) : D0(), base = amount.minus(vat);
     let rate = null; if (cur !== 'EGP'){ const r = String(f.rate || '').trim().replace(/,/g, ''); if (!r) throw new AppError(`Enter the exchange rate (1 ${cur} = ? EGP).`); rate = validateRateString(r); }
     const typeName = String(f.costTypeName || '').trim(); if (!typeName || typeName === '__add') throw new AppError('Select the expense type (freight, customs, clearance…).');
-    const desc = String(f.description || '').trim(), ref = String(f.ref || '').trim();
+    let desc = String(f.description || '').trim(); const ref = String(f.ref || '').trim();
+    const ctPre = S.costTypes.find(c => sameTxt(c.name, typeName) || c.code === typeName), isComm = !!(ctPre && ctPre.commission), comm = isComm ? { userId: f.commUserId || '', basis: f.commBasis === 'fixed' ? 'fixed' : 'pct', pct: String(f.commPct || '').trim() } : null;
+    if (isComm){ if (cars.length !== 1) throw new AppError('A sales commission belongs to one car. Tick a single car.'); if (!comm.userId || !S.users.some(u => u.id === comm.userId)) throw new AppError('Select the salesperson.');
+      if (comm.basis === 'pct' && (!/^\d+(\.\d+)?$/.test(comm.pct) || D(comm.pct).gt(100))) throw new AppError('Commission rate must be 0–100%.');
+      if (!desc) desc = `Commission ${userName(comm.userId)}${comm.basis === 'pct' ? ' · ' + comm.pct + '% of sale price' : ''}`; }
     const snap = JSON.stringify(S);
     try {
       let ct = S.costTypes.find(c => sameTxt(c.name, typeName) || c.code === typeName);
@@ -6669,7 +6673,8 @@ Object.assign(A, {
       const { split, shares } = carExpenseShares(f, cars, base);
       const number = previewNumber(S.sequences.find(q => q.doc === 'import_cost'), f.date), invId = uid('iv');
       const payee = sup ? partnerLabel(sup) : '';
-      const jl = cars.map((v, k) => shares[k].gt(0) ? { id: uid('jl'), accountId: capAccountFor(v).id, debit: shares[k].toFixed(2), credit: '', costCenter: '', partner: payee, vehicle: v.vin, vehicleId: v.id, costType: ct.code,
+      const commAcc = isComm ? (S.accounts.find(a => a.code === '601020' && a.active && !a.isGroup) || getMapping('import_expense')) : null;
+      const jl = cars.map((v, k) => shares[k].gt(0) ? { id: uid('jl'), accountId: isComm ? commAcc.id : capAccountFor(v).id, debit: shares[k].toFixed(2), credit: '', costCenter: '', partner: payee, vehicle: v.vin, vehicleId: v.id, costType: ct.code,
         description: `${ct.name}${desc ? ': ' + desc : ''}${cars.length > 1 ? ` (share of ${money(base)} ${cur})` : ''}` } : null).filter(Boolean);
       if (vat.gt(0)) jl.push({ id: uid('jl'), accountId: getMapping('input_tax').id, debit: vat.toFixed(2), credit: '', costCenter: '', partner: payee, vehicle: '', description: `Recoverable VAT on ${ct.name}${ref ? ' / ' + ref : ''}` });
       jl.push(mode === 'now' ? { id: uid('jl'), accountId: b.glAccountId, debit: '', credit: amount.toFixed(2), costCenter: '', partner: '', vehicle: '', description: `Paid: ${ct.name}${ref ? ' / ' + ref : ''}` }
@@ -6681,12 +6686,12 @@ Object.assign(A, {
       if (sup){
         inv = { id: invId, side: 'ap', type: 'invoice', number, partnerId: sup.id, date: f.date, dueDate: addDays(f.date, sup.paymentTerms || 0), currency: cur, rateType: rate ? 'negotiated' : 'official', partnerRef: ref || number,
           lines: cars.map((v, k) => ({ description: `${ct.name}${desc ? ': ' + desc : ''} — ${v.vin}`, amount: shares[k].toFixed(2), costType: ct.code, vehicle: v.vin })), total: amount.toFixed(2),
-          landed: { shipmentId: '', vehicleId: cars.length === 1 ? cars[0].id : '', vehicleIds: ids, method: split, weights: [], allocations: cars.map((v, k) => ({ vehicleId: v.id, costType: ct.code, amount: shares[k].toFixed(2), capitalized: true, account: capAccountFor(v).code })), cap: base.toFixed(2), exp: '0.00', rec: vat.toFixed(2) },
+          landed: { shipmentId: '', vehicleId: cars.length === 1 ? cars[0].id : '', vehicleIds: ids, method: split, weights: [], allocations: cars.map((v, k) => ({ vehicleId: v.id, costType: ct.code, amount: shares[k].toFixed(2), capitalized: !isComm, account: isComm ? commAcc.code : capAccountFor(v).code })), cap: isComm ? '0.00' : base.toFixed(2), exp: isComm ? base.toFixed(2) : '0.00', rec: vat.toFixed(2) },
           entryId: e.id, createdBy: me.id, createdAt: nowISO() };
         S.invoices.push(inv);
       }
       const x = { id: uid('ex'), number, date: f.date, method: mode === 'now' ? 'bank' : 'supplier', ref, payee: sup ? sup.legalName : (b ? b.name : ''), bankId: b ? b.id : '', total: amount.toFixed(2), currency: cur, rate: rate ? rate.toFixed ? rate.toFixed() : String(rate) : '',
-        carExp: { type: ct.code, cars: ids, split, shares: shares.map(z => z.toFixed(2)), description: desc, vat: vat.toFixed(2) }, lines: cars.map((v, k) => ({ category: ct.name, amount: shares[k].toFixed(2), vehicle: v.vin, description: desc })),
+        carExp: { type: ct.code, cars: ids, split, shares: shares.map(z => z.toFixed(2)), description: desc, vat: vat.toFixed(2), ...(comm ? { commission: comm } : {}) }, lines: cars.map((v, k) => ({ category: ct.name, amount: shares[k].toFixed(2), vehicle: v.vin, description: desc })),
         invoiceId: inv ? inv.id : '', entryId: e.id, createdBy: me.id, createdAt: nowISO() };
       S.expenses.push(x); log('car_expense_create', 'imports', x.id, null, x, '', number); saveState(); return x;
     } catch (err){ S = JSON.parse(snap); throw err; }
@@ -15973,7 +15978,7 @@ Object.assign(CLICK, {
 
 /* ---------- Car expense: screen ---------- */
 function carExpenseForm(pre = {}){
-  const types = S.costTypes.filter(c => c.active && c.capitalize).map(c => ({ v: c.name }));
+  const types = S.costTypes.filter(c => c.active && (c.capitalize || c.commission)).map(c => ({ v: c.name }));
   const sel = new Set(pre.cars || []);
   const cars = S.vehicles.filter(v => !carClosed(v)).sort((a, b) => (sel.has(b.id) - sel.has(a.id)) || (a.createdAt < b.createdAt ? 1 : -1));
   const rows = cars.map(v => { const cu = v.customerId ? partnerById('ar', v.customerId) : null, g = vStatus(v.status).group;
@@ -15991,6 +15996,11 @@ function carExpenseForm(pre = {}){
       <div class="field" style="max-width:110px"><label>Currency</label><select class="input" name="currency">${S.companyCurrencies.filter(c => c.active).map(c => `<option ${c.code === 'EGP' ? 'selected' : ''}>${c.code}</option>`).join('')}</select></div>
       <div class="field" style="max-width:190px"><label>Exchange rate <span class="muted" data-rate-lbl></span></label><input class="input mono" name="rate" data-rate-for="currency" autocomplete="off"></div>
       <div class="field" style="max-width:220px"><label>Of which VAT (recoverable)</label><input class="input mono" name="vat" placeholder="0" autocomplete="off"><span class="hint">VAT paid at customs or on the bill goes to input VAT, not to the car cost.</span></div></div></div>
+  <div class="o-sec c-gold" data-cx-comm style="display:none"><h3>Salesperson commission</h3>
+    <div class="row"><div class="field" style="flex:2"><label>Salesperson *</label><select class="input" name="commUserId">${S.users.filter(u => u.active).map(u => `<option value="${u.id}">${esc(userName(u.id))}</option>`).join('')}</select></div>
+      <div class="field" style="flex:2"><label>Commission is</label><select class="input" name="commBasis"><option value="pct">A percentage of the car's sale price</option><option value="fixed">A fixed amount (type it below)</option></select></div>
+      <div class="field" style="max-width:130px" data-cx-pct><label>Rate %</label><input class="input mono" name="commPct" autocomplete="off" placeholder="e.g. 1.5"></div></div>
+    <div id="cx-comm-note" class="hint"></div></div>
   <div class="o-sec c-ok"><h3>Payment</h3>
     <div class="row"><div class="field"><label>How was it paid?</label><select class="input" name="payMode"><option value="now">Paid now — cash or bank</option><option value="credit">Pay the supplier later</option></select></div>
       <div class="field" style="flex:2" data-cx-now><label>Paid from *</label><select class="input" name="bankId">${bankOptions('')}</select></div>
@@ -16009,6 +16019,19 @@ function cxRefresh(form, ev){
   if (now && ev && ev.target && ev.target.name === 'bankId'){ const c = bankCurOf(fd.bankId), cs = form.querySelector('[name=currency]'); if (c && cs.value !== c){ cs.value = c; cs.dispatchEvent(new Event('change', { bubbles: true })); return; } }
   const q = (document.getElementById('cx-q') || {}).value || ''; form.querySelectorAll('[data-cx-row]').forEach(r => { const on = r.querySelector('[name=cx_car]').checked; r.style.display = !q || on || r.dataset.q.includes(q.toLowerCase()) ? '' : 'none'; r.style.background = on ? 'var(--gold-soft)' : ''; });
   const ids = [].concat(fd.cx_car ?? []).filter(Boolean), cars = ids.map(vehById).filter(Boolean), cur = fd.currency || 'EGP', multi = cars.length > 1;
+  const isComm = (S.costTypes.find(c => sameTxt(c.name, String(fd.costTypeName || '').trim())) || {}).commission, cs = form.querySelector('[data-cx-comm]');
+  if (cs){ cs.style.display = isComm ? '' : 'none'; const pctOn = fd.commBasis !== 'fixed'; form.querySelector('[data-cx-pct]').style.display = pctOn ? '' : 'none';
+    const cn = document.getElementById('cx-comm-note'); if (cn) cn.textContent = '';
+    if (isComm && cars.length === 1){
+      const so = S.invoices.filter(x => x.soId && (x.vehicleIds || []).includes(cars[0].id)).map(i => soById(i.soId)).filter(Boolean)[0], us = form.querySelector('[name=commUserId]');
+      if (so && us && ev && ev.target && (ev.target.name === 'cx_car' || ev.target.name === 'costTypeName')){ us.value = so.salespersonId; if (D(so.commissionPct || 0).gt(0) && !fd.commPct){ form.querySelector('[name=commPct]').value = so.commissionPct; fd.commPct = so.commissionPct; } }
+      if (pctOn && cn){ const pr = vehicleProfit(cars[0]), net = pr.net, pc = String(fd.commPct || '').trim(), rt = cur === 'EGP' ? D(1) : (/^\d+(\.\d+)?$/.test(String(fd.rate || '')) ? D(fd.rate) : null);
+        if (!net.gt(0)) cn.textContent = 'This car has no posted sale yet, so a percentage cannot be calculated. Choose "fixed amount" or sell the car first.';
+        else if (!/^\d+(\.\d+)?$/.test(pc)) cn.textContent = `Sale price ${money(net)} EGP. Enter the rate %.`;
+        else if (!rt) cn.textContent = `Sale price ${money(net)} EGP. Enter the exchange rate to get the ${cur} amount.`;
+        else { const egp = r2(net.mul(pc).div(100)), amt = r2(egp.div(rt)); cn.textContent = `${pc}% of ${money(net)} EGP = ${money(egp)} EGP${cur !== 'EGP' ? ` = ${money(amt)} ${cur}` : ''}`;
+          const ai = form.querySelector('[name=amount]'); if (ai && ai.value !== amt.toFixed(2)){ ai.value = amt.toFixed(2); fd.amount = ai.value; } } }
+    } else if (isComm && cn) cn.textContent = 'Tick one car: a commission belongs to a single sale.'; }
   document.getElementById('cx-n').textContent = `${cars.length} selected`;
   form.querySelectorAll('[data-cx-man]').forEach(i => { const id = i.name.slice(7); i.style.display = multi && ids.includes(id) ? '' : 'none'; if (!ids.includes(id)) i.value = ''; });
   form.querySelectorAll('[data-cx-share]').forEach(sp => sp.textContent = '');
@@ -18233,7 +18256,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-183109';
+const APP_BUILD = 'build-20261114-183327';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
