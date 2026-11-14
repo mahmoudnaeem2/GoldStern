@@ -9542,6 +9542,25 @@ function jeFillRates(force){
     if (r.dataset.auto === '1' || force || !r.value){ try { r.value = fmtNum(getRate(cur, 'EGP', date, type).rate, 4).replace(/,/g, ''); r.dataset.auto = '1'; r.title = ''; } catch (x){ r.value = ''; r.title = x.message + ' Type the rate.'; r.placeholder = 'Enter rate'; } }
   });
 }
+/* like Odoo: choosing an account on an empty line fills the amount that balances the entry */
+function jeAutoBalance(tr){
+  try {
+    if (!tr || !tr.querySelector('[name=l_account]').value.trim() || !acc(jeAccFromText(tr.querySelector('[name=l_account]').value))) return;
+    const g = (r, n) => String(r.querySelector(`[name=${n}]`).value || '').trim().replace(/,/g, '');
+    if (g(tr, 'l_debit') || g(tr, 'l_credit') || tr.querySelector('[name=l_cur]').value !== 'EGP') return;
+    let d = D0(), c = D0();
+    for (const r of tr.parentElement.querySelectorAll('tr')){
+      if (r === tr) continue;
+      const dv = g(r, 'l_debit'), cv = g(r, 'l_credit'); if (!dv && !cv) continue;
+      const rate = r.querySelector('[name=l_cur]').value === 'EGP' ? '1' : g(r, 'l_rate');
+      if (!/^\d+(\.\d+)?$/.test(dv || cv) || !/^\d+(\.\d+)?$/.test(rate) || !D(rate).gt(0)) return;
+      const egp = D(dv || cv).mul(rate).toDecimalPlaces(2, Decimal.ROUND_HALF_UP); if (dv) d = d.plus(egp); else c = c.plus(egp);
+    }
+    const diff = d.minus(c); if (diff.eq(0)) return;
+    tr.querySelector(diff.gt(0) ? '[name=l_credit]' : '[name=l_debit]').value = diff.abs().toFixed(2);
+    jeRecalc();
+  } catch (e){}
+}
 function jeRecalc(){
   const form = document.getElementById('mform'); const out = document.getElementById('je-totals'); if (!form || !out) return;
   const rows = [...form.querySelectorAll('#je-lines tr')];
@@ -9561,7 +9580,7 @@ function jeRecalc(){
 }
 document.addEventListener('change', e => {
   const t = e.target; if (!t.closest || !t.closest('#mform[data-je]')) return;
-  if (t.name === 'l_account'){ const a = acc(jeAccFromText(t.value)), tr = t.closest('tr'); if (a && a.currency){ const s0 = tr.querySelector('[name=l_cur]'); if (s0.value !== a.currency && [...s0.options].some(o => o.value === a.currency)){ s0.value = a.currency; tr.querySelector('[name=l_rate]').dataset.auto = '1'; } } jeFillRates(); }
+  if (t.name === 'l_account'){ const a = acc(jeAccFromText(t.value)), tr = t.closest('tr'); if (a && a.currency){ const s0 = tr.querySelector('[name=l_cur]'); if (s0.value !== a.currency && [...s0.options].some(o => o.value === a.currency)){ s0.value = a.currency; tr.querySelector('[name=l_rate]').dataset.auto = '1'; } } jeFillRates(); jeAutoBalance(tr); }
   if (t.name === 'l_cur'){ const r = t.closest('tr').querySelector('[name=l_rate]'); r.dataset.auto = '1'; jeFillRates(); }
   if (t.name === 'accountingDate' || t.name === 'rateType') jeFillRates();
   if (t.id === 'je-an'){ document.getElementById('je-grid').classList.toggle('an', t.checked); }
@@ -17983,7 +18002,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-172038';
+const APP_BUILD = 'build-20261114-172130';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
