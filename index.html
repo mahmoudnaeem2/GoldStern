@@ -4954,19 +4954,20 @@ Object.assign(A, {
     if (!String(reason || '').trim()) throw new AppError('A reason is required.');
     j.approval = !!approval; log('journal_approval_change', 'mappings', code, { approval: !approval }, { approval: !!approval }, reason); saveState();
   },
-  saveEntry(id, data){
+  saveEntry(id, data, loose){
     const me = requirePerm('journals', 'create');
+    if (loose){ data = { ...data, lines: (data.lines || []).filter(l => l.accountId), description: String(data.description || '').trim() || 'Untitled draft', accountingDate: isISODate(data.accountingDate) ? data.accountingDate : todayCairo() }; }
     if (id){
       const e = S.entries.find(x => x.id === id); if (!e) throw new AppError('Entry not found.');
       if (!['draft','rejected'].includes(e.status)) throw new AppError(`Only draft or rejected entries can be edited; ${entryRef(e)} is ${e.status}. Use a reversal to correct posted entries.`);
       if (e.createdBy !== me.id && !can('journals', 'edit')) throw new PermissionError('You can only edit your own entries.');
       const candidate = { ...e, ...data };
-      validateEntry(candidate, false);
+      if (!loose) validateEntry(candidate, false);
       const old = clone(e); Object.assign(e, data, { status: 'draft' }); e.history.push({ at: nowISO(), by: me.id, action: 'edited' });
       log('entry_update', 'journals', e.id, old, clone(e), '', e.draftRef); saveState(); return e;
     }
     const e = { id: uid('je'), draftRef: nextNumber('journal_entry'), origin: 'manual', status: 'draft', number: null, createdBy: me.id, createdAt: nowISO(), history: [{ at: nowISO(), by: me.id, action: 'created' }], ...data };
-    validateEntry(e, false);
+    if (!loose) validateEntry(e, false);
     S.entries.push(e); log('entry_create', 'journals', e.id, null, e, '', e.draftRef); saveState(); return e;
   },
   submitEntry(id){
@@ -8255,16 +8256,18 @@ async function run(fn, okMsg){
 let MODAL = null;
 /* Screen history: Back returns to the screen you came from (re-opened with fresh data), not to the list. */
 let GOING_BACK = false, SCREEN = null, SCREEN_STACK = [], LAST_SCREEN = null, LAST_CLOSED_AT = 0, REOPENING = false;
+function leaveModal(){ const m = MODAL; if (m && m.onLeave){ m.onLeave = null; try { m.leave(); } catch (e){} } }
 function goBack(){
+  leaveModal();
   const prev = SCREEN_STACK.pop(); closeModal(); LAST_CLOSED_AT = 0;
   if (prev){ REOPENING = true; try { prev.reopen(); } catch (e){ SCREEN_STACK = []; } finally { REOPENING = false; } }
 }
-function openModal({ title, body, submit = 'Save', wide = false, xwide = false, onSubmit, danger = false, formAttrs = '', footer = '', screen = null }){
+function openModal({ title, body, submit = 'Save', wide = false, xwide = false, onSubmit, danger = false, formAttrs = '', footer = '', screen = null, onLeave = null }){
   const prevScreen = SCREEN || (Date.now() - LAST_CLOSED_AT < 300 ? LAST_SCREEN : null);
   if (!REOPENING && prevScreen && (!screen || prevScreen.key !== screen.key)){ const top = SCREEN_STACK[SCREEN_STACK.length - 1]; if (!top || top.key !== prevScreen.key) SCREEN_STACK.push(prevScreen); }
   if (screen && SCREEN_STACK.length && SCREEN_STACK[SCREEN_STACK.length - 1].key === screen.key) SCREEN_STACK.pop();
   SCREEN = screen; LAST_SCREEN = null;
-  MODAL = { onSubmit };
+  MODAL = { onSubmit, onLeave: !!onLeave, leave: onLeave };
   if (!APPROVALS) submit = String(submit).replace(/(Save|Create) & submit for approval/, 'Save & post').replace(/^Submit for approval$/, 'Save').replace(' (needs approval)', '').replace(/^Create car & purchase order$/, 'Create car & purchase order');
   try { const ch = document.querySelector('.subnav') || document.querySelector('.top'); if (document.documentElement && document.documentElement.style) document.documentElement.style.setProperty('--chrome-top', (ch ? Math.max(0, Math.round(ch.getBoundingClientRect().bottom)) : 0) + 'px'); } catch (x){}
   const mhParent = (() => { const a = document.querySelector('.subnav > a.on, .subnav .sm-btn.on') || document.querySelector('.subnav .app'); return a ? a.textContent.trim() : ''; })();
@@ -8361,7 +8364,7 @@ setInterval(() => {
   if (!OPEN_ACCESS && SESSION && SESSION.userId && Date.now() - SESSION.lastActive > IDLE_MINUTES * 60000){ A.logout('Session expired after inactivity'); render(); toast('You were signed out after ' + IDLE_MINUTES + ' minutes of inactivity.'); }
 }, 30000);
 let PAGE_RETURN = {};
-window.addEventListener('hashchange', () => { if (SCREEN && !GOING_BACK) PAGE_RETURN[location.hash] = SCREEN; GOING_BACK = false; closeModal(); SCREEN_STACK = []; LAST_CLOSED_AT = 0; render(); document.querySelector('.side')?.classList.remove('open'); });
+window.addEventListener('hashchange', () => { if (SCREEN && !GOING_BACK) PAGE_RETURN[location.hash] = SCREEN; GOING_BACK = false; leaveModal(); closeModal(); SCREEN_STACK = []; LAST_CLOSED_AT = 0; render(); document.querySelector('.side')?.classList.remove('open'); });
 
 /* ---------------- Navigation model ---------------- */
 const NAV = [
@@ -14015,6 +14018,16 @@ function jeAct(id, fn, msg){
 }
 function openEntryEditor(e, opts = {}){
   openModal({ title: e && e.id ? `Edit ${entryRef(e)}` : (opts.journal === 'OB' ? 'New opening balance entry' : 'New journal entry'), xwide: true, formAttrs: 'data-je', submit: APPROVALS ? 'Save draft' : 'Save & post',
+    /* leaving without saving keeps what was typed as a draft (like Odoo's autosave) */
+    onLeave: () => { const form = document.getElementById('mform'); if (!form) return;
+      const data = entryFromForm(formData(form));
+      if (!data.lines.some(l => l.accountId) && !data.description) return;
+      if (e && e.id && !['draft', 'rejected'].includes((S.entries.find(x => x.id === e.id) || {}).status)) return;
+      const sig = x => JSON.stringify([String(x.description || '').trim(), x.accountingDate, (x.lines || []).map(l => [l.accountId, +(l.debit || 0), +(l.credit || 0), l.fcCurrency || ''])]);
+      const cur = e && e.id && S.entries.find(x => x.id === e.id);
+      if (cur && sig(cur) === sig(data)) return;
+      const saved = A.saveEntry(e && e.id ? e.id : null, data, true);
+      toast(`Not posted — kept as draft ${saved.draftRef}.`, 'ok'); render(); },
     body: jeEditor(e || {}, opts),
     onSubmit: f => { const saved = A.saveEntry(e && e.id ? e.id : null, entryFromForm(f));
       if (!APPROVALS){ const posted = A.postEntry(saved.id); toast(`${posted.number} posted.`, 'ok'); return () => jeView(posted); }
@@ -17969,7 +17982,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-171416';
+const APP_BUILD = 'build-20261114-171655';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
