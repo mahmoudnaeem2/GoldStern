@@ -4956,7 +4956,7 @@ Object.assign(A, {
   },
   saveEntry(id, data, loose){
     const me = requirePerm('journals', 'create');
-    if (loose){ data = { ...data, lines: (data.lines || []).filter(l => l.accountId), description: String(data.description || '').trim() || 'Untitled draft', accountingDate: isISODate(data.accountingDate) ? data.accountingDate : todayCairo() }; }
+    if (loose){ data = { ...data, lines: (data.lines || []).filter(l => l.accountId || l._badAcc || l.debit || l.credit || l.fcDebit || l.fcCredit), description: String(data.description || '').trim() || 'Untitled draft', accountingDate: isISODate(data.accountingDate) ? data.accountingDate : todayCairo() }; }
     if (id){
       const e = S.entries.find(x => x.id === id); if (!e) throw new AppError('Entry not found.');
       if (!['draft','rejected'].includes(e.status)) throw new AppError(`Only draft or rejected entries can be edited; ${entryRef(e)} is ${e.status}. Use a reversal to correct posted entries.`);
@@ -8322,7 +8322,8 @@ document.addEventListener('submit', async e => {
     catch (ex){
       if (ex instanceof AppError){
         if (err){ err.textContent = (UI.lang === 'ar' && typeof trPhrase === 'function') ? trPhrase(ex.message) : ex.message; err.style.display = 'block'; }
-        if (typeof highlightInlineFieldError === 'function') highlightInlineFieldError(e.target, ex.message);
+        if (typeof highlightInlineFieldError === 'function' && !/^Line \d+:/.test(ex.message)) highlightInlineFieldError(e.target, ex.message);
+        if (err && err.scrollIntoView) try { err.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (x){}
       } else { console.error(ex); if (err){ err.textContent = 'Unexpected error: ' + ex.message; err.style.display = 'block'; } }
     }
     return;
@@ -9481,7 +9482,7 @@ function jeLineRow(l = {}, eCur = 'EGP', eRate = ''){
   const d = l.fcCurrency ? l.fcDebit : l.debit, c = l.fcCurrency ? l.fcCredit : l.credit, rate = l.fcCurrency ? l.fcRate : (eCur !== 'EGP' ? eRate : '');
   const curs = S.companyCurrencies.filter(x => x.active || x.code === cur).map(x => x.code);
   return `<tr class="jl-row">
-    <td class="c-acc"><input class="input" name="l_account" list="je-accs" value="${a0 ? esc(a0.code + ' ' + accName(a0)) : ''}" placeholder="Search account…" autocomplete="off"></td>
+    <td class="c-acc"><input class="input" name="l_account" list="je-accs" value="${a0 ? esc(a0.code + ' ' + accName(a0)) : esc(l._badAcc || '')}" placeholder="Search account…" autocomplete="off"></td>
     <td class="c-par"><input class="input" name="l_partner" list="je-partners" value="${esc(l.partner || '')}" autocomplete="off"></td>
     <td class="c-lbl"><input class="input" name="l_desc" value="${esc(l.description || '')}"></td>
     <td class="c-cur"><select class="input" name="l_cur">${curs.map(x => `<option ${x === cur ? 'selected' : ''}>${x}</option>`).join('')}</select></td>
@@ -14021,7 +14022,7 @@ function openEntryEditor(e, opts = {}){
     /* leaving without saving keeps what was typed as a draft (like Odoo's autosave) */
     onLeave: () => { const form = document.getElementById('mform'); if (!form) return;
       const data = entryFromForm(formData(form));
-      if (!data.lines.some(l => l.accountId) && !data.description) return;
+      if (!data.lines.length && !data.description) return;
       if (e && e.id && !['draft', 'rejected'].includes((S.entries.find(x => x.id === e.id) || {}).status)) return;
       const sig = x => JSON.stringify([String(x.description || '').trim(), x.accountingDate, (x.lines || []).map(l => [l.accountId, +(l.debit || 0), +(l.credit || 0), l.fcCurrency || ''])]);
       const cur = e && e.id && S.entries.find(x => x.id === e.id);
@@ -17982,7 +17983,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-171655';
+const APP_BUILD = 'build-20261114-172038';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
