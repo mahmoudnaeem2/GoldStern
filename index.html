@@ -3509,6 +3509,16 @@ html body .co-kind{padding:10px 12px;gap:10px;border-radius:10px}
 html body .co-kind .co-kic{width:32px;height:32px;flex:none}
 html body .co-kind.on{border-color:#3F5FE0!important;background:#F3F5FF!important;box-shadow:0 0 0 3px rgba(63,95,224,.12)!important}
 html body .co-kind.on .co-kic{background:#3F5FE0!important;color:#fff!important}
+/* order-type selector: compact capsules */
+html body .co-main>.co-kinds{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px;padding:14px 0 0}
+html body .co-kind{display:inline-flex;align-items:center;gap:8px;padding:0 16px!important;height:38px;border:0!important;border-radius:999px!important;background:#E8ECF7!important;color:#44527a;box-shadow:none!important;transform:none!important}
+html body .co-kind:hover{background:#DCE3F5!important}
+html body .co-kind .co-kic{width:auto!important;height:auto!important;background:none!important;box-shadow:none!important;color:inherit!important;display:inline-flex}
+html body .co-kind .co-kic svg{width:16px;height:16px}
+html body .co-kind b{font-size:13.5px;font-weight:600;margin:0}
+html body .co-kind small{display:none!important}
+html body .co-kind.on{background:#3F5FE0!important;color:#fff!important;box-shadow:0 4px 10px rgba(63,95,224,.28)!important}
+html body .co-kind.on .co-kic{background:none!important;color:#fff!important}
 /* both modes: one sans family, tabular figures instead of monospace, no all-caps labels */
 .mono,.num,td.mono,b.mono,span.mono,a.mono,div.mono,button.mono,.mh-no{font-family:var(--font)!important;font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1}
 html:not([dir=rtl]) body{font-family:var(--font)}
@@ -17947,7 +17957,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-121018';
+const APP_BUILD = 'build-20261114-121117';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
