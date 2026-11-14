@@ -3106,6 +3106,9 @@ html:not([data-theme="dark"]) body .ad-kic{background:#e8ecfb!important;color:#3
 html:not([data-theme="dark"]) body .ad-kic.warn{background:#fbe9e7!important;color:#b3261e!important}
 /* text floor: 12px */
 html body .sb-s,html body .ad-badge,html body .side-user-role,html body .dep-chip,html body .tsb-kbd,html body main.content .mono,html body main.content [style*="font-size:11px"],html body main.content [style*="font-size:10.5px"],html body main.content [style*="font-size:11.5px"],html body main.content [style*="font-size:10px"]{font-size:12px!important}
+/* collapsed sidebar: section labels become a thin divider */
+html body .shell.collapsed .side .nav-sec{height:1px!important;min-height:0!important;padding:0!important;margin:10px 14px!important;overflow:hidden;background:rgba(255,255,255,.10)!important;font-size:0!important}
+html body .shell.collapsed .side .nav-sec *{display:none!important}
 /* both modes: one sans family, tabular figures instead of monospace, no all-caps labels */
 .mono,.num,td.mono,b.mono,span.mono,a.mono,div.mono,button.mono,.mh-no{font-family:var(--font)!important;font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1}
 html:not([dir=rtl]) body{font-family:var(--font)}
@@ -17459,7 +17462,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-101201';
+const APP_BUILD = 'build-20261114-101247';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
