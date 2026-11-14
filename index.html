@@ -3458,7 +3458,7 @@ html body .zh-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
 html body .zh-chips span{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 10px;border-radius:999px;background:#fff;border:1px solid #E3E8F2;color:#5b6784;font-size:12px;font-weight:500}
 html body .zh-chips svg{width:13px;height:13px}
 /* section sub-navigation: coloured capsules; the active one is solid indigo */
-html:not([data-theme="dark"]) body .subnav{height:auto!important;min-height:0;padding:14px 28px 4px!important;background:transparent!important;border:0!important;box-shadow:none!important;align-items:center!important;gap:8px!important;top:58px}
+html:not([data-theme="dark"]) body .subnav{height:auto!important;min-height:0;padding:14px 28px 8px!important;background:#F7F8FA!important;border:0!important;box-shadow:none!important;align-items:center!important;gap:8px!important;top:58px}
 html:not([data-theme="dark"]) body .subnav .app{border:0!important;margin:0 6px 0 0!important;padding:0!important;font-size:12.5px!important;font-weight:600!important;color:#7a86a1!important}
 html:not([data-theme="dark"]) body .subnav .sm-dd{display:inline-flex}
 html:not([data-theme="dark"]) body .subnav>a,html:not([data-theme="dark"]) body .subnav .sm-btn{position:relative;align-self:auto!important;height:34px!important;padding:0 16px!important;border-radius:999px!important;border:0!important;background:#E8ECF7!important;color:#44527a!important;font-size:13.5px!important;font-weight:600!important;line-height:1;box-shadow:none!important}
@@ -3481,7 +3481,7 @@ html body .ux-sel-th,html body .ux-sel-td{width:36px;text-align:center;padding-l
 html body .ux-selbar .ux-pop{left:0!important;right:auto!important;top:100%;z-index:30}
 html body .ux-pop-act{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:7px;color:var(--text);text-decoration:none}
 html body .ux-pop-act:hover{background:#F1F4FB}
-html body main.content .card:has(.ux-selbar),html body main.content .card:has(.ux-selbar) .tbl-wrap{overflow:visible!important}
+html body main.content .card:has(.ux-selbar){overflow:visible!important}
 html body .ux-tools{display:flex;justify-content:flex-end;padding:8px 16px;border-bottom:1px solid #E6EAF3}
 html body #je-bulk-bar .ux-pop{right:0;left:auto;top:100%;z-index:30}
 html body main.content .card:has(#je-bulk-bar){overflow:visible!important}
@@ -17923,7 +17923,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-115216';
+const APP_BUILD = 'build-20261114-115356';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
