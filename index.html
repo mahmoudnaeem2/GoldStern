@@ -4943,8 +4943,14 @@ Object.assign(A, {
     // 1. Remove advance allocations created for this invoice so the source advance gets its available balance back
     const advAllocs = (S.settlements || []).filter(x => x.type === 'advance' && (x.allocations || []).some(a => a.invoiceId === inv.id));
     const advEntryIds = advAllocs.map(x => x.entryId).filter(Boolean);
+    /* Posted entries are never deleted: the advance-application entries are reversed so the trail stays intact. */
+    const advEntries = (S.entries || []).filter(x => advEntryIds.includes(x.id) && x.status === 'posted' && !x.reversalOf), revDate = en => todayCairo() > en.accountingDate ? todayCairo() : en.accountingDate;
+    for (const en of advEntries){ const pc2 = checkPostingAllowed(revDate(en)); if (!pc2.ok) throw new AppError('Cannot reset to draft: ' + pc2.reason); }
     S.settlements = (S.settlements || []).filter(x => !(x.type === 'advance' && (x.allocations || []).some(a => a.invoiceId === inv.id)));
-    if (advEntryIds.length) S.entries = (S.entries || []).filter(en => !advEntryIds.includes(en.id));
+    for (const en of advEntries){
+      const rd = revDate(en);
+      reverseCore(en, rd, `Invoice ${inv.number} reset to draft — advance allocation removed`, me);
+    }
 
     // 2. Unlink any direct allocations on cash settlements and restore unapplied amount
     for (const s of S.settlements){
@@ -17799,7 +17805,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-110246';
+const APP_BUILD = 'build-20261114-111005';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
