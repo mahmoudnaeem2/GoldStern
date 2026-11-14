@@ -3562,6 +3562,9 @@ html body .pg-sub tr:last-child td{border-bottom:0}
 html body .pg-stmt{display:inline-flex;align-items:center;gap:6px;margin:0 16px 8px 48px;font-size:13px;color:var(--brand,#3F5FE0);font-weight:600}
 html body .page-back{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 12px 0 8px;margin:0 0 10px;border-radius:10px;border:1px solid #E3E8F2;background:#fff;color:#3b4764;font-size:13px;font-weight:600;cursor:pointer}
 html body .page-back:hover{border-color:#c5cfe6;background:#f6f8fe}
+/* empty states look the same everywhere: centred, with room to breathe */
+html body td.empty,html body .empty{text-align:center!important;padding:36px 16px!important;color:#6b7791;font-size:14px}
+html body td.empty::before{content:"";display:block;width:40px;height:40px;margin:0 auto 10px;border-radius:12px;background:#EEF1F7}
 /* both modes: one sans family, tabular figures instead of monospace, no all-caps labels */
 .mono,.num,td.mono,b.mono,span.mono,a.mono,div.mono,button.mono,.mh-no{font-family:var(--font)!important;font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1}
 html:not([dir=rtl]) body{font-family:var(--font)}
@@ -7340,7 +7343,7 @@ function pageSOs(){
   if (q) list = list.filter(r => `${r.so.number} ${r.cu ? r.cu.legalName : ''} ${r.cars.map(v => carName(v) + ' ' + v.vin).join(' ')} ${userName(r.so.salespersonId)}`.toLowerCase().includes(q));
   if (stf) list = list.filter(r => r.st[0] === stf);
   const tabs = [['', 'All'], ...['Confirmed', 'Reserved', 'Invoiced', 'Delivered'].map(x => [x, x])];
-  return H(t('sorders'), '') + `
+  return H(t('sorders'), '', can('sales', 'create') ? `<button type="button" class="btn primary" data-act="so-new">${ic('plus', 14)} New sales order</button>` : '') + `
     <div class="card"><div class="o-pills">${tabs.map(([k, l]) => `<button type="button" class="o-pill ${stf === k ? 'on' : ''}" data-act="set-filter" data-k="so_s" data-v="${k}">${l} <span>${k ? all.filter(r => r.st[0] === k).length : all.length}</span></button>`).join('')}</div>
     <div class="filters"><input class="input" data-filter="so_q" placeholder="Search number, customer, car, chassis, salesperson…" value="${esc(F.so_q || '')}" style="min-width:340px"><span class="muted" style="align-self:center;font-size:12.5px;margin-inline-start:auto">${list.length} order${list.length === 1 ? '' : 's'}</span></div>
     <div class="tbl-wrap"><table class="o-list"><thead><tr><th>Number</th><th>Date</th><th>Customer</th><th>Car</th><th>Salesperson</th><th class="num">Total</th><th>Invoice</th><th>Status</th></tr></thead><tbody>
@@ -8328,8 +8331,12 @@ async function run(fn, okMsg){
 let MODAL = null;
 /* Screen history: Back returns to the screen you came from (re-opened with fresh data), not to the list. */
 let GOING_BACK = false, SCREEN = null, SCREEN_STACK = [], LAST_SCREEN = null, LAST_CLOSED_AT = 0, REOPENING = false;
+function modalDirtyGuard(){ /* a form with typed changes asks before it is thrown away */
+  const m = MODAL; if (!m || !m.dirty || m.onLeave) return true;
+  try { return typeof confirm !== 'function' || confirm('Discard your changes?'); } catch (e){ return true; } }
 function leaveModal(){ const m = MODAL; if (m && m.onLeave){ m.onLeave = null; try { m.leave(); } catch (e){} } }
 function goBack(){
+  if (!modalDirtyGuard()) return;
   leaveModal();
   const prev = SCREEN_STACK.pop(); closeModal(); LAST_CLOSED_AT = 0;
   if (prev){ REOPENING = true; try { prev.reopen(); } catch (e){ SCREEN_STACK = []; } finally { REOPENING = false; } }
@@ -8353,6 +8360,7 @@ function openModal({ title, body, submit = 'Save', wide = false, xwide = false, 
       </form></div></div>`;
   document.querySelectorAll('#mform input').forEach(el => { if (MONEY_FIELD.test(el.name || '') && el.value) el.value = groupDigits(el.value); });
   const first = document.querySelector('#mform .input'); if (first) first.focus();
+  const mf = document.getElementById('mform'); if (mf && onSubmit && !danger){ const mark = e => { if (MODAL && e.isTrusted) MODAL.dirty = true; }; mf.addEventListener('input', mark); mf.addEventListener('change', mark); }
 }
 function mhTitle(t){ const m = String(t || '').match(/^(.*\S)\s+((?:[A-Z]{2,6}-)+\d{4}-\d+\S*)(.*)$/);
   return m ? `<span class="mh-type">${esc(m[1])}</span> <span class="mh-no">${esc(m[2])}</span>${m[3] ? `<span class="mh-type">${esc(m[3])}</span>` : ''}` : esc(t); }
@@ -8854,10 +8862,11 @@ function pageFor(r){
     'sal/inquiries':['sales', pageInquiries], 'sal/quotes':['sales', pageQuotes], 'sal/orders':['sales', pageSOs], 'sal/proforma':['sales', pageProformas], 'sal/deliveries':['sales', pageDeliveries] };
   const m = map[r]; if (!m) return pageDashboard();
   if (!can(m[0], 'read')) return denied(m[0]);
-  return m[1]();
+  const html = m[1]();
+  return typeof html === 'string' && !html.includes('page-back') ? pageBack() + html : html;
 }
 /* pages you reach by drilling in from a list get a Back button (statement of a partner, ledger of one account) */
-const DRILL_BACK = { 'partners/statement': () => '#/partners/' + (routeParam('side') === 'ap' ? 'suppliers' : 'customers'), 'acc/gl': () => routeParam('account') ? '#/acc/coa' : null };
+const DRILL_BACK = { 'partners/statement': () => '#/partners/' + (routeParam('side') === 'ap' ? 'suppliers' : 'customers'), 'acc/gl': () => routeParam('account') ? '#/acc/coa' : null, 'veh/view': () => '#/veh/list', 'imp/shipment': () => '#/imp/shipments' };
 const pageBack = () => { try { const f = DRILL_BACK[route()]; const fb = f && f(); return fb ? `<button type="button" class="page-back" data-act="page-back" data-fb="${fb}" aria-label="Back" title="Back">${ic('back', 16)}<span>Back</span></button>` : ''; } catch (e){ return ''; } };
 const H = (title, sub, actions = '') => { const prose = sub && /[.!]\s*$/.test(String(sub).replace(/<[^>]+>/g, '')); return `${pageBack()}<div class="page-h"><div><h1${prose ? ` title="${esc(String(sub).replace(/<[^>]+>/g, ''))}"` : ''}>${esc(title)}</h1>${sub && !prose ? `<p>${sub}</p>` : ''}</div>${actions ? `<div class="actions">${String(actions).replace(/(<button[^>]*class="btn primary"[^>]*>)(New |Add )/g, (m, a1, a2) => a1 + ic('plus', 16) + a2)}</div>` : ''}</div>`; };
 const badge = (s) => { const m = { draft:'b-warn', approved:'b-info', rejected:'b-bad', superseded:'b-mute', open:'b-ok', closed:'b-warn', locked:'b-bad', active:'b-ok', inactive:'b-mute', PASS:'b-ok', FAIL:'b-bad', SKIP:'b-mute',
@@ -10305,7 +10314,7 @@ document.addEventListener('change', e => { if (e.target.closest('#mform[data-se]
 function pageAdvances(side){
   const SD = SIDES[side];
   const list = S.settlements.filter(s => s.side === side && s.type === 'cash' && D(s.unapplied).gt(0)).sort((a, b) => a.date < b.date ? 1 : -1);
-  return H(t(side === 'ar' ? 'cust_adv' : 'supp_adv'), side === 'ar' ? 'Customer advances are liabilities until allocated to an invoice — never revenue on receipt.' : 'Supplier advances are assets until allocated to a bill — never an expense on payment.') + `
+  return H(t(side === 'ar' ? 'cust_adv' : 'supp_adv'), side === 'ar' ? 'Customer advances are liabilities until allocated to an invoice — never revenue on receipt.' : 'Supplier advances are assets until allocated to a bill — never an expense on payment.', can(SD.mod, 'create') && S.banks.length ? `<button type="button" class="btn primary" data-act="se-new" data-side="${side}" data-adv="1">${ic('plus', 14)} ${side === 'ar' ? 'Receive advance' : 'Pay advance'}</button>` : '') + `
     <div class="card"><div class="tbl-wrap"><table><thead><tr><th>From</th><th>${SD.partner}</th><th>Date</th><th class="num">Advance</th><th class="num">Available</th><th class="num">EGP carrying available</th><th>Status</th><th></th></tr></thead><tbody>
     ${list.map(s => { const st = advState(s), e = S.entries.find(x => x.id === s.entryId); return `<tr><td>${e ? entryLink(e).replace(esc(entryRef(e)), esc(s.number)) : esc(s.number)}</td><td>${esc(partnerLabel(partnerById(side, s.partnerId)))}</td><td>${s.date}</td>
       <td class="num">${money(s.unapplied)} ${s.currency}</td><td class="num"><b>${money(st.avail)}</b> ${s.currency}</td><td class="num">${money(st.egpAvail)}</td><td>${stBadge(s)}</td>
@@ -11078,7 +11087,7 @@ function pageMoves(){
 }
 function pageCounts(){
   const list = [...S.counts].sort((a, b) => a.date < b.date ? 1 : -1);
-  return H(t('counts'), 'Physical counts by location. Differences are reported for investigation, never adjusted automatically.', can('inventory', 'create') && S.locations.length ? '<button class="btn primary" data-act="cnt-new">New count</button>' : '') + `
+  return H(t('counts'), 'Physical counts by location. Differences are reported for investigation, never adjusted automatically.', can('inventory', 'create') ? `<button type="button" class="btn primary" data-act="cnt-new">${ic('plus', 14)} New count</button>` : '') + `
     <div class="card"><div class="tbl-wrap"><table><thead><tr><th>Number</th><th>Date</th><th>Location</th><th class="num">Expected</th><th class="num">Found</th><th>Missing</th><th>Unexpected VINs</th><th>Status</th><th></th></tr></thead><tbody>
     ${list.map(c => { const miss = c.status === 'final' ? c.expected.filter(x => !c.found.includes(x)) : []; return `<tr><td class="mono">${esc(c.number)}</td><td>${c.date}</td><td>${esc(locName(c.location))}</td><td class="num">${c.expected.length}</td><td class="num">${c.status === 'final' ? c.found.length : ''}</td>
       <td style="color:var(--bad);font-size:12.5px">${miss.map(x => esc((vehById(x) || {}).code)).join(', ')}</td><td class="mono" style="font-size:12px">${esc(c.extraVins.join(', '))}</td><td>${c.status === 'final' ? badge('closed') : badge('open')}</td>
@@ -11106,7 +11115,7 @@ const P5_CLICKS = {
     <p class="hint">Add this new status to the "allowed next" list of an existing status so vehicles can reach it.</p><div class="field"><label>Reason</label><input class="input" name="reason"></div>`, onSubmit: f => A.saveStatus(f) }); },
   'vst-edit'(el){ const s = vStatus(el.dataset.code); openModal({ title: `Workflow: ${s.name}`, wide: true, body: `<div class="field"><label>Name</label><input class="input" name="name" value="${esc(s.name)}"></div><input type="hidden" name="code" value="${s.code}">
     <div class="field"><label>Allowed next statuses</label><div class="grid g3" style="gap:4px">${S.vehicleStatuses.filter(x => !x.system && x.code !== s.code).map(x => `<label style="font-size:13px"><input type="checkbox" name="next" data-multi value="${x.code}" ${s.next.includes(x.code) ? 'checked' : ''}> ${esc(x.name)}</label>`).join('')}</div></div><div class="field"><label>Reason *</label><input class="input" name="reason" required></div>`, onSubmit: f => A.saveStatus(f) }); },
-  'cnt-new'(){ openModal({ title: 'New physical count', body: `<div class="row"><div class="field"><label>Location *</label><select class="input" name="location">${S.locations.map(l => `<option value="${l.code}">${esc(l.name)}</option>`).join('')}</select></div><div class="field"><label>Date *</label><input class="input" type="date" name="date" value="${todayCairo()}"></div></div>`, onSubmit: f => { const c = A.createCount(f); toast(`${c.number}: ${c.expected.length} vehicles expected.`, 'ok'); } }); },
+  'cnt-new'(){ if (!S.locations.length){ toast('Add a stock location first — a count is done per location.', 'bad'); location.hash = '#/veh/settings'; return; } openModal({ title: 'New physical count', body: `<div class="row"><div class="field"><label>Location *</label><select class="input" name="location">${S.locations.map(l => `<option value="${l.code}">${esc(l.name)}</option>`).join('')}</select></div><div class="field"><label>Date *</label><input class="input" type="date" name="date" value="${todayCairo()}"></div></div>`, onSubmit: f => { const c = A.createCount(f); toast(`${c.number}: ${c.expected.length} vehicles expected.`, 'ok'); } }); },
   'cnt-sheet'(el){ const c = S.counts.find(x => x.id === el.dataset.id); openModal({ title: `Count sheet ${c.number} — ${locName(c.location)}`, wide: true, submit: 'Finalize count', body: `<p class="muted">Tick each vehicle physically seen.</p>
     ${c.expected.map(id => { const v = vehById(id); return `<label style="display:flex;gap:8px;padding:4px 0;font-size:13px"><input type="checkbox" name="found" data-multi value="${id}"> ${esc(vehLabel(v))}</label>`; }).join('') || '<p>No vehicles expected here.</p>'}
     <div class="field" style="margin-top:10px"><label>VINs found that are not on the list</label><textarea class="input mono" name="extra" rows="2"></textarea></div><div class="field"><label>Notes</label><input class="input" name="notes"></div>`,
@@ -18182,7 +18191,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-174244';
+const APP_BUILD = 'build-20261114-174852';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
