@@ -10697,11 +10697,8 @@ function pageAging(side){
 }
 
 /* ---------- Partner Ledger (Odoo-style Payables & Receivables) ---------- */
-function pagePartnerStatement(){
-  const side = routeParam('side') === 'ap' ? 'ap' : 'ar', SD = SIDES[side], p = partnerById(side, routeParam('id'));
-  if (!p) return H('Statement', '') + '<div class="card"><div class="empty">Not found.</div></div>';
-  UI.pst = UI.pst || {}; const R0 = UI.pst[p.id] || { from: todayCairo().slice(0, 4) + '-01-01', to: todayCairo() };
-  
+function stmtEvents(side, p){
+  const SD = SIDES[side];
   const advs = S.settlements.filter(s => s.side === side && s.partnerId === p.id && s.type === 'cash' && entryStatus(s) === 'posted' && advState(s).availPosted.gt(0));
   
   const ev = [];
@@ -10718,6 +10715,61 @@ function pagePartnerStatement(){
     const av = advState(s).availPosted;
     ev.push({ date: s.date, cur: s.currency, ref: s.number, entryId: s.entryId, isAdv: true, advId: s.id, text: side === 'ar' ? `Customer deposit / Advance (unallocated)` : `Supplier advance (prepayment)`, amt: D(av).negated() });
   }
+
+  return { ev, advs };
+}
+
+/* Per-currency statement sections: opening, rows with running balance, closing. Shared by screen, print and Excel. */
+function stmtSections(side, p, R0){
+  const { ev } = stmtEvents(side, p), curs = [...new Set(ev.map(x => x.cur))].sort();
+  return curs.map(c => {
+    const opening = ev.filter(x => x.cur === c && x.date < R0.from).reduce((t, x) => t.plus(x.amt), D0());
+    let run = opening;
+    const rows = ev.filter(x => x.cur === c && x.date >= R0.from && x.date <= R0.to).sort((x, y) => x.date < y.date ? -1 : x.date > y.date ? 1 : (x.amt.gt(0) ? -1 : 1)).map(x => { run = run.plus(x.amt); return { date: x.date, ref: x.ref, text: x.text, charge: x.amt.gt(0) ? x.amt : null, credit: x.amt.lt(0) ? x.amt.abs() : null, bal: run }; });
+    const charges = rows.reduce((t, r) => t.plus(r.charge || 0), D0()), credits = rows.reduce((t, r) => t.plus(r.credit || 0), D0());
+    return { cur: c, opening, rows, charges, credits, closing: run };
+  });
+}
+function stmtTitle(side){ return side === 'ar' ? 'Statement of Account' : 'Supplier Statement'; }
+function stmtPrint(side, id){
+  const p = partnerById(side, id); if (!p) return;
+  const R0 = (UI.pst && UI.pst[p.id]) || { from: todayCairo().slice(0, 4) + '-01-01', to: todayCairo() }, secs = stmtSections(side, p, R0), co = S.company || {}, SD = SIDES[side];
+  const h = secs.map(x => `<h3>${esc(x.cur)}</h3><table><thead><tr><th>Date</th><th>Reference</th><th>Description</th><th class="n">Charges</th><th class="n">Credits</th><th class="n">Balance</th></tr></thead><tbody>
+    <tr class="open"><td colspan="5">Opening balance</td><td class="n">${money(x.opening)}</td></tr>
+    ${x.rows.map(r => `<tr><td>${esc(r.date)}</td><td>${esc(r.ref)}</td><td>${esc(r.text)}</td><td class="n">${r.charge ? money(r.charge) : ''}</td><td class="n">${r.credit ? money(r.credit) : ''}</td><td class="n">${money(r.bal)}</td></tr>`).join('') || '<tr><td colspan="6" class="e">No movements in this period.</td></tr>'}
+    <tr class="tot"><td colspan="3">Totals</td><td class="n">${money(x.charges)}</td><td class="n">${money(x.credits)}</td><td></td></tr>
+    <tr class="close"><td colspan="5">Closing balance (${esc(x.cur)}) ${x.closing.gt(0) ? (side === 'ar' ? '· due from you' : '· due to you') : x.closing.lt(0) ? '· in credit' : '· settled'}</td><td class="n">${money(x.closing)}</td></tr></tbody></table>`).join('') || '<p class="e">No posted documents for this period.</p>';
+  const html = `<!doctype html><html><head><meta charset="utf-8"><title>${esc(stmtTitle(side))} - ${esc(p.legalName)}</title><style>
+    *{box-sizing:border-box}body{font-family:Inter,Arial,sans-serif;color:#1f2937;margin:0;padding:32px 40px;font-size:12.5px}
+    .top{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;margin-bottom:26px}.co b{font-size:16px}.co div{color:#555;margin-top:2px}
+    .pa{text-align:end;max-width:300px}.pa b{font-size:14px}.pa div{margin-top:2px}
+    h1{font-size:22px;margin:0 0 4px}.per{color:#555;margin-bottom:18px}h3{margin:22px 0 6px;font-size:14px}
+    table{width:100%;border-collapse:collapse}th{text-align:start;background:#f3f4f6;border-bottom:2px solid #d1d5db;padding:7px 8px;font-size:11.5px}td{padding:6px 8px;border-bottom:1px solid #e5e7eb;vertical-align:top}
+    .n{text-align:end;white-space:nowrap;font-variant-numeric:tabular-nums}tr.open td{background:#fafafa;font-style:italic}tr.tot td{font-weight:600;border-top:1px solid #9ca3af}
+    tr.close td{font-weight:700;font-size:13.5px;background:#f3f4f6;border-top:2px solid #111;border-bottom:0}.e{color:#777;text-align:center;padding:16px}
+    .ft{margin-top:30px;color:#777;font-size:11px;border-top:1px solid #e5e7eb;padding-top:8px}@page{margin:14mm}@media print{body{padding:0}}</style></head><body>
+    <div class="top"><div class="co">${LOGO_FULL ? `<img src="${LOGO_FULL}" alt="" style="height:44px;display:block;margin-bottom:6px">` : ''}<b>${esc(co.legalName || brand().name)}</b>${co.address ? `<div>${esc(co.address)}</div>` : ''}${co.phone || co.email ? `<div>${esc([co.phone, co.email].filter(Boolean).join(' · '))}</div>` : ''}${co.taxRegNo ? `<div>Tax ID: ${esc(co.taxRegNo)}</div>` : ''}</div>
+      <div class="pa"><b>${esc(p.legalName)}</b><div>${esc(p.code)}</div>${p.address ? `<div>${esc(p.address)}</div>` : ''}${p.phone ? `<div>${esc(p.phone)}</div>` : ''}${p.taxId ? `<div>Tax ID: ${esc(p.taxId)}</div>` : ''}</div></div>
+    <h1>${esc(stmtTitle(side))}</h1><div class="per">Period: ${esc(R0.from)} to ${esc(R0.to)} · Printed ${esc(todayCairo())}</div>${h}
+    <div class="ft">Amounts are shown in each document's currency. ${side === 'ar' ? 'Positive balance = amount due from the customer.' : 'Positive balance = amount we owe the supplier.'}</div>
+    <script>window.onload=function(){setTimeout(function(){window.print()},300)}<\/script></body></html>`;
+  const w = window.open('', '_blank'); if (!w) return toast('Allow pop-ups to print.', 'bad'); w.document.open(); w.document.write(html); w.document.close();
+}
+function stmtXlsx(side, id){
+  const p = partnerById(side, id); if (!p) return;
+  const R0 = (UI.pst && UI.pst[p.id]) || { from: todayCairo().slice(0, 4) + '-01-01', to: todayCairo() }, secs = stmtSections(side, p, R0);
+  if (!secs.length) return toast('No posted documents to export.', 'bad');
+  XW.save(`statement-${p.code}-${todayCairo()}.xlsx`, secs.map(x => ({ name: x.cur, title: `${stmtTitle(side)} — ${p.legalName}`, subtitle: `${(S.company && S.company.legalName) || brand().name} · ${p.code} · ${R0.from} to ${R0.to} · ${x.cur}`,
+    columns: [{ h: 'Date', t: 'date', w: 13 }, { h: 'Reference', w: 18 }, { h: 'Description', w: 46 }, { h: 'Charges', t: 'money', w: 16 }, { h: 'Credits', t: 'money', w: 16 }, { h: 'Balance', t: 'money', w: 16 }],
+    rows: [{ k: 'line', c: ['', '', 'Opening balance', null, null, xn(x.opening)] }, ...x.rows.map(r => ({ k: 'line', c: [r.date, r.ref, r.text, xn(r.charge), xn(r.credit), xn(r.bal)] })), { k: 'grand', c: ['', '', `Closing balance (${x.cur})`, xn(x.charges), xn(x.credits), xn(x.closing)] }] })));
+}
+
+function pagePartnerStatement(){
+  const side = routeParam('side') === 'ap' ? 'ap' : 'ar', SD = SIDES[side], p = partnerById(side, routeParam('id'));
+  if (!p) return H('Statement', '') + '<div class="card"><div class="empty">Not found.</div></div>';
+  UI.pst = UI.pst || {}; const R0 = UI.pst[p.id] || { from: todayCairo().slice(0, 4) + '-01-01', to: todayCairo() };
+  
+  const { ev, advs } = stmtEvents(side, p);
 
   const allCurrencies = new Set(ev.map(x => x.cur));
   for (const s of advs) allCurrencies.add(s.currency);
@@ -10749,7 +10801,7 @@ function pagePartnerStatement(){
     `;
   }).join('');
 
-  return H(`Statement — ${p.legalName}`, `${esc(p.code)} · amounts owed ${side === 'ar' ? 'by' : 'to'} the ${SD.partner.toLowerCase()} in each document currency`, `<button class="btn" onclick="window.print()">Print</button>`) + `
+  return H(`Statement — ${p.legalName}`, `${esc(p.code)} · amounts owed ${side === 'ar' ? 'by' : 'to'} the ${SD.partner.toLowerCase()} in each document currency`, `<button class="btn" data-act="pst-xlsx" data-side="${side}" data-id="${p.id}">${ic('file', 15)} Excel</button><button class="btn primary" data-act="pst-print" data-side="${side}" data-id="${p.id}">Print / PDF</button>`) + `
     <div style="display:flex;gap:12px;margin-bottom:14px;flex-wrap:wrap">
       ${summaryCardsHtml}
     </div>
@@ -14812,6 +14864,8 @@ Object.assign(FORM_HANDLERS, {
   pst(f, form){ UI.pst = UI.pst || {}; UI.pst[form.dataset.id] = { from: f.from, to: f.to }; render(); }
 });
 Object.assign(CLICK, {
+  'pst-print'(el){ stmtPrint(el.dataset.side, el.dataset.id); },
+  'pst-xlsx'(el){ stmtXlsx(el.dataset.side, el.dataset.id); },
   'partner-new'(el){ const side = el.dataset.side; openModal({ title: `New ${SIDES[side].partner.toLowerCase()}`, wide: true, body: partnerForm(side, { paymentTerms: side === 'ar' ? 0 : 30, preferredCurrency: side === 'ar' ? 'EGP' : 'EUR' }), onSubmit: f => { const p = A.savePartner(side, null, f); toast(`${p.code} created.`, 'ok'); } }); },
   'partner-edit'(el){ const side = el.dataset.side, p = partnerById(side, el.dataset.id); openModal({ title: `Edit ${p.code}`, wide: true, body: partnerForm(side, p), onSubmit: f => A.savePartner(side, p.id, f) }); },
   'partner-active'(el){ const side = el.dataset.side, p = partnerById(side, el.dataset.id); openModal({ title: `${p.active ? 'Deactivate' : 'Activate'} ${p.code}`, submit: 'Confirm', body: '<div class="field"><label>Reason *</label><input class="input" name="reason" required></div>', onSubmit: f => A.setPartnerActive(side, p.id, !p.active, f.reason) }); },
@@ -18417,7 +18471,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-194226';
+const APP_BUILD = 'build-20261114-194848';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
