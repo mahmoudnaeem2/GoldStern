@@ -3154,6 +3154,39 @@ html body .ad-bt .ad-badge{display:table;margin-top:4px;padding:1px 8px;border-r
 html body .ad-bf{min-width:140px}
 @media (max-width:700px){html body .ad-br{grid-template-columns:34px 1fr auto}html body .ad-ba{grid-column:2/-1}}
 @media (max-width:700px){html body .ad-br{grid-template-columns:34px minmax(0,1fr)}html body .ad-bf{grid-column:2;text-align:start;min-width:0}html body .ad-ba{grid-column:2;flex-wrap:wrap}html body .ad-ba .btn{height:36px;min-height:36px}html body .ad-ks-row{grid-template-columns:1fr 1fr}}
+/* ---- modern dashboard ---- */
+html body .ad-ks-row{grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+html:not([data-theme="dark"]) body .ad-k{display:flex!important;flex-direction:column;gap:10px;padding:18px 20px;border-radius:12px;background:var(--surface)!important;border:1px solid #e6e9f0!important;box-shadow:0 1px 2px rgba(16,24,40,.04)!important;transition:box-shadow .15s,border-color .15s}
+html:not([data-theme="dark"]) body .ad-k:hover{border-color:#cfd6ea!important;box-shadow:0 4px 14px rgba(16,24,40,.07)!important;background:var(--surface)!important}
+html body .ad-kt{display:flex;align-items:center;gap:8px}
+html body .ad-kt .ad-kl{flex:1;font-size:13px;font-weight:500;color:var(--muted)!important}
+html body .ad-kt .ad-kic{width:28px;height:28px;border-radius:8px;display:grid;place-items:center}
+html body .ad-k>b{display:block;font-size:26px;font-weight:600;letter-spacing:-.02em;line-height:1.1;white-space:nowrap}
+html body .ad-k>b small{font-size:13px;font-weight:500}
+html body .ad-kb{display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
+html body .ad-kb .ad-ks{font-size:12.5px;color:var(--muted)!important;padding-bottom:2px}
+html body .ad-sp{width:96px;height:32px;flex:none}
+html body .ad-sp .fill{fill:rgba(63,95,224,.12)}html body .ad-sp .ln{fill:none;stroke:#3f5fe0;stroke-width:1.8;vector-effect:non-scaling-stroke;stroke-linejoin:round}
+html body .ad-sp.warn .fill{fill:rgba(217,139,43,.14)}html body .ad-sp.warn .ln{stroke:#d98b2b}
+html body i.dl{font-style:normal;font-size:11.5px;font-weight:600;padding:2px 7px;border-radius:999px}
+html body i.dl.up{background:#e6f5ec;color:#1e7a4c}html body i.dl.dn{background:#fbe9e7;color:#b3261e}
+html body .ad-charts{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:16px;margin-bottom:16px}
+html body .ad-ph{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:16px 20px 0}
+html body .ad-ph h2{margin:0;font-size:14px;font-weight:600}html body .ad-ph span{font-size:12.5px;color:var(--muted)}
+html body .ad-cash,html body .ad-aging{border-radius:12px;box-shadow:0 1px 2px rgba(16,24,40,.04);padding-bottom:14px}
+html body .ad-big{display:flex;align-items:baseline;gap:8px;padding:6px 20px 0}
+html body .ad-big b{font-size:28px;font-weight:600;letter-spacing:-.02em}html body .ad-big b.neg{color:#b3261e}html body .ad-big small{font-size:13px;color:var(--muted)}
+html body .ad-area{display:block;width:calc(100% - 24px);height:190px;margin:6px 12px 0}
+html body .ad-area .gl{stroke:#eef0f5;stroke-width:1;vector-effect:non-scaling-stroke}html body .ad-area .zl{stroke:#c6ccdc;stroke-dasharray:3 3;stroke-width:1;vector-effect:non-scaling-stroke}
+html body .ad-axis{display:flex;justify-content:space-between;padding:0 20px;font-size:12px;color:var(--muted)}
+html body .ad-ag{padding:16px 20px 0}
+html body .ad-agh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}html body .ad-agh b{font-size:13.5px;font-weight:600}html body .ad-agh span{font-size:13px;font-variant-numeric:tabular-nums;color:var(--muted)}
+html body .ad-agbar{display:flex;gap:3px;height:10px;border-radius:999px;overflow:hidden;background:var(--surface-2)}html body .ad-agbar i{display:block;min-width:4px}
+html body .ad-agl{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-top:8px}
+html body .ad-agl span{font-size:12px;font-variant-numeric:tabular-nums;color:var(--text,#1b2433)}html body .ad-agl em{display:block;font-style:normal;color:var(--muted);font-size:11.5px}
+html body .ad-panel{border-radius:12px;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+@media (max-width:1100px){html body .ad-ks-row{grid-template-columns:1fr 1fr}html body .ad-charts{grid-template-columns:1fr}}
+@media (max-width:560px){html body .ad-ks-row{grid-template-columns:1fr}html body .ad-agl{grid-template-columns:repeat(3,1fr)}}
 /* both modes: one sans family, tabular figures instead of monospace, no all-caps labels */
 .mono,.num,td.mono,b.mono,span.mono,a.mono,div.mono,button.mono,.mh-no{font-family:var(--font)!important;font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1}
 html:not([dir=rtl]) body{font-family:var(--font)}
@@ -8740,18 +8773,52 @@ function pageAccDash(){
     sb({ i: 'cars', n: toDeliver.length, l: 'Cars to deliver', s: 'sold, not handed over', tone: toDeliver.length ? 'warn' : '', href: '#/inv/deliveries' }),
     sb({ i: 'wallet', n: money(held), l: 'Deposits held', s: 'EGP from customers, not invoiced', href: '#/ar/advances' })
   ].join('');
+  /* ---- modern dashboard helpers: sparkline, area chart, aging bars ---- */
+  const cashDates = [...Array(13)].map((_, k) => addDays(today, -60 + k * 5));
+  const cashPts = cashDates.map(d => { try { return +banks.reduce((t0, b) => t0.plus(bankBalance(b, d).egp), D0()); } catch (e){ return 0; } });
+  const pctChange = (now, before) => before && Math.abs(before) > 0 ? ((now - before) / Math.abs(before)) * 100 : null;
+  const cashDelta = pctChange(+cash, cashPts[6]);
+  const profitDelta = months.length > 1 && !months[4].net.eq(0) ? pctChange(+months[5].net, +months[4].net) : null;
+  const sparkSvg = (vals, tone) => { const nums = vals.map(Number), mn = Math.min(...nums, 0), mx = Math.max(...nums, 1), rg = mx - mn || 1, w = 96, h = 32;
+    const pts = nums.map((v, i) => [(i / Math.max(1, nums.length - 1) * w).toFixed(1), (h - 3 - (v - mn) / rg * (h - 8)).toFixed(1)]);
+    const line = pts.map(q => q.join(',')).join(' ');
+    return `<svg class="ad-sp ${tone || ''}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true"><polygon points="0,${h} ${line} ${w},${h}" class="fill"/><polyline points="${line}" class="ln"/></svg>`; };
+  const mkpi = (i, label, v, sub, href, spark, delta, tone) => `<a class="ad-k" href="${href}"><span class="ad-kt"><span class="ad-kic ${tone || ''}">${ic(i, 16)}</span><span class="ad-kl">${label}</span>${delta != null ? `<i class="dl ${delta < 0 ? 'dn' : 'up'}">${delta < 0 ? '▼' : '▲'} ${Math.abs(delta).toFixed(1)}%</i>` : ''}</span>
+      <b class="${v.lt(0) ? 'neg' : ''}">${money(v)}<small> EGP</small></b><span class="ad-kb"><span class="ad-ks">${sub}</span>${sparkSvg(spark, tone)}</span></a>`;
+  const areaChart = (vals, dates) => { const W = 640, H = 190, pl = 8, pr = 8, pt = 12, pb = 26, nums = vals.map(Number), mn = Math.min(...nums, 0), mx = Math.max(...nums, 1), rg = mx - mn || 1;
+    const X = i => pl + i / Math.max(1, nums.length - 1) * (W - pl - pr), Y = v => pt + (1 - (v - mn) / rg) * (H - pt - pb);
+    const pts = nums.map((v, i) => [X(i).toFixed(1), Y(v).toFixed(1)]), line = pts.map(q => q.join(',')).join(' ');
+    const grid = [0, .25, .5, .75, 1].map(f => `<line x1="${pl}" x2="${W - pr}" y1="${(pt + f * (H - pt - pb)).toFixed(1)}" y2="${(pt + f * (H - pt - pb)).toFixed(1)}" class="gl"/>`).join('');
+    const zero = mn < 0 ? `<line x1="${pl}" x2="${W - pr}" y1="${Y(0).toFixed(1)}" y2="${Y(0).toFixed(1)}" class="zl"/>` : '';
+    const last = pts[pts.length - 1];
+    return `<svg class="ad-area" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Cash position over the last 60 days"><defs><linearGradient id="adg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#3f5fe0" stop-opacity=".22"/><stop offset="1" stop-color="#3f5fe0" stop-opacity="0"/></linearGradient></defs>${grid}${zero}
+      <polygon points="${pl},${H - pb} ${line} ${W - pr},${H - pb}" fill="url(#adg)"/><polyline points="${line}" fill="none" stroke="#3f5fe0" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
+      <circle cx="${last[0]}" cy="${last[1]}" r="4" fill="#fff" stroke="#3f5fe0" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>
+      <div class="ad-axis"><span>${dshort(dates[0])}</span><span>${dshort(dates[6])}</span><span>${dshort(dates[12])}</span></div>`; };
+  const cmp = n => { const a = Math.abs(n); return a >= 1e6 ? (n / 1e6).toFixed(a >= 1e7 ? 0 : 1) + 'M' : a >= 1e3 ? (n / 1e3).toFixed(0) + 'K' : String(Math.round(n)); };
+  const dshort = d => new Date(d + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  const agBars = (title, vals, color) => { const nums = vals.map(x => Math.abs(+x)), tot = nums.reduce((a, c) => a + c, 0);
+    return `<div class="ad-ag"><div class="ad-agh"><b>${title}</b><span>${money(vals.reduce((t0, x) => t0.plus(x), D0()))} EGP</span></div>
+      <div class="ad-agbar">${nums.map((n, i) => `<i title="${BUCKETS[i]}: ${money(vals[i])}" style="flex:${tot ? n : 1};${n ? '' : 'display:none;'}background:${color};opacity:${(1 - i * .17).toFixed(2)}"></i>`).join('') || ''}${tot ? '' : '<i style="flex:1;background:var(--surface-2)"></i>'}</div>
+      <div class="ad-agl">${BUCKETS.map((l, i) => `<span><em>${l}</em>${cmp(+vals[i])}</span>`).join('')}</div></div>`; };
   const hello = (n => n < 12 ? 'Good morning' : n < 17 ? 'Good afternoon' : 'Good evening')(+new Date().toLocaleString('en-GB', { hour: '2-digit', hour12: false, timeZone: 'Africa/Cairo' }));
   return `<div class="ad">
     <div class="ad-head">
       <div class="ad-hi"><h1>${hello}, ${esc((currentUser().name || '').split(' ')[0] || 'there')}</h1><p>Here is where the money stands on ${new Date(today + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}.</p></div>
     </div>
       <div class="ad-ks-row">
-        ${kp('coins', 'Cash &amp; bank', cash, `${banks.length} account${banks.length === 1 ? '' : 's'}`, '#/bank/accounts')}
-        ${kp('inbox', 'Customers owe you', ar.tot, ar.over.length ? `${money(ar.overTot)} overdue` : `${ar.open.length} open invoice${ar.open.length === 1 ? '' : 's'}`, '#/ar/aging', ar.over.length ? 'warn' : '')}
-        ${kp('truck', 'You owe vendors', ap.tot, ap.over.length ? `${money(ap.overTot)} past due` : `${ap.open.length} open bill${ap.open.length === 1 ? '' : 's'}`, '#/ap/aging', ap.over.length ? 'warn' : '')}
-        <a class="ad-k ad-k-p" href="#/rep/statements?s=is"><span class="ad-kic">${ic('reports', 20)}</span><span class="ad-kl">Profit since ${fyFrom.slice(0, 7)}</span><b class="${ytd.net.lt(0) ? 'neg' : ''}">${money(ytd.net)}<small> EGP</small></b>
-          <span class="ad-mini">${months.map(x => { const mx = months.reduce((m, y) => y.net.abs().gt(m) ? y.net.abs() : m, D0()); const h = mx.eq(0) ? 2 : Math.max(2, +x.net.abs().div(mx).mul(26).toFixed(1)); return `<i title="${x.m}: ${money(x.net)}" style="height:${h}px;${x.net.lt(0) ? 'background:#fca5a5' : ''}"></i>`; }).join('')}</span></a>
+        ${mkpi('coins', 'Cash & bank', cash, `${banks.length} account${banks.length === 1 ? '' : 's'}`, '#/bank/accounts', cashPts, cashDelta)}
+        ${mkpi('inbox', 'Customers owe you', ar.tot, ar.over.length ? `${money(ar.overTot)} overdue` : `${ar.open.length} open invoice${ar.open.length === 1 ? '' : 's'}`, '#/ar/aging', agAr.map(x => +x), null, ar.over.length ? 'warn' : '')}
+        ${mkpi('truck', 'You owe vendors', ap.tot, ap.over.length ? `${money(ap.overTot)} past due` : `${ap.open.length} open bill${ap.open.length === 1 ? '' : 's'}`, '#/ap/aging', agAp.map(x => +x), null, ap.over.length ? 'warn' : '')}
+        ${mkpi('reports', 'Profit since ' + fyFrom.slice(0, 7), ytd.net, 'this financial year', '#/rep/statements?s=is', months.map(x => +x.net), profitDelta)}
       </div>
+    <div class="ad-charts">
+      <section class="ad-panel ad-cash"><div class="ad-ph"><h2>Cash position</h2><span>last 60 days · all accounts, EGP</span></div>
+        <div class="ad-big"><b class="${cash.lt(0) ? 'neg' : ''}">${money(cash)}</b><small>EGP</small>${cashDelta !== null ? `<i class="dl ${cashDelta < 0 ? 'dn' : 'up'}">${cashDelta < 0 ? '▼' : '▲'} ${Math.abs(cashDelta).toFixed(1)}%</i>` : ''}</div>
+        ${areaChart(cashPts, cashDates)}</section>
+      <section class="ad-panel ad-aging"><div class="ad-ph"><h2>Receivables vs payables</h2><span>by days overdue, EGP</span></div>
+        ${agBars('Customers owe you', agAr, 'var(--gold)')}${agBars('You owe vendors', agAp, '#d98b2b')}</section>
+    </div>
     <div class="ad-two"><section class="ad-panel ad-need"><h2>Needs attention</h2>
     ${(() => {
       const todos = [];
@@ -17505,7 +17572,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-101746';
+const APP_BUILD = 'build-20261114-102143';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
