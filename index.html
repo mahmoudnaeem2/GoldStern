@@ -3437,11 +3437,17 @@ html body .zh-new .btn .ic,html body .zh-new .btn svg{width:26px!important;heigh
 html body .zh-new .btn:nth-child(1) svg{background:#E8EDFF;color:var(--brand,#3F5FE0)}
 html body .zh-new .btn:nth-child(2) svg{background:#FFF1DC;color:#B26A00}
 html body .zh-new .btn:nth-child(3) svg{background:#E4F6EC;color:#1F7A4D}
+html body .zh-print{display:none;align-items:center;gap:14px;margin:0 0 14px;padding:0 0 12px;border-bottom:2px solid var(--brand,#3F5FE0)}
+html body .zh-print img{height:38px;max-width:180px;object-fit:contain;background:var(--midnight,#0F1B2D);padding:6px 10px;border-radius:8px}
+html body .zh-print b{display:block;font-size:18px;color:#111827}
+html body .zh-print span{font-size:12px;color:#5b6784}
 /* company snapshot: the dashboard prints as a clean A4 PDF */
 @page{size:A4;margin:12mm}
 @media print{
   html body{background:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   html body .side,html body header,html body .top,html body .subnav,html body .hamb,html body .toast,html body .zh-new{display:none!important}
+  html body .zh-hello{display:none!important}
+  html body .zh-print{display:flex!important}
   html body .shell,html body .shell.collapsed{display:block!important;padding:0!important}
   html body main.content{padding:0!important;margin:0!important;max-width:none!important}
   html body .zf .zf-card,html body .zf .zf-k{break-inside:avoid;box-shadow:none!important}
@@ -9262,6 +9268,7 @@ function pageAccDash(){
   const hello = hrNow < 12 ? 'Good morning' : hrNow < 17 ? 'Good afternoon' : 'Good evening';
   const meName = String(((typeof currentUser === 'function' && currentUser()) || {}).name || '').trim().split(/\s+/)[0];
   return `<div class="ad zh zf">
+    <div class="zh-print"><img src="${LOGO_FULL}" alt=""><div><b>${esc((S.company && (S.company.legalName || S.company.commercialName)) || brand().name)}</b><span>Company snapshot — ${new Date(today + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })} · financial year from ${dsh(fyFrom)} · EGP</span></div></div>
     <div class="zh-hello">
       <div class="zh-hi-main">
         <span class="zh-hi-ic">${ic(hrNow < 18 && hrNow >= 6 ? 'sun' : 'moon', 22)}</span>
@@ -18148,7 +18155,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-173837';
+const APP_BUILD = 'build-20261114-173952';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
