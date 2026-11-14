@@ -3412,21 +3412,16 @@ html body .xp-kpis .xp-tag{grid-area:t}
 html body .xp-kpis .xp-kl{grid-area:l;font-size:12.5px}
 html body .xp-kpis b{grid-area:v;font-size:24px!important;font-weight:650;letter-spacing:-.025em;display:block;margin:0}
 html body .xp-kpis em{grid-area:s;font-style:normal;font-size:12.5px;margin:0}
-/* KPI strip: one joined panel, hairline dividers, tiny accent dot (replaces the tinted gradient cards) */
-html body .xp-kpis{gap:0!important;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:18px}
-html body .xp-kpis>.xp-k,html body .xp-kpis>.xp-hero{background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;border-inline-start:1px solid var(--border)!important;padding:16px 20px!important;grid-template-columns:minmax(0,1fr) auto!important;grid-template-areas:"l t" "v v" "s s"!important;row-gap:4px!important;color:var(--text)!important}
-html body .xp-kpis>:first-child{border-inline-start:0!important}
+/* KPI cards: plain white card, colour accent bar on the side, no icon tile */
+html body .xp-kpis{gap:14px!important;margin-bottom:18px}
+html body .xp-kpis>.xp-k,html body .xp-kpis>.xp-hero{background:var(--surface)!important;border:1px solid var(--border)!important;border-inline-start:4px solid var(--k3)!important;border-radius:10px!important;box-shadow:none!important;padding:14px 16px!important;grid-template-columns:minmax(0,1fr) auto!important;grid-template-areas:"l t" "v v" "s s"!important;row-gap:4px!important;color:var(--text)!important}
 html body .xp-kpis .xp-kic{display:none!important}
-html body .xp-kpis .xp-kl{color:var(--muted)!important;font-weight:500;display:flex;align-items:center;gap:7px}
-html body .xp-kpis .xp-kl:before{content:'';width:7px;height:7px;border-radius:50%;background:var(--k3);flex:none}
-html body .xp-kpis b{font-size:22px!important;font-weight:650;color:var(--text)!important}
-html body .xp-kpis .xp-hero b{font-size:26px!important;color:var(--text)!important}
+html body .xp-kpis .xp-kl{color:var(--muted)!important;font-weight:500}
+html body .xp-kpis b{font-size:24px!important;font-weight:700;color:var(--text)!important}
 html body .xp-kpis .xp-hero b small,html body .xp-kpis .xp-hero em,html body .xp-kpis .xp-k em,html body .xp-kpis b small{color:var(--muted)!important}
 html body .xp-kpis .xp-tag{background:var(--surface-2)!important;color:var(--muted)!important;border:1px solid var(--border)!important;font-weight:500}
 html body .xp-kpis b.neg{color:var(--bad)!important}
-@media (max-width:1200px){html body .xp-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}html body .xp-kpis>:nth-child(odd){border-inline-start:0!important}html body .xp-kpis>:nth-child(n+3){border-top:1px solid var(--border)!important}}
-@media (max-width:640px){html body .xp-kpis{grid-template-columns:1fr!important}html body .xp-kpis>.xp-k,html body .xp-kpis>.xp-hero{border-inline-start:0!important}html body .xp-kpis>:nth-child(n+2){border-top:1px solid var(--border)!important}}
-html body .inv-cards>.inv-card{background:var(--surface)!important;border:1px solid var(--border)!important;border-radius:12px!important;box-shadow:none!important}
+html body .inv-cards>.inv-card{background:var(--surface)!important;border:1px solid var(--border)!important;border-inline-start:4px solid var(--k3)!important;border-radius:10px!important;box-shadow:none!important}
 html body .inv-cards .inv-card .t{color:var(--muted)!important;font-weight:500}
 /* sign-in / first-run setup: one centred card — navy logo band on top, form below, soft light page */
 html body .auth{display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:0;min-height:100vh;padding:32px 16px;background:radial-gradient(700px 380px at 50% 0,rgba(63,95,224,.10),transparent 70%),#F3F5FA!important}
@@ -18421,7 +18416,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-193018';
+const APP_BUILD = 'build-20261114-193239';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
