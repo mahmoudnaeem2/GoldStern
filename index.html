@@ -3988,6 +3988,8 @@ html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg input
 html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg input:not([type=checkbox]):not([type=radio]),html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg select,html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg textarea{background:#f7f9fe!important;border-color:#d8e1f2!important}
 html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg .modal-f .btn:not(.primary){background:#fff!important;border-color:#d3ddf1!important}
 @media (prefers-reduced-motion:no-preference){html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg .modal-b{animation:gsRise .4s cubic-bezier(.2,.7,.2,1) both}}
+/* ===== NO PAGE-ENTRY MOTION ===== */
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .content>*,html:not([data-theme="dark"]):not([data-route="dashboard"]) body .content>.page-h,html:not([data-theme="dark"]):not([data-route="dashboard"]) body .xp-kpis>*,html:not([data-theme="dark"]):not([data-route="dashboard"]) body .zf-kpis>.zf-k,html:not([data-theme="dark"]):not([data-route="dashboard"]) body .inv-cards>*,html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal,html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg,html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg .modal-b,html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg>.modal>*{animation:none!important}
 </style>
 
 </head>
@@ -19068,7 +19070,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261116-131645';
+const APP_BUILD = 'build-20261116-131906';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
