@@ -3671,9 +3671,9 @@ html body .badge{border-radius:999px!important;font-weight:600!important;padding
 /* thin scrollbars */
 *{scrollbar-width:thin;scrollbar-color:#cdd2db transparent}
 /* ===== BALANCE HERO LAYER: navy hero band, floating cards, gold primary action. Delete this block to go back. ===== */
-:root{--display:'Sora','Inter',system-ui,sans-serif;--gold-b:#c89b3c;--gold-b2:#d6a94a;--hero-1:#0a1628;--hero-2:#112844}
+:root{--display:'Sora','Inter',system-ui,sans-serif;--gold-b:#c89b3c;--gold-b2:#d6a94a;--hero-1:#1c3d91;--hero-2:#2c5ccc}
 /* sidebar (all pages) */
-html:not([data-theme="dark"]) body .side{background:linear-gradient(180deg,#0a1628 0,#0d1d35 100%)!important}
+html:not([data-theme="dark"]) body .side{background:linear-gradient(180deg,#173682 0,#1c3f94 100%)!important}
 html:not([data-theme="dark"]) body .side .nav-item.active{background:rgba(232,197,113,.13)!important;color:#fff!important}
 html:not([data-theme="dark"]) body .side .nav-item.active::before{background:#e8c571!important}
 html:not([data-theme="dark"]) body .side .nav-item.active .nav-ic{color:#e8c571!important}
@@ -18818,7 +18818,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261116-065918';
+const APP_BUILD = 'build-20261116-095125';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
