@@ -11614,7 +11614,6 @@ function pageVehicle(){
     can('vehicles', 'edit') ? `<button type="button" class="btn" data-act="veh-edit" data-id="${v.id}">Edit</button>` : ''].join('');
   const stIdx = cur;
   return `<div class="rec">
-    <div style="margin-bottom:10px"><button type="button" class="btn sm" data-act="hist-back">${ic('back', 15)}Back</button></div>
     <div class="rec-top"><div class="rec-title"><div class="rec-ic">${ic('cars', 24)}</div><div>
       <div class="rec-kind">${esc(v.code)} · ${po ? `<button type="button" class="lnk0" data-act="po-view" data-id="${po.id}">${esc(po.number)}</button>` : 'no order'}</div>
       <h2>${esc(makeName(v.makeId))} ${esc(modelName(v.makeId, v.modelId))} ${v.year}</h2>
@@ -19093,7 +19092,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261116-153809';
+const APP_BUILD = 'build-20261116-154120';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
