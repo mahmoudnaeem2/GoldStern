@@ -6052,6 +6052,18 @@ Object.assign(A, {
     const inv = { id, side, type: 'invoice', number, partnerId: p.id, date: f.date, dueDate: due, currency: cur, rateType: f.rateType || 'official', partnerRef: ref, lines, total: total.toFixed(2), tax, notes: String(f.notes || '').trim(), entryId: e.id, createdBy: me.id, createdAt: nowISO() };
     S.invoices.push(inv); log('invoice_create', SD.mod, inv.id, null, inv, '', number); saveState(); return inv;
   },
+  addCustomerCharge(poId, f){
+    requirePerm('ar', 'create');
+    const po = poById(poId); if (!po || !po.importOrder) throw new AppError('Order not found.');
+    if (!po.customerId) throw new AppError('This order has no customer yet. Choose the customer first.');
+    const v = poVehicle(po), arr = k => [].concat(f[k] ?? []), descs = arr('cc_desc'), amts = arr('cc_amount');
+    const rows = descs.map((d0, i) => ({ d: String(d0 || '').trim(), a: String(amts[i] || '').trim().replace(/,/g, '') })).filter(r => r.d || r.a);
+    if (!rows.length) throw new AppError('Add at least one charge with a description and an amount.');
+    const acct = acc(f.account); if (!acct) throw new AppError('Choose the revenue account for these charges.');
+    const inv = A.createInvoice('ar', { partnerId: po.customerId, date: f.date, currency: f.currency || 'EGP', rateType: 'official', partnerRef: po.number, taxCode: f.taxCode || '', taxMode: f.taxMode, notes: `Customer charges for ${po.number}`,
+      il_account: rows.map(() => acct.id), il_desc: rows.map(r => r.d), il_amount: rows.map(r => r.a), il_cc: rows.map(() => ''), il_vehicle: rows.map(() => (v ? v.vin : '')) });
+    inv.chargePoId = po.id; log('customer_charge', 'ar', inv.id, null, { po: po.number, invoice: inv.number, total: inv.total }, `Charges billed to the customer on ${po.number}`, inv.number); saveState(); return inv;
+  },
   createOpeningDoc(side, f){
     const SD = SIDES[side], me = requirePerm(SD.mod, 'create');
     const p = partnerById(side, f.partnerId); if (!p) throw new AppError(`Select the ${SD.partner.toLowerCase()}.`);
@@ -15013,6 +15025,19 @@ Object.assign(FORM_HANDLERS, {
 });
 Object.assign(CLICK, {
   'pst-print'(el){ stmtPrint(el.dataset.side, el.dataset.id); },
+  'cc-new'(el){ const po = poById(el.dataset.id); if (!po) return; const v = poVehicle(po), cu = partnerById('ar', po.customerId), cur = 'EGP';
+    const revs = S.accounts.filter(a => !a.isGroup && a.active && a.allowManual && a.type === 'revenue').sort((x, y) => x.code < y.code ? -1 : 1), smap = (getMapping('sales_revenue') || {}).id, def = revs.find(a => a.id !== smap && /service|other/i.test(a.nameEn)) || revs.find(a => a.id !== smap) || revs[0];
+    const vt = (S.taxCodes || []).filter(tc => tc.active && tc.kind === 'standard').map(tc => { try { const r0 = taxRateOn(tc.code, todayCairo()); return r0.rate.gt(0) ? tc : null; } catch (e){ return null; } }).filter(Boolean);
+    const row = () => `<tr><td><input class="input" name="cc_desc" list="cc-presets" placeholder="e.g. Charger" autocomplete="off"></td><td><input class="input mono" name="cc_amount" inputmode="decimal" placeholder="0.00" style="text-align:end"></td></tr>`;
+    openModal({ title: `Customer charge · ${po.number}`, submit: 'Create invoice', body: `
+      <p class="muted" style="margin:0 0 12px">Billed to <b>${esc(cu ? cu.legalName : '')}</b>${v ? ` for ${esc(carName(v))} · ${esc(v.vin)}` : ''}. It is a separate invoice on top of the car price; it shows in the customer's statement and in this car's profit.</p>
+      <datalist id="cc-presets"><option value="Charger"><option value="Customs clearance"><option value="Registration & licensing"><option value="Shipping & delivery"><option value="Accessories"><option value="Other"></datalist>
+      <div class="row"><div class="field"><label>Date *</label><input class="input" type="date" name="date" value="${todayCairo()}"></div>
+        <div class="field" style="max-width:130px"><label>Currency</label><select class="input" name="currency">${S.companyCurrencies.filter(c => c.active).map(c => `<option ${c.code === cur ? 'selected' : ''}>${c.code}</option>`).join('')}</select></div>
+        <div class="field"><label>Income account</label><select class="input" name="account">${revs.map(a => `<option value="${a.id}" ${def && a.id === def.id ? 'selected' : ''}>${esc(a.code)} — ${esc(a.nameEn)}</option>`).join('')}</select></div></div>
+      <div class="tbl-wrap"><table><thead><tr><th>What you are charging</th><th class="num" style="width:160px">Amount</th></tr></thead><tbody>${row()}${row()}${row()}${row()}</tbody></table></div>
+      ${vt.length ? `<div class="row" style="margin-top:10px"><div class="field" style="max-width:260px"><label>VAT</label><select class="input" name="taxCode"><option value="">No VAT</option>${vt.map(tc => `<option value="${tc.code}">${esc(tc.code)}</option>`).join('')}</select></div><div class="field" style="max-width:240px"><label>The amounts above</label><select class="input" name="taxMode"><option value="exclusive">exclude VAT (added)</option><option value="inclusive">include VAT</option></select></div></div>` : ''}`,
+      onSubmit: f => { const inv = A.addCustomerCharge(po.id, f); toast(`${inv.number} created: ${money(inv.total)} ${inv.currency} charged to the customer.`, 'ok'); return () => poView(poById(po.id)); } }); },
   'imp-template'(el){ const T = IMPORT_TYPES[el.dataset.type]; if (!T) return; const ex = {}; T.cols.forEach(c => { ex[c[0]] = c[2] || ''; });
     XW.save(`import-${el.dataset.type}-template.xlsx`, [{ name: T.label.slice(0, 28), title: `${T.label} import template`, subtitle: `Keep the headings. * = required. Replace the sample row with your data.`,
       columns: T.cols.map(c => ({ h: c[1], w: Math.max(14, Math.min(34, c[1].length + 4)) })), rows: [{ k: 'line', c: T.cols.map(c => ex[c[0]]) }] }]); },
@@ -17308,6 +17333,7 @@ function poView(po){
 
   const acts = !shut && closed ? [v && can('vehicles', 'edit') ? `<button type="button" class="btn primary" data-act="car-close" data-id="${v.id}" data-po="${po.id}">Close car</button>` : ''] : shut ? [(nextStepButtons(po, false).match(/<button[^>]*data-act="io-pay"[\s\S]*?<\/button>/g) || []).join(''), can('vehicles', 'edit') ? `<button type="button" class="btn" data-act="car-reopen" data-id="${v.id}" data-po="${po.id}">Reopen</button>` : ''] : [nextStepButtons(po, false),
     po.customerId && can('ar', 'create') && po.status !== 'cancelled' && !c.sold ? `<button type="button" class="btn" data-act="po-adv" data-side="ar" data-id="${po.id}">${ic('plus', 14)} Customer deposit</button>` : '',
+    po.customerId && can('ar', 'create') && po.status !== 'cancelled' && !shut ? `<button type="button" class="btn" data-act="cc-new" data-id="${po.id}">${ic('plus', 14)} Customer charge</button>` : '',
     po.status === 'approved' && can('ap', 'create') && !c.invoiced ? `<button type="button" class="btn" data-act="po-adv" data-side="ap" data-id="${po.id}">${ic('plus', 14)} Supplier advance</button>` : '',
     v && c.sold && !shut && can('vehicles', 'edit') ? `<button type="button" class="btn" data-act="car-close" data-id="${v.id}" data-po="${po.id}">Close car</button>` : '',
     docButtons('po', po, false),
@@ -17401,6 +17427,8 @@ function poView(po){
                   <td class="lbl">Customer Deposits</td>
                   <td class="val">${depAll.length ? `<span style="background:#ecfdf5;color:#047857;padding:3px 10px;border-radius:6px;border:1px solid #a7f3d0;font-weight:700;font-size:13px">${payTot(depAll)}</span>` : '<span class="muted">0.00 EGP</span>'}</td>
                 </tr>
+                ${(() => { const ch = S.invoices.filter(i => i.chargePoId === po.id && invIsLive(i)); if (!ch.length) return ''; const by = {}; ch.forEach(i => { by[i.currency] = (by[i.currency] || D0()).plus(i.total); });
+                  return `<tr><td class="lbl">Customer Charges</td><td class="val"><b class="mono">${Object.entries(by).map(([k, x]) => `${money(x)} ${k}`).join(' + ')}</b> <span class="muted">· ${ch.map(i => `<a href="#" data-act="inv-view" data-id="${i.id}">${esc(i.number)}</a>`).join(', ')}</span></td></tr>`; })()}
                 <tr style="background:#f8fafc">
                   <td class="lbl" style="font-weight:700;color:#0f172a">Total Car Cost</td>
                   <td class="val"><b class="mono" style="font-size:15px;color:#0f172a">${money(c.invoiced ? sm.cost : (sm.priceEgp || D0()).plus(cxTot))} EGP</b></td>
@@ -18633,7 +18661,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261116-061425';
+const APP_BUILD = 'build-20261116-061740';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
