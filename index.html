@@ -3423,6 +3423,20 @@ html body .xp-kpis b.neg{color:var(--bad)!important}
 html body .inv-cards>.inv-card{background:var(--surface)!important;border:1px solid var(--border)!important;border-inline-start:4px solid var(--k3)!important;border-radius:10px!important;box-shadow:none!important}
 html body .inv-cards .inv-card .t{color:var(--muted)!important;font-weight:500}
 .att header{display:flex;justify-content:space-between;align-items:center;gap:8px}.att-list{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}.att-list li{display:flex;align-items:center;gap:10px;border:1px solid var(--border);border-radius:8px;padding:8px 10px}.att-nm{flex:1;min-width:0;display:flex;flex-direction:column}.att-nm b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.att-nm .muted{font-size:11.5px}.att-ic{color:var(--muted);display:inline-flex}.att-add{cursor:pointer}.mh-actions{margin-inline-start:auto;display:flex;gap:8px;align-items:center}.imp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:14px}.imp-cols{display:flex;flex-wrap:wrap;gap:4px;margin:0}.imp-cols span{font-size:11.5px;background:var(--surface-2);border:1px solid var(--border);border-radius:999px;padding:2px 8px;color:var(--muted)}.imp-cols .req{color:var(--text);font-weight:600}
+.cc-who{display:flex;gap:12px;align-items:center;padding:12px 14px;background:var(--surface-2,#f6f5f2);border-radius:10px;margin-bottom:14px}
+.cc-av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--surface);border:1px solid var(--border)}
+.cc-chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:10px}
+.cc-chip{border:1px solid var(--border);background:var(--surface);border-radius:999px;padding:4px 11px;font:inherit;font-size:12.5px;cursor:pointer}
+.cc-chip:hover{border-color:var(--gold,#b0703f);color:var(--gold,#b0703f)}
+.cc-lines{display:flex;flex-direction:column;gap:8px}
+.cc-line{display:grid;grid-template-columns:1fr 140px 32px;gap:8px;align-items:center}
+.cc-line [name=cc_amount]{text-align:end}
+.cc-x{border:0;background:none;cursor:pointer;color:var(--muted);display:grid;place-items:center;height:32px;border-radius:6px}.cc-x:hover{background:var(--surface-2,#eee);color:var(--bad)}
+.cc-foot{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:10px;border-top:1px dashed var(--border)}
+.cc-total b{font-size:18px;margin:0 4px}
+@media(max-width:560px){.cc-line{grid-template-columns:1fr 100px 32px}}
+.pl-tbl{table-layout:fixed;width:100%}.pl-tbl td{padding:10px 8px;vertical-align:middle}.pl-tbl th{padding:10px 8px}.pl-tbl td:first-child,.pl-tbl th:first-child{padding-inline-start:16px}.pl-tbl .input{width:100%;min-width:0}.pl-x{text-align:center}
+.edit-note{display:flex;align-items:center;gap:8px;font-size:13px}
 /* sign-in / first-run setup: one centred card — navy logo band on top, form below, soft light page */
 html body .auth{display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:0;min-height:100vh;padding:32px 16px;background:radial-gradient(700px 380px at 50% 0,rgba(63,95,224,.10),transparent 70%),#F3F5FA!important}
 html body .auth-art{width:100%;max-width:480px;box-sizing:border-box;background:linear-gradient(160deg,#1a2a46,var(--midnight,#0F1B2D))!important;border-radius:16px 16px 0 0;padding:30px 24px 26px!important;display:flex;align-items:center;justify-content:center;min-height:0;overflow:hidden}
@@ -3602,6 +3616,74 @@ html[data-theme="dark"] .sb-tx .sb-l{color:var(--muted)!important}
 /* dark mode: same single-colour icon tiles, in dark colours */
 html[data-theme="dark"]{--tile:rgba(148,163,184,.12);--tile-ink:#cbd5e1}
 html[data-theme="dark"] :is(.sb-ic,.ad-ic,.ad-kpi-icon,.rdc-icon,.co-step,.xp-kic,.acc-ic-badge,.po-car-banner-icon,.car-hero .ico,.co-sum-ic,.mf-head .mf-ic,.mf-ico,.ad-kic,.po-exec-avatar){background:var(--tile)!important;background-image:none!important;color:var(--tile-ink)!important;border:1px solid rgba(148,163,184,.18)!important;box-shadow:none!important}
+/* ===== MODERN LAYER (final): calmer surfaces, one accent, roomier controls. Delete this block to go back. ===== */
+:root{--bg:#f5f6f8;--border:#e7e9ee;--border-2:#d5d9e1;--radius:14px;--cu:#a8642f;--cu-2:#8f5324;--ring:0 0 0 3px rgba(168,100,47,.16)}
+html body{background:var(--bg);letter-spacing:-.003em}
+html body h1,html body h2,html body h3{letter-spacing:-.02em}
+/* sidebar */
+html:not([data-theme="dark"]) body .side{background:#0d1422!important;border-inline-end:0!important;box-shadow:none!important}
+html body .brand{background:transparent!important;border-bottom:1px solid rgba(255,255,255,.06)!important;padding:18px 18px 14px!important}
+html:not([data-theme="dark"]) body .side .nav-item{border:0!important;border-radius:10px!important;padding:9px 12px!important;color:#aeb8c8!important;font-weight:500!important}
+html:not([data-theme="dark"]) body .side .nav-item:hover{background:rgba(255,255,255,.06)!important;color:#fff!important}
+html:not([data-theme="dark"]) body .side .nav-item.active{background:rgba(255,255,255,.09)!important;color:#fff!important;box-shadow:none!important;font-weight:600!important}
+html:not([data-theme="dark"]) body .side .nav-item.active::before{display:block!important;content:"";position:absolute;inset-inline-start:-10px;top:9px;bottom:9px;width:3px;border-radius:0 3px 3px 0;background:#e0a15f}
+html[dir=rtl]:not([data-theme="dark"]) body .side .nav-item.active::before{border-radius:3px 0 0 3px}
+html:not([data-theme="dark"]) body .side .nav-item.active .nav-ic{color:#e0a15f!important}
+html body .side-user-card{background:rgba(255,255,255,.04)!important;border:0!important}
+html body .side-avatar{background:#a8642f!important;border:0!important;color:#fff!important;border-radius:9px!important}
+/* top bar */
+html body .top{background:rgba(255,255,255,.82)!important;backdrop-filter:saturate(1.4) blur(12px);-webkit-backdrop-filter:saturate(1.4) blur(12px);box-shadow:none!important;border-bottom:1px solid var(--border)!important}
+/* cards + tables */
+html body .card,html body .zf-card{border:1px solid var(--border)!important;border-radius:16px!important;box-shadow:0 1px 2px rgba(16,24,40,.03)!important;background:#fff!important}
+html body .tbl-wrap{border-radius:14px}
+html body table thead th{background:#fafbfc!important;color:#667085!important;font-size:12px!important;font-weight:600!important;letter-spacing:.01em!important;text-transform:none!important;box-shadow:0 1px 0 var(--border)!important}
+html body tbody tr{transition:background .12s}
+html body tbody tr:hover td{background:#fafbfc}
+html body td{border-bottom-color:#eef0f3!important}
+/* dashboard */
+html body .zh-hello{background:transparent!important;border:0!important;box-shadow:none!important;padding:6px 0 4px!important}
+html body .zh-hi-ic{display:none!important}
+html body .zh-hello h1{font-size:28px!important;font-weight:700!important;letter-spacing:-.03em!important}
+html body .zh-hello p{color:var(--muted)!important;font-size:14.5px!important}
+html body .zh-chips span{background:transparent!important;border:0!important;padding:0 14px 0 0!important;color:var(--muted)!important}
+html body .zf-kpis .zf-k{background:#fff!important;border:1px solid var(--border)!important;border-inline-start:3px solid var(--ka,#a8642f)!important;border-radius:14px!important;box-shadow:0 1px 2px rgba(16,24,40,.03)!important;transition:transform .15s,box-shadow .15s}
+html body .zf-kpis .zf-k:hover{transform:translateY(-1px);box-shadow:0 8px 20px -10px rgba(16,24,40,.18)!important}
+html body .zf-kpis .zf-k .zf-ki{background:transparent!important;color:var(--ka,#a8642f)!important;box-shadow:none!important;width:auto!important;height:auto!important}
+html body .zf-kpis .zf-k .zf-kl{color:#667085!important;font-weight:500!important}
+html body .zf-kpis .zf-k b{font-size:28px!important;letter-spacing:-.03em!important;font-weight:700!important}
+html body .zf-kpis .zf-k.t-ind,html body .zf-kpis .zf-k.t-teal,html body .zf-kpis .zf-k.t-amber,html body .zf-kpis .zf-k.t-blue,html body .zf-kpis .zf-k.t-violet,html body .zf-kpis .zf-k.t-green{background:#fff!important;border-color:var(--border)!important}
+html body .zf-kpis .zf-k.t-ind{--ka:#4f5bd5}html body .zf-kpis .zf-k.t-teal{--ka:#0f9d8a}html body .zf-kpis .zf-k.t-amber{--ka:#d98a12}html body .zf-kpis .zf-k.t-blue{--ka:#2f7fe0}html body .zf-kpis .zf-k.t-violet{--ka:#7c5cd6}html body .zf-kpis .zf-k.t-green{--ka:#12a150}
+/* buttons */
+html body .btn{border-radius:10px!important;min-height:38px!important;border:1px solid var(--border-2)!important;box-shadow:0 1px 1px rgba(16,24,40,.04)!important;font-weight:600!important}
+html body .btn:hover{border-color:#b9c0cc!important;background:#fafbfc}
+html body .btn.sm{min-height:32px!important;border-radius:8px!important}
+html body .btn.gold,html body button.btn.gold{background:var(--cu)!important;border-color:var(--cu)!important;color:#fff!important;box-shadow:0 1px 2px rgba(143,83,36,.3),inset 0 1px 0 rgba(255,255,255,.18)!important}
+html body .btn.gold:hover{background:var(--cu-2)!important;transform:none!important;box-shadow:0 6px 16px -6px rgba(143,83,36,.5)!important}
+html body .btn.primary{background:#101828!important;border-color:#101828!important}
+html body .btn:active{transform:scale(.985)}
+/* inputs */
+html body .input,html body select.input,html body textarea.input{background:#fff!important;border:1px solid var(--border-2)!important;border-radius:10px!important;min-height:42px;box-shadow:0 1px 1px rgba(16,24,40,.03)!important;transition:border-color .12s,box-shadow .12s}
+html body .input:hover{border-color:#b9c0cc!important}
+html body .input:focus,html body .input:focus-visible,html body .field:focus-within>.input{border-color:var(--cu)!important;box-shadow:var(--ring)!important;outline:0!important}
+html body .input::placeholder{color:#a4abb8}
+html body .mf-card .field>label{color:#344054;font-weight:600}
+/* form pages */
+html body .modal-b.mf-card{max-width:1100px;margin:24px auto 0!important;border-radius:18px!important;box-shadow:0 1px 2px rgba(16,24,40,.03)!important;border-color:var(--border)!important}
+html body .modal-b.mf-card:focus-within{border-color:var(--border)!important;box-shadow:0 1px 2px rgba(16,24,40,.03)!important}
+html body .mf-card:focus-within .mf-head .co-step{background:#f3ece5!important;color:var(--cu)!important;box-shadow:none!important}
+html body .mf-head .co-step{background:#f3ece5!important;color:var(--cu)!important;border-radius:12px!important}
+html body .modal-f{position:sticky!important;bottom:0;max-width:none;background:rgba(245,246,248,.86)!important;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid var(--border)!important;padding:12px 28px!important;margin-top:20px}
+html body .note{border-radius:12px;border:1px solid var(--border);background:#f9fafb}
+html body .pl-tbl .btn.sm{border-color:transparent!important;box-shadow:none!important;color:#98a2b3!important;background:transparent}
+html body .pl-tbl .btn.sm:hover{color:var(--bad)!important;background:var(--bad-soft)}
+html body .cc-who{background:#faf6f1!important;border:1px solid #f0e4d6}
+html body .cc-chip:hover{border-color:var(--cu);color:var(--cu)}
+/* badges */
+html body .badge{border-radius:999px!important;font-weight:600!important;padding:2px 10px!important}
+/* thin scrollbars */
+*{scrollbar-width:thin;scrollbar-color:#cdd2db transparent}
+@media (prefers-reduced-motion:reduce){html body .zf-kpis .zf-k,html body .btn,html body .input{transition:none!important}}
+html body .zf-kpis .zf-k.t-ind,html body .zf-kpis .zf-k.t-teal,html body .zf-kpis .zf-k.t-amber,html body .zf-kpis .zf-k.t-blue,html body .zf-kpis .zf-k.t-violet,html body .zf-kpis .zf-k.t-green{border-inline-start-color:var(--ka)!important}
 </style>
 
 </head>
@@ -11472,8 +11554,8 @@ function pageRequests(){
 }
 function poLineRow(l = {}){
   const free = S.vehicles.filter(v => vStatus(v.status).group === 'pipeline' && !S.purchaseOrders.some(p => p.status !== 'cancelled' && p.lines.some(x => x.vehicleId === v.id)));
-  return `<tr><td><input class="input" name="pl_desc" value="${esc(l.description || '')}" style="min-width:240px"></td><td><input class="input mono" name="pl_price" style="text-align:end;width:130px" value="${esc(l.price || '')}"></td>
-    <td><select class="input" name="pl_vehicle"><option value="">— link later —</option>${free.map(v => `<option value="${v.id}">${esc(vehLabel(v))}</option>`).join('')}</select></td><td><button type="button" class="btn sm" data-act="pl-del">×</button></td></tr>`;
+  return `<tr><td><input class="input" name="pl_desc" value="${esc(l.description || '')}" placeholder="e.g. BMW X5 2025 · Chassis …"></td><td><input class="input mono" name="pl_price" style="text-align:end" placeholder="0.00" value="${esc(l.price || '')}"></td>
+    <td><select class="input" name="pl_vehicle"><option value="">— link later —</option>${free.map(v => `<option value="${v.id}">${esc(vehLabel(v))}</option>`).join('')}</select></td><td class="pl-x"><button type="button" class="btn sm" data-act="pl-del" aria-label="Remove line">${ic('close', 14)}</button></td></tr>`;
 }
 function poListStatus(po){
   if (po.status === 'cancelled') return ['Cancelled', 'b-bad'];
@@ -11630,7 +11712,7 @@ const P6_CLICKS = {
       <div class="field" style="max-width:190px"><label data-rate-lbl>Exchange rate (1 = ? EGP)</label><input class="input mono" name="rate" value="${esc(pre.rate || '')}" data-rate-for="currency" autocomplete="off" placeholder="e.g. 52.50"></div></div>
     <div class="row"><div class="field"><label>Delivery terms (Incoterm)</label><input class="input" name="deliveryTerms" value="${esc(pre.terms || '')}"></div><div class="field"><label>Payment terms</label><input class="input" name="paymentTerms"></div><div class="field"><label>Expected delivery</label><input class="input" type="date" name="expectedDelivery"></div></div>
     <div class="field"><label>Shipping details</label><input class="input" name="shipping"></div>
-    <div class="tbl-wrap" style="border:1px solid var(--border);border-radius:8px"><table><thead><tr><th>Vehicle description</th><th class="num">Price</th><th>Registered vehicle</th><th></th></tr></thead><tbody id="pl-lines">${(pre.lines || [{}]).map(poLineRow).join('')}</tbody></table></div>
+    <div class="tbl-wrap" style="border:1px solid var(--border);border-radius:8px"><table class="pl-tbl"><colgroup><col><col style="width:160px"><col style="width:34%"><col style="width:56px"></colgroup><thead><tr><th>Vehicle description</th><th class="num">Price</th><th>Registered vehicle</th><th></th></tr></thead><tbody id="pl-lines">${(pre.lines || [{}]).map(poLineRow).join('')}</tbody></table></div>
     <div class="row" style="margin-top:8px"><button type="button" class="btn sm" data-act="pl-add">+ Add vehicle line</button></div>`, onSubmit: f => { const po = A.createPO(f); toast(`${po.number} submitted for approval.`, 'ok'); } }); const fm = document.getElementById('mform'); if (fm) syncRateField(fm); },
   'pl-add'(){ document.getElementById('pl-lines').insertAdjacentHTML('beforeend', poLineRow({})); },
   'pl-del'(el){ const tb = document.getElementById('pl-lines'); if (tb.children.length > 1) el.closest('tr').remove(); },
@@ -14973,6 +15055,9 @@ Object.assign(FORM_HANDLERS, {
   match(f, form){ const stId = form.dataset.st; run(() => A.matchLines(stId, [].concat(f.sl || []), [].concat(f.bk || [])), 'Matched.'); },
   reval(f){ UI.reval = { date: f.date, type: f.type, auto: f.auto }; render(); }
 });
+function ccTotal(){ const t = document.getElementById('cc-total'); if (!t) return; let sum = 0; document.querySelectorAll('#cc-lines [name=cc_amount]').forEach(i => { const n = parseFloat(String(i.value).replace(/,/g, '')); if (isFinite(n)) sum += n; }); t.textContent = sum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); const c = document.getElementById('cc-cursel'), o = document.getElementById('cc-cur'); if (o && c) o.textContent = c.value; }
+document.addEventListener('input', e => { if (e.target.closest && e.target.closest('#cc-lines')) ccTotal(); });
+document.addEventListener('change', e => { if (e.target.id === 'cc-cursel') ccTotal(); });
 Object.assign(CLICK, {
   'bank-new'(){ openModal({ title: 'New bank / cash account', wide: true, body: bankForm({}), onSubmit: f => A.saveBank(null, f) }); },
   'bank-edit'(el){ const b = bankById(el.dataset.id); openModal({ title: `Edit ${b.name}`, wide: true, body: bankForm(b), onSubmit: f => A.saveBank(b.id, f) }); },
@@ -15025,17 +15110,23 @@ Object.assign(FORM_HANDLERS, {
 });
 Object.assign(CLICK, {
   'pst-print'(el){ stmtPrint(el.dataset.side, el.dataset.id); },
+  'cc-addrow'(){ const w = document.getElementById('cc-lines'); if (!w) return; w.insertAdjacentHTML('beforeend', w.firstElementChild.outerHTML.replace(/value="[^"]*"/g, 'value=""')); const i = w.lastElementChild.querySelector('input'); if (i) i.focus(); },
+  'cc-delrow'(el){ const w = document.getElementById('cc-lines'); if (!w) return; if (w.children.length > 1) el.closest('.cc-line').remove(); else el.closest('.cc-line').querySelectorAll('input').forEach(i => { i.value = ''; }); ccTotal(); },
+  'cc-chip'(el){ const w = document.getElementById('cc-lines'); if (!w) return; let r = [...w.children].find(x => !x.querySelector('[name=cc_desc]').value.trim()); if (!r){ CLICK['cc-addrow'](); r = w.lastElementChild; } r.querySelector('[name=cc_desc]').value = el.dataset.d; r.querySelector('[name=cc_amount]').focus(); },
   'cc-new'(el){ const po = poById(el.dataset.id); if (!po) return; const v = poVehicle(po), cu = partnerById('ar', po.customerId), cur = 'EGP';
     const revs = S.accounts.filter(a => !a.isGroup && a.active && a.allowManual && a.type === 'revenue').sort((x, y) => x.code < y.code ? -1 : 1), smap = (getMapping('sales_revenue') || {}).id, def = revs.find(a => a.id !== smap && /service|other/i.test(a.nameEn)) || revs.find(a => a.id !== smap) || revs[0];
     const vt = (S.taxCodes || []).filter(tc => tc.active && tc.kind === 'standard').map(tc => { try { const r0 = taxRateOn(tc.code, todayCairo()); return r0.rate.gt(0) ? tc : null; } catch (e){ return null; } }).filter(Boolean);
-    const row = () => `<tr><td><input class="input" name="cc_desc" list="cc-presets" placeholder="e.g. Charger" autocomplete="off"></td><td><input class="input mono" name="cc_amount" inputmode="decimal" placeholder="0.00" style="text-align:end"></td></tr>`;
-    openModal({ title: `Customer charge · ${po.number}`, submit: 'Create invoice', body: `
-      <p class="muted" style="margin:0 0 12px">Billed to <b>${esc(cu ? cu.legalName : '')}</b>${v ? ` for ${esc(carName(v))} · ${esc(v.vin)}` : ''}. It is a separate invoice on top of the car price; it shows in the customer's statement and in this car's profit.</p>
-      <datalist id="cc-presets"><option value="Charger"><option value="Customs clearance"><option value="Registration & licensing"><option value="Shipping & delivery"><option value="Accessories"><option value="Other"></datalist>
-      <div class="row"><div class="field"><label>Date *</label><input class="input" type="date" name="date" value="${todayCairo()}"></div>
-        <div class="field" style="max-width:130px"><label>Currency</label><select class="input" name="currency">${S.companyCurrencies.filter(c => c.active).map(c => `<option ${c.code === cur ? 'selected' : ''}>${c.code}</option>`).join('')}</select></div>
+    const row = (d = '') => `<div class="cc-line"><input class="input" name="cc_desc" value="${esc(d)}" placeholder="Description" autocomplete="off"><input class="input mono" name="cc_amount" inputmode="decimal" placeholder="0.00"><button type="button" class="cc-x" data-act="cc-delrow" title="Remove" aria-label="Remove line">${ic('close', 14)}</button></div>`;
+    const chips = ['Charger', 'Customs clearance', 'Registration & licensing', 'Shipping & delivery', 'Accessories'];
+    openModal({ title: `Charge the customer`, submit: 'Create invoice', body: `
+      <div class="cc-who"><span class="cc-av">${ic('users', 16)}</span><div><b>${esc(cu ? cu.legalName : '')}</b><div class="muted">${esc(po.number)}${v ? ` · ${esc(carName(v))} · ${esc(v.vin)}` : ''}</div></div></div>
+      <div class="cc-chips"><span class="muted">Quick add</span>${chips.map(c => `<button type="button" class="cc-chip" data-act="cc-chip" data-d="${esc(c)}">+ ${esc(c)}</button>`).join('')}</div>
+      <div class="cc-lines" id="cc-lines">${row()}${row()}</div>
+      <div class="cc-foot"><button type="button" class="btn sm" data-act="cc-addrow">${ic('plus', 14)} Add line</button><div class="cc-total"><span class="muted">Total</span> <b class="mono" id="cc-total">0.00</b> <span class="muted" id="cc-cur">${cur}</span></div></div>
+      <div class="row" style="margin-top:14px"><div class="field"><label>Date *</label><input class="input" type="date" name="date" value="${todayCairo()}"></div>
+        <div class="field" style="max-width:110px"><label>Currency</label><select class="input" name="currency" id="cc-cursel">${S.companyCurrencies.filter(c => c.active).map(c => `<option ${c.code === cur ? 'selected' : ''}>${c.code}</option>`).join('')}</select></div>
         <div class="field"><label>Income account</label><select class="input" name="account">${revs.map(a => `<option value="${a.id}" ${def && a.id === def.id ? 'selected' : ''}>${esc(a.code)} — ${esc(a.nameEn)}</option>`).join('')}</select></div></div>
-      <div class="tbl-wrap"><table><thead><tr><th>What you are charging</th><th class="num" style="width:160px">Amount</th></tr></thead><tbody>${row()}${row()}${row()}${row()}</tbody></table></div>
+      <p class="hint" style="margin:6px 0 0">A separate invoice on top of the car price. It appears in the customer's statement and in this car's profit.</p>
       ${vt.length ? `<div class="row" style="margin-top:10px"><div class="field" style="max-width:260px"><label>VAT</label><select class="input" name="taxCode"><option value="">No VAT</option>${vt.map(tc => `<option value="${tc.code}">${esc(tc.code)}</option>`).join('')}</select></div><div class="field" style="max-width:240px"><label>The amounts above</label><select class="input" name="taxMode"><option value="exclusive">exclude VAT (added)</option><option value="inclusive">include VAT</option></select></div></div>` : ''}`,
       onSubmit: f => { const inv = A.addCustomerCharge(po.id, f); toast(`${inv.number} created: ${money(inv.total)} ${inv.currency} charged to the customer.`, 'ok'); return () => poView(poById(po.id)); } }); },
   'imp-template'(el){ const T = IMPORT_TYPES[el.dataset.type]; if (!T) return; const ex = {}; T.cols.forEach(c => { ex[c[0]] = c[2] || ''; });
@@ -15382,9 +15473,10 @@ function fillForm(f){
 }
 function decorateModal(title, submit, note){
   const h = document.querySelector('#modal-root .modal-h h3'); if (h && title) h.textContent = title;
+  const mh = document.querySelector('#modal-root .mf-head h3'); if (mh && title) mh.textContent = title;
   if (submit && !APPROVALS) submit = submit.replace(/(Save|Create) & submit for approval/, 'Save & post');
   const b = document.querySelector('#modal-root .modal-f button[type=submit]'); if (b && submit) b.textContent = submit;
-  const body = document.querySelector('#modal-root .modal-b'); if (body && note) body.insertAdjacentHTML('afterbegin', `<div class="note" style="margin:0 0 12px">${note}</div>`);
+  const body = document.querySelector('#modal-root .modal-b'); if (body && note){ const hd = body.querySelector('.mf-head'); const nh = `<div class="note edit-note" style="margin:0 0 16px">${note}</div>`; if (hd) hd.insertAdjacentHTML('afterend', nh); else body.insertAdjacentHTML('afterbegin', nh); }
 }
 function startEdit(kind, id){
   closeModal();
@@ -18669,7 +18761,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261116-061945';
+const APP_BUILD = 'build-20261116-062604';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
