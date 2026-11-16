@@ -3996,6 +3996,23 @@ html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg .moda
 /* ===== GLOBAL SCALE-UP (all pages except dashboard) ===== */
 html:not([data-theme="dark"]):not([data-route="dashboard"]) body main.content{zoom:1.06}
 html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg .modal-b.mf-card{zoom:1.1}
+/* ===== COLOURED ACTION BUTTONS ===== */
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .btn[data-act="io-pay"][data-side="ap"]{background:#fff1f2!important;border-color:#fecdd3!important;color:#be123c!important;font-weight:600}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .btn[data-act="io-pay"][data-side="ap"]:hover{background:#ffe4e6!important;transform:translateY(-1px);box-shadow:0 6px 14px -8px #be123c!important}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .btn[data-act="io-pay"][data-side="ar"]{background:#ecfdf3!important;border-color:#b7ebcc!important;color:#15803d!important;font-weight:600}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .btn[data-act="io-pay"][data-side="ar"]:hover{background:#d9f7e5!important;transform:translateY(-1px);box-shadow:0 6px 14px -8px #15803d!important}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .btn[data-act="cc-new"]{background:#eef3ff!important;border-color:#c7d6fa!important;color:#2446a8!important;font-weight:600}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .btn[data-act="cc-new"]:hover{background:#dfe9ff!important;transform:translateY(-1px);box-shadow:0 6px 14px -8px #2446a8!important}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .btn[data-act="po-adv"][data-side="ar"]{background:#eef3ff!important;border-color:#c7d6fa!important;color:#2446a8!important;font-weight:600}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .btn[data-act="po-adv"][data-side="ar"]:hover{background:#dfe9ff!important;transform:translateY(-1px);box-shadow:0 6px 14px -8px #2446a8!important}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .btn[data-act="po-adv"][data-side="ap"]{background:#fff7e6!important;border-color:#f6dca0!important;color:#9a6200!important;font-weight:600}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .btn[data-act="po-adv"][data-side="ap"]:hover{background:#ffefc7!important;transform:translateY(-1px);box-shadow:0 6px 14px -8px #9a6200!important}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .btn[data-act="car-close"]{background:#f4efff!important;border-color:#d9cbf7!important;color:#6232c2!important;font-weight:600}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .btn[data-act="car-close"]:hover{background:#eadffe!important;transform:translateY(-1px);box-shadow:0 6px 14px -8px #6232c2!important}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .btn[data-act="car-reopen"]{background:#f4efff!important;border-color:#d9cbf7!important;color:#6232c2!important;font-weight:600}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .btn[data-act="car-reopen"]:hover{background:#eadffe!important;transform:translateY(-1px);box-shadow:0 6px 14px -8px #6232c2!important}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .btn[data-act="car-report-pdf"]{background:#effafa!important;border-color:#bfe6e6!important;color:#0f766e!important;font-weight:600}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .btn[data-act="car-report-pdf"]:hover{background:#dcf3f3!important;transform:translateY(-1px);box-shadow:0 6px 14px -8px #0f766e!important}
 </style>
 
 </head>
@@ -19076,7 +19093,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261116-132610';
+const APP_BUILD = 'build-20261116-153507';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
