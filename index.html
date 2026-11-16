@@ -3974,7 +3974,11 @@ html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg>.moda
 html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg .modal-h{background:linear-gradient(180deg,#fff,#f8faff)!important;border-bottom:1px solid #dfe7f6!important;box-shadow:0 8px 24px -18px rgba(30,60,130,.35);position:relative}
 html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg .modal-h::after{content:"";position:absolute;inset-inline:0;bottom:-1px;height:3px;background:linear-gradient(90deg,#c89b3c,#e6c26e 30%,#2f5bd2 70%,#7c4ddb);opacity:.85}
 html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg .modal-b{background:#fff!important;border:1px solid #e1e8f6!important;border-radius:18px!important;box-shadow:0 1px 2px rgba(20,40,90,.05),0 18px 34px -20px rgba(30,60,130,.28)!important;margin:26px auto 0!important;padding:24px 28px!important;max-width:1180px}
-html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg .modal-b.mf-card{max-width:860px}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg .modal-b.mf-card{max-width:1280px!important;width:calc(100% - 64px);padding:34px 44px!important;font-size:15px}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg .modal-b.mf-card label,html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg .modal-b.mf-card .lbl{font-size:13.5px!important}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg .modal-b.mf-card input:not([type=checkbox]):not([type=radio]),html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg .modal-b.mf-card select{min-height:50px!important;font-size:15.5px!important}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg .modal-b.mf-card textarea{font-size:15.5px!important}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg .modal-b.mf-card .modal-h-title,html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg .modal-h h1,html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg .modal-h .mh-title{font-size:24px!important}
 html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg .modal-f{background:transparent!important;border:0!important}
 html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg .modal-b .empty,html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg .modal-b>.muted:only-child{background:linear-gradient(135deg,#eef3ff,#f8faff);border:1px dashed #c9d6f2;border-radius:14px;padding:34px 16px!important;text-align:center;color:#5a6a8a!important;font-size:14px}
 html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg table tbody tr{transition:background .15s}
@@ -19064,7 +19068,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261116-131408';
+const APP_BUILD = 'build-20261116-131645';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
