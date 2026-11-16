@@ -4036,6 +4036,30 @@ html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg .moda
 :root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body .rec .btn:not(.gold):not(.primary):not([data-act]){background:#fff!important}
 :root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body .rec-actions .btn[data-act="cx-new"]{background:#eef3ff!important;border-color:#c7d6fa!important;color:#2446a8!important;font-weight:600}
 :root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body .rec-actions .btn[data-act="veh-edit"]{background:#fff7e6!important;border-color:#f6dca0!important;color:#9a6200!important;font-weight:600}
+/* ===== STAT CARDS (.card.stat) ===== */
+:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body .card.stat{border:1px solid #e1e8f6!important;border-radius:16px!important;padding:18px 20px!important;position:relative;overflow:hidden;box-shadow:0 12px 26px -22px rgba(30,60,130,.45)!important;transition:transform .15s,box-shadow .15s}
+:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body .card.stat::before{content:"";position:absolute;inset-block:0;inset-inline-start:0;width:5px}
+:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body .card.stat:hover{transform:translateY(-2px)}
+:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body .card.stat .k{font-size:13px!important;font-weight:600;letter-spacing:0!important;text-transform:none!important}
+:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body .card.stat .v{font-size:28px!important;font-weight:800!important;margin-top:6px}
+:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body .grid>.card.stat:nth-child(4n+1){background:linear-gradient(135deg,#eef3ff,#fff 85%)!important}
+:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body .grid>.card.stat:nth-child(4n+1)::before{background:#2f5bd2}
+:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body .grid>.card.stat:nth-child(4n+1) .k{color:#2446a8!important}
+:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body .grid>.card.stat:nth-child(4n+2){background:linear-gradient(135deg,#ecfdf3,#fff 85%)!important}
+:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body .grid>.card.stat:nth-child(4n+2)::before{background:#16a34a}
+:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body .grid>.card.stat:nth-child(4n+2) .k{color:#15803d!important}
+:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body .grid>.card.stat:nth-child(4n+3){background:linear-gradient(135deg,#fff7e6,#fff 85%)!important}
+:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body .grid>.card.stat:nth-child(4n+3)::before{background:#d99a1a}
+:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body .grid>.card.stat:nth-child(4n+3) .k{color:#9a6200!important}
+:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body .grid>.card.stat:nth-child(4n){background:linear-gradient(135deg,#f4efff,#fff 85%)!important}
+:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body .grid>.card.stat:nth-child(4n)::before{background:#7c4ddb}
+:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body .grid>.card.stat:nth-child(4n) .k{color:#6232c2!important}
+/* ===== UNIFIED CARDS ===== */
+:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body main.content .card:not(.stat){background:#fff!important;border:1px solid #e1e8f6!important;border-radius:16px!important;box-shadow:0 12px 26px -22px rgba(30,60,130,.4)!important;overflow:hidden}
+:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body main.content .card>.card-h{background:linear-gradient(180deg,#f7f9ff,#f1f5fd)!important;border-bottom:1px solid #e4eaf7!important;padding:15px 22px!important;margin:0!important}
+:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body main.content .card>.card-h h2{color:#233157!important}
+:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body main.content .card>.card-b{padding:20px 22px!important}
+:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body main.content .card.card.card:has(>.card-h){padding:0!important;padding-inline:0!important}
 </style>
 
 </head>
@@ -19115,7 +19139,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261116-154516';
+const APP_BUILD = 'build-20261116-155041';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
