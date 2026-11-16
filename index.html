@@ -17048,6 +17048,7 @@ function printCarReport(po){
   const contract = ctrEgp;
   const recvEgp = tIn.egp;
   const custDue = sale ? invState(sale).open : contract ? contract.minus(recvEgp) : null;
+  const chg = S.invoices.filter(i => i.chargePoId === po.id && invIsLive(i)), chDue = chg.reduce((t, i) => t.plus(invState(i).egpOpen), D0()), chTot = chg.reduce((t, i) => t.plus(entryById(i.entryId) && entryById(i.entryId).totals ? entryById(i.entryId).totals.egpDebit : (i.currency === 'EGP' ? i.total : 0)), D0());
   const supBillFc = billed ? D(supInv.total) : null, paidFc = adv.filter(x => x.currency === pCur).reduce((t, x) => t.plus(x.amount), D0()).plus(reds(supInv, adv).filter(x => x.kind !== 'Credit note').reduce((t, x) => t.plus(x.amount), D0()));
   const supDue = billed ? invState(supInv).open : null;
   const diffCtr = cy.sold && ctr && ctr.cur === 'EGP' && !net.eq(ctr.amt) ? net.minus(ctr.amt) : null;
@@ -17148,7 +17149,8 @@ function printCarReport(po){
       ${ctr ? `<div class="r"><span>Contracted price</span><b>${ctrTxt}</b></div>` : ''}
       ${sale ? `<div class="r"><span>Invoiced <span class="m">· ${esc(sale.number)}</span></span><b>${money(sale.total)} ${sale.currency}</b></div>` : ''}
       <div class="r"><span>Received</span><b>${money(recvEgp)} EGP</b></div>
-      ${custDue !== null ? `<div class="r tot"><span>${sale ? 'Balance due' : 'Still to collect'}</span><b class="${custDue.gt(0) ? 'bad' : 'ok'}">${custDue.gt(0) ? (!sale && ctr.cur !== 'EGP' ? `${money(r2(custDue.div(ctrRate)))} ${esc(ctr.cur)} <span class="m">≈ ${money(custDue)} EGP</span>` : money(custDue) + ' ' + (sale ? sale.currency : 'EGP')) : 'Fully paid'}</b></div>` : '<div class="r tot"><span>Balance</span><b>—</b></div>'}
+      ${chg.length ? `<div class="r"><span>Customer charges</span><b>${money(chTot)} EGP</b></div><div class="r"><span>Charges still due</span><b class="${chDue.gt(0) ? 'bad' : 'ok'}">${chDue.gt(0) ? money(chDue) + ' EGP' : 'Paid'}</b></div>` : ''}
+      ${custDue !== null ? `<div class="r tot"><span>${chg.length ? 'Car balance due' : sale ? 'Balance due' : 'Still to collect'}</span><b class="${custDue.gt(0) ? 'bad' : 'ok'}">${custDue.gt(0) ? (!sale && ctr.cur !== 'EGP' ? `${money(r2(custDue.div(ctrRate)))} ${esc(ctr.cur)} <span class="m">≈ ${money(custDue)} EGP</span>` : money(custDue) + ' ' + (sale ? sale.currency : 'EGP')) : 'Fully paid'}</b></div>` : '<div class="r tot"><span>Balance</span><b>—</b></div>'}
     </div>
     <div class="ac"><div class="hd"><div><div class="k">${poKind(po) === 'local' ? 'Bought from' : 'Supplier'}</div><div class="nm">${sup ? esc(sup.legalName) : '—'}</div></div><div class="sm">${sup ? esc(sup.code) + ' · ' + pCur : ''}</div></div>
       <div class="r"><span>Supplier bill${billed ? ` <span class="m">· ${esc(supInv.number)}</span>` : ''}</span><b>${billed ? `${money(supBillFc)} ${pCur}` : draftBill ? `<span class="tag warn">Draft ${money(draftBill.total)} ${pCur}</span>` : '<span class="tag warn">Not billed yet</span>'}</b></div>
@@ -17178,6 +17180,7 @@ function printCarReport(po){
       <tr class="res ${profitKnown ? (neg(shownRes) ? 'bad' : 'ok') : 'pend'}"><td>${cy.sold ? 'Profit on this car' : 'Expected profit'} ${profitKnown ? `<span class="m">· margin ${margin}</span>` : ''}</td><td class="n">${profitKnown ? money(shownRes) + ' EGP' : 'after the supplier bill'}</td></tr>
     </tbody></table>
   </section>
+  ${chg.length ? `<section class="blk"><h2>Customer charges</h2><table class="t"><thead><tr><th>Invoice</th><th>Date</th><th>Charges</th><th class="n">Amount</th><th>Status</th></tr></thead><tbody>${chg.map(i => { const o = invState(i).open; return `<tr><td class="doc">${esc(i.number)}</td><td>${i.date}</td><td>${esc((i.lines || []).map(l => l.description).join(', '))}</td><td class="n">${money(i.total)} <span class="cur">${i.currency}</span></td><td>${o.gt(0) ? `<span class="pill bad">Open ${money(o)} ${i.currency}</span>` : '<span class="pill ok">Paid</span>'}</td></tr>`; }).join('')}</tbody></table></section>` : ''}
   ${tbl('Received from customer', moneyIn, tIn, 'Nothing received yet.')}
   ${tbl('Paid to supplier', moneyOut, tOut, 'Nothing paid yet.')}
   <footer><div>Prepared by</div><div>Chief accountant</div><div>Approved by</div></footer>
@@ -17531,6 +17534,11 @@ function poView(po){
                   `}
                 </div>
               </div>
+
+              ${(() => { const ch = S.invoices.filter(i => i.chargePoId === po.id && invIsLive(i)); if (!ch.length) return '';
+                const openE = ch.reduce((t, i) => t.plus(invState(i).egpOpen), D0());
+                return `<div class="rec-doc-card linked"><div class="rdc-header"><div class="rdc-icon cust">${ic('invoices', 18)}</div><div class="rdc-title-wrap"><span class="rdc-kind">Customer Charges (رسوم على العميل)</span><b class="rdc-num">${ch.length} invoice${ch.length === 1 ? '' : 's'}</b></div>${openE.gt(0) ? '<span class="badge b-warn">Open</span>' : '<span class="badge b-ok">Paid</span>'}</div>
+                <div class="rdc-body">${ch.map(i => { const o = invState(i).open; return `<div class="rdc-row"><span><a href="#" data-act="inv-view" data-id="${i.id}">${esc(i.number)}</a> <span class="muted">${esc((i.lines || []).map(l => l.description).join(', '))}</span></span><b class="mono">${money(i.total)} ${i.currency}</b></div>${o.gt(0) ? `<div class="rdc-row highlight"><span>Balance Due</span><b class="mono" style="color:var(--warn)">${money(o)} ${i.currency}</b>${can('ar', 'create') ? ` <button type="button" class="btn sm gold" data-act="io-pay" data-side="ar" data-id="${i.id}">Receive payment</button>` : ''}</div>` : ''}`; }).join('')}</div></div>`; })()}
 
               <div class="rec-doc-card ${c.supInv ? 'linked' : ''}">
                 <div class="rdc-header">
@@ -18661,7 +18669,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261116-061740';
+const APP_BUILD = 'build-20261116-061945';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
