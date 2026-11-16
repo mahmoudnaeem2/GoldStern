@@ -3968,6 +3968,22 @@ html:not([data-theme="dark"]):not([data-route="dashboard"]) body .zf-kpis>.zf-k 
 @media (prefers-reduced-motion:no-preference){html:not([data-theme="dark"]):not([data-route="dashboard"]) body .zf-kpis>.zf-k{animation:gsPop .45s cubic-bezier(.2,.7,.2,1) both}html:not([data-theme="dark"]):not([data-route="dashboard"]) body .zf-kpis>.zf-k:nth-child(2){animation-delay:.06s}html:not([data-theme="dark"]):not([data-route="dashboard"]) body .zf-kpis>.zf-k:nth-child(3){animation-delay:.12s}html:not([data-theme="dark"]):not([data-route="dashboard"]) body .zf-kpis>.zf-k:nth-child(4){animation-delay:.18s}}
 html:not([data-theme="dark"]):not([data-route="dashboard"]) body .inv-cards>.inv-card,html:not([data-theme="dark"]):not([data-route="dashboard"]) body .inv-card{background:#fff!important;border:1px solid #e6ebf5!important;border-top:3px solid #2f5bd2!important;border-radius:14px!important;box-shadow:0 1px 2px rgba(20,40,90,.04),0 12px 24px -18px rgba(20,40,90,.25)!important;padding:16px 18px!important}
 html:not([data-theme="dark"]):not([data-route="dashboard"]) body .inv-cards>.inv-card:nth-child(2){border-top-color:#16a34a!important}html:not([data-theme="dark"]):not([data-route="dashboard"]) body .inv-cards>.inv-card:nth-child(3){border-top-color:#c89b3c!important}html:not([data-theme="dark"]):not([data-route="dashboard"]) body .inv-cards>.inv-card:nth-child(4){border-top-color:#7c4ddb!important}
+/* ===== MODAL / FORM / DRILLDOWN LIVELY ===== */
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg{background:linear-gradient(180deg,#e6edfc 0,#f1f5fd 280px,#f5f8fe 100%)!important}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg>.modal,html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg .modal.wide{background:transparent!important;box-shadow:none!important}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg .modal-h{background:linear-gradient(180deg,#fff,#f8faff)!important;border-bottom:1px solid #dfe7f6!important;box-shadow:0 8px 24px -18px rgba(30,60,130,.35);position:relative}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg .modal-h::after{content:"";position:absolute;inset-inline:0;bottom:-1px;height:3px;background:linear-gradient(90deg,#c89b3c,#e6c26e 30%,#2f5bd2 70%,#7c4ddb);opacity:.85}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg .modal-b{background:#fff!important;border:1px solid #e1e8f6!important;border-radius:18px!important;box-shadow:0 1px 2px rgba(20,40,90,.05),0 18px 34px -20px rgba(30,60,130,.28)!important;margin:26px auto 0!important;padding:24px 28px!important;max-width:1180px}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg .modal-b.mf-card{max-width:860px}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg .modal-f{background:transparent!important;border:0!important}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg .modal-b .empty,html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg .modal-b>.muted:only-child{background:linear-gradient(135deg,#eef3ff,#f8faff);border:1px dashed #c9d6f2;border-radius:14px;padding:34px 16px!important;text-align:center;color:#5a6a8a!important;font-size:14px}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg table tbody tr{transition:background .15s}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg table tbody tr:hover,html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg table tbody tr:hover>td{background:#eef3ff!important}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg table thead th{background:#f1f5fd!important;color:#3d4d70!important}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg input:focus,html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg select:focus,html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg textarea:focus{border-color:#2f5bd2!important;box-shadow:0 0 0 3px rgba(47,91,210,.15)!important;background:#fff!important}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg input:not([type=checkbox]):not([type=radio]),html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg select,html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg textarea{background:#f7f9fe!important;border-color:#d8e1f2!important}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg .modal-f .btn:not(.primary){background:#fff!important;border-color:#d3ddf1!important}
+@media (prefers-reduced-motion:no-preference){html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg .modal-b{animation:gsRise .4s cubic-bezier(.2,.7,.2,1) both}}
 </style>
 
 </head>
@@ -19048,7 +19064,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261116-130946';
+const APP_BUILD = 'build-20261116-131408';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
