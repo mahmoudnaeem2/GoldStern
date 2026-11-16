@@ -4060,6 +4060,19 @@ html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg .moda
 :root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body main.content .card>.card-h h2{color:#233157!important}
 :root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body main.content .card>.card-b{padding:20px 22px!important}
 :root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body main.content .card.card.card:has(>.card-h){padding:0!important;padding-inline:0!important}
+/* ===== DRILL-DOWN HOVER ===== */
+:root:root body .zf-dr{cursor:pointer;transition:background .15s,filter .15s,transform .15s}
+:root:root body tr.zf-dr:hover,:root:root body tr.zf-dr:hover>td{background:#eef3ff!important}
+:root:root body th.zf-dr:hover,:root:root body td.zf-dr:hover{background:#eef3ff!important;color:#2446a8}
+:root:root body .zf-bg.zf-dr:hover{background:rgba(47,91,210,.08);border-radius:10px}
+:root:root body i.zf-dr:hover{filter:brightness(1.1) saturate(1.2);transform:scaleX(1.06)}
+:root:root body .zf-top>div.zf-dr:hover{background:#eef3ff;border-radius:8px}
+/* ===== CLICKABLE KPI TILES ===== */
+:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body main.content .xp-k,:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body main.content .xp-hero,:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body main.content .card.stat,:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body main.content .rc .kpis>div{cursor:pointer;transition:transform .15s,box-shadow .15s}
+:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body main.content .xp-k:hover,:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body main.content .xp-hero:hover,:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body main.content .rc .kpis>div:hover{transform:translateY(-2px);box-shadow:0 16px 30px -20px rgba(30,60,130,.55)!important}
+:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body .card.stat.on{outline:2px solid #2f5bd2;outline-offset:-2px}
+@keyframes kflashA{0%{box-shadow:0 0 0 0 rgba(47,91,210,.55)}100%{box-shadow:0 0 0 14px rgba(47,91,210,0)}}
+:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body .kflash{animation:kflashA 1.2s ease-out!important;border-radius:16px}
 </style>
 
 </head>
@@ -9364,6 +9377,15 @@ document.addEventListener('click', e => {
     }
   }
 }, true);
+document.addEventListener('click', e => { const d = e.target.closest('[data-drill],.zf-dr[data-href]'); if (!d || e.target.closest('a,button')) return; CLICK['dash-drill'](d); });
+document.addEventListener('click', e => {
+  const g = e.target.closest('[data-vgrp]'); if (g){ UI.filters.v_grp = UI.filters.v_grp === g.dataset.vgrp ? '' : g.dataset.vgrp; render(); return; }
+  const k = e.target.closest('main.content .xp-k, main.content .xp-hero, main.content .card.stat, main.content .rc .kpis > div');
+  if (!k || e.target.closest('a,button,input,select') || k.dataset.act || k.hasAttribute('onclick') || k.closest('a,button')) return;
+  const all = [...document.querySelectorAll('main.content .tbl-wrap, main.content table, main.content .inv-cards')].filter(x => !k.contains(x) && x.getBoundingClientRect().height > 20);
+  const tgt = all.find(x => x.getBoundingClientRect().top > k.getBoundingClientRect().top) || all[0]; if (!tgt) return;
+  tgt.scrollIntoView({ behavior: 'smooth', block: 'start' }); tgt.classList.remove('kflash'); void tgt.offsetWidth; tgt.classList.add('kflash'); setTimeout(() => tgt.classList.remove('kflash'), 1400);
+});
 document.addEventListener('keydown', e => { if (e.key === 'Escape'){ const o = document.querySelector('.sm-dd.open'); if (o){ o.classList.remove('open'); const b0 = o.querySelector('.sm-btn'); b0.setAttribute('aria-expanded', 'false'); b0.focus(); } } });
 document.addEventListener('click', e => { if (!e.target.closest('.sm-dd')) document.querySelectorAll('.sm-dd.open').forEach(d => { d.classList.remove('open'); d.querySelector('.sm-btn').setAttribute('aria-expanded', 'false'); }); });
 function viewShell(){
@@ -9845,14 +9867,15 @@ function pageAccDash(){
   const prevFrom = `${+fyFrom.slice(0, 4) - 1}${fyFrom.slice(4)}`, prevTo = `${+today.slice(0, 4) - 1}${today.slice(4)}`;
   let prevIs = null; try { prevIs = incomeStatement(prevFrom, prevTo); if (prevIs.revenue.eq(0) && prevIs.cogs.eq(0) && prevIs.opex.eq(0)) prevIs = null; } catch (e){}
   const ie = months.map(x => { try { const r = incomeStatement(x.m + '-01', monthEnd(x.m) > today ? today : monthEnd(x.m)); return { m: x.m, inc: +r.revenue, exp: +r.cogs.plus(r.opex), net: +r.net }; } catch (e){ return { m: x.m, inc: 0, exp: 0, net: 0 }; } });
+  const dr = (kind, from, to) => `data-drill="${kind}" data-from="${from}" data-to="${to}" title="Click to open the details"`;
   const ieMax = Math.max(1, ...ie.flatMap(x => [x.inc, x.exp]));
-  const ieChart = `<div class="zf-bars" role="img" aria-label="Revenue and expenses, last 6 months">${ie.map(x => `<div class="zf-bg"><div class="zf-bp"><i class="inc" style="height:${(x.inc / ieMax * 100).toFixed(1)}%" title="Revenue ${money(x.inc)}"></i><i class="exp" style="height:${(x.exp / ieMax * 100).toFixed(1)}%" title="Expenses ${money(x.exp)}"></i></div></div>`).join('')}</div>
-    <table class="zf-t zf-mt"><thead><tr><th></th>${ie.map(x => `<th class="num">${mlabel(x.m)}</th>`).join('')}</tr></thead><tbody>
-      <tr><td>Revenue</td>${ie.map(x => `<td class="num">${cmp(x.inc)}</td>`).join('')}</tr>
-      <tr><td>Expenses</td>${ie.map(x => `<td class="num">${cmp(x.exp)}</td>`).join('')}</tr>
-      <tr class="tot"><td>Net profit</td>${ie.map(x => `<td class="num ${x.net < 0 ? 'neg' : ''}">${cmp(x.net)}</td>`).join('')}</tr></tbody></table>`;
+  const ieChart = `<div class="zf-bars" role="img" aria-label="Revenue and expenses, last 6 months">${ie.map(x => `<div class="zf-bg zf-dr" ${dr('is', x.m + '-01', monthEnd(x.m) > today ? today : monthEnd(x.m))}><div class="zf-bp"><i class="inc" style="height:${(x.inc / ieMax * 100).toFixed(1)}%" title="Revenue ${money(x.inc)}"></i><i class="exp" style="height:${(x.exp / ieMax * 100).toFixed(1)}%" title="Expenses ${money(x.exp)}"></i></div></div>`).join('')}</div>
+    <table class="zf-t zf-mt"><thead><tr><th></th>${ie.map(x => `<th class="num zf-dr" ${dr('is', x.m + '-01', monthEnd(x.m) > today ? today : monthEnd(x.m))}>${mlabel(x.m)}</th>`).join('')}</tr></thead><tbody>
+      <tr><td>Revenue</td>${ie.map(x => `<td class="num zf-dr" ${dr('is', x.m + '-01', monthEnd(x.m) > today ? today : monthEnd(x.m))}>${cmp(x.inc)}</td>`).join('')}</tr>
+      <tr><td>Expenses</td>${ie.map(x => `<td class="num zf-dr" ${dr('is', x.m + '-01', monthEnd(x.m) > today ? today : monthEnd(x.m))}>${cmp(x.exp)}</td>`).join('')}</tr>
+      <tr class="tot"><td>Net profit</td>${ie.map(x => `<td class="num zf-dr ${x.net < 0 ? 'neg' : ''}" ${dr('is', x.m + '-01', monthEnd(x.m) > today ? today : monthEnd(x.m))}>${cmp(x.net)}</td>`).join('')}</tr></tbody></table>`;
   const gm = ytd.revenue.gt(0) ? +ytd.gross.div(ytd.revenue).mul(100) : 0, nm = ytd.revenue.gt(0) ? +ytd.net.div(ytd.revenue).mul(100) : 0;
-  const pl = (label, now, prev, cls = '') => `<tr class="${cls}"><td>${label}</td><td class="num ${+now < 0 ? 'neg' : ''}">${money(now)}</td><td class="num mut">${ytd.revenue.gt(0) ? (+D(now).div(ytd.revenue).mul(100)).toFixed(1) + '%' : '—'}</td><td class="num mut">${prev == null ? '—' : cmp(+prev)}</td><td class="num">${prev == null ? '' : chgPill(chg(now, prev), cls.includes('cost') ? false : true)}</td></tr>`;
+  const pl = (label, now, prev, cls = '') => `<tr class="${cls} zf-dr" ${dr('is', fyFrom, today)}><td>${label}</td><td class="num ${+now < 0 ? 'neg' : ''}">${money(now)}</td><td class="num mut">${ytd.revenue.gt(0) ? (+D(now).div(ytd.revenue).mul(100)).toFixed(1) + '%' : '—'}</td><td class="num mut">${prev == null ? '—' : cmp(+prev)}</td><td class="num">${prev == null ? '' : chgPill(chg(now, prev), cls.includes('cost') ? false : true)}</td></tr>`;
   const plTable = `<table class="zf-t"><thead><tr><th></th><th class="num">FY to date</th><th class="num">% rev</th><th class="num">Last year</th><th class="num">Change</th></tr></thead><tbody>
     ${pl('Revenue', ytd.revenue, prevIs && prevIs.revenue)}${pl('Cost of sales', ytd.cogs, prevIs && prevIs.cogs, 'cost')}${pl('Gross profit', ytd.gross, prevIs && prevIs.gross, 'tot')}${pl('Operating expenses', ytd.opex, prevIs && prevIs.opex, 'cost')}${pl('Operating profit', ytd.operating, prevIs && prevIs.operating, 'tot')}${pl('Other (FX, assets)', ytd.other, prevIs && prevIs.other)}${pl('Net profit', ytd.net, prevIs && prevIs.net, 'tot big')}</tbody></table>`;
   /* cash outlook: next 8 weeks of collections and payments by due date */
@@ -9862,19 +9885,19 @@ function pageAccDash(){
   for (const i of ap.open) outW[wk(i.dueDate || i.date)] += +(invState(i).egpOpen || 0);
   let run = +cash; const balW = inW.map((v, k) => (run += v - outW[k]));
   const owMax = Math.max(1, ...inW, ...outW);
-  const outlook = `<div class="zf-bars zf-ow">${inW.map((v, k) => `<div class="zf-bg"><div class="zf-bp"><i class="inc" style="height:${(v / owMax * 100).toFixed(1)}%" title="Collections ${money(v)}"></i><i class="exp" style="height:${(outW[k] / owMax * 100).toFixed(1)}%" title="Payments ${money(outW[k])}"></i></div></div>`).join('')}</div>
+  const outlook = `<div class="zf-bars zf-ow">${inW.map((v, k) => `<div class="zf-bg"><div class="zf-bp"><i class="inc zf-dr" data-href="#/ar/aging" title="Open receivables aging" style="height:${(v / owMax * 100).toFixed(1)}%" title="Collections ${money(v)}"></i><i class="exp zf-dr" data-href="#/ap/aging" title="Open payables aging" style="height:${(outW[k] / owMax * 100).toFixed(1)}%" title="Payments ${money(outW[k])}"></i></div></div>`).join('')}</div>
     <table class="zf-t zf-mt"><thead><tr><th></th>${inW.map((_, k) => `<th class="num">${k === 0 ? 'Now–' + dsh(addDays(today, 7)) : dsh(addDays(today, 7 * k + 1))}</th>`).join('')}</tr></thead><tbody>
-      <tr><td>Collections (customers)</td>${inW.map(v => `<td class="num">${cmp(v)}</td>`).join('')}</tr>
-      <tr><td>Payments (vendors)</td>${outW.map(v => `<td class="num">${cmp(-v)}</td>`).join('')}</tr>
-      <tr class="tot"><td>Projected cash</td>${balW.map(v => `<td class="num ${v < 0 ? 'neg' : ''}">${cmp(v)}</td>`).join('')}</tr></tbody></table>`;
+      <tr class="zf-dr" data-href="#/ar/aging"><td>Collections (customers)</td>${inW.map(v => `<td class="num">${cmp(v)}</td>`).join('')}</tr>
+      <tr class="zf-dr" data-href="#/ap/aging"><td>Payments (vendors)</td>${outW.map(v => `<td class="num">${cmp(-v)}</td>`).join('')}</tr>
+      <tr class="tot zf-dr" data-href="#/bank/accounts"><td>Projected cash</td>${balW.map(v => `<td class="num ${v < 0 ? 'neg' : ''}">${cmp(v)}</td>`).join('')}</tr></tbody></table>`;
   const agColors = ['#3b82c4', '#e8b04a', '#e8923a', '#d9633b', '#b83227'];
   const agCard = (title, side, o, href) => { const a = aging(side, today) || { list: [], tot: [] }, tot = a.tot.map(Number), sum = tot.reduce((x, y) => x + y, 0), top = [...a.list].sort((x, y) => +y.total - +x.total).slice(0, 3);
     return `<section class="zf-card"><div class="zf-ch"><h2>${title}</h2><a href="${href}">Aging report</a></div>
-      <div class="zf-agbar">${tot.map((n, i) => n ? `<i style="flex:${n};background:${agColors[i]}" title="${BUCKETS[i]}: ${money(n)}"></i>` : '').join('') || '<i style="flex:1;background:var(--zl)"></i>'}</div>
-      <table class="zf-t"><thead><tr>${BUCKETS.map((l, i) => `<th class="num"><i class="zf-dot" style="background:${agColors[i]}"></i>${l}</th>`).join('')}</tr></thead><tbody><tr>${tot.map(n => `<td class="num">${cmp(n)}</td>`).join('')}</tr></tbody></table>
-      <div class="zf-top"><span>Largest balances</span>${top.map(r => `<div><b>${esc(r.partner ? (r.partner.commercialName || r.partner.legalName || r.partner.code) : '?')}</b><em>${sum ? (+r.total / sum * 100).toFixed(0) : 0}%</em><span class="num">${money(r.total)}</span></div>`).join('') || '<div><em>No open balances.</em></div>'}</div></section>`; };
+      <div class="zf-agbar">${tot.map((n, i) => n ? `<i class="zf-dr" data-href="${href}" style="flex:${n};background:${agColors[i]}" title="${BUCKETS[i]}: ${money(n)}"></i>` : '').join('') || '<i style="flex:1;background:var(--zl)"></i>'}</div>
+      <table class="zf-t"><thead><tr>${BUCKETS.map((l, i) => `<th class="num"><i class="zf-dot" style="background:${agColors[i]}"></i>${l}</th>`).join('')}</tr></thead><tbody><tr class="zf-dr" data-href="${href}">${tot.map(n => `<td class="num">${cmp(n)}</td>`).join('')}</tr></tbody></table>
+      <div class="zf-top"><span>Largest balances</span>${top.map(r => `<div class="zf-dr" ${r.partner ? `data-href="#/partners/statement?side=${side}&id=${r.partner.id}"` : ''}><b>${esc(r.partner ? (r.partner.commercialName || r.partner.legalName || r.partner.code) : '?')}</b><em>${sum ? (+r.total / sum * 100).toFixed(0) : 0}%</em><span class="num">${money(r.total)}</span></div>`).join('') || '<div><em>No open balances.</em></div>'}</div></section>`; };
   const bs = balanceSheet(today);
-  const bsRow = (l, v, cls = '') => `<tr class="${cls}"><td>${l}</td><td class="num ${+v < 0 ? 'neg' : ''}">${money(v)}</td></tr>`;
+  const bsRow = (l, v, cls = '') => `<tr class="${cls} zf-dr" ${dr('bs', fyFrom, today)}><td>${l}</td><td class="num ${+v < 0 ? 'neg' : ''}">${money(v)}</td></tr>`;
   const wc = +ar.tot + +cash - +ap.tot;
   const kpi = (label, val, sub, pill, neg, href, icn, tone) => `<a class="zf-k t-${tone || 'ind'}" href="${href}"><span class="zf-kt"><span class="zf-ki">${ic(icn || 'coins', 18)}</span><span class="zf-kl">${label}</span></span><b class="${neg ? 'neg' : ''}">${val}</b><span class="zf-ks">${sub}${pill || ''}</span></a>`;
   const hrNow = +new Date().toLocaleString('en-GB', { hour: '2-digit', hour12: false, timeZone: 'Africa/Cairo' });
@@ -11565,7 +11588,7 @@ function pageVehicles(){
   const cnt = g => S.vehicles.filter(v => vStatus(v.status).group === g).length;
   return H(t('vehicle_list'), 'Every vehicle has a unique internal ID, a unique VIN, its own analytic account and a full status history.',
     can('vehicles', 'create') ? '<button class="btn primary" data-act="veh-new">Register vehicle</button>' : '') + `
-    <div class="grid g4">${Object.entries(VSTATUS_GROUPS).map(([g, l]) => `<div class="card stat"><div class="k">${esc(l)}</div><div class="v">${cnt(g)}</div></div>`).join('')}</div>
+    <div class="grid g4">${Object.entries(VSTATUS_GROUPS).map(([g, l]) => `<div class="card stat zf-dr${F.v_grp === g ? ' on' : ''}" data-vgrp="${g}" title="Click to filter the list"><div class="k">${esc(l)}</div><div class="v">${cnt(g)}</div></div>`).join('')}</div>
     <div class="card"><div class="filters"><input class="input" data-filter="v_q" placeholder="ID, VIN, make, model, colour…" value="${esc(F.v_q || '')}">
       <select class="input" data-filter="v_grp"><option value="">All groups</option>${Object.entries(VSTATUS_GROUPS).map(([g, l]) => `<option value="${g}" ${F.v_grp === g ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select>
       <select class="input" data-filter="v_st"><option value="">All statuses</option>${S.vehicleStatuses.map(s => `<option value="${s.code}" ${F.v_st === s.code ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}</select>
@@ -14846,6 +14869,7 @@ const CLICK = {
       ${st.next.length ? `<div class="field"><label>Change status</label><div style="display:flex;gap:6px;flex-wrap:wrap">${st.next.map(n => `<button type="button" class="btn" data-act="veh-status" data-id="${v.id}" data-to="${n}">→ ${esc(vStatus(n).name)}</button>`).join('')}</div></div>` : ''}
       ${can('inventory', 'create') && c.total.gt(0) ? `<div class="field"><label>Adjust value</label><div style="display:flex;gap:6px"><button type="button" class="btn" data-act="veh-wd" data-id="${v.id}">Write down…</button><button type="button" class="btn danger" data-act="veh-wo" data-id="${v.id}">Write off…</button></div></div>` : ''}`,
       footer: '<button type="button" class="btn" data-act="modal-close">Close</button>' }); },
+  'dash-drill'(el){ const d = el.dataset; if (d.href){ location.hash = d.href; return; } UI.fs = Object.assign(UI.fs || {}, d.drill === 'bs' ? { asOf: d.to } : { from: d.from, to: d.to }); location.hash = '#/rep/statements?s=' + d.drill; },
   'hist-back'(){ const ret = PAGE_RETURN[location.hash]; delete PAGE_RETURN[location.hash]; GOING_BACK = true;
     if (history.length > 1) history.back(); else location.hash = '#/veh/list';
     if (ret) setTimeout(() => { try { ret.reopen(); } catch (e){} }, 80); },
@@ -19139,7 +19163,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261116-155041';
+const APP_BUILD = 'build-20261116-155655';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
