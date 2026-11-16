@@ -15999,7 +15999,7 @@ function importOrderForm(kind = 'customer'){
       f('Supplier *', combo('supplierName', partnerOpts('ap'), lastSup ? lastSup.legalName : '', 'Pick or type a new supplier name', 'supplier'), 'span2') +
       f('Order date', `<input class="input" type="date" name="date" value="${todayCairo()}">`) +
       f('Supplier currency', `<select class="input" name="currency">${curOpts(cur)}</select>`) +
-      f('Expected price <em>optional</em>', `<input class="input mono" name="estPrice" inputmode="decimal" placeholder="Expected purchase price, in the supplier currency">`), 'invoices')
+      f('Purchase price <em>optional</em>', `<input class="input mono" name="estPrice" inputmode="decimal" placeholder="Purchase price, in the supplier currency">`), 'invoices')
     : card('Supplier & price', kind === 'stock' ? 'Bought for stock — you choose the buyer when you sell.' : '',
       f('Supplier *', combo('supplierName', partnerOpts('ap'), lastSup ? lastSup.legalName : '', 'Pick or type a new supplier name', 'supplier'), 'span2') +
       f('Order date', `<input class="input" type="date" name="date" value="${todayCairo()}">`) +
@@ -17128,7 +17128,7 @@ function printCarReport(po){
       <div class="r"><span>Supplier bill${billed ? ` <span class="m">· ${esc(supInv.number)}</span>` : ''}</span><b>${billed ? `${money(supBillFc)} ${pCur}` : draftBill ? `<span class="tag warn">Draft ${money(draftBill.total)} ${pCur}</span>` : '<span class="tag warn">Not billed yet</span>'}</b></div>
       <div class="r"><span>Paid</span><b>${money(paidFc)} ${pCur}${pCur !== 'EGP' ? ` <span class="m">= ${money(tOut.egp)} EGP</span>` : ''}</b></div>
       ${pCur !== 'EGP' ? `<div class="r"><span>Rate</span><b>${billed && supInv.entryId && entryById(supInv.entryId) && entryById(supInv.entryId).rate ? fmtNum(entryById(supInv.entryId).rate, 4) + ' <span class="m">bill</span>' : tr ? fmtNum(tr.rate, 4) + ' <span class="m">avg of transfers</span>' : po.rate ? fmtNum(po.rate, 4) + ' <span class="m">order</span>' : '—'}</b></div>` : ''}
-      ${!billed && !draftBill && estP ? `<div class="r"><span>Expected price <span class="m">· entered on the order</span></span><b>${money(estP)} ${pCur}</b></div>` : ''}
+      ${!billed && !draftBill && estP ? `<div class="r"><span>Purchase price <span class="m">· entered on the order</span></span><b>${money(estP)} ${pCur}</b></div>` : ''}
       <div class="r tot"><span>${billed ? 'Balance due' : 'Still to pay'}${!billed && (draftBill || estP) ? ' <span class="m">· expected</span>' : ''}</span>${billed ? `<b class="${supDue.gt(0) ? 'bad' : 'ok'}">${supDue.gt(0) ? `${money(supDue)} ${pCur}` : 'Fully paid'}</b>` : (draftBill || estP) ? (() => { const rm = D(draftBill ? draftBill.total : estP).minus(paidFc); return `<b class="${rm.gt(0) ? 'bad' : 'ok'}">${rm.gt(0) ? `${money(rm)} ${pCur}` : 'Fully covered'}</b>`; })() : '<b>—</b>'}</div>
     </div>
   </div>
@@ -18633,7 +18633,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261114-202525';
+const APP_BUILD = 'build-20261116-061010';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
