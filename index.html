@@ -4013,6 +4013,29 @@ html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg .moda
 :root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body .btn[data-act="car-reopen"]:hover{background:#eadffe!important;transform:translateY(-1px);box-shadow:0 6px 14px -8px #6232c2!important}
 :root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body .btn[data-act="car-report-pdf"]{background:#effafa!important;border-color:#bfe6e6!important;color:#0f766e!important;font-weight:600}
 :root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body .btn[data-act="car-report-pdf"]:hover{background:#dcf3f3!important;transform:translateY(-1px);box-shadow:0 6px 14px -8px #0f766e!important}
+/* ===== RECORD VIEW (vehicle etc.) LIVELY ===== */
+:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body .rec-top{background:linear-gradient(135deg,#fff 0,#f3f7ff 100%)!important;border:1px solid #dfe7f6;border-radius:18px;padding:20px 24px;box-shadow:0 14px 30px -22px rgba(30,60,130,.4);position:relative;overflow:hidden}
+:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body .rec-top::before{content:"";position:absolute;inset-block:0;inset-inline-start:0;width:5px;background:linear-gradient(180deg,#c89b3c,#2f5bd2 60%,#7c4ddb)}
+:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body .rec-ic{background:linear-gradient(135deg,#2f5bd2,#6a8cf0)!important;color:#fff!important;border:0!important;width:54px!important;height:54px!important;border-radius:16px!important;box-shadow:0 10px 20px -10px rgba(47,91,210,.7)!important}
+:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body .rec-title h2{font-size:30px!important;font-weight:700!important;color:#14213f}
+:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body .rec-path{display:flex;gap:6px;margin:0 0 20px;padding:0;list-style:none;justify-content:flex-end}
+:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body .rec-path li{background:#eef2fb!important;color:#7b89a8!important;border:1px solid #e0e7f5!important;border-radius:999px!important;padding:9px 22px!important;font-weight:600;clip-path:none!important}
+:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body .rec-path li.past{background:#e3f7ec!important;color:#15803d!important;border-color:#b7ebcc!important}
+:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body .rec-path li.past::before{content:"\2713\00a0"}
+:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body .rec-path li.cur{background:linear-gradient(135deg,#2f5bd2,#5b82ee)!important;color:#fff!important;border-color:transparent!important;box-shadow:0 8px 18px -8px rgba(47,91,210,.8)}
+:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body .rec .rc{background:#fff!important;border:1px solid #e1e8f6!important;border-radius:16px!important;box-shadow:0 12px 26px -22px rgba(30,60,130,.45)!important;overflow:hidden}
+:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body .rec .rc>header{background:linear-gradient(180deg,#f7f9ff,#f1f5fd)!important;border-bottom:1px solid #e4eaf7!important;padding:14px 20px!important;margin:-18px -20px 16px!important}
+:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body .rec .rc>header h3{color:#233157!important;font-weight:700}
+:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body .rec .rc .kpis>div:nth-child(1){background:#eef3ff}
+:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body .rec .rc .kpis>div:nth-child(2){background:#fff7e6}
+:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body .rec .rc .kpis>div:nth-child(3){background:#ecfdf3}
+:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body .rec .rc .kpis>div:nth-child(4){background:#f4efff}
+:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body .rec .rc .kpis>div{border-radius:12px!important;padding:14px 18px!important;border:0!important;box-shadow:none!important}
+:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body .rec .rc .kpis{gap:12px;padding:0!important;border:0!important}
+:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body .rec .rc-big{color:#2446a8!important;font-weight:700}
+:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body .rec .btn:not(.gold):not(.primary):not([data-act]){background:#fff!important}
+:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body .rec-actions .btn[data-act="cx-new"]{background:#eef3ff!important;border-color:#c7d6fa!important;color:#2446a8!important;font-weight:600}
+:root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body .rec-actions .btn[data-act="veh-edit"]{background:#fff7e6!important;border-color:#f6dca0!important;color:#9a6200!important;font-weight:600}
 </style>
 
 </head>
@@ -19092,7 +19115,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261116-154120';
+const APP_BUILD = 'build-20261116-154516';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
