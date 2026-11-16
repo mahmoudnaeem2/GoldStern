@@ -3771,6 +3771,28 @@ html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-b.mf-car
 html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-b:not(.mf-card){margin-top:0!important;padding-top:24px}
 html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-h{padding-bottom:18px!important}
 html:not([data-theme="dark"]):not([data-route="dashboard"]) body table:has(thead th:first-child input[type=checkbox]) td:nth-child(2){white-space:nowrap}
+
+/* ===== EYE-COMFORT PASS ===== */
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .sm-btn .car{font-size:9px;margin-inline-start:4px;flex:none;overflow:visible}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .sm-btn,html:not([data-theme="dark"]):not([data-route="dashboard"]) body .subnav>a{overflow:visible!important;white-space:nowrap}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .kpi:before{width:0!important}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .kpi{border:1px solid #e4e9f2!important;border-radius:16px!important;padding:18px 20px!important;box-shadow:0 1px 3px rgba(12,26,48,.05)}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .kpi .l{font-size:13px;color:#5a6984}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .kpi .v{font-size:24px;font-family:var(--display);letter-spacing:-.03em}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body input::placeholder,html:not([data-theme="dark"]):not([data-route="dashboard"]) body textarea::placeholder{color:#7a869c!important;opacity:1}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .kpi .btn:not(.primary):not(.gold){border-color:#d5dce8!important;color:#364561!important;background:#fff!important}
+
+/* ===== CALM KPI CARDS (non-dashboard) ===== */
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .zf-k[class*="t-"]{background:#fff!important;border:1px solid #e4e9f2!important;border-radius:16px!important;box-shadow:0 1px 3px rgba(12,26,48,.05)!important;padding:18px 20px!important}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .zf-k[class*="t-"]:hover{border-color:#c9d3e6!important;transform:none!important}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .zf-k[class*="t-"] .zf-ki{background:#eef1f6!important;color:#364561!important;box-shadow:none!important;border-radius:10px}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .zf-k[class*="t-"] .zf-kl{color:#5a6984!important;font-weight:500!important;font-size:13px!important}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .zf-k[class*="t-"] b{font-family:var(--display);font-size:26px!important;letter-spacing:-.03em;color:#0c1a30}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .zf-k[class*="t-"] b.neg{color:#b42318}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .inv-card{border:1px solid #e4e9f2!important;border-radius:16px!important;box-shadow:0 1px 3px rgba(12,26,48,.05)!important;padding:20px 22px!important}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .inv-card .t .ic{color:#5a6984!important}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .inv-card .btn{border-color:#d5dce8!important;color:#364561!important;background:#fff!important}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .sm-btn .car{display:inline-block;width:auto;margin-inline-start:2px;line-height:1;overflow:visible}
 </style>
 
 </head>
@@ -18849,7 +18871,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261116-095657';
+const APP_BUILD = 'build-20261116-100329';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
