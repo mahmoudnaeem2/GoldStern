@@ -15144,7 +15144,7 @@ Object.assign(FORM_HANDLERS, {
   reval(f){ UI.reval = { date: f.date, type: f.type, auto: f.auto }; render(); }
 });
 function ccTotal(){ const t = document.getElementById('cc-total'); if (!t) return; let sum = 0; document.querySelectorAll('#cc-lines [name=cc_amount]').forEach(i => { const n = parseFloat(String(i.value).replace(/,/g, '')); if (isFinite(n)) sum += n; }); t.textContent = sum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); const c = document.getElementById('cc-cursel'), o = document.getElementById('cc-cur'); if (o && c) o.textContent = c.value; }
-document.addEventListener('input', e => { if (e.target.closest && e.target.closest('#cc-lines')) ccTotal(); });
+document.addEventListener('input', e => { const t = e.target; if (t.closest && t.closest('#cc-lines')) { if (t.name === 'cc_amount') { const pos = t.selectionStart, before = t.value.length; let v = t.value.replace(/[^0-9.]/g, ''); const p = v.indexOf('.'); if (p >= 0) v = v.slice(0, p + 1) + v.slice(p + 1).replace(/\./g, '').slice(0, 2); const [ip, dp] = v.split('.'); const f = (ip ? ip.replace(/^0+(?=\d)/, '').replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '') + (dp !== undefined ? '.' + dp : ''); if (f !== t.value) { t.value = f; const np = Math.max(0, pos + f.length - before); try { t.setSelectionRange(np, np); } catch (_) {} } } ccTotal(); } });
 document.addEventListener('change', e => { if (e.target.id === 'cc-cursel') ccTotal(); });
 Object.assign(CLICK, {
   'bank-new'(){ openModal({ title: 'New bank / cash account', wide: true, body: bankForm({}), onSubmit: f => A.saveBank(null, f) }); },
@@ -18849,7 +18849,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261116-095340';
+const APP_BUILD = 'build-20261116-095657';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
