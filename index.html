@@ -3640,19 +3640,6 @@ html body table thead th{background:#fafbfc!important;color:#667085!important;fo
 html body tbody tr{transition:background .12s}
 html body tbody tr:hover td{background:#fafbfc}
 html body td{border-bottom-color:#eef0f3!important}
-/* dashboard */
-html body .zh-hello{background:transparent!important;border:0!important;box-shadow:none!important;padding:6px 0 4px!important}
-html body .zh-hi-ic{display:none!important}
-html body .zh-hello h1{font-size:28px!important;font-weight:700!important;letter-spacing:-.03em!important}
-html body .zh-hello p{color:var(--muted)!important;font-size:14.5px!important}
-html body .zh-chips span{background:transparent!important;border:0!important;padding:0 14px 0 0!important;color:var(--muted)!important}
-html body .zf-kpis .zf-k{background:#fff!important;border:1px solid var(--border)!important;border-inline-start:3px solid var(--ka,#a8642f)!important;border-radius:14px!important;box-shadow:0 1px 2px rgba(16,24,40,.03)!important;transition:transform .15s,box-shadow .15s}
-html body .zf-kpis .zf-k:hover{transform:translateY(-1px);box-shadow:0 8px 20px -10px rgba(16,24,40,.18)!important}
-html body .zf-kpis .zf-k .zf-ki{background:transparent!important;color:var(--ka,#a8642f)!important;box-shadow:none!important;width:auto!important;height:auto!important}
-html body .zf-kpis .zf-k .zf-kl{color:#667085!important;font-weight:500!important}
-html body .zf-kpis .zf-k b{font-size:28px!important;letter-spacing:-.03em!important;font-weight:700!important}
-html body .zf-kpis .zf-k.t-ind,html body .zf-kpis .zf-k.t-teal,html body .zf-kpis .zf-k.t-amber,html body .zf-kpis .zf-k.t-blue,html body .zf-kpis .zf-k.t-violet,html body .zf-kpis .zf-k.t-green{background:#fff!important;border-color:var(--border)!important}
-html body .zf-kpis .zf-k.t-ind{--ka:#4f5bd5}html body .zf-kpis .zf-k.t-teal{--ka:#0f9d8a}html body .zf-kpis .zf-k.t-amber{--ka:#d98a12}html body .zf-kpis .zf-k.t-blue{--ka:#2f7fe0}html body .zf-kpis .zf-k.t-violet{--ka:#7c5cd6}html body .zf-kpis .zf-k.t-green{--ka:#12a150}
 /* buttons */
 html body .btn{border-radius:10px!important;min-height:38px!important;border:1px solid var(--border-2)!important;box-shadow:0 1px 1px rgba(16,24,40,.04)!important;font-weight:600!important}
 html body .btn:hover{border-color:#b9c0cc!important;background:#fafbfc}
@@ -3682,8 +3669,6 @@ html body .cc-chip:hover{border-color:var(--cu);color:var(--cu)}
 html body .badge{border-radius:999px!important;font-weight:600!important;padding:2px 10px!important}
 /* thin scrollbars */
 *{scrollbar-width:thin;scrollbar-color:#cdd2db transparent}
-@media (prefers-reduced-motion:reduce){html body .zf-kpis .zf-k,html body .btn,html body .input{transition:none!important}}
-html body .zf-kpis .zf-k.t-ind,html body .zf-kpis .zf-k.t-teal,html body .zf-kpis .zf-k.t-amber,html body .zf-kpis .zf-k.t-blue,html body .zf-kpis .zf-k.t-violet,html body .zf-kpis .zf-k.t-green{border-inline-start-color:var(--ka)!important}
 </style>
 
 </head>
@@ -18761,7 +18746,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261116-062604';
+const APP_BUILD = 'build-20261116-062655';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
