@@ -3793,6 +3793,16 @@ html:not([data-theme="dark"]):not([data-route="dashboard"]) body .inv-card{borde
 html:not([data-theme="dark"]):not([data-route="dashboard"]) body .inv-card .t .ic{color:#5a6984!important}
 html:not([data-theme="dark"]):not([data-route="dashboard"]) body .inv-card .btn{border-color:#d5dce8!important;color:#364561!important;background:#fff!important}
 html:not([data-theme="dark"]):not([data-route="dashboard"]) body .sm-btn .car{display:inline-block;width:auto;margin-inline-start:2px;line-height:1;overflow:visible}
+
+/* ===== FINAL TOUCHES ===== */
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .subnav .sm-btn{padding-right:30px!important;position:relative}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .subnav .sm-btn::before{right:11px!important}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .inv-cards .inv-card>a.btn,html:not([data-theme="dark"]):not([data-route="dashboard"]) body .inv-cards .inv-card>.btn{background:#fff!important;border:1px solid #d5dce8!important;color:#364561!important;box-shadow:none!important}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .inv-cards .inv-card>a.btn:hover{background:#f7f9fc!important}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .inv-cards .inv-card .t{color:#0c1a30!important}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .inv-cards .inv-card .t .ic{color:#5a6984!important}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .inv-cards>.inv-card,html:not([data-theme="dark"]):not([data-route="dashboard"]) body .xp-kpis>.xp-k,html:not([data-theme="dark"]):not([data-route="dashboard"]) body .xp-kpis>.xp-hero{background:#fff!important;border:1px solid #e4e9f2!important;box-shadow:0 1px 3px rgba(12,26,48,.05)!important}
+html:not([data-theme="dark"]):not([data-route="dashboard"]) body .xp-kpis .xp-kl{color:#5a6984!important}
 </style>
 
 </head>
@@ -18871,7 +18881,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261116-100329';
+const APP_BUILD = 'build-20261116-100500';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
