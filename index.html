@@ -2579,7 +2579,8 @@ html[data-theme="dark"] tbody tr:hover td { background:rgba(255,255,255,0.03)!im
 
 /* Inline Field Validation */
 .input.bad-in, select.bad-in, textarea.bad-in { border-color:var(--bad)!important; box-shadow:0 0 0 3px rgba(220,38,38,0.14)!important; }
-.field-err-msg { color:var(--bad); font-size:11.5px; font-weight:500; margin-top:3px; display:block; }
+.field-err-msg { color:var(--bad); font-size:11.5px; font-weight:500; margin-top:3px; display:block; flex:0 0 100%; width:100%; }
+.field:has(>.field-err-msg){ flex-wrap:wrap; }
 
 /* Top Bar Favorites & Theme/Pin Controls */
 .top-icon-btn { display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--text-2); cursor:pointer; transition:all .15s; }
@@ -3421,7 +3422,7 @@ html body .xp-kpis .xp-tag{background:var(--surface-2)!important;color:var(--mut
 html body .xp-kpis b.neg{color:var(--bad)!important}
 html body .inv-cards>.inv-card{background:var(--surface)!important;border:1px solid var(--border)!important;border-inline-start:4px solid var(--k3)!important;border-radius:10px!important;box-shadow:none!important}
 html body .inv-cards .inv-card .t{color:var(--muted)!important;font-weight:500}
-.att header{display:flex;justify-content:space-between;align-items:center;gap:8px}.att-list{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}.att-list li{display:flex;align-items:center;gap:10px;border:1px solid var(--border);border-radius:8px;padding:8px 10px}.att-nm{flex:1;min-width:0;display:flex;flex-direction:column}.att-nm b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.att-nm .muted{font-size:11.5px}.att-ic{color:var(--muted);display:inline-flex}.att-add{cursor:pointer}.imp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:14px}.imp-cols{display:flex;flex-wrap:wrap;gap:4px;margin:0}.imp-cols span{font-size:11.5px;background:var(--surface-2);border:1px solid var(--border);border-radius:999px;padding:2px 8px;color:var(--muted)}.imp-cols .req{color:var(--text);font-weight:600}
+.att header{display:flex;justify-content:space-between;align-items:center;gap:8px}.att-list{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}.att-list li{display:flex;align-items:center;gap:10px;border:1px solid var(--border);border-radius:8px;padding:8px 10px}.att-nm{flex:1;min-width:0;display:flex;flex-direction:column}.att-nm b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.att-nm .muted{font-size:11.5px}.att-ic{color:var(--muted);display:inline-flex}.att-add{cursor:pointer}.mh-actions{margin-inline-start:auto;display:flex;gap:8px;align-items:center}.imp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:14px}.imp-cols{display:flex;flex-wrap:wrap;gap:4px;margin:0}.imp-cols span{font-size:11.5px;background:var(--surface-2);border:1px solid var(--border);border-radius:999px;padding:2px 8px;color:var(--muted)}.imp-cols .req{color:var(--text);font-weight:600}
 /* sign-in / first-run setup: one centred card — navy logo band on top, form below, soft light page */
 html body .auth{display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:0;min-height:100vh;padding:32px 16px;background:radial-gradient(700px 380px at 50% 0,rgba(63,95,224,.10),transparent 70%),#F3F5FA!important}
 html body .auth-art{width:100%;max-width:480px;box-sizing:border-box;background:linear-gradient(160deg,#1a2a46,var(--midnight,#0F1B2D))!important;border-radius:16px 16px 0 0;padding:30px 24px 26px!important;display:flex;align-items:center;justify-content:center;min-height:0;overflow:hidden}
@@ -8447,7 +8448,7 @@ function goBack(){
   const prev = SCREEN_STACK.pop(); closeModal(); LAST_CLOSED_AT = 0;
   if (prev){ REOPENING = true; try { prev.reopen(); } catch (e){ SCREEN_STACK = []; } finally { REOPENING = false; } }
 }
-function openModal({ title, body, submit = 'Save', wide = false, xwide = false, onSubmit, danger = false, formAttrs = '', footer = '', screen = null, onLeave = null }){
+function openModal({ title, body, submit = 'Save', wide = false, xwide = false, onSubmit, danger = false, formAttrs = '', footer = '', screen = null, onLeave = null, headActions = '' }){
   const prevScreen = SCREEN || (Date.now() - LAST_CLOSED_AT < 300 ? LAST_SCREEN : null);
   if (!REOPENING && prevScreen && (!screen || prevScreen.key !== screen.key)){ const top = SCREEN_STACK[SCREEN_STACK.length - 1]; if (!top || top.key !== prevScreen.key) SCREEN_STACK.push(prevScreen); }
   if (screen && SCREEN_STACK.length && SCREEN_STACK[SCREEN_STACK.length - 1].key === screen.key) SCREEN_STACK.pop();
@@ -8460,7 +8461,7 @@ function openModal({ title, body, submit = 'Save', wide = false, xwide = false, 
   document.getElementById('modal-root').innerHTML = `
     <div class="modal-bg"><div class="modal ${wide ? 'wide' : ''} ${xwide ? 'xwide' : ''}" role="main" aria-label="${esc(title)}">
       <form id="mform" autocomplete="off" ${formAttrs}>
-        <div class="modal-h"><button type="button" class="back" data-act="modal-close" aria-label="Back" title="Back">${ic('back', 16)}<span class="back-tx">Back</span></button><nav class="mh-crumbs" aria-label="Breadcrumb">${mhParent ? `<button type="button" class="mh-parent" data-act="modal-close">${esc(mhParent)}</button><span class="mh-sep" aria-hidden="true">${ic('chev', 14)}</span>` : ''}<h3>${mhTitle(title)}</h3></nav></div>
+        <div class="modal-h"><button type="button" class="back" data-act="modal-close" aria-label="Back" title="Back">${ic('back', 16)}<span class="back-tx">Back</span></button><nav class="mh-crumbs" aria-label="Breadcrumb">${mhParent ? `<button type="button" class="mh-parent" data-act="modal-close">${esc(mhParent)}</button><span class="mh-sep" aria-hidden="true">${ic('chev', 14)}</span>` : ''}<h3>${mhTitle(title)}</h3></nav>${headActions ? `<div class="mh-actions">${headActions}</div>` : ''}</div>
         <div class="modal-b${formCard ? ' mf-card' : ''}"><div class="note bad form-err" id="mform-err"></div>${formCard ? `<header class="mf-head"><span class="co-step">${ic(formIcon(title), 18)}</span><div class="co-ht"><h3>${esc(title)}</h3><p>${onSubmit ? 'Fields marked * are required.' : ''}</p></div></header>` : ''}${body}</div>
         ${onSubmit ? `<div class="modal-f">${footer || ''}<button type="button" class="btn" data-act="modal-close">${t('cancel')}</button><button class="btn ${danger ? 'danger' : 'primary'}" type="submit">${esc(submit)}</button></div>` : (footer ? `<div class="modal-f">${footer}</div>` : '')}
       </form></div></div>`;
@@ -17307,7 +17308,6 @@ function poView(po){
 
   const acts = !shut && closed ? [v && can('vehicles', 'edit') ? `<button type="button" class="btn primary" data-act="car-close" data-id="${v.id}" data-po="${po.id}">Close car</button>` : ''] : shut ? [(nextStepButtons(po, false).match(/<button[^>]*data-act="io-pay"[\s\S]*?<\/button>/g) || []).join(''), can('vehicles', 'edit') ? `<button type="button" class="btn" data-act="car-reopen" data-id="${v.id}" data-po="${po.id}">Reopen</button>` : ''] : [nextStepButtons(po, false),
     po.customerId && can('ar', 'create') && po.status !== 'cancelled' && !c.sold ? `<button type="button" class="btn" data-act="po-adv" data-side="ar" data-id="${po.id}">${ic('plus', 14)} Customer deposit</button>` : '',
-    v && !shut && can('imports', 'create') ? `<button type="button" class="btn" data-act="cx-new" data-veh="${v.id}" data-po="${po.id}">${ic('plus', 14)} Car expense</button>` : '',
     po.status === 'approved' && can('ap', 'create') && !c.invoiced ? `<button type="button" class="btn" data-act="po-adv" data-side="ap" data-id="${po.id}">${ic('plus', 14)} Supplier advance</button>` : '',
     v && c.sold && !shut && can('vehicles', 'edit') ? `<button type="button" class="btn" data-act="car-close" data-id="${v.id}" data-po="${po.id}">Close car</button>` : '',
     docButtons('po', po, false),
@@ -17343,7 +17343,7 @@ function poView(po){
     return fc.length ? `${fc.join(' + ')} (${money(egp)} EGP)` : `${money(egp)} EGP`;
   };
 
-  openModal({ screen: { key: 'po:' + po.id, reopen: () => { const x = poById(po.id); if (x) poView(x); } }, title: `Purchase order ${po.number}`, xwide: true, body: `
+  openModal({ screen: { key: 'po:' + po.id, reopen: () => { const x = poById(po.id); if (x) poView(x); } }, title: `Purchase order ${po.number}`, xwide: true, headActions: v && !shut && can('imports', 'create') ? `<button type="button" class="btn primary" data-act="cx-new" data-veh="${v.id}" data-po="${po.id}">${ic('plus', 14)} Car expense</button>` : '', body: `
     <div style="display:flex;flex-direction:column;gap:14px">
       <!-- 1. Top Control Bar: Actions on Left, Statusbar on Right -->
       <div class="doc-top" style="margin:0;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
@@ -18633,7 +18633,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261116-061010';
+const APP_BUILD = 'build-20261116-061425';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
@@ -18913,16 +18913,14 @@ function highlightInlineFieldError(form, msg){
   if (!form || !form.querySelectorAll) return;
   const lower = String(msg || '').toLowerCase();
   const candidates = [...form.querySelectorAll('input,select,textarea')].filter(el => el.name && el.type !== 'hidden');
-  let hit = candidates.find(el => el.required && !String(el.value || '').trim());
-  if (!hit){
-    hit = candidates.find(el => {
-      const fld = el.closest('.field');
-      const lbl = fld && fld.querySelector('label') ? fld.querySelector('label').textContent.toLowerCase() : '';
-      return (el.name && lower.includes(el.name.toLowerCase())) ||
-             (lbl && lbl.replace(/[^a-z0-9 ]/g, '').trim().split(/\s+/).some(w => w.length > 3 && lower.includes(w)));
-    });
-  }
-  if (!hit && candidates.length) hit = candidates[0];
+  const words = lower.replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter(w => w.length > 3 && !['enter', 'select', 'choose', 'must', 'please', 'the', 'this', 'that', 'with', 'from', 'for'].includes(w));
+  const labelOf = el => { const fld = el.closest('.field'), l = fld && fld.querySelector('label'); return l ? l.textContent.toLowerCase().replace(/[^a-z0-9 ]/g, ' ') : ''; };
+  const score = el => words.reduce((n, w) => n + (labelOf(el).includes(w) ? 2 : 0) + (el.name && el.name.toLowerCase().includes(w) ? 1 : 0), 0);
+  const ALIAS = { chassis: 'vin', vin: 'vin', brand: 'make', maker: 'make', customer: 'customer', supplier: 'supplier', price: 'price', contracted: 'contract' };
+  const score2 = el => Object.keys(ALIAS).reduce((n, w) => n + (lower.includes(w) && el.name && el.name.toLowerCase().includes(ALIAS[w]) ? 3 : 0), 0);
+  let hit = null, best = 0;
+  candidates.forEach(el => { const sc = score(el) + score2(el) + (el.required && !String(el.value || '').trim() ? 0.5 : 0); if (sc > best){ best = sc; hit = el; } });
+  if (!hit) hit = candidates.find(el => el.required && !String(el.value || '').trim()) || candidates[0];
   if (hit){
     hit.classList.add('bad-in');
     const wrap = hit.closest('.field') || hit.parentElement;
