@@ -7290,12 +7290,14 @@ Object.assign(A, {
       if (S.invoices.some(c => c.type === 'credit' && c.returnVehicleId === vid && c.invoiceId === inv.id && ACTIVE_ST.includes(entryStatus(c)))) throw new AppError('This vehicle has already been returned on this invoice.');
       if (f.physicalReturn !== 'yes') throw new AppError('Confirm the vehicle has physically and legally returned before it goes back to inventory.'); }
     const st = invState(inv), rate = invRate(inv), pl = partnerLabel(partnerById('ar', inv.partnerId)), cur = inv.currency;
+    /* a price concession on a single-car invoice still belongs to that car's profit */
+    const soleVid = (!vid && (inv.vehicleIds || []).length === 1) ? inv.vehicleIds[0] : null;
     const toInv = D(amt).gt(st.open) ? st.open : D(amt), excess = D(amt).minus(toInv);
     const carrying = toInv.gt(0) ? carryingFor(inv, toInv.toFixed(2), st) : D0(), excessEgp = r2(excess.mul(rate));
     const taxPart = inv.tax && D(inv.tax.tax).gt(0) ? r2(D(amt).mul(inv.tax.tax).div(inv.total)) : D0(), basePart = D(amt).minus(taxPart), retEgp = r2(basePart.mul(rate)), taxEgp = r2(taxPart.mul(rate));
     const fcf = (a, d) => cur !== 'EGP' ? { fcCurrency: cur, fcDebit: d ? D(a).toFixed(2) : '0.00', fcCredit: d ? '0.00' : D(a).toFixed(2), fcRate: rate.toFixed() } : {};
     const number = previewNumber(S.sequences.find(s => s.doc === 'customer_credit'), f.date), id = uid('cn');
-    const jl = [{ id: uid('jl'), accountId: getMapping('sales_returns').id, debit: retEgp.toFixed(2), credit: '', ...fcf(basePart, true), taxCode: inv.tax ? inv.tax.code : undefined, costCenter: '', partner: pl, vehicle: vid ? vehById(vid).vin : '', vehicleId: vid, description: `Sales return against ${inv.number}: ${f.reason}` }];
+    const jl = [{ id: uid('jl'), accountId: getMapping('sales_returns').id, debit: retEgp.toFixed(2), credit: '', ...fcf(basePart, true), taxCode: inv.tax ? inv.tax.code : undefined, costCenter: '', partner: pl, vehicle: (vid || soleVid) ? vehById(vid || soleVid).vin : '', vehicleId: vid || soleVid || null, description: `Sales return against ${inv.number}: ${f.reason}` }];
     if (taxPart.gt(0)) jl.push({ id: uid('jl'), accountId: getMapping('output_tax').id, debit: taxEgp.toFixed(2), credit: '', ...fcf(taxPart, true), costCenter: '', partner: pl, vehicle: '', taxCode: inv.tax.code, description: `Output tax reversal ${inv.tax.code}` });
     if (toInv.gt(0)) jl.push(ctlLine('ar', 'c', carrying.toFixed(2), { partner: pl, docId: inv.id, ctlFor: inv.number, description: `Credit ${number} against ${inv.number}`, ...fcf(toInv, false) }));
     if (excess.gt(0)) jl.push({ id: uid('jl'), accountId: getMapping('cust_adv').id, debit: '', credit: excessEgp.toFixed(2), ...fcf(excess, false), costCenter: '', partner: pl, vehicle: '', description: 'Customer credit balance carried forward (refundable)' });
@@ -18881,7 +18883,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261116-100500';
+const APP_BUILD = 'build-20261116-102058';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
