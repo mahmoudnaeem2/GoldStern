@@ -4081,6 +4081,17 @@ html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg .moda
 :root:root body .co-ed .co-vin{max-width:340px}
 :root:root body .co-ed .co-vin .input{height:42px!important;font-size:14.5px!important}
 :root:root body .co-ed .co-grid{gap:18px 22px!important}
+:root:root body .co-ed .co-f .input,:root:root body .co-ed .co-f select.input,:root:root body .co-ed .co-f .combo-input{height:42px!important;font-size:14.5px!important}
+:root:root body .co-ed .co-f:has(input[name=year]){max-width:170px}
+:root:root body .co-ed .co-f:has(input[name=year]) .input{height:38px!important;font-size:14px!important}
+:root:root body .co-ed .co-f:has([name=modelName]) .combo-box{max-width:300px}
+:root:root body .co-ed .co-f .combo-box{height:42px!important;min-height:0!important}
+:root:root body .co-ed .co-f .combo-box .combo-input{height:40px!important;line-height:40px}
+:root:root body .co-ed .co-f:has(input[name=year]) .input{height:42px!important}
+:root:root body .co-ed .co-f .combo-box{height:36px!important}
+:root:root body .co-ed .co-f .combo-box .combo-input{height:34px!important;line-height:34px;font-size:14px!important}
+:root:root body .co-ed .co-f:has(input[name=year]) .input{height:36px!important;font-size:14px!important}
+:root:root body .co-ed .co-vin .input{height:36px!important}
 </style>
 
 </head>
@@ -19171,7 +19182,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261118-094117';
+const APP_BUILD = 'build-20261118-094423';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
