@@ -4073,6 +4073,14 @@ html:not([data-theme="dark"]):not([data-route="dashboard"]) body .modal-bg .moda
 :root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body .card.stat.on{outline:2px solid #2f5bd2;outline-offset:-2px}
 @keyframes kflashA{0%{box-shadow:0 0 0 0 rgba(47,91,210,.55)}100%{box-shadow:0 0 0 14px rgba(47,91,210,0)}}
 :root:root:not([data-theme="dark"]):not([data-route="dashboard"]) body .kflash{animation:kflashA 1.2s ease-out!important;border-radius:16px}
+/* ===== CAR ORDER FORM: wider fields ===== */
+:root:root body .co-ed .co-f{grid-template-columns:minmax(0,1fr)!important;gap:7px!important;align-items:stretch!important}
+:root:root body .co-ed .co-f>span{font-size:13.5px!important}
+:root:root body .co-ed .co-f .input,:root:root body .co-ed .co-f select.input,:root:root body .co-ed .co-f .combo-input{height:48px!important;font-size:15.5px!important;padding-inline:14px!important}
+:root:root body .co-ed .co-f .combo-box{width:100%}
+:root:root body .co-ed .co-vin{max-width:340px}
+:root:root body .co-ed .co-vin .input{height:42px!important;font-size:14.5px!important}
+:root:root body .co-ed .co-grid{gap:18px 22px!important}
 </style>
 
 </head>
@@ -19163,7 +19171,7 @@ document.addEventListener('input', e => { if (e.target.closest && e.target.close
 document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.ex-ed')) exRecalc(); });
 
 /* ---------- New version check: GitHub Pages and the browser can keep serving an older copy for a few minutes ---------- */
-const APP_BUILD = 'build-20261116-155655';
+const APP_BUILD = 'build-20261118-094117';
 function checkForUpdate(){
   if (!/^https?:/.test(location.protocol) || typeof fetch !== 'function') return;
   fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(txt => {
